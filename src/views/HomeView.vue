@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Minimize2, Maximize2, Scissors, Trash2, Split, Layers, Palette, Grid3X3, ArrowRight } from 'lucide-vue-next'
+import AppButton from '../components/common/AppButton.vue'
 
 const toolsGrid = ref<HTMLElement | null>(null)
 
@@ -27,9 +28,9 @@ const tools = [
       <h1>简单、快速、<span class="gradient-text">隐私安全</span></h1>
       <p>所有图片处理均在您的浏览器本地完成，文件永远不会上传到我们的服务器。真正的离线式生产力工具。</p>
       <div class="hero-actions">
-        <button class="btn-primary cursor-pointer" @click="scrollToTools">
+        <AppButton size="lg" @click="scrollToTools" style="font-size: 1.125rem; padding: 1rem 2rem;">
           快速开始 <ArrowRight :size="18" />
-        </button>
+        </AppButton>
       </div>
     </section>
 
@@ -102,41 +103,6 @@ const tools = [
   color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 2.5rem;
-}
-
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 2rem;
-  background: var(--accent-color);
-  color: #FFFFFF;
-  border: none;
-  border-radius: 12px;
-  font-family: var(--font-heading);
-  font-size: 1.125rem;
-  font-weight: 700;
-  transition: all 0.2s;
-  box-shadow: 0 4px 0px #15803d;
-}
-
-[data-theme="light"] .btn-primary {
-  color: #FFFFFF;
-  box-shadow: 0 4px 0px #166534;
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0px #15803d;
-}
-
-[data-theme="light"] .btn-primary:hover {
-  box-shadow: 0 6px 0px #166534;
-}
-
-.btn-primary:active {
-  transform: translateY(2px);
-  box-shadow: 0 0px 0px #15803d;
 }
 
 .tools-grid {

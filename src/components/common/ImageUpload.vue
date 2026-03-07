@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { Upload, Clipboard, Image as ImageIcon, FileImage, MousePointer2 } from 'lucide-vue-next'
+import AppButton from './AppButton.vue'
 
 const emit = defineEmits(['upload'])
 const isDragging = ref(false)
@@ -100,9 +101,9 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <button class="select-button">
+      <AppButton size="lg" @click.stop="triggerSelect">
         选择图片文件
-      </button>
+      </AppButton>
     </div>
 
     <!-- Background Decoration -->
@@ -320,30 +321,6 @@ kbd {
   height: 6px;
   background: var(--accent-color);
   border-radius: 50%;
-}
-
-/* Select Button */
-.select-button {
-  padding: 0.875rem 2.5rem;
-  background: var(--accent-color);
-  color: #FFFFFF;
-  border: none;
-  border-radius: 14px;
-  font-family: var(--font-heading);
-  font-size: 1rem;
-  font-weight: 700;
-  box-shadow: 0 4px 0px #15803d;
-  transition: all 0.2s;
-  cursor: pointer;
-}
-
-[data-theme="light"] .select-button {
-  color: #FFFFFF;
-}
-
-.select-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0px #15803d;
 }
 
 /* Background Pattern */

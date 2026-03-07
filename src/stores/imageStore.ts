@@ -34,7 +34,10 @@ export const useImageStore = defineStore('image', () => {
   const removeImage = (id: string) => {
     const index = images.value.findIndex(img => img.id === id)
     if (index !== -1) {
-      URL.revokeObjectURL(images.value[index].preview)
+      const img = images.value[index]
+      if (img && img.preview) {
+        URL.revokeObjectURL(img.preview)
+      }
       images.value.splice(index, 1)
       selectedIds.value.delete(id)
     }
