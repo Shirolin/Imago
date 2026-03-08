@@ -49,18 +49,18 @@ const handleCompare = (id: string) => {
   }
 }
 
+// 仅仅关闭显示状态，让动画平滑开始
 const closeCompare = () => {
   showCompareModal.value = false
-  // 延迟销毁 URL 以避免界面闪烁
-  setTimeout(() => {
-    if (!showCompareModal.value) {
-      comparingImage.value = null
-      if (processedPreviewUrl.value) {
-        URL.revokeObjectURL(processedPreviewUrl.value)
-        processedPreviewUrl.value = null
-      }
-    }
-  }, 500)
+}
+
+// 核心优化：在动画彻底结束（消失在屏幕外）后再销毁资源
+const handleModalLeave = () => {
+  if (processedPreviewUrl.value) {
+    URL.revokeObjectURL(processedPreviewUrl.value)
+    processedPreviewUrl.value = null
+  }
+  comparingImage.value = null
 }
 
 // 选项配置
@@ -300,10 +300,10 @@ const buttonText = computed(() => {
       </template>
     </WorkspaceLayout>
 
-    <!-- 关键修复：AppModal 的插槽内容已完全语义化，适配亮色模式 -->
     <AppModal 
       :show="showCompareModal" 
       @close="closeCompare"
+      @after-leave="handleModalLeave"
     >
       <template #header>
         <div class="flex items-center gap-3">

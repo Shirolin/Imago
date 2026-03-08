@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { X } from 'lucide-vue-next'
 
 interface Props {
@@ -8,56 +8,46 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'after-leave'])
 
+const dialogRef = ref<HTMLDialogElement | null>(null)
 const contentReady = ref(false)
 
-const toggleScroll = (lock: boolean) => {
-  document.body.style.overflow = lock ? 'hidden' : ''
-}
-
-// 监听开启状态，并在动画结束后加载内容
+// 监听显隐状态，直接操作原生 DOM 开启最高优先级渲染
 watch(() => props.show, (newVal) => {
   if (newVal) {
-    toggleScroll(true)
-    // 延迟一小会儿渲染内部大图，避开动画最高峰
-    setTimeout(() => {
-      contentReady.value = true
-    }, 250)
+    dialogRef.value?.showModal()
+    // 异步加载重型内容，确保弹窗本身先出现
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        contentReady.value = true
+      }, 50)
+    })
   } else {
     contentReady.value = false
-    toggleScroll(false)
+    dialogRef.value?.close()
+    emit('after-leave')
   }
 })
 
 onMounted(() => {
-  if (props.show) toggleScroll(true)
-})
-
-onUnmounted(() => {
-  toggleScroll(false)
+  if (props.show) dialogRef.value?.showModal()
 })
 </script>
 
 <template>
   <Teleport to="body">
-    <Transition
-      enter-active-class="transition duration-200 ease-out"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="transition duration-150 ease-in"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
+    <dialog
+      ref="dialogRef"
+      class="fixed inset-0 w-full h-full max-w-full max-h-full p-0 bg-transparent border-none outline-none backdrop:bg-background/80 backdrop:backdrop-blur-sm m-0 overflow-hidden"
+      @cancel.prevent="emit('close')"
     >
       <div 
-        v-if="show" 
-        class="fixed inset-0 z-[10000] flex flex-col bg-background p-3 md:p-6"
-        style="transform: translateZ(0); backface-visibility: hidden;"
+        class="w-full h-full flex flex-col p-3 md:p-6"
+        style="will-change: opacity; transform: translateZ(0); isolation: isolate;"
       >
-        <!-- 核心容器 -->
-        <div class="flex-1 flex flex-col bg-background shadow-2xl overflow-hidden relative border border-border rounded-xl md:rounded-2xl">
-          
-          <!-- Header: 始终保持简单 -->
+        <div class="flex-1 flex flex-col bg-background shadow-2xl overflow-hidden relative border border-border rounded-2xl">
+          <!-- Header -->
           <header class="h-14 flex items-center justify-between px-4 border-b border-border shrink-0 bg-card">
             <div class="flex items-center gap-3">
               <slot name="header">
@@ -73,20 +63,52 @@ onUnmounted(() => {
             </button>
           </header>
 
-          <!-- Main Content: 仅在 contentReady 后加载重型图片 -->
-          <main class="flex-1 overflow-hidden relative">
-            <div v-if="!contentReady" class="absolute inset-0 flex items-center justify-center bg-muted/5">
-              <div class="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-            </div>
+          <!-- Main Content -->
+          <main class="flex-1 overflow-hidden relative bg-muted/5">
             <slot v-if="contentReady"></slot>
           </main>
 
           <!-- Footer -->
-          <footer v-if="$slots.footer && contentReady" class="h-10 border-t border-border flex items-center justify-center shrink-0 bg-card/30">
+          <footer v-if="$slots.footer && contentReady" class="h-10 border-t border-border flex items-center justify-center shrink-0 bg-card/30 text-muted-foreground">
             <slot name="footer"></slot>
           </footer>
         </div>
       </div>
-    </Transition>
+    </dialog>
   </Teleport>
 </template>
+
+<style scoped>
+/* 原生 Dialog 动画优化 */
+dialog {
+  opacity: 0;
+  transition: opacity 0.2s ease-out, display 0.2s allow-discrete;
+}
+
+dialog[open] {
+  opacity: 1;
+}
+
+/* 针对起始状态的平滑处理 */
+@starting-style {
+  dialog[open] {
+    opacity: 0;
+  }
+}
+
+/* 遮罩层动画 */
+dialog::backdrop {
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+
+dialog[open]::backdrop {
+  opacity: 1;
+}
+
+@starting-style {
+  dialog[open]::backdrop {
+    opacity: 0;
+  }
+}
+</style>
