@@ -1,9 +1,11 @@
 import { ref } from 'vue'
 import { useImageStore } from '../stores/imageStore'
+import JSZip from 'jszip'
 
 export function useFileHelpers() {
   const store = useImageStore()
   const fileInput = ref<HTMLInputElement | null>(null)
+  const isDownloadingAll = ref(false)
 
   /**
    * 格式化文件大小 (B, KB, MB, GB)
@@ -45,11 +47,48 @@ export function useFileHelpers() {
     URL.revokeObjectURL(url)
   }
 
+  /**
+   * 打包下载所有已处理图片为 ZIP
+   */
+  const downloadAllAsZip = async (prefix = 'Processed') => {
+    const doneImages = store.images.filter((img) => img.status === 'done' && img.processedBlob)
+    if (doneImages.length === 0) return
+
+    isDownloadingAll.value = true
+    try {
+      const zip = new JSZip()
+
+      doneImages.forEach((img) => {
+        zip.file(`processed_${img.file.name}`, img.processedBlob!)
+      })
+
+      const content = await zip.generateAsync({ type: 'blob' })
+      const url = URL.createObjectURL(content)
+
+      // 生成格式化时间戳: YYYYMMDD_HHMMSS
+      const now = new Date()
+      const timestamp = now.toISOString().replace(/[-:T]/g, '').split('.')[0].slice(0, 14)
+      const fileName = `Imago_${prefix}_${timestamp}.zip`
+
+      const a = document.createElement('a')
+      a.href = url
+      a.download = fileName
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Failed to create ZIP:', error)
+    } finally {
+      isDownloadingAll.value = false
+    }
+  }
+
   return {
     fileInput,
+    isDownloadingAll,
     formatSize,
     triggerFileInput,
     handleFileChange,
-    downloadImage
+    downloadImage,
+    downloadAllAsZip
   }
 }

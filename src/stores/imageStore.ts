@@ -7,6 +7,9 @@ export interface ImageItem {
   preview: string
   status: 'idle' | 'processing' | 'done' | 'error'
   originalSize: number
+  width?: number
+  height?: number
+  format: string
   processedSize?: number
   processedBlob?: Blob
   error?: string
@@ -31,19 +34,15 @@ export const useImageStore = defineStore('image', () => {
 
   const globalProgress = computed(() => {
     if (totalCount.value === 0) return 0
-    // If nothing is processing and everything is done, it's 100%
     if (processingCount.value === 0 && doneCount.value === totalCount.value) return 100
-    // Otherwise calculate based on done items
     return Math.round((doneCount.value / totalCount.value) * 100)
   })
 
-  const addImages = (files: File[]) => {
-    // Generate an unique key for existing files to prevent duplicates
+  const addImages = async (files: File[]) => {
     const existingKeys = new Set(
       images.value.map((img) => `${img.file.name}-${img.file.size}-${img.file.lastModified}`)
     )
 
-    // Filter out duplicates
     const uniqueFiles = files.filter((file) => {
       const key = `${file.name}-${file.size}-${file.lastModified}`
       if (existingKeys.has(key)) return false
@@ -51,14 +50,34 @@ export const useImageStore = defineStore('image', () => {
       return true
     })
 
-    const newImages = uniqueFiles.map((file) => ({
-      id: Math.random().toString(36).substring(7),
-      file,
-      preview: URL.createObjectURL(file),
-      status: 'idle' as const,
-      originalSize: file.size
-    }))
-    images.value.push(...newImages)
+    const newImagePromises = uniqueFiles.map(async (file) => {
+      const preview = URL.createObjectURL(file)
+
+      // 获取分辨率
+      const dimensions = await new Promise<{ width: number; height: number }>((resolve) => {
+        const img = new Image()
+        img.onload = () => {
+          resolve({ width: img.naturalWidth, height: img.naturalHeight })
+          URL.revokeObjectURL(img.src)
+        }
+        img.onerror = () => resolve({ width: 0, height: 0 })
+        img.src = URL.createObjectURL(file)
+      })
+
+      return {
+        id: Math.random().toString(36).substring(7),
+        file,
+        preview,
+        status: 'idle' as const,
+        originalSize: file.size,
+        width: dimensions.width,
+        height: dimensions.height,
+        format: file.name.split('.').pop()?.toUpperCase() || 'IMG'
+      }
+    })
+
+    const resolvedImages = await Promise.all(newImagePromises)
+    images.value.push(...resolvedImages)
   }
 
   const removeImage = (id: string) => {
@@ -66,7 +85,7 @@ export const useImageStore = defineStore('image', () => {
     if (index !== -1) {
       const img = images.value[index]
       if (img && img.abortController) {
-        img.abortController.abort() // Immediately stop background processing
+        img.abortController.abort()
       }
       if (img && img.preview) {
         URL.revokeObjectURL(img.preview)

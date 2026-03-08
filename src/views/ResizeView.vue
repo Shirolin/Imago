@@ -56,7 +56,7 @@ const handleDownload = (id: string) => {
     </template>
 
     <template #header-actions>
-      <ImageActionsToolbar show-clear-all />
+      <ImageActionsToolbar show-clear-all zip-prefix="Resize" />
     </template>
 
     <template #content>
@@ -125,9 +125,7 @@ const handleDownload = (id: string) => {
           </label>
         </div>
 
-        <AppTip :icon="Zap">
-          处理后图片质量将保持在最高水平，采用 Lanczos 算法进行高质量缩放。
-        </AppTip>
+        <AppTip> 采用 Lanczos 算法进行高质量缩放，最大程度保留图片细节与边缘锐度。 </AppTip>
 
         <div class="mt-auto flex flex-col gap-3">
           <AppButton

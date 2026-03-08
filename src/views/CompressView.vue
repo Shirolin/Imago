@@ -13,7 +13,16 @@ import AppTip from '../components/common/AppTip.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import ImageCompare from '../components/common/ImageCompare.vue'
 import AppModal from '../components/common/AppModal.vue'
-import { Zap, ArrowRight, Settings2, ImageIcon, Maximize2, FileType, ChevronDown, ChevronUp } from 'lucide-vue-next'
+import {
+  Zap,
+  ArrowRight,
+  Settings2,
+  ImageIcon,
+  Maximize2,
+  FileType,
+  ChevronDown,
+  ChevronUp
+} from 'lucide-vue-next'
 import { compressEngine } from '../lib/engines/compressEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import type { ImageItem } from '../stores/imageStore'
@@ -40,7 +49,7 @@ const { isProcessing, processAll, processSelected } = useImageProcessor(compress
 // 对比逻辑
 const handleCompare = (id: string) => {
   const img = store.images.find((i) => i.id === id)
-  
+
   if (img && img.processedBlob) {
     if (processedPreviewUrl.value) URL.revokeObjectURL(processedPreviewUrl.value)
     processedPreviewUrl.value = URL.createObjectURL(img.processedBlob)
@@ -114,9 +123,8 @@ const buttonText = computed(() => {
       </template>
 
       <template #header-actions>
-        <ImageActionsToolbar :is-processing="isProcessing" show-clear-all />
+        <ImageActionsToolbar :is-processing="isProcessing" show-clear-all zip-prefix="Compress" />
       </template>
-
       <template #content>
         <ImageCard
           v-for="img in store.images"
@@ -131,23 +139,22 @@ const buttonText = computed(() => {
           <template #overlay="{ image }">
             <div
               v-if="image.status === 'done'"
-              class="absolute top-2 md:top-3 right-2 md:right-3 px-2 md:px-3 py-1 md:py-1.5 rounded-lg md:rounded-[10px] text-[0.6rem] md:text-xs font-extrabold flex items-center gap-1 md:gap-1.5 shadow-lg z-10 backdrop-blur-sm animate-in fade-in slide-in-from-top-2"
+              class="px-2 py-1 rounded-lg text-[0.65rem] font-black flex items-center gap-1 shadow-xl backdrop-blur-md border border-white/10 animate-in fade-in zoom-in-95 duration-300"
               :class="
                 image.processedSize === image.originalSize
-                  ? 'bg-muted/90 text-muted-foreground border border-border shadow-black/10'
-                  : 'bg-primary text-primary-foreground shadow-primary/40'
+                  ? 'bg-muted/80 text-muted-foreground'
+                  : 'bg-primary text-primary-foreground'
               "
             >
               <template v-if="image.processedSize === image.originalSize">
                 <span>已跳过</span>
               </template>
               <template v-else>
-                <Zap :size="10" class="md:w-3 md:h-3" /> 节省
+                <Zap :size="10" class="fill-current" />
                 {{ Math.round((1 - image.processedSize! / image.originalSize) * 100) }}%
               </template>
             </div>
           </template>
-
           <template #meta="{ image }">
             <div
               class="flex items-center gap-2 md:gap-3 bg-background p-2 md:p-3 rounded-xl md:rounded-2xl mt-1.5 border border-border transition-all duration-300 group-hover:border-primary/20"
@@ -198,12 +205,15 @@ const buttonText = computed(() => {
                 :unit="''"
               >
                 <template #default="{ modelValue }">
-                  <span class="text-primary bg-primary/10 px-1.5 py-0.5 rounded leading-none text-xs font-bold"
+                  <span
+                    class="text-primary bg-primary/10 px-1.5 py-0.5 rounded leading-none text-xs font-bold"
                     >{{ Math.round(modelValue * 100) }}%</span
                   >
                 </template>
               </AppSlider>
-              <div class="flex justify-between text-[0.65rem] text-muted-foreground font-bold px-1 uppercase tracking-tight">
+              <div
+                class="flex justify-between text-[0.65rem] text-muted-foreground font-bold px-1 uppercase tracking-tight"
+              >
                 <span>高压缩</span>
                 <span>高画质</span>
               </div>
@@ -211,7 +221,10 @@ const buttonText = computed(() => {
 
             <div v-else class="space-y-3">
               <div class="flex justify-between items-end mb-1">
-                <label class="text-[0.7rem] font-bold text-muted-foreground uppercase tracking-widest">目标大小 (KB)</label>
+                <label
+                  class="text-[0.7rem] font-bold text-muted-foreground uppercase tracking-widest"
+                  >目标大小 (KB)</label
+                >
                 <span class="text-xs font-bold text-primary">{{ targetSizeKB }} KB</span>
               </div>
               <input
@@ -229,7 +242,7 @@ const buttonText = computed(() => {
           <div class="flex flex-col gap-4">
             <AppSectionHeader title="输出格式" :icon="FileType" />
             <div class="relative group">
-              <select 
+              <select
                 v-model="outputFormat"
                 class="w-full p-3 bg-muted/40 border border-border/50 rounded-xl text-sm font-bold appearance-none outline-none focus:border-primary transition-all pr-10 cursor-pointer"
               >
@@ -237,23 +250,39 @@ const buttonText = computed(() => {
                   {{ opt.label }}
                 </option>
               </select>
-              <ChevronDown class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none group-focus-within:rotate-180 transition-transform" :size="16" />
+              <ChevronDown
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none group-focus-within:rotate-180 transition-transform"
+                :size="16"
+              />
             </div>
           </div>
 
           <div class="flex flex-col gap-3">
-            <button 
+            <button
               @click="showAdvanced = !showAdvanced"
               class="flex items-center justify-between group hover:text-primary transition-colors"
             >
-              <AppSectionHeader title="调整分辨率 (Resize)" :icon="Maximize2" class="cursor-pointer" />
-              <component :is="showAdvanced ? ChevronUp : ChevronDown" :size="16" class="text-muted-foreground group-hover:text-primary" />
+              <AppSectionHeader
+                title="调整分辨率 (Resize)"
+                :icon="Maximize2"
+                class="cursor-pointer"
+              />
+              <component
+                :is="showAdvanced ? ChevronUp : ChevronDown"
+                :size="16"
+                class="text-muted-foreground group-hover:text-primary"
+              />
             </button>
-            
-            <div v-if="showAdvanced" class="space-y-4 pt-1 animate-in fade-in slide-in-from-top-2 duration-300">
+
+            <div
+              v-if="showAdvanced"
+              class="space-y-4 pt-1 animate-in fade-in slide-in-from-top-2 duration-300"
+            >
               <div class="grid grid-cols-2 gap-3">
                 <div class="space-y-1.5">
-                  <label class="text-[0.65rem] font-bold text-muted-foreground uppercase px-1">最大宽度</label>
+                  <label class="text-[0.65rem] font-bold text-muted-foreground uppercase px-1"
+                    >最大宽度</label
+                  >
                   <input
                     type="number"
                     v-model.number="maxWidth"
@@ -262,7 +291,9 @@ const buttonText = computed(() => {
                   />
                 </div>
                 <div class="space-y-1.5">
-                  <label class="text-[0.65rem] font-bold text-muted-foreground uppercase px-1">最大高度</label>
+                  <label class="text-[0.65rem] font-bold text-muted-foreground uppercase px-1"
+                    >最大高度</label
+                  >
                   <input
                     type="number"
                     v-model.number="maxHeight"
@@ -274,10 +305,7 @@ const buttonText = computed(() => {
             </div>
           </div>
 
-          <AppTip :icon="Zap">
-            处理完全在本地完成。压缩后若体积反而变大，系统将自动保留原图。
-          </AppTip>
-
+          <AppTip> 处理完全在本地完成。压缩后若体积反而变大，系统将自动保留原图。 </AppTip>
           <div class="mt-auto pt-6 flex flex-col gap-3">
             <AppButton
               size="lg"
@@ -292,7 +320,9 @@ const buttonText = computed(() => {
               </template>
               {{ buttonText }}
             </AppButton>
-            <p class="text-center text-[0.65rem] text-muted-foreground font-medium uppercase tracking-widest opacity-60">
+            <p
+              class="text-center text-[0.65rem] text-muted-foreground font-medium uppercase tracking-widest opacity-60"
+            >
               {{ isProcessing ? '计算中...' : 'Local Processing' }}
             </p>
           </div>
@@ -300,11 +330,7 @@ const buttonText = computed(() => {
       </template>
     </WorkspaceLayout>
 
-    <AppModal 
-      :show="showCompareModal" 
-      @close="closeCompare"
-      @after-leave="handleModalLeave"
-    >
+    <AppModal :show="showCompareModal" @close="closeCompare" @after-leave="handleModalLeave">
       <template #header>
         <div class="flex items-center gap-3">
           <div class="p-2 bg-primary rounded-lg text-primary-foreground">
@@ -314,7 +340,11 @@ const buttonText = computed(() => {
             <h3 class="text-sm font-bold text-foreground truncate max-w-[180px] md:max-w-md">
               {{ comparingImage.file.name }}
             </h3>
-            <p class="text-[0.65rem] text-muted-foreground font-bold uppercase tracking-widest leading-none mt-1">对比画质细节</p>
+            <p
+              class="text-[0.65rem] text-muted-foreground font-bold uppercase tracking-widest leading-none mt-1"
+            >
+              对比画质细节
+            </p>
           </div>
         </div>
       </template>
@@ -326,7 +356,7 @@ const buttonText = computed(() => {
         :original-size="formatSize(comparingImage.originalSize)"
         :processed-size="formatSize(comparingImage.processedSize || 0)"
       />
-      
+
       <template #footer>
         <p class="text-[0.65rem] text-muted-foreground/60 font-bold uppercase tracking-[0.3em]">
           左右拖动滑块查看压缩前后的像素细节

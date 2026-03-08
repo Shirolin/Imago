@@ -22,7 +22,9 @@ const { isPC } = useBreakpoints()
       <Square v-else :size="18" />
     </div>
     <div class="flex flex-col justify-center">
-      <span class="font-bold text-[0.75rem] md:text-[0.8rem] text-foreground leading-none tracking-tight">
+      <span
+        class="font-bold text-[0.75rem] md:text-[0.8rem] text-foreground leading-none tracking-tight"
+      >
         <span v-if="isPC">已选择 </span>
         {{ store.selectedCount }}
         <span v-if="store.images.length > 0">/ {{ store.images.length }}</span>

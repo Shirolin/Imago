@@ -28,15 +28,15 @@ export const useBreakpoints = () => {
     isMobile,
     isTablet,
     isPC,
-    
+
     // 组合类型
     isMobileOrTablet,
     isTabletOrPC,
-    
+
     // 兼容别名
     isSmallerThanMd,
     isMdOrGreater,
-    
+
     // 原始断点对象 (备用)
     breakpoints
   }

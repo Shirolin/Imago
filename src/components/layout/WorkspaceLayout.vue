@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { useImageStore } from '../../stores/imageStore'
+import { useLayoutStore } from '../../stores/layoutStore'
 import ImageUpload from '../common/ImageUpload.vue'
+import { ChevronLeft, ChevronRight, PanelRightClose, PanelRightOpen } from 'lucide-vue-next'
 
 const store = useImageStore()
+const layoutStore = useLayoutStore()
 
 interface Props {
   showSidebar?: boolean
@@ -21,10 +24,11 @@ withDefaults(defineProps<Props>(), {
     </div>
 
     <!-- 工作区 -->
-    <div v-else class="flex-1 flex flex-col md:flex-row overflow-hidden h-full">
+    <div v-else class="flex-1 flex flex-col md:flex-row overflow-hidden h-full relative">
       <div class="flex-1 flex flex-col min-w-0 min-h-[40vh] md:min-h-0 relative">
         <header
-          class="h-14 md:h-[72px] bg-card border-b border-border shrink-0 relative z-10 overflow-x-auto overflow-y-hidden no-scrollbar"
+          class="bg-card border-b border-border shrink-0 relative z-10 overflow-x-auto overflow-y-hidden no-scrollbar transition-all duration-300 ease-in-out"
+          :class="layoutStore.isTopBarCompact ? 'h-12 md:h-12' : 'h-14 md:h-[72px]'"
         >
           <div class="h-full flex items-center min-w-max">
             <!-- 左侧边距占位 -->
@@ -39,9 +43,20 @@ withDefaults(defineProps<Props>(), {
 
             <div class="flex items-center gap-2 md:gap-3 shrink-0 ml-auto">
               <slot name="header-actions"></slot>
+
+              <!-- 独立控制右侧面板的开关 -->
+              <button
+                v-if="showSidebar"
+                @click="layoutStore.toggleInspector"
+                class="hidden md:flex p-2 hover:bg-muted rounded-lg transition-colors text-muted-foreground ml-2"
+                :title="layoutStore.isInspectorCollapsed ? '展开属性面板' : '收起属性面板'"
+              >
+                <PanelRightOpen v-if="layoutStore.isInspectorCollapsed" :size="18" />
+                <PanelRightClose v-else :size="18" />
+              </button>
             </div>
 
-            <!-- 右侧边距占位 (关键修复: 确保滚动末端不截断) -->
+            <!-- 右侧边距占位 -->
             <div class="w-4 md:w-6 shrink-0"></div>
           </div>
         </header>
@@ -55,12 +70,18 @@ withDefaults(defineProps<Props>(), {
         </div>
       </div>
 
-      <!-- 右侧控制面板 (可选) -->
+      <!-- 右侧控制面板 (Inspector) - 独立控制 -->
       <aside
         v-if="showSidebar"
-        class="w-full md:w-[280px] xl:w-[320px] max-h-[50vh] md:max-h-none bg-card border-t md:border-t-0 md:border-l border-border flex flex-col overflow-y-auto shrink-0 relative z-10"
+        class="bg-card border-t md:border-t-0 md:border-l border-border flex flex-col shrink-0 relative z-10 transition-all duration-300 ease-in-out overflow-hidden"
+        :class="[
+          'w-full max-h-[50vh] md:max-h-none',
+          layoutStore.isInspectorCollapsed ? 'md:w-0' : 'md:w-[280px] xl:w-[320px]'
+        ]"
       >
-        <slot name="sidebar"></slot>
+        <div class="min-w-[280px] xl:min-w-[320px] h-full flex flex-col">
+          <slot name="sidebar"></slot>
+        </div>
       </aside>
     </div>
   </div>

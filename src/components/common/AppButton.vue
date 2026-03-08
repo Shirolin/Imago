@@ -127,7 +127,7 @@ const iconClass = computed(() => {
       </slot>
       <slot></slot>
       <component
-        v-if="icon && iconPosition === 'right' && !($slots.icon)"
+        v-if="icon && iconPosition === 'right' && !$slots.icon"
         :is="icon"
         :size="iconSize"
         :class="iconClass"
