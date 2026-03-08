@@ -19,13 +19,18 @@ import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import AppSlider from '../components/common/AppSlider.vue'
 import AppTip from '../components/common/AppTip.vue'
+import { combineEngine } from '../lib/engines/combineEngine'
+import { useImageProcessor } from '../composables/useImageProcessor'
+import { useFileHelpers } from '../composables/useFileHelpers'
 
 const store = useImageStore()
+const { downloadImage } = useFileHelpers()
 
 const combineDirection = ref<'vertical' | 'horizontal' | 'grid'>('vertical')
 const spacing = ref(10)
 const backgroundColor = ref('#FFFFFF')
-const isProcessing = ref(false)
+
+const { isProcessing, processCombine } = useImageProcessor(combineEngine)
 
 const combineDirections = [
   { label: '纵向', value: 'vertical', icon: ArrowDown },
@@ -34,12 +39,26 @@ const combineDirections = [
 ]
 
 const handleCombine = async () => {
-  isProcessing.value = true
-  await new Promise((resolve) => setTimeout(resolve, 2000))
-  store.images.forEach((img) => {
-    store.updateImage(img.id, { status: 'done' })
-  })
-  isProcessing.value = false
+  if (store.images.length < 2) {
+    alert('请至少上传两张图片')
+    return
+  }
+
+  try {
+    const result = await processCombine({
+      direction: combineDirection.value,
+      spacing: spacing.value,
+      backgroundColor: backgroundColor.value
+    })
+
+    if (result && result.blob) {
+      downloadImage(result.blob, 'combined_image.png')
+      // 标记所有图片为完成状态以更新 UI 进度条（可选）
+      store.images.forEach((img) => store.updateImage(img.id, { status: 'done' }))
+    }
+  } catch (error) {
+    console.error('Combine failed:', error)
+  }
 }
 
 const moveImage = (index: number, direction: 'prev' | 'next') => {

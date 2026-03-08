@@ -9,6 +9,10 @@ import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
+import { splitEngine } from '../lib/engines/splitEngine'
+import { useImageProcessor } from '../composables/useImageProcessor'
+import JSZip from 'jszip'
+// 移除未使用的 file-saver 导入，改用原生方式下载
 
 const store = useImageStore()
 
@@ -17,7 +21,8 @@ const rows = ref(3)
 const cols = ref(3)
 const tileWidth = ref(1080)
 const tileHeight = ref(1080)
-const isProcessing = ref(false)
+
+const { isProcessing, processSelected } = useImageProcessor(splitEngine)
 
 const splitModes = [
   { label: '网格', value: 'grid' },
@@ -25,14 +30,40 @@ const splitModes = [
 ]
 
 const handleSplit = async () => {
-  isProcessing.value = true
-  await new Promise((resolve) => setTimeout(resolve, 1500))
-  store.images.forEach((img) => {
-    if (store.selectedIds.size === 0 || store.selectedIds.has(img.id)) {
+  const selectedImages = store.images.filter(
+    (img) => store.selectedIds.size === 0 || store.selectedIds.has(img.id)
+  )
+
+  if (selectedImages.length === 0) return
+
+  const zip = new JSZip()
+
+  for (const img of selectedImages) {
+    const result = await splitEngine(img.file, {
+      mode: splitMode.value,
+      rows: rows.value,
+      cols: cols.value,
+      tileWidth: tileWidth.value,
+      tileHeight: tileHeight.value
+    })
+
+    if (result.blobs) {
+      const folder = zip.folder(img.file.name.replace(/\.[^/.]+$/, ''))
+      result.blobs.forEach((blob, index) => {
+        const extension = img.file.type.split('/')[1] || 'png'
+        folder?.file(`part_${index + 1}.${extension}`, blob)
+      })
       store.updateImage(img.id, { status: 'done' })
     }
-  })
-  isProcessing.value = false
+  }
+
+  const content = await zip.generateAsync({ type: 'blob' })
+  // 使用原生方式下载，因为不确定是否有 file-saver
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(content)
+  link.download = 'split_images.zip'
+  link.click()
+  URL.revokeObjectURL(link.href)
 }
 </script>
 

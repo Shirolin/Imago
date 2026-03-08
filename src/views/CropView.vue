@@ -17,11 +17,17 @@ import {
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppSectionHeader from '../components/common/AppSectionHeader.vue'
+import { cropEngine } from '../lib/engines/cropEngine'
+import { useImageProcessor } from '../composables/useImageProcessor'
 
 const store = useImageStore()
 
 const selectedImageId = ref<string | null>(null)
-const isProcessing = ref(false)
+const rotation = ref(0)
+const flipH = ref(false)
+const flipV = ref(false)
+
+const { isProcessing, processSingle } = useImageProcessor(cropEngine)
 
 const selectedImage = computed(() => {
   return store.images.find((img) => img.id === selectedImageId.value) || store.images[0]
@@ -36,12 +42,38 @@ const aspectRatios = [
 ]
 const currentRatio = ref('free')
 
-const handleCrop = async () => {
-  isProcessing.value = true
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-  isProcessing.value = false
-  alert('裁剪功能逻辑待接入')
+const handleRotate = () => {
+  rotation.value = (rotation.value + 90) % 360
 }
+
+const handleFlipH = () => {
+  flipH.value = !flipH.value
+}
+
+const handleFlipV = () => {
+  flipV.value = !flipV.value
+}
+
+const handleReset = () => {
+  rotation.value = 0
+  flipH.value = false
+  flipV.value = false
+  currentRatio.value = 'free'
+}
+
+const handleCrop = () => {
+  if (!selectedImage.value) return
+  processSingle(selectedImage.value.id, {
+    rotation: rotation.value,
+    flipH: flipH.value,
+    flipV: flipV.value
+  })
+}
+
+const previewStyle = computed(() => ({
+  transform: `rotate(${rotation.value}deg) scale(${flipH.value ? -1 : 1}, ${flipV.value ? -1 : 1})`,
+  transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+}))
 </script>
 
 <template>
@@ -74,9 +106,10 @@ const handleCrop = async () => {
                 :src="selectedImage.preview"
                 alt="Crop Preview"
                 class="max-w-full max-h-full shadow-[0_10px_30px_rgba(0,0,0,0.2)]"
+                :style="previewStyle"
               />
               <div
-                class="absolute top-[10%] left-[10%] right-[10%] bottom-[10%] border-2 border-primary z-10"
+                class="absolute top-[10%] left-[10%] right-[10%] bottom-[10%] border-2 border-primary z-10 pointer-events-none"
               >
                 <div
                   class="absolute inset-0"
@@ -87,20 +120,7 @@ const handleCrop = async () => {
                     background-size: 33.33% 33.33%;
                   "
                 ></div>
-                <div>
-                  <div
-                    class="absolute w-2.5 h-2.5 bg-white border-2 border-primary -top-1.5 -left-1.5 rounded-[2px] cursor-nwse-resize"
-                  ></div>
-                  <div
-                    class="absolute w-2.5 h-2.5 bg-white border-2 border-primary -top-1.5 -right-1.5 rounded-[2px] cursor-nesw-resize"
-                  ></div>
-                  <div
-                    class="absolute w-2.5 h-2.5 bg-white border-2 border-primary -bottom-1.5 -left-1.5 rounded-[2px] cursor-nesw-resize"
-                  ></div>
-                  <div
-                    class="absolute w-2.5 h-2.5 bg-white border-2 border-primary -bottom-1.5 -right-1.5 rounded-[2px] cursor-nwse-resize"
-                  ></div>
-                </div>
+                <!-- 这里的操作手柄可以根据需要添加 pointer-events -->
               </div>
             </div>
           </div>
@@ -140,24 +160,30 @@ const handleCrop = async () => {
               <div class="flex gap-1.5">
                 <button
                   class="w-9 h-9 rounded-lg border border-border bg-background text-foreground flex items-center justify-center transition-colors hover:border-primary hover:text-primary active:scale-95"
+                  @click="handleRotate"
                   title="向右旋转90°"
                 >
                   <RotateCw :size="18" />
                 </button>
                 <button
                   class="w-9 h-9 rounded-lg border border-border bg-background text-foreground flex items-center justify-center transition-colors hover:border-primary hover:text-primary active:scale-95"
+                  @click="handleFlipH"
+                  :class="{ 'bg-primary/10 border-primary text-primary': flipH }"
                   title="水平翻转"
                 >
                   <FlipHorizontal :size="18" />
                 </button>
                 <button
                   class="w-9 h-9 rounded-lg border border-border bg-background text-foreground flex items-center justify-center transition-colors hover:border-primary hover:text-primary active:scale-95"
+                  @click="handleFlipV"
+                  :class="{ 'bg-primary/10 border-primary text-primary': flipV }"
                   title="垂直翻转"
                 >
                   <FlipVertical :size="18" />
                 </button>
                 <button
                   class="w-9 h-9 rounded-lg border border-border bg-background text-foreground flex items-center justify-center transition-colors hover:border-primary hover:text-primary active:scale-95"
+                  @click="handleReset"
                   title="重置修改"
                 >
                   <RefreshCcw :size="18" />
@@ -173,7 +199,7 @@ const handleCrop = async () => {
                 @click="handleCrop"
               >
                 <template #icon><Check v-if="!isProcessing" :size="16" class="mr-2" /></template>
-                应用裁剪
+                应用裁剪/变换
               </AppButton>
             </div>
           </div>

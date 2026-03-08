@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useImageStore } from '../stores/imageStore'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
@@ -13,38 +13,52 @@ import {
   ShieldCheck,
   ShieldAlert,
   Square,
-  CheckSquare
+  CheckSquare,
+  Aperture
 } from 'lucide-vue-next'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppTip from '../components/common/AppTip.vue'
+import { clearExifEngine, readExif, type ExifData } from '../lib/engines/exifEngine'
+import { useImageProcessor } from '../composables/useImageProcessor'
 
 const store = useImageStore()
 
 const selectedImageId = ref<string | null>(null)
-const isProcessing = ref(false)
+const exifData = ref<ExifData | null>(null)
+const isReadingExif = ref(false)
+
+const { isProcessing, processSelected } = useImageProcessor(clearExifEngine)
 
 const selectedImage = computed(() => {
   return store.images.find((img) => img.id === selectedImageId.value) || store.images[0]
 })
 
-// Mock EXIF data
-const mockExif = {
-  make: 'Apple',
-  model: 'iPhone 15 Pro',
-  date: '2024-03-15 14:22:05',
-  location: '31.2304° N, 121.4737° E (Shanghai)',
-  settings: 'f/1.78, 1/120s, ISO 100',
-  lens: '24mm (Main)',
-  software: 'iOS 17.4'
-}
+// 监听选中的图片，自动解析其 EXIF
+watch(
+  () => selectedImage.value?.id,
+  async (id) => {
+    if (!id || !selectedImage.value) {
+      exifData.value = null
+      return
+    }
+
+    isReadingExif.value = true
+    const data = await readExif(selectedImage.value.file)
+    exifData.value = data
+    isReadingExif.value = false
+  },
+  { immediate: true }
+)
 
 const handleClearExif = async () => {
-  isProcessing.value = true
-  await new Promise((resolve) => setTimeout(resolve, 1200))
-  isProcessing.value = false
-  alert('EXIF 信息已成功清除 (模拟)')
+  await processSelected({})
+  // 处理完成后重新读取 EXIF 确保它已被清除
+  if (selectedImage.value) {
+    const data = await readExif(selectedImage.value.file)
+    exifData.value = data
+  }
 }
 </script>
 
@@ -107,8 +121,15 @@ const handleClearExif = async () => {
               <div
                 class="flex items-center gap-2 px-4 py-2 bg-background border border-border rounded-full font-bold text-sm shadow-sm"
               >
-                <ShieldAlert :size="20" class="text-destructive" />
-                <span class="text-foreground">含有 12 项元数据</span>
+                <ShieldAlert v-if="exifData?.metaCount" :size="20" class="text-destructive" />
+                <ShieldCheck v-else :size="20" class="text-green-500" />
+                <span class="text-foreground">
+                  {{
+                    exifData?.metaCount
+                      ? `含有 ${exifData.metaCount} 项元数据`
+                      : '无元数据 (干净的图片)'
+                  }}
+                </span>
               </div>
             </div>
           </div>
@@ -117,23 +138,25 @@ const handleClearExif = async () => {
         <div class="mt-6 flex justify-between items-center">
           <div class="flex items-center gap-2 text-muted-foreground text-xs font-semibold">
             <Zap :size="16" class="text-primary" />
-            <span>所有操作仅在浏览器内完成，您的原始图片不会离开本地。</span>
+            <span>隐私保护：所有处理仅在浏览器本地完成。</span>
           </div>
           <AppButton size="lg" variant="danger" :loading="isProcessing" @click="handleClearExif">
             <template #icon><Trash2 v-if="!isProcessing" :size="20" class="mr-2" /></template>
-            清除所有选定图片的元数据
+            清除选定图片的隐私信息
           </AppButton>
         </div>
       </div>
     </template>
 
     <template #sidebar>
-      <div class="p-6 flex flex-col gap-6 h-full">
+      <div class="p-6 flex flex-col gap-6 h-full overflow-y-auto custom-scrollbar">
         <div class="flex flex-col">
           <AppSectionHeader title="元数据详情" :icon="Info" class="mb-4" />
 
-          <div v-if="selectedImage" class="flex flex-col gap-3">
+          <div v-if="selectedImage && !isReadingExif" class="flex flex-col gap-3">
+            <!-- 相机型号 -->
             <div
+              v-if="exifData?.model"
               class="flex gap-3 p-3 bg-background rounded-xl border border-border transition-all hover:border-primary/50"
             >
               <div
@@ -144,15 +167,17 @@ const handleClearExif = async () => {
               <div class="flex flex-col">
                 <label
                   class="block text-[0.6rem] font-extrabold uppercase text-muted-foreground mb-[0.1rem]"
-                  >相机型号</label
+                  >设备信息</label
                 >
                 <p class="text-xs font-semibold text-foreground">
-                  {{ mockExif.make }} {{ mockExif.model }}
+                  {{ exifData.make }} {{ exifData.model }}
                 </p>
               </div>
             </div>
 
+            <!-- 时间 -->
             <div
+              v-if="exifData?.dateTime"
               class="flex gap-3 p-3 bg-background rounded-xl border border-border transition-all hover:border-primary/50"
             >
               <div
@@ -165,11 +190,13 @@ const handleClearExif = async () => {
                   class="block text-[0.6rem] font-extrabold uppercase text-muted-foreground mb-[0.1rem]"
                   >拍摄时间</label
                 >
-                <p class="text-xs font-semibold text-foreground">{{ mockExif.date }}</p>
+                <p class="text-xs font-semibold text-foreground">{{ exifData.dateTime }}</p>
               </div>
             </div>
 
+            <!-- 位置 -->
             <div
+              v-if="exifData?.latitude !== undefined"
               class="flex gap-3 p-3 bg-background rounded-xl border border-border transition-all hover:border-primary/50"
             >
               <div
@@ -180,35 +207,61 @@ const handleClearExif = async () => {
               <div class="flex flex-col">
                 <label
                   class="block text-[0.6rem] font-extrabold uppercase text-muted-foreground mb-[0.1rem]"
-                  >地理位置</label
+                  >地理位置 (GPS)</label
                 >
-                <p class="text-xs font-semibold text-foreground">{{ mockExif.location }}</p>
+                <p class="text-xs font-semibold text-foreground">
+                  {{ exifData.latitude.toFixed(4) }}°, {{ exifData.longitude?.toFixed(4) }}°
+                </p>
               </div>
             </div>
 
+            <!-- 曝光 -->
             <div
+              v-if="exifData?.exposureTime || exifData?.fNumber"
               class="flex gap-3 p-3 bg-background rounded-xl border border-border transition-all hover:border-primary/50"
             >
               <div
                 class="w-8 h-8 rounded-lg bg-card flex items-center justify-center text-primary shrink-0"
               >
-                <Zap :size="16" />
+                <Aperture :size="16" />
               </div>
               <div class="flex flex-col">
                 <label
                   class="block text-[0.6rem] font-extrabold uppercase text-muted-foreground mb-[0.1rem]"
-                  >曝光设置</label
+                  >拍摄参数</label
                 >
-                <p class="text-xs font-semibold text-foreground">{{ mockExif.settings }}</p>
+                <p class="text-xs font-semibold text-foreground">
+                  {{ exifData.exposureTime }} · {{ exifData.fNumber }} · ISO {{ exifData.iso }}
+                </p>
               </div>
             </div>
+
+            <!-- 无元数据提示 -->
+            <div
+              v-if="!exifData?.metaCount"
+              class="py-8 text-center text-sm font-semibold text-muted-foreground bg-background rounded-xl border border-dashed border-border"
+            >
+              这张图片非常干净，不包含任何隐私元数据。
+            </div>
+          </div>
+
+          <div
+            v-else-if="isReadingExif"
+            class="py-12 flex flex-col items-center justify-center gap-3"
+          >
+            <div class="animate-spin text-primary">
+              <RefreshCcw :size="24" />
+            </div>
+            <p class="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+              解析中...
+            </p>
           </div>
 
           <div
             v-else
             class="py-8 text-center text-sm font-semibold text-muted-foreground bg-background rounded-xl border border-dashed border-border"
           >
-            请选择一张图片查看详情
+            请从预览栏选择一张图片查看详情
           </div>
         </div>
 

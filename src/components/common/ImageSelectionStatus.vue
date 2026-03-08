@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { useImageStore } from '../../stores/imageStore'
 import { Square, CheckSquare } from 'lucide-vue-next'
+import { useBreakpoints } from '../../composables/useBreakpoints'
 
 const store = useImageStore()
+const { isPC } = useBreakpoints()
 </script>
 
 <template>
   <div
-    class="flex items-center gap-3.5 cursor-pointer px-5 h-11 rounded-full bg-muted/40 border border-border/50 transition-all duration-300 hover:border-primary/50 hover:bg-background hover:-translate-y-[1px] active:scale-[0.96] group shrink-0"
+    class="flex items-center gap-2 md:gap-3.5 cursor-pointer px-3 md:px-5 h-9 md:h-11 rounded-full bg-muted/40 border border-border/50 transition-all duration-300 hover:border-primary/50 hover:bg-background hover:-translate-y-[1px] active:scale-[0.96] group shrink-0"
     @click="store.toggleAll"
   >
     <div
@@ -20,12 +22,14 @@ const store = useImageStore()
       <Square v-else :size="18" />
     </div>
     <div class="flex flex-col justify-center">
-      <span class="font-bold text-[0.8rem] text-foreground leading-none tracking-tight">
-        已选择 {{ store.selectedCount }}
+      <span class="font-bold text-[0.75rem] md:text-[0.8rem] text-foreground leading-none tracking-tight">
+        <span v-if="isPC">已选择 </span>
+        {{ store.selectedCount }}
         <span v-if="store.images.length > 0">/ {{ store.images.length }}</span>
       </span>
       <span
-        class="hidden md:inline text-[0.6rem] text-muted-foreground font-black uppercase tracking-[0.1em] mt-0.5 opacity-60 leading-none"
+        v-if="isPC"
+        class="text-[0.6rem] text-muted-foreground font-black uppercase tracking-[0.1em] mt-0.5 opacity-60 leading-none"
       >
         全选/反选
       </span>

@@ -17,11 +17,12 @@ import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSlider from '../components/common/AppSlider.vue'
+import { filterEngine } from '../lib/engines/filterEngine'
+import { useImageProcessor } from '../composables/useImageProcessor'
 
 const store = useImageStore()
 
 const activeImageId = ref<string | null>(null)
-const isProcessing = ref(false)
 
 const brightness = ref(100)
 const contrast = ref(100)
@@ -29,6 +30,8 @@ const saturation = ref(100)
 const blur = ref(0)
 const grayscale = ref(0)
 const sepia = ref(0)
+
+const { isProcessing, processSelected } = useImageProcessor(filterEngine)
 
 const activeImage = computed(() => {
   return store.images.find((img) => img.id === activeImageId.value) || store.images[0]
@@ -72,15 +75,15 @@ const applyPreset = (preset: (typeof presets)[0]) => {
   sepia.value = preset.values.sepia
 }
 
-const handleApplyFilters = async () => {
-  isProcessing.value = true
-  await new Promise((resolve) => setTimeout(resolve, 1500))
-  store.images.forEach((img) => {
-    if (store.selectedIds.size === 0 || store.selectedIds.has(img.id)) {
-      store.updateImage(img.id, { status: 'done' })
-    }
+const handleApplyFilters = () => {
+  processSelected({
+    brightness: brightness.value,
+    contrast: contrast.value,
+    saturation: saturation.value,
+    blur: blur.value,
+    grayscale: grayscale.value,
+    sepia: sepia.value
   })
-  isProcessing.value = false
 }
 
 const resetFilters = () => {

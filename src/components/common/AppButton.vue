@@ -56,7 +56,13 @@ const shadcnSize = computed(() => {
 
 const extraClasses = computed(() => {
   let classes =
-    'gap-2 font-bold transition-all duration-300 whitespace-nowrap shrink-0 flex items-center justify-center '
+    'font-bold transition-all duration-300 whitespace-nowrap shrink-0 flex items-center justify-center '
+
+  // 只有在使用 icon prop 或处于加载状态时才由组件自动添加 gap
+  // 如果使用 #icon 插槽，建议使用者在插槽内自行处理间距或依赖父级的 flex
+  if (props.icon || props.loading) {
+    classes += 'gap-2 '
+  }
 
   if (props.variant === 'link') {
     classes +=
@@ -111,17 +117,17 @@ const iconClass = computed(() => {
   >
     <Loader2 v-if="loading" class="animate-spin shrink-0" :size="iconSize" />
     <template v-else>
+      <slot name="icon">
+        <component
+          v-if="icon && iconPosition === 'left'"
+          :is="icon"
+          :size="iconSize"
+          :class="iconClass"
+        />
+      </slot>
+      <slot></slot>
       <component
-        v-if="icon && iconPosition === 'left'"
-        :is="icon"
-        :size="iconSize"
-        :class="iconClass"
-      />
-      <span class="overflow-hidden text-ellipsis leading-none select-none">
-        <slot></slot>
-      </span>
-      <component
-        v-if="icon && iconPosition === 'right'"
+        v-if="icon && iconPosition === 'right' && !($slots.icon)"
         :is="icon"
         :size="iconSize"
         :class="iconClass"

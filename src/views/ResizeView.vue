@@ -12,6 +12,8 @@ import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import AppSlider from '../components/common/AppSlider.vue'
 import AppTip from '../components/common/AppTip.vue'
+import { resizeEngine } from '../lib/engines/resizeEngine'
+import { useImageProcessor } from '../composables/useImageProcessor'
 
 const store = useImageStore()
 const { downloadImage } = useFileHelpers()
@@ -21,32 +23,28 @@ const width = ref(1920)
 const height = ref(1080)
 const percentage = ref(50)
 const maintainAspectRatio = ref(true)
-const isProcessing = ref(false)
+
+const { isProcessing, processAll } = useImageProcessor(resizeEngine)
 
 const resizeModes = [
   { label: '百分比', value: 'percentage' },
   { label: '像素', value: 'pixels' }
 ]
 
-const handleResize = async () => {
-  isProcessing.value = true
-  // 模拟处理逻辑
-  await new Promise((resolve) => setTimeout(resolve, 1500))
-  store.images.forEach((img) => {
-    store.updateImage(img.id, { status: 'done' })
+const handleResize = () => {
+  processAll({
+    mode: resizeMode.value,
+    width: width.value,
+    height: height.value,
+    percentage: percentage.value,
+    maintainAspectRatio: maintainAspectRatio.value
   })
-  isProcessing.value = false
 }
 
 const handleDownload = (id: string) => {
   const item = store.images.find((img) => img.id === id)
-  if (item?.processedBlob || item?.preview) {
-    // 这里暂时使用预览图模拟，实际逻辑应根据处理后的 Blob
-    fetch(item.preview)
-      .then((res) => res.blob())
-      .then((blob) => {
-        downloadImage(blob, item.file.name, 'resized_')
-      })
+  if (item?.processedBlob) {
+    downloadImage(item.processedBlob, item.file.name, 'resized_')
   }
 }
 </script>

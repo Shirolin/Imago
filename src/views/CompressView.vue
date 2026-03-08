@@ -7,68 +7,19 @@ import ImageCard from '../components/common/ImageCard.vue'
 import AppButton from '../components/common/AppButton.vue'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
-import imageCompression from 'browser-image-compression'
 import { Zap, ArrowRight } from 'lucide-vue-next'
 import AppSlider from '../components/common/AppSlider.vue'
+import { compressEngine } from '../lib/engines/compressEngine'
+import { useImageProcessor } from '../composables/useImageProcessor'
 
 const store = useImageStore()
 const { formatSize, downloadImage } = useFileHelpers()
 
 const compressionQuality = ref(0.8)
-const isCompressing = ref(false)
+const { isProcessing, processAll } = useImageProcessor(compressEngine)
 
-const compressImage = async (id: string) => {
-  const item = store.images.find((img) => img.id === id)
-  if (!item) return
-
-  const abortController = new AbortController()
-  store.updateImage(id, { status: 'processing', abortController })
-
-  try {
-    const options = {
-      maxSizeMB: 10,
-      maxWidthOrHeight: 4096,
-      useWebWorker: true,
-      initialQuality: compressionQuality.value,
-      signal: abortController.signal
-    }
-
-    const compressedFile = await imageCompression(item.file, options)
-
-    // 如果压缩后反而变大了（由于小体积或者已有损格式导致）
-    if (compressedFile.size >= item.originalSize) {
-      store.updateImage(id, {
-        status: 'done',
-        processedSize: item.originalSize,
-        processedBlob: item.file, // 保留原图
-        abortController: undefined
-      })
-    } else {
-      store.updateImage(id, {
-        status: 'done',
-        processedSize: compressedFile.size,
-        processedBlob: compressedFile,
-        abortController: undefined
-      })
-    }
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    const errorName = error instanceof Error ? error.name : ''
-
-    if (errorName === 'AbortError' || errorMessage.includes('abort')) {
-      console.log(`[Task Aborted] Compression cancelled for ${id}`)
-      return
-    }
-    console.error('Compression failed:', error)
-    store.updateImage(id, { status: 'error', error: '压缩失败', abortController: undefined })
-  }
-}
-
-const compressAll = async () => {
-  isCompressing.value = true
-  const idleImages = store.images.filter((img) => img.status !== 'done')
-  await Promise.all(idleImages.map((img) => compressImage(img.id)))
-  isCompressing.value = false
+const handleCompressAll = () => {
+  processAll({ quality: compressionQuality.value })
 }
 
 const handleDownload = (id: string) => {
@@ -109,19 +60,19 @@ const handleDownload = (id: string) => {
 
     <!-- 核心操作传送至顶栏 -->
     <Teleport to="#top-bar-tools">
-      <ImageActionsToolbar :is-processing="isCompressing">
+      <ImageActionsToolbar :is-processing="isProcessing">
         <template #extra>
           <div class="w-px h-5 md:h-6 bg-border mx-1 md:mx-2"></div>
 
           <AppButton
             variant="cta"
             size="md"
-            :loading="isCompressing"
+            :loading="isProcessing"
             :disabled="!store.images.length"
-            @click="compressAll"
+            @click="handleCompressAll"
           >
             <template #icon>
-              <Zap v-if="!isCompressing" :size="16" class="mr-1.5" />
+              <Zap v-if="!isProcessing" :size="16" class="mr-1.5" />
             </template>
             处理全部
           </AppButton>

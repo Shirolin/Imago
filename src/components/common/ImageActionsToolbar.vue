@@ -3,6 +3,7 @@ import { useImageStore } from '../../stores/imageStore'
 import { useFileHelpers } from '../../composables/useFileHelpers'
 import AppButton from './AppButton.vue'
 import { Plus, Trash2, X } from 'lucide-vue-next'
+import { useBreakpoints } from '../../composables/useBreakpoints'
 
 interface Props {
   showDeleteSelected?: boolean
@@ -18,10 +19,11 @@ withDefaults(defineProps<Props>(), {
 
 const store = useImageStore()
 const { fileInput, triggerFileInput, handleFileChange } = useFileHelpers()
+const { isPC } = useBreakpoints()
 </script>
 
 <template>
-  <div class="flex items-center gap-1.5 md:gap-2">
+  <div class="flex items-center gap-1 md:gap-2">
     <input
       type="file"
       ref="fileInput"
@@ -31,9 +33,14 @@ const { fileInput, triggerFileInput, handleFileChange } = useFileHelpers()
       class="hidden"
     />
 
-    <AppButton variant="secondary" size="md" @click="triggerFileInput">
-      <template #icon><Plus :size="16" class="mr-1.5" /></template>
-      添加图片
+    <AppButton
+      variant="secondary"
+      size="md"
+      @click="triggerFileInput"
+      class="!px-3 md:!px-4 !h-9 md:!h-10"
+    >
+      <template #icon><Plus :size="16" /></template>
+      <span v-if="isPC" class="ml-2">添加图片</span>
     </AppButton>
 
     <AppButton
@@ -42,9 +49,10 @@ const { fileInput, triggerFileInput, handleFileChange } = useFileHelpers()
       size="md"
       :disabled="!store.selectedCount || isProcessing"
       @click="store.removeSelected"
+      class="!px-3 md:!px-4 !h-9 md:!h-10"
     >
-      <template #icon><Trash2 :size="16" class="mr-1.5" /></template>
-      删除选中
+      <template #icon><Trash2 :size="16" /></template>
+      <span v-if="isPC" class="ml-2">删除选中</span>
     </AppButton>
 
     <AppButton
@@ -53,9 +61,10 @@ const { fileInput, triggerFileInput, handleFileChange } = useFileHelpers()
       size="md"
       :disabled="isProcessing"
       @click="store.clearImages"
+      class="!px-3 md:!px-4 !h-9 md:!h-10"
     >
-      <template #icon><X :size="16" class="mr-1.5" /></template>
-      清空全部
+      <template #icon><X :size="16" /></template>
+      <span v-if="isPC" class="ml-2">清空全部</span>
     </AppButton>
 
     <!-- 允许插入额外的操作，如“处理全部” -->
