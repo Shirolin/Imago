@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import type { Component } from 'vue'
 import { Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 
@@ -8,7 +9,7 @@ interface Props {
   size?: 'sm' | 'md' | 'lg'
   disabled?: boolean
   loading?: boolean
-  icon?: any
+  icon?: Component
   iconPosition?: 'left' | 'right'
 }
 
@@ -54,10 +55,12 @@ const shadcnSize = computed(() => {
 })
 
 const extraClasses = computed(() => {
-  let classes = 'gap-2 font-bold transition-all duration-300 whitespace-nowrap shrink-0 flex items-center justify-center '
-  
+  let classes =
+    'gap-2 font-bold transition-all duration-300 whitespace-nowrap shrink-0 flex items-center justify-center '
+
   if (props.variant === 'link') {
-    classes += 'p-0 h-auto text-primary hover:bg-transparent hover:underline shadow-none border-none active:scale-95 '
+    classes +=
+      'p-0 h-auto text-primary hover:bg-transparent hover:underline shadow-none border-none active:scale-95 '
   } else {
     // 非 link 变体才应用这些样式
     if (props.variant === 'cta') {
@@ -70,10 +73,12 @@ const extraClasses = computed(() => {
       classes += 'text-muted-foreground hover:bg-muted hover:text-primary '
     }
     if (props.variant === 'secondary') {
-      classes += 'bg-secondary/20 border-border hover:border-primary hover:bg-secondary/40 hover:text-foreground text-foreground '
+      classes +=
+        'bg-secondary/20 border-border hover:border-primary hover:bg-secondary/40 hover:text-foreground text-foreground '
     }
     if (props.variant === 'danger') {
-      classes += 'bg-destructive/10 text-destructive border-transparent hover:bg-destructive hover:text-destructive-foreground '
+      classes +=
+        'bg-destructive/10 text-destructive border-transparent hover:bg-destructive hover:text-destructive-foreground '
     }
   }
   return classes
@@ -81,18 +86,19 @@ const extraClasses = computed(() => {
 
 const iconSize = computed(() => {
   switch (props.size) {
-    case 'sm': return 14
-    case 'lg': return 20
-    default: return 18
+    case 'sm':
+      return 14
+    case 'lg':
+      return 20
+    default:
+      return 18
   }
 })
 
 // 依靠高质量字体（Inter + Noto Sans SC）实现自然的视觉对齐。
 // 移除所有手动的 Optical Bias 补丁，回归标准的 Flex 垂直居中。
 const iconClass = computed(() => {
-  return [
-    'shrink-0 transition-transform duration-300'
-  ]
+  return ['shrink-0 transition-transform duration-300']
 })
 </script>
 

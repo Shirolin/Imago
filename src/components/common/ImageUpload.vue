@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { Upload, Clipboard, Image as ImageIcon, FileImage, MousePointer2 } from 'lucide-vue-next'
+import { Upload, Image as ImageIcon, FileImage, MousePointer2 } from 'lucide-vue-next'
 import AppButton from './AppButton.vue'
 
 const emit = defineEmits(['upload'])
@@ -127,9 +127,13 @@ onUnmounted(() => {
       @change="onFileSelect"
     />
 
-    <div class="relative z-10 flex flex-col items-center text-center w-full max-w-[min(90%,600px)] mx-auto">
+    <div
+      class="relative z-10 flex flex-col items-center text-center w-full max-w-[min(90%,600px)] mx-auto"
+    >
       <!-- 插画图标区域 -->
-      <div class="relative mb-8 md:mb-12 w-[clamp(100px,25cqw,140px)] aspect-[1.2/1] flex justify-center">
+      <div
+        class="relative mb-8 md:mb-12 w-[clamp(100px,25cqw,140px)] aspect-[1.2/1] flex justify-center"
+      >
         <div
           class="w-[60%] h-[80%] rounded-[20%] bg-background border-2 border-border text-primary flex items-center justify-center relative z-10 transition-all duration-400 group-hover:border-primary group-hover:scale-110 shadow-sm"
         >
@@ -149,15 +153,15 @@ onUnmounted(() => {
 
       <!-- 文字内容区域 -->
       <div class="mb-8 md:mb-10 flex flex-col items-center w-full">
-        <h2 
+        <h2
           class="font-extrabold text-foreground mb-3 md:mb-4 tracking-tight px-2 leading-[1.2] [text-wrap:balance] hyphens-auto"
-          style="font-size: clamp(1.25rem, 5cqw, 1.875rem);"
+          style="font-size: clamp(1.25rem, 5cqw, 1.875rem)"
         >
           点击、拖拽或粘贴图片到这里
         </h2>
-        <p 
+        <p
           class="text-muted-foreground leading-relaxed px-4 [text-wrap:balance]"
-          style="font-size: clamp(0.875rem, 3cqw, 1rem);"
+          style="font-size: clamp(0.875rem, 3cqw, 1rem)"
         >
           支持 JPG, PNG, WebP 等格式 · 100% 本地处理
         </p>
@@ -184,7 +188,10 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <AppButton size="lg" @click.stop="triggerSelect" class="!px-8 !h-12 md:!h-14 !text-sm md:!text-base !rounded-xl md:!rounded-2xl shrink-0"
+      <AppButton
+        size="lg"
+        @click.stop="triggerSelect"
+        class="!px-8 !h-12 md:!h-14 !text-sm md:!text-base !rounded-xl md:!rounded-2xl shrink-0"
         >选择图片文件</AppButton
       >
     </div>

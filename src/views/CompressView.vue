@@ -5,12 +5,14 @@ import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import ImageCard from '../components/common/ImageCard.vue'
 import AppButton from '../components/common/AppButton.vue'
+import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
+import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import imageCompression from 'browser-image-compression'
-import { Zap, Plus, Trash2, ArrowRight, Square, CheckSquare } from 'lucide-vue-next'
+import { Zap, ArrowRight } from 'lucide-vue-next'
+import AppSlider from '../components/common/AppSlider.vue'
 
 const store = useImageStore()
-const { fileInput, formatSize, triggerFileInput, handleFileChange, downloadImage } =
-  useFileHelpers()
+const { formatSize, downloadImage } = useFileHelpers()
 
 const compressionQuality = ref(0.8)
 const isCompressing = ref(false)
@@ -49,8 +51,11 @@ const compressImage = async (id: string) => {
         abortController: undefined
       })
     }
-  } catch (error: any) {
-    if (error.name === 'AbortError' || error.message?.includes('abort')) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const errorName = error instanceof Error ? error.name : ''
+
+    if (errorName === 'AbortError' || errorMessage.includes('abort')) {
       console.log(`[Task Aborted] Compression cancelled for ${id}`)
       return
     }
@@ -78,95 +83,50 @@ const handleDownload = (id: string) => {
   <WorkspaceLayout>
     <template #header-left>
       <div class="flex items-center gap-4 md:gap-7 h-11">
-        <!-- 统一的“已选择”状态块 -->
-        <div
-          class="flex items-center gap-3.5 cursor-pointer px-5 h-full rounded-full bg-muted/40 border border-border/50 transition-all duration-300 hover:border-primary/50 hover:bg-background hover:-translate-y-[1px] active:scale-[0.96] group"
-          @click="store.toggleAll"
-        >
-          <div
-            class="flex items-center justify-center transition-colors duration-200"
-            :class="store.isAllSelected ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'"
-          >
-            <CheckSquare v-if="store.isAllSelected" :size="18" class="drop-shadow-sm" />
-            <Square v-else :size="18" />
-          </div>
-          <div class="flex flex-col justify-center">
-            <span class="font-bold text-[0.8rem] text-foreground leading-none tracking-tight"
-              >已选择 {{ store.selectedCount }}</span
-            >
-            <span
-              class="hidden md:inline text-[0.6rem] text-muted-foreground font-black uppercase tracking-[0.1em] mt-0.5 opacity-60 leading-none"
-              >全选/反选</span
-            >
-          </div>
-        </div>
+        <ImageSelectionStatus />
 
         <div class="hidden md:block w-px h-6 bg-border/60"></div>
 
         <!-- 质量调节区 -->
         <div class="flex flex-col gap-1.5 md:gap-2 min-w-[120px] md:min-w-[180px] justify-center">
-          <div
-            class="flex items-center justify-between text-[0.65rem] font-black uppercase text-muted-foreground tracking-wider leading-none"
+          <AppSlider
+            v-model="compressionQuality"
+            label="压缩质量"
+            :min="0.1"
+            :max="1.0"
+            :step="0.05"
+            :unit="''"
           >
-            <span class="hidden md:inline">压缩质量</span>
-            <span class="md:hidden">质量</span>
-            <span class="text-primary bg-primary/10 px-1.5 py-0.5 rounded leading-none"
-              >{{ Math.round(compressionQuality * 100) }}%</span
-            >
-          </div>
-          <input
-            type="range"
-            v-model.number="compressionQuality"
-            min="0.1"
-            max="1.0"
-            step="0.05"
-            class="w-full h-1 bg-border rounded-full appearance-none outline-none cursor-pointer hover:bg-muted accent-primary transition-all"
-          />
+            <template #default="{ modelValue }">
+              <span class="text-primary bg-primary/10 px-1.5 py-0.5 rounded leading-none"
+                >{{ Math.round(modelValue * 100) }}%</span
+              >
+            </template>
+          </AppSlider>
         </div>
       </div>
     </template>
 
     <!-- 核心操作传送至顶栏 -->
     <Teleport to="#top-bar-tools">
-      <input
-        type="file"
-        ref="fileInput"
-        multiple
-        accept="image/*"
-        @change="handleFileChange"
-        class="hidden"
-      />
+      <ImageActionsToolbar :is-processing="isCompressing">
+        <template #extra>
+          <div class="w-px h-5 md:h-6 bg-border mx-1 md:mx-2"></div>
 
-      <div class="flex items-center gap-1.5 md:gap-2">
-        <AppButton variant="secondary" size="md" @click="triggerFileInput">
-          <template #icon><Plus :size="16" class="mr-1.5" /></template>
-          添加
-        </AppButton>
-        <AppButton
-          variant="danger"
-          size="md"
-          :disabled="!store.selectedCount || isCompressing"
-          @click="store.removeSelected"
-        >
-          <template #icon><Trash2 :size="16" class="mr-1.5" /></template>
-          删除
-        </AppButton>
-      </div>
-
-      <div class="w-px h-5 md:h-6 bg-border mx-1 md:mx-2"></div>
-
-      <AppButton
-        variant="cta"
-        size="md"
-        :loading="isCompressing"
-        :disabled="!store.images.length"
-        @click="compressAll"
-      >
-        <template #icon>
-          <Zap v-if="!isCompressing" :size="16" class="mr-1.5" />
+          <AppButton
+            variant="cta"
+            size="md"
+            :loading="isCompressing"
+            :disabled="!store.images.length"
+            @click="compressAll"
+          >
+            <template #icon>
+              <Zap v-if="!isCompressing" :size="16" class="mr-1.5" />
+            </template>
+            处理全部
+          </AppButton>
         </template>
-        处理全部
-      </AppButton>
+      </ImageActionsToolbar>
     </Teleport>
 
     <template #content>
@@ -232,24 +192,3 @@ const handleDownload = (id: string) => {
     </template>
   </WorkspaceLayout>
 </template>
-
-<style scoped>
-/* Range Slider Custom Styles Since Tailwind Accent is Limited for deep custom thumbs */
-input[type='range'] {
-  -webkit-appearance: none;
-}
-input[type='range']::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  background: var(--primary);
-  border-radius: 50%;
-  border: 3px solid var(--card);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-input[type='range']:active::-webkit-slider-thumb {
-  transform: scale(1.2);
-  box-shadow: 0 0 0 6px var(--primary-10); /* primary/10 fallback */
-}
-</style>

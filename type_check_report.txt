@@ -1,0 +1,2 @@
+src/components/common/AppSegmentedControl.vue(27,8): error TS2322: Type 'string | number | boolean' is not assignable to type 'PropertyKey | undefined'.
+  Type 'false' is not assignable to type 'PropertyKey | undefined'.

@@ -1,5 +1,4 @@
 import { ref } from 'vue'
-import type { Ref } from 'vue'
 import { useImageStore } from '../stores/imageStore'
 
 export function useFileHelpers() {

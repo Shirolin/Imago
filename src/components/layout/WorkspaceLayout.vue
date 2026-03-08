@@ -29,7 +29,7 @@ withDefaults(defineProps<Props>(), {
           <div class="h-full flex items-center min-w-max">
             <!-- 左侧边距占位 -->
             <div class="w-4 md:w-6 shrink-0"></div>
-            
+
             <div class="flex items-center gap-3 md:gap-6">
               <slot name="header-left"></slot>
             </div>
@@ -46,10 +46,10 @@ withDefaults(defineProps<Props>(), {
           </div>
         </header>
 
-        <div
-          class="flex-1 overflow-y-auto p-4 md:p-6 bg-background custom-scrollbar"
-        >
-          <div class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 md:gap-6">
+        <div class="flex-1 overflow-y-auto p-4 md:p-6 bg-background custom-scrollbar">
+          <div
+            class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 md:gap-6"
+          >
             <slot name="content"></slot>
           </div>
         </div>

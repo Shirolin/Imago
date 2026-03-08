@@ -5,9 +5,9 @@ import { useImageStore } from './imageStore'
 describe('Image Store', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
-    // 模拟 URL.createObjectURL 和 URL.revokeObjectURL
-    global.URL.createObjectURL = vi.fn(() => 'mock-url')
-    global.URL.revokeObjectURL = vi.fn()
+    // 使用 spyOn 模拟 URL 方法，避免直接修改 readonly 属性导致的类型错误
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('mock-url')
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
   })
 
   it('应该能正确添加图片', () => {
@@ -17,8 +17,8 @@ describe('Image Store', () => {
     store.addImages([mockFile])
 
     expect(store.images.length).toBe(1)
-    expect(store.images[0].file.name).toBe('test.png')
-    expect(store.images[0].status).toBe('idle')
+    expect(store.images[0]!.file.name).toBe('test.png')
+    expect(store.images[0]!.status).toBe('idle')
   })
 
   it('不应添加完全重复的文件', () => {
@@ -35,7 +35,7 @@ describe('Image Store', () => {
     const store = useImageStore()
     const mockFile = new File(['test'], 'test.png', { type: 'image/png' })
     store.addImages([mockFile])
-    const id = store.images[0].id
+    const id = store.images[0]!.id
 
     store.toggleSelection(id)
     expect(store.selectedIds.has(id)).toBe(true)
@@ -65,11 +65,11 @@ describe('Image Store', () => {
     const store = useImageStore()
     const mockFile = new File(['test'], 'test.png', { type: 'image/png' })
     store.addImages([mockFile])
-    const id = store.images[0].id
+    const id = store.images[0]!.id
 
     store.removeImage(id)
 
     expect(store.images.length).toBe(0)
-    expect(global.URL.revokeObjectURL).toHaveBeenCalledWith('mock-url')
+    expect(vi.mocked(URL.revokeObjectURL)).toHaveBeenCalledWith('mock-url')
   })
 })

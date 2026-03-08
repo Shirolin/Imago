@@ -1,29 +1,24 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useImageStore } from '../stores/imageStore'
-import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import ImageCard from '../components/common/ImageCard.vue'
 import AppButton from '../components/common/AppButton.vue'
 import {
-  Palette,
-  X,
-  Loader2,
   Settings2,
   Sun,
   Contrast,
   Droplets,
   Check,
   Sparkles,
-  Image as ImageIcon,
-  Plus,
-  Trash2,
-  Square,
-  CheckSquare
+  Image as ImageIcon
 } from 'lucide-vue-next'
+import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
+import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
+import AppSectionHeader from '../components/common/AppSectionHeader.vue'
+import AppSlider from '../components/common/AppSlider.vue'
 
 const store = useImageStore()
-const { fileInput, triggerFileInput, handleFileChange, downloadImage } = useFileHelpers()
 
 const activeImageId = ref<string | null>(null)
 const isProcessing = ref(false)
@@ -101,55 +96,11 @@ const handleCardClick = (id: string) => {
 <template>
   <WorkspaceLayout show-sidebar>
     <template #header-left>
-      <div
-        class="flex items-center gap-3.5 cursor-pointer px-5 h-11 rounded-full bg-muted/40 border border-border/50 transition-all duration-300 hover:border-primary/50 hover:bg-background hover:-translate-y-[1px] active:scale-[0.96] group"
-        @click="store.toggleAll"
-      >
-        <div
-          class="flex items-center justify-center transition-colors duration-200"
-          :class="store.isAllSelected ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'"
-        >
-          <CheckSquare v-if="store.isAllSelected" :size="18" class="drop-shadow-sm" />
-          <Square v-else :size="18" />
-        </div>
-        <div class="flex flex-col justify-center">
-          <span class="font-bold text-[0.8rem] text-foreground leading-none tracking-tight"
-            >已选择 {{ store.selectedCount }} / {{ store.images.length }}</span
-          >
-          <span
-            class="text-[0.6rem] text-muted-foreground font-black uppercase tracking-[0.1em] mt-0.5 opacity-60 leading-none"
-            >全选/反选</span
-          >
-        </div>
-      </div>
+      <ImageSelectionStatus />
     </template>
 
     <template #header-actions>
-      <input
-        type="file"
-        ref="fileInput"
-        multiple
-        accept="image/*"
-        @change="handleFileChange"
-        class="hidden"
-      />
-      <AppButton variant="secondary" size="md" @click="triggerFileInput">
-        <template #icon><Plus :size="16" class="mr-1.5" /></template>
-        添加图片
-      </AppButton>
-      <AppButton
-        variant="danger"
-        size="md"
-        :disabled="!store.selectedCount"
-        @click="store.removeSelected"
-      >
-        <template #icon><Trash2 :size="16" class="mr-1.5" /></template>
-        删除选中
-      </AppButton>
-      <AppButton variant="secondary" size="md" @click="store.clearImages">
-        <template #icon><X :size="16" class="mr-1.5" /></template>
-        清空全部
-      </AppButton>
+      <ImageActionsToolbar show-clear-all />
     </template>
 
     <template #content>
@@ -178,9 +129,7 @@ const handleCardClick = (id: string) => {
     <template #sidebar>
       <div class="p-6 flex flex-col gap-6 h-full overflow-y-auto custom-scrollbar">
         <div class="flex flex-col gap-4 shrink-0">
-          <div class="flex items-center gap-2 font-bold text-[0.85rem] text-foreground uppercase">
-            <ImageIcon :size="18" class="text-primary" /> 当前预览
-          </div>
+          <AppSectionHeader title="当前预览" :icon="ImageIcon" />
           <div
             class="h-[160px] bg-muted rounded-xl border border-border flex items-center justify-center overflow-hidden shadow-inner relative"
           >
@@ -196,9 +145,7 @@ const handleCardClick = (id: string) => {
         </div>
 
         <div class="flex flex-col gap-4 shrink-0">
-          <div class="flex items-center gap-2 font-bold text-[0.85rem] text-foreground uppercase">
-            <Sparkles :size="18" class="text-primary" /> 预设滤镜
-          </div>
+          <AppSectionHeader title="预设滤镜" :icon="Sparkles" />
           <div class="grid grid-cols-3 gap-1.5">
             <button
               v-for="preset in presets"
@@ -215,9 +162,7 @@ const handleCardClick = (id: string) => {
           <div
             class="flex items-center justify-between font-bold text-[0.85rem] text-foreground uppercase"
           >
-            <div class="flex items-center gap-2">
-              <Settings2 :size="18" class="text-primary" /> 手动调整
-            </div>
+            <AppSectionHeader title="手动调整" :icon="Settings2" />
             <button
               @click="resetFilters"
               class="text-[0.7rem] font-bold text-primary hover:text-primary/80 transition-colors bg-transparent border-none cursor-pointer"
@@ -227,63 +172,10 @@ const handleCardClick = (id: string) => {
           </div>
 
           <div class="flex flex-col gap-4">
-            <div class="flex flex-col gap-2">
-              <div class="flex items-center text-[0.7rem] font-bold text-muted-foreground">
-                <Sun :size="14" class="mr-1.5" /> 亮度
-                <span class="ml-auto text-primary">{{ brightness }}%</span>
-              </div>
-              <input
-                type="range"
-                v-model.number="brightness"
-                min="0"
-                max="200"
-                class="w-full h-1 bg-muted rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer shadow-[0_0_0_2px_hsl(var(--card))] border-none focus:outline-none"
-              />
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <div class="flex items-center text-[0.7rem] font-bold text-muted-foreground">
-                <Contrast :size="14" class="mr-1.5" /> 对比度
-                <span class="ml-auto text-primary">{{ contrast }}%</span>
-              </div>
-              <input
-                type="range"
-                v-model.number="contrast"
-                min="0"
-                max="200"
-                class="w-full h-1 bg-muted rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer shadow-[0_0_0_2px_hsl(var(--card))] border-none focus:outline-none"
-              />
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <div class="flex items-center text-[0.7rem] font-bold text-muted-foreground">
-                <Droplets :size="14" class="mr-1.5" /> 饱和度
-                <span class="ml-auto text-primary">{{ saturation }}%</span>
-              </div>
-              <input
-                type="range"
-                v-model.number="saturation"
-                min="0"
-                max="200"
-                class="w-full h-1 bg-muted rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer shadow-[0_0_0_2px_hsl(var(--card))] border-none focus:outline-none"
-              />
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <div
-                class="flex items-center justify-between text-[0.7rem] font-bold text-muted-foreground"
-              >
-                灰度
-                <span class="text-primary">{{ grayscale }}%</span>
-              </div>
-              <input
-                type="range"
-                v-model.number="grayscale"
-                min="0"
-                max="100"
-                class="w-full h-1 bg-muted rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer shadow-[0_0_0_2px_hsl(var(--card))] border-none focus:outline-none"
-              />
-            </div>
+            <AppSlider v-model="brightness" label="亮度" :max="200" :icon="Sun" unit="%" />
+            <AppSlider v-model="contrast" label="对比度" :max="200" :icon="Contrast" unit="%" />
+            <AppSlider v-model="saturation" label="饱和度" :max="200" :icon="Droplets" unit="%" />
+            <AppSlider v-model="grayscale" label="灰度" unit="%" />
           </div>
         </div>
 

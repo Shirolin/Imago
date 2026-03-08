@@ -79,8 +79,12 @@ const tools = [
           >隐私安全</span
         >
       </h1>
-      <p class="text-lg md:text-xl text-muted-foreground leading-relaxed mb-12 max-w-2xl font-medium opacity-90">
-        所有图片处理均在您的浏览器本地完成，文件永远不会上传服务器。<br class="hidden md:block" />真正的离线式生产力工具。
+      <p
+        class="text-lg md:text-xl text-muted-foreground leading-relaxed mb-12 max-w-2xl font-medium opacity-90"
+      >
+        所有图片处理均在您的浏览器本地完成，文件永远不会上传服务器。<br
+          class="hidden md:block"
+        />真正的离线式生产力工具。
       </p>
       <div class="flex flex-col md:flex-row gap-4">
         <AppButton
@@ -105,7 +109,7 @@ const tools = [
         class="group bg-card/60 backdrop-blur-xl border border-border/50 rounded-[2rem] p-8 flex flex-col no-underline text-inherit transition-all duration-500 relative overflow-hidden hover:border-primary/50 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.4)]"
       >
         <!-- 背景高光装饰 -->
-        <div 
+        <div
           class="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[80px] opacity-0 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none"
           :style="{ backgroundColor: tool.color }"
         ></div>
@@ -124,11 +128,21 @@ const tools = [
           </div>
         </div>
         <div class="mb-8 relative z-10">
-          <h3 class="text-2xl font-black mb-3 text-foreground tracking-tight group-hover:text-primary transition-colors">{{ tool.name }}</h3>
-          <p class="text-[0.9rem] text-muted-foreground font-medium leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">{{ tool.desc }}</p>
+          <h3
+            class="text-2xl font-black mb-3 text-foreground tracking-tight group-hover:text-primary transition-colors"
+          >
+            {{ tool.name }}
+          </h3>
+          <p
+            class="text-[0.9rem] text-muted-foreground font-medium leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity"
+          >
+            {{ tool.desc }}
+          </p>
         </div>
         <div class="mt-auto relative z-10">
-          <div class="flex items-center text-primary font-bold text-sm tracking-tight opacity-0 group-hover:opacity-100 translate-x-[-10px] group-hover:translate-x-0 transition-all duration-300">
+          <div
+            class="flex items-center text-primary font-bold text-sm tracking-tight opacity-0 group-hover:opacity-100 translate-x-[-10px] group-hover:translate-x-0 transition-all duration-300"
+          >
             即刻开始 <ArrowRight :size="16" class="ml-2" />
           </div>
         </div>

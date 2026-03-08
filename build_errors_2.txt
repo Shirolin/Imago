@@ -1,0 +1,4 @@
+
+> imago@0.0.0 type-check
+> vue-tsc -b
+

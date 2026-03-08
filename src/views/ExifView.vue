@@ -1,28 +1,26 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useImageStore } from '../stores/imageStore'
-import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
 import {
   Trash2,
-  X,
-  Loader2,
   Info,
   MapPin,
   Camera,
   Calendar,
-  HardDrive,
+  Zap,
   ShieldCheck,
   ShieldAlert,
-  Zap,
-  Plus,
   Square,
   CheckSquare
 } from 'lucide-vue-next'
+import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
+import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
+import AppSectionHeader from '../components/common/AppSectionHeader.vue'
+import AppTip from '../components/common/AppTip.vue'
 
 const store = useImageStore()
-const { fileInput, triggerFileInput, handleFileChange } = useFileHelpers()
 
 const selectedImageId = ref<string | null>(null)
 const isProcessing = ref(false)
@@ -53,55 +51,11 @@ const handleClearExif = async () => {
 <template>
   <WorkspaceLayout show-sidebar>
     <template #header-left>
-      <div
-        class="flex items-center gap-3.5 cursor-pointer px-5 h-11 rounded-full bg-muted/40 border border-border/50 transition-all duration-300 hover:border-primary/50 hover:bg-background hover:-translate-y-[1px] active:scale-[0.96] group"
-        @click="store.toggleAll"
-      >
-        <div
-          class="flex items-center justify-center transition-colors duration-200"
-          :class="store.isAllSelected ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'"
-        >
-          <CheckSquare v-if="store.isAllSelected" :size="18" class="drop-shadow-sm" />
-          <Square v-else :size="18" />
-        </div>
-        <div class="flex flex-col justify-center">
-          <span class="font-bold text-[0.8rem] text-foreground leading-none tracking-tight"
-            >已选择 {{ store.selectedCount }} / {{ store.images.length }}</span
-          >
-          <span
-            class="text-[0.6rem] text-muted-foreground font-black uppercase tracking-[0.1em] mt-0.5 opacity-60 leading-none"
-            >全选/反选</span
-          >
-        </div>
-      </div>
+      <ImageSelectionStatus />
     </template>
 
     <template #header-actions>
-      <input
-        type="file"
-        ref="fileInput"
-        multiple
-        accept="image/*"
-        @change="handleFileChange"
-        class="hidden"
-      />
-      <AppButton variant="secondary" size="md" @click="triggerFileInput">
-        <template #icon><Plus :size="16" class="mr-1.5" /></template>
-        添加图片
-      </AppButton>
-      <AppButton
-        variant="danger"
-        size="md"
-        :disabled="!store.selectedCount"
-        @click="store.removeSelected"
-      >
-        <template #icon><Trash2 :size="16" class="mr-1.5" /></template>
-        删除选中
-      </AppButton>
-      <AppButton variant="secondary" size="md" @click="store.clearImages">
-        <template #icon><X :size="16" class="mr-1.5" /></template>
-        清空全部
-      </AppButton>
+      <ImageActionsToolbar show-clear-all />
     </template>
 
     <template #content>
@@ -165,12 +119,7 @@ const handleClearExif = async () => {
             <Zap :size="16" class="text-primary" />
             <span>所有操作仅在浏览器内完成，您的原始图片不会离开本地。</span>
           </div>
-          <AppButton
-            size="lg"
-            variant="danger"
-            :loading="isProcessing"
-            @click="handleClearExif"
-          >
+          <AppButton size="lg" variant="danger" :loading="isProcessing" @click="handleClearExif">
             <template #icon><Trash2 v-if="!isProcessing" :size="20" class="mr-2" /></template>
             清除所有选定图片的元数据
           </AppButton>
@@ -181,10 +130,7 @@ const handleClearExif = async () => {
     <template #sidebar>
       <div class="p-6 flex flex-col gap-6 h-full">
         <div class="flex flex-col">
-          <div class="flex items-center gap-2 font-bold text-[0.9rem] text-foreground mb-4">
-            <Info :size="18" class="text-primary" />
-            元数据详情
-          </div>
+          <AppSectionHeader title="元数据详情" :icon="Info" class="mb-4" />
 
           <div v-if="selectedImage" class="flex flex-col gap-3">
             <div
@@ -266,14 +212,18 @@ const handleClearExif = async () => {
           </div>
         </div>
 
-        <div class="mt-auto bg-green-500/5 p-4 rounded-xl border border-dashed border-primary/30">
-          <h3 class="text-[0.85rem] font-bold text-foreground mb-1.5 flex items-center gap-1.5">
-            <ShieldCheck :size="16" class="text-primary" /> 关于 EXIF
-          </h3>
-          <p class="text-[0.75rem] text-muted-foreground leading-relaxed">
-            EXIF 是交换图像文件格式。它包含相机设置、GPS
-            坐标和拍摄时间。清除这些信息有助于保护您的隐私。
-          </p>
+        <div class="mt-auto">
+          <AppTip :icon="ShieldCheck">
+            <div class="flex flex-col gap-1.5">
+              <h3 class="text-[0.85rem] font-bold text-foreground flex items-center gap-1.5">
+                关于 EXIF
+              </h3>
+              <p class="text-[0.75rem] text-muted-foreground leading-relaxed">
+                EXIF 是交换图像文件格式。它包含相机设置、GPS
+                坐标和拍摄时间。清除这些信息有助于保护您的隐私。
+              </p>
+            </div>
+          </AppTip>
         </div>
       </div>
     </template>

@@ -15,7 +15,6 @@ import {
   Moon,
   Monitor,
   Menu,
-  X,
   Loader2
 } from 'lucide-vue-next'
 import { useImageStore } from './stores/imageStore'
@@ -51,7 +50,7 @@ const applyTheme = () => {
 }
 
 onMounted(() => {
-  const saved = localStorage.getItem('imago-theme') as any
+  const saved = localStorage.getItem('imago-theme') as 'light' | 'dark' | 'system' | null
   if (saved) theme.value = saved
   applyTheme()
 
@@ -125,7 +124,11 @@ const menuGroups = [
           ]"
           @click="closeMobileSidebar"
         >
-          <Settings2 :size="18" :class="{ 'scale-110': $route.path === '/' }" class="transition-transform duration-300" />
+          <Settings2
+            :size="18"
+            :class="{ 'scale-110': $route.path === '/' }"
+            class="transition-transform duration-300"
+          />
           <span>所有工具</span>
           <div
             v-if="$route.path === '/'"
@@ -151,7 +154,12 @@ const menuGroups = [
             ]"
             @click="closeMobileSidebar"
           >
-            <component :is="item.icon" :size="18" :class="{ 'scale-110': $route.path === item.path }" class="transition-transform duration-300" />
+            <component
+              :is="item.icon"
+              :size="18"
+              :class="{ 'scale-110': $route.path === item.path }"
+              class="transition-transform duration-300"
+            />
             <span>{{ item.name }}</span>
             <div
               v-if="$route.path === item.path"
@@ -221,7 +229,9 @@ const menuGroups = [
             <span>Workspace</span>
           </div>
           <span class="hidden md:inline text-border/60 mx-1">/</span>
-          <div class="h-8 md:h-9 px-4 flex items-center bg-primary/10 border border-primary/20 rounded-full text-[0.7rem] font-bold text-primary uppercase tracking-[0.1em] shadow-sm backdrop-blur-sm">
+          <div
+            class="h-8 md:h-9 px-4 flex items-center bg-primary/10 border border-primary/20 rounded-full text-[0.7rem] font-bold text-primary uppercase tracking-[0.1em] shadow-sm backdrop-blur-sm"
+          >
             <span>{{ $route.name || 'Overview' }}</span>
           </div>
         </div>

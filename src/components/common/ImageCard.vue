@@ -67,14 +67,14 @@ const emit = defineEmits(['toggle', 'remove', 'download'])
       <div class="flex justify-between items-start gap-2">
         <span
           class="font-bold text-foreground overflow-hidden text-ellipsis leading-tight [text-wrap:balance] hyphens-auto"
-          style="font-size: clamp(0.75rem, 4.5cqw, 0.875rem);"
+          style="font-size: clamp(0.75rem, 4.5cqw, 0.875rem)"
           :title="image.file.name"
         >
           {{ image.file.name }}
         </span>
         <span
           class="font-semibold text-muted-foreground bg-muted px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap"
-          style="font-size: clamp(0.6rem, 3.5cqw, 0.75rem);"
+          style="font-size: clamp(0.6rem, 3.5cqw, 0.75rem)"
         >
           {{ formatSize(image.originalSize) }}
         </span>
@@ -84,7 +84,7 @@ const emit = defineEmits(['toggle', 'remove', 'download'])
         <!-- 状态胶囊 -->
         <div
           class="flex items-center gap-1.5 px-2 md:px-2.5 py-0.5 md:py-1 rounded-full font-bold border shrink-0"
-          style="font-size: clamp(0.6rem, 3.5cqw, 0.75rem);"
+          style="font-size: clamp(0.6rem, 3.5cqw, 0.75rem)"
           :class="{
             'text-primary border-primary/30 bg-background': image.status === 'done',
             'text-blue-500 border-blue-500/30 bg-background': image.status === 'processing',
@@ -112,7 +112,7 @@ const emit = defineEmits(['toggle', 'remove', 'download'])
         <button
           v-if="image.status === 'done'"
           class="bg-muted hover:bg-primary hover:text-primary-foreground text-foreground rounded-lg md:rounded-[10px] flex items-center justify-center cursor-pointer transition-all active:scale-95 shrink-0"
-          style="width: clamp(1.5rem, 8cqw, 2rem); height: clamp(1.5rem, 8cqw, 2rem);"
+          style="width: clamp(1.5rem, 8cqw, 2rem); height: clamp(1.5rem, 8cqw, 2rem)"
           @click.stop="emit('download', image.id)"
           aria-label="下载处理后的图片"
         >
@@ -126,9 +126,11 @@ const emit = defineEmits(['toggle', 'remove', 'download'])
     <button
       @click.stop="emit('remove', image.id)"
       class="absolute top-1.5 right-1.5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center cursor-pointer shadow-lg shadow-destructive/30 z-10 transition-all duration-300"
-      style="width: clamp(1.25rem, 7cqw, 1.625rem); height: clamp(1.25rem, 7cqw, 1.625rem);"
+      style="width: clamp(1.25rem, 7cqw, 1.625rem); height: clamp(1.25rem, 7cqw, 1.625rem)"
       :class="[
-        isSelected ? 'opacity-100 scale-100' : 'opacity-0 scale-50 md:group-hover:opacity-100 md:group-hover:scale-100'
+        isSelected
+          ? 'opacity-100 scale-100'
+          : 'opacity-0 scale-50 md:group-hover:opacity-100 md:group-hover:scale-100'
       ]"
       aria-label="删除此图片"
     >

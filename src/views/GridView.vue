@@ -1,24 +1,17 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useImageStore } from '../stores/imageStore'
-import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import ImageCard from '../components/common/ImageCard.vue'
 import AppButton from '../components/common/AppButton.vue'
-import {
-  Grid3X3,
-  X,
-  Loader2,
-  Settings2,
-  Plus,
-  Layout,
-  Trash2,
-  Square,
-  CheckSquare
-} from 'lucide-vue-next'
+import { Settings2, Layout } from 'lucide-vue-next'
+import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
+import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
+import AppSectionHeader from '../components/common/AppSectionHeader.vue'
+import AppSlider from '../components/common/AppSlider.vue'
+import AppTip from '../components/common/AppTip.vue'
 
 const store = useImageStore()
-const { fileInput, triggerFileInput, handleFileChange } = useFileHelpers()
 
 const cols = ref(3)
 const gap = ref(10)
@@ -49,55 +42,11 @@ const gridStyle = computed(() => {
 <template>
   <WorkspaceLayout show-sidebar>
     <template #header-left>
-      <div
-        class="flex items-center gap-3.5 cursor-pointer px-5 h-11 rounded-full bg-muted/40 border border-border/50 transition-all duration-300 hover:border-primary/50 hover:bg-background hover:-translate-y-[1px] active:scale-[0.96] group"
-        @click="store.toggleAll"
-      >
-        <div
-          class="flex items-center justify-center transition-colors duration-200"
-          :class="store.isAllSelected ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'"
-        >
-          <CheckSquare v-if="store.isAllSelected" :size="18" class="drop-shadow-sm" />
-          <Square v-else :size="18" />
-        </div>
-        <div class="flex flex-col justify-center">
-          <span class="font-bold text-[0.8rem] text-foreground leading-none tracking-tight"
-            >已选择 {{ store.selectedCount }} / {{ store.images.length }}</span
-          >
-          <span
-            class="text-[0.6rem] text-muted-foreground font-black uppercase tracking-[0.1em] mt-0.5 opacity-60 leading-none"
-            >全选/反选</span
-          >
-        </div>
-      </div>
+      <ImageSelectionStatus />
     </template>
 
     <template #header-actions>
-      <input
-        type="file"
-        ref="fileInput"
-        multiple
-        accept="image/*"
-        @change="handleFileChange"
-        class="hidden"
-      />
-      <AppButton variant="secondary" size="md" @click="triggerFileInput">
-        <template #icon><Plus :size="16" class="mr-1.5" /></template>
-        添加图片
-      </AppButton>
-      <AppButton
-        variant="danger"
-        size="md"
-        :disabled="!store.selectedCount"
-        @click="store.removeSelected"
-      >
-        <template #icon><Trash2 :size="16" class="mr-1.5" /></template>
-        删除选中
-      </AppButton>
-      <AppButton variant="secondary" size="md" @click="store.clearImages">
-        <template #icon><X :size="16" class="mr-1.5" /></template>
-        清空全部
-      </AppButton>
+      <ImageActionsToolbar show-clear-all />
     </template>
 
     <template #content>
@@ -114,9 +63,7 @@ const gridStyle = computed(() => {
     <template #sidebar>
       <div class="p-6 flex flex-col gap-6 h-full">
         <div class="flex flex-col gap-4">
-          <div class="flex items-center gap-2 font-bold text-[0.85rem] text-foreground uppercase">
-            <Layout :size="18" class="text-primary" /> 布局预览
-          </div>
+          <AppSectionHeader title="布局预览" :icon="Layout" />
           <div
             class="h-[140px] bg-muted/30 rounded-xl border border-border overflow-auto p-2 custom-scrollbar relative"
           >
@@ -147,70 +94,13 @@ const gridStyle = computed(() => {
         </div>
 
         <div class="flex flex-col gap-5">
-          <div class="flex items-center gap-2 font-bold text-[0.85rem] text-foreground uppercase">
-            <Settings2 :size="18" class="text-primary" /> 网格参数
-          </div>
+          <AppSectionHeader title="网格参数" :icon="Settings2" />
 
           <div class="flex flex-col gap-4">
-            <div class="flex flex-col gap-2">
-              <div
-                class="flex items-center justify-between text-[0.7rem] font-bold text-muted-foreground"
-              >
-                列数 <span class="text-primary">{{ cols }}</span>
-              </div>
-              <input
-                type="range"
-                v-model.number="cols"
-                min="1"
-                max="6"
-                class="w-full h-1 bg-muted rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer shadow-[0_0_0_2px_hsl(var(--card))] border-none focus:outline-none"
-              />
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <div
-                class="flex items-center justify-between text-[0.7rem] font-bold text-muted-foreground"
-              >
-                间距 <span class="text-primary">{{ gap }}px</span>
-              </div>
-              <input
-                type="range"
-                v-model.number="gap"
-                min="0"
-                max="100"
-                class="w-full h-1 bg-muted rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer shadow-[0_0_0_2px_hsl(var(--card))] border-none focus:outline-none"
-              />
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <div
-                class="flex items-center justify-between text-[0.7rem] font-bold text-muted-foreground"
-              >
-                外边距 <span class="text-primary">{{ padding }}px</span>
-              </div>
-              <input
-                type="range"
-                v-model.number="padding"
-                min="0"
-                max="100"
-                class="w-full h-1 bg-muted rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer shadow-[0_0_0_2px_hsl(var(--card))] border-none focus:outline-none"
-              />
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <div
-                class="flex items-center justify-between text-[0.7rem] font-bold text-muted-foreground"
-              >
-                图片圆角 <span class="text-primary">{{ borderRadius }}px</span>
-              </div>
-              <input
-                type="range"
-                v-model.number="borderRadius"
-                min="0"
-                max="50"
-                class="w-full h-1 bg-muted rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer shadow-[0_0_0_2px_hsl(var(--card))] border-none focus:outline-none"
-              />
-            </div>
+            <AppSlider v-model="cols" label="列数" :min="1" :max="6" />
+            <AppSlider v-model="gap" label="间距" unit="px" />
+            <AppSlider v-model="padding" label="外边距" unit="px" />
+            <AppSlider v-model="borderRadius" label="图片圆角" :max="50" unit="px" />
           </div>
         </div>
 
@@ -219,7 +109,7 @@ const gridStyle = computed(() => {
             <template #icon><Layout v-if="!isProcessing" :size="20" class="mr-2" /></template>
             {{ isProcessing ? '正在生成...' : '生成拼图' }}
           </AppButton>
-          <p class="text-center text-xs text-muted-foreground">所有操作在浏览器本地完成</p>
+          <AppTip>所有操作在浏览器本地完成</AppTip>
         </div>
       </div>
     </template>

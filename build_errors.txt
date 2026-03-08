@@ -1,0 +1,11 @@
+
+> imago@0.0.0 type-check
+> vue-tsc -b
+
+src/stores/imageStore.test.ts(9,14): error TS2304: Cannot find name 'global'.
+src/stores/imageStore.test.ts(10,14): error TS2304: Cannot find name 'global'.
+src/stores/imageStore.test.ts(20,12): error TS2532: Object is possibly 'undefined'.
+src/stores/imageStore.test.ts(21,12): error TS2532: Object is possibly 'undefined'.
+src/stores/imageStore.test.ts(38,16): error TS2532: Object is possibly 'undefined'.
+src/stores/imageStore.test.ts(68,16): error TS2532: Object is possibly 'undefined'.
+src/stores/imageStore.test.ts(73,22): error TS2304: Cannot find name 'global'.

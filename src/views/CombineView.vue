@@ -1,32 +1,37 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useImageStore } from '../stores/imageStore'
-import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import ImageCard from '../components/common/ImageCard.vue'
 import AppButton from '../components/common/AppButton.vue'
 import {
   Layers,
-  X,
   Settings2,
   ArrowDown,
   ArrowRight,
   Grid3X3,
-  Plus,
-  Trash2,
   MoveLeft,
-  MoveRight,
-  Square,
-  CheckSquare
+  MoveRight
 } from 'lucide-vue-next'
+import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
+import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
+import AppSectionHeader from '../components/common/AppSectionHeader.vue'
+import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
+import AppSlider from '../components/common/AppSlider.vue'
+import AppTip from '../components/common/AppTip.vue'
 
 const store = useImageStore()
-const { triggerFileInput, handleFileChange } = useFileHelpers()
 
 const combineDirection = ref<'vertical' | 'horizontal' | 'grid'>('vertical')
 const spacing = ref(10)
 const backgroundColor = ref('#FFFFFF')
 const isProcessing = ref(false)
+
+const combineDirections = [
+  { label: '纵向', value: 'vertical', icon: ArrowDown },
+  { label: '横向', value: 'horizontal', icon: ArrowRight },
+  { label: '网格', value: 'grid', icon: Grid3X3 }
+]
 
 const handleCombine = async () => {
   isProcessing.value = true
@@ -52,55 +57,11 @@ const moveImage = (index: number, direction: 'prev' | 'next') => {
 <template>
   <WorkspaceLayout show-sidebar>
     <template #header-left>
-      <div
-        class="flex items-center gap-3.5 cursor-pointer px-5 h-11 rounded-full bg-muted/40 border border-border/50 transition-all duration-300 hover:border-primary/50 hover:bg-background hover:-translate-y-[1px] active:scale-[0.96] group"
-        @click="store.toggleAll"
-      >
-        <div
-          class="flex items-center justify-center transition-colors duration-200"
-          :class="store.isAllSelected ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'"
-        >
-          <CheckSquare v-if="store.isAllSelected" :size="18" class="drop-shadow-sm" />
-          <Square v-else :size="18" />
-        </div>
-        <div class="flex flex-col justify-center">
-          <span class="font-bold text-[0.8rem] text-foreground leading-none tracking-tight"
-            >已选择 {{ store.selectedCount }} / {{ store.images.length }}</span
-          >
-          <span
-            class="text-[0.6rem] text-muted-foreground font-black uppercase tracking-[0.1em] mt-0.5 opacity-60 leading-none"
-            >全选/反选</span
-          >
-        </div>
-      </div>
+      <ImageSelectionStatus />
     </template>
 
     <template #header-actions>
-      <input
-        type="file"
-        ref="fileInput"
-        multiple
-        accept="image/*"
-        @change="handleFileChange"
-        class="hidden"
-      />
-      <AppButton variant="secondary" size="md" @click="triggerFileInput">
-        <template #icon><Plus :size="16" class="mr-1.5" /></template>
-        添加图片
-      </AppButton>
-      <AppButton
-        variant="danger"
-        size="md"
-        :disabled="!store.selectedCount"
-        @click="store.removeSelected"
-      >
-        <template #icon><Trash2 :size="16" class="mr-1.5" /></template>
-        删除选中
-      </AppButton>
-      <AppButton variant="secondary" size="md" @click="store.clearImages">
-        <template #icon><X :size="16" class="mr-1.5" /></template>
-        清空全部
-      </AppButton>
+      <ImageActionsToolbar show-clear-all />
     </template>
 
     <template #content>
@@ -136,67 +97,11 @@ const moveImage = (index: number, direction: 'prev' | 'next') => {
     <template #sidebar>
       <div class="p-6 flex flex-col gap-6 h-full">
         <div class="flex flex-col gap-4">
-          <div
-            class="flex items-center justify-between font-bold text-[0.85rem] text-foreground uppercase"
-          >
-            <div class="flex items-center gap-2">
-              <Settings2 :size="18" class="text-primary" /> 布局方向
-            </div>
-          </div>
-          <div class="grid grid-cols-3 gap-1.5 bg-muted p-1 rounded-xl border border-border">
-            <button
-              class="flex flex-col items-center gap-1 p-2.5 rounded-lg text-[0.7rem] font-bold transition-all"
-              :class="
-                combineDirection === 'vertical'
-                  ? 'bg-card text-primary shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              "
-              @click="combineDirection = 'vertical'"
-            >
-              <ArrowDown :size="18" /><span>纵向</span>
-            </button>
-            <button
-              class="flex flex-col items-center gap-1 p-2.5 rounded-lg text-[0.7rem] font-bold transition-all"
-              :class="
-                combineDirection === 'horizontal'
-                  ? 'bg-card text-primary shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              "
-              @click="combineDirection = 'horizontal'"
-            >
-              <ArrowRight :size="18" /><span>横向</span>
-            </button>
-            <button
-              class="flex flex-col items-center gap-1 p-2.5 rounded-lg text-[0.7rem] font-bold transition-all"
-              :class="
-                combineDirection === 'grid'
-                  ? 'bg-card text-primary shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              "
-              @click="combineDirection = 'grid'"
-            >
-              <Grid3X3 :size="18" /><span>网格</span>
-            </button>
-          </div>
+          <AppSectionHeader title="布局方向" :icon="Settings2" />
+          <AppSegmentedControl v-model="combineDirection" :options="combineDirections" />
         </div>
 
-        <div class="flex flex-col gap-4">
-          <div
-            class="flex items-center justify-between font-bold text-[0.85rem] text-foreground uppercase"
-          >
-            <span>间距 (px)</span>
-            <span class="bg-green-500/10 text-primary px-2 py-0.5 rounded-md text-xs"
-              >{{ spacing }}px</span
-            >
-          </div>
-          <input
-            type="range"
-            v-model.number="spacing"
-            min="0"
-            max="100"
-            class="w-full h-1 bg-muted rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer shadow-[0_0_0_2px_hsl(var(--card))] border-none focus:outline-none"
-          />
-        </div>
+        <AppSlider v-model="spacing" label="间距" unit="px" />
 
         <div class="flex flex-col gap-4">
           <div
@@ -224,7 +129,7 @@ const moveImage = (index: number, direction: 'prev' | 'next') => {
             <template #icon><Layers v-if="!isProcessing" :size="20" class="mr-2" /></template>
             执行合并
           </AppButton>
-          <p class="text-center text-xs text-muted-foreground">图片将按队列顺序拼合</p>
+          <AppTip>图片将按队列顺序拼合</AppTip>
         </div>
       </div>
     </template>

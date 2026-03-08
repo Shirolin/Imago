@@ -1,24 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useImageStore } from '../stores/imageStore'
-import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import ImageCard from '../components/common/ImageCard.vue'
 import AppButton from '../components/common/AppButton.vue'
-import {
-  Split,
-  X,
-  Loader2,
-  Settings2,
-  Scissors,
-  Plus,
-  Trash2,
-  Square,
-  CheckSquare
-} from 'lucide-vue-next'
+import { Settings2, Scissors } from 'lucide-vue-next'
+import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
+import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
+import AppSectionHeader from '../components/common/AppSectionHeader.vue'
+import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 
 const store = useImageStore()
-const { fileInput, triggerFileInput, handleFileChange } = useFileHelpers()
 
 const splitMode = ref<'grid' | 'tiles'>('grid')
 const rows = ref(3)
@@ -26,6 +18,11 @@ const cols = ref(3)
 const tileWidth = ref(1080)
 const tileHeight = ref(1080)
 const isProcessing = ref(false)
+
+const splitModes = [
+  { label: '网格', value: 'grid' },
+  { label: '瓦片', value: 'tiles' }
+]
 
 const handleSplit = async () => {
   isProcessing.value = true
@@ -42,55 +39,11 @@ const handleSplit = async () => {
 <template>
   <WorkspaceLayout show-sidebar>
     <template #header-left>
-      <div
-        class="flex items-center gap-3.5 cursor-pointer px-5 h-11 rounded-full bg-muted/40 border border-border/50 transition-all duration-300 hover:border-primary/50 hover:bg-background hover:-translate-y-[1px] active:scale-[0.96] group"
-        @click="store.toggleAll"
-      >
-        <div
-          class="flex items-center justify-center transition-colors duration-200"
-          :class="store.isAllSelected ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'"
-        >
-          <CheckSquare v-if="store.isAllSelected" :size="18" class="drop-shadow-sm" />
-          <Square v-else :size="18" />
-        </div>
-        <div class="flex flex-col justify-center">
-          <span class="font-bold text-[0.8rem] text-foreground leading-none tracking-tight"
-            >已选择 {{ store.selectedCount }} / {{ store.images.length }}</span
-          >
-          <span
-            class="text-[0.6rem] text-muted-foreground font-black uppercase tracking-[0.1em] mt-0.5 opacity-60 leading-none"
-            >全选/反选</span
-          >
-        </div>
-      </div>
+      <ImageSelectionStatus />
     </template>
 
     <template #header-actions>
-      <input
-        type="file"
-        ref="fileInput"
-        multiple
-        accept="image/*"
-        @change="handleFileChange"
-        class="hidden"
-      />
-      <AppButton variant="secondary" size="md" @click="triggerFileInput">
-        <template #icon><Plus :size="16" class="mr-1.5" /></template>
-        添加图片
-      </AppButton>
-      <AppButton
-        variant="danger"
-        size="md"
-        :disabled="!store.selectedCount"
-        @click="store.removeSelected"
-      >
-        <template #icon><Trash2 :size="16" class="mr-1.5" /></template>
-        删除选中
-      </AppButton>
-      <AppButton variant="secondary" size="md" @click="store.clearImages">
-        <template #icon><X :size="16" class="mr-1.5" /></template>
-        清空全部
-      </AppButton>
+      <ImageActionsToolbar show-clear-all />
     </template>
 
     <template #content>
@@ -121,33 +74,8 @@ const handleSplit = async () => {
     <template #sidebar>
       <div class="p-6 flex flex-col gap-6 h-full">
         <div class="flex flex-col gap-4">
-          <div class="flex items-center gap-2 font-bold text-[0.85rem] text-foreground uppercase">
-            <Settings2 :size="18" class="text-primary" /> 分割模式
-          </div>
-          <div class="flex bg-muted p-1 rounded-xl border border-border">
-            <button
-              class="flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all"
-              :class="
-                splitMode === 'grid'
-                  ? 'bg-card text-primary shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              "
-              @click="splitMode = 'grid'"
-            >
-              网格
-            </button>
-            <button
-              class="flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all"
-              :class="
-                splitMode === 'tiles'
-                  ? 'bg-card text-primary shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              "
-              @click="splitMode = 'tiles'"
-            >
-              瓦片
-            </button>
-          </div>
+          <AppSectionHeader title="分割模式" :icon="Settings2" />
+          <AppSegmentedControl v-model="splitMode" :options="splitModes" />
         </div>
 
         <div v-if="splitMode === 'grid'" class="flex flex-col gap-4">
