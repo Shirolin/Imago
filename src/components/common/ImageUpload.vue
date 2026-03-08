@@ -99,19 +99,20 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="relative w-full min-h-[480px] bg-card border-2 border-dashed border-border rounded-[40px] flex items-center justify-center cursor-pointer overflow-hidden p-8 outline-none transition-all duration-400 focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 hover:border-primary hover:bg-muted hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/10 group"
+    class="relative w-full min-h-[320px] md:min-h-[480px] bg-card border-2 border-dashed border-border rounded-3xl md:rounded-[40px] flex items-center justify-center cursor-pointer overflow-hidden p-6 md:p-8 outline-none transition-all duration-400 focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 hover:border-primary hover:bg-muted md:hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/10 group @container"
     :class="{ 'border-primary bg-primary/10 scale-[0.985]': isGlobalDragging }"
     @click="triggerSelect"
   >
+    <!-- ... Teleport stays the same ... -->
     <Teleport to="body">
       <div
         v-if="isGlobalDragging"
-        class="fixed inset-3 bg-primary/15 backdrop-blur-md z-[9999] flex items-center justify-center border-4 border-dashed border-primary rounded-[38px] pointer-events-none animate-in fade-in zoom-in-95 duration-200"
+        class="fixed inset-3 bg-primary/15 backdrop-blur-md z-[9999] flex items-center justify-center border-4 border-dashed border-primary rounded-2xl md:rounded-[38px] pointer-events-none animate-in fade-in zoom-in-95 duration-200"
       >
         <div
-          class="flex flex-col items-center gap-6 text-primary font-extrabold text-3xl drop-shadow-md"
+          class="flex flex-col items-center gap-6 text-primary font-extrabold text-2xl md:text-3xl drop-shadow-md text-center px-6 [text-wrap:balance]"
         >
-          <MousePointer2 :size="64" class="animate-bounce" />
+          <MousePointer2 :size="48" class="md:w-16 md:h-16 animate-bounce" />
           <span>松开鼠标，将图片放入 Imago</span>
         </div>
       </div>
@@ -126,35 +127,44 @@ onUnmounted(() => {
       @change="onFileSelect"
     />
 
-    <div class="relative z-10 flex flex-col items-center text-center">
-      <div class="relative mb-12 w-[120px] h-[100px] flex justify-center">
+    <div class="relative z-10 flex flex-col items-center text-center w-full max-w-[min(90%,600px)] mx-auto">
+      <!-- 插画图标区域 -->
+      <div class="relative mb-8 md:mb-12 w-[clamp(100px,25cqw,140px)] aspect-[1.2/1] flex justify-center">
         <div
-          class="w-[84px] h-[84px] rounded-3xl bg-background border-2 border-border text-primary flex items-center justify-center relative z-10 transition-all duration-400 group-hover:border-primary group-hover:scale-110 shadow-sm"
+          class="w-[60%] h-[80%] rounded-[20%] bg-background border-2 border-border text-primary flex items-center justify-center relative z-10 transition-all duration-400 group-hover:border-primary group-hover:scale-110 shadow-sm"
         >
-          <Upload :size="32" />
+          <Upload class="w-1/2 h-1/2" />
         </div>
         <div
-          class="absolute bottom-0 left-0 w-[44px] h-[44px] rounded-2xl bg-card border-2 border-border text-muted-foreground z-0 -rotate-12 flex items-center justify-center transition-all duration-400 group-hover:border-primary group-hover:text-primary group-hover:-translate-x-2.5 group-hover:translate-y-1 group-hover:-rotate-[20deg]"
+          class="absolute bottom-0 left-0 w-[35%] h-[45%] rounded-[20%] bg-card border-2 border-border text-muted-foreground z-0 -rotate-12 flex items-center justify-center transition-all duration-400 group-hover:border-primary group-hover:text-primary group-hover:-translate-x-2.5 group-hover:translate-y-1 group-hover:-rotate-[20deg]"
         >
-          <ImageIcon :size="16" />
+          <ImageIcon class="w-1/2 h-1/2" />
         </div>
         <div
-          class="absolute top-0 right-0 w-[44px] h-[44px] rounded-2xl bg-card border-2 border-border text-muted-foreground z-0 rotate-12 flex items-center justify-center transition-all duration-400 group-hover:border-primary group-hover:text-primary group-hover:translate-x-2.5 group-hover:-translate-y-1 group-hover:rotate-[20deg]"
+          class="absolute top-0 right-0 w-[35%] h-[45%] rounded-[20%] bg-card border-2 border-border text-muted-foreground z-0 rotate-12 flex items-center justify-center transition-all duration-400 group-hover:border-primary group-hover:text-primary group-hover:translate-x-2.5 group-hover:-translate-y-1 group-hover:rotate-[20deg]"
         >
-          <FileImage :size="16" />
+          <FileImage class="w-1/2 h-1/2" />
         </div>
       </div>
 
-      <div class="mb-10 flex flex-col items-center">
-        <h2 class="text-3xl font-extrabold text-foreground mb-4 tracking-tight">
+      <!-- 文字内容区域 -->
+      <div class="mb-8 md:mb-10 flex flex-col items-center w-full">
+        <h2 
+          class="font-extrabold text-foreground mb-3 md:mb-4 tracking-tight px-2 leading-[1.2] [text-wrap:balance] hyphens-auto"
+          style="font-size: clamp(1.25rem, 5cqw, 1.875rem);"
+        >
           点击、拖拽或粘贴图片到这里
         </h2>
-        <p class="text-base text-muted-foreground">
-          支持 JPG, PNG, WebP, AVIF 等格式 · 100% 本地处理
+        <p 
+          class="text-muted-foreground leading-relaxed px-4 [text-wrap:balance]"
+          style="font-size: clamp(0.875rem, 3cqw, 1rem);"
+        >
+          支持 JPG, PNG, WebP 等格式 · 100% 本地处理
         </p>
       </div>
 
-      <div class="flex items-center gap-5 mb-12">
+      <!-- 底部辅助说明 -->
+      <div class="hidden @[30rem]:flex items-center gap-5 mb-12 shrink-0">
         <div class="flex items-center gap-2 text-sm text-muted-foreground font-semibold">
           <kbd
             class="bg-background border border-border rounded-md px-1.5 py-0.5 shadow-[0_2px_0_var(--border)] font-sans"
@@ -170,11 +180,11 @@ onUnmounted(() => {
         <div class="w-px h-4 bg-border"></div>
         <div class="flex items-center gap-2 text-sm text-muted-foreground font-medium">
           <span class="w-1.5 h-1.5 bg-primary rounded-full"></span>
-          浏览器原生支持的所有图片格式
+          原生支持
         </div>
       </div>
 
-      <AppButton size="lg" @click.stop="triggerSelect" class="!px-8 !h-14 !text-base !rounded-2xl"
+      <AppButton size="lg" @click.stop="triggerSelect" class="!px-8 !h-12 md:!h-14 !text-sm md:!text-base !rounded-xl md:!rounded-2xl shrink-0"
         >选择图片文件</AppButton
       >
     </div>

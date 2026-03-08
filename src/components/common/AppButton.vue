@@ -52,7 +52,7 @@ const shadcnSize = computed(() => {
 })
 
 const extraClasses = computed(() => {
-  let classes = 'gap-2 font-bold transition-all duration-300 '
+  let classes = 'gap-2 font-bold transition-all duration-300 whitespace-nowrap shrink-0 flex items-center justify-center '
   if (props.variant === 'cta') {
     classes += 'bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20 '
   }
@@ -76,8 +76,10 @@ const extraClasses = computed(() => {
     :disabled="disabled || loading"
     :class="extraClasses"
   >
-    <Loader2 v-if="loading" class="animate-spin" :size="16" />
-    <slot v-else name="icon"></slot>
-    <slot></slot>
+    <Loader2 v-if="loading" class="animate-spin shrink-0" :size="16" />
+    <div v-else class="flex items-center shrink-0">
+      <slot name="icon"></slot>
+    </div>
+    <span class="overflow-hidden text-ellipsis"><slot></slot></span>
   </Button>
 </template>

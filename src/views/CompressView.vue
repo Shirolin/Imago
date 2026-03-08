@@ -77,36 +77,37 @@ const handleDownload = (id: string) => {
 <template>
   <WorkspaceLayout>
     <template #header-left>
-      <div class="flex items-center gap-8">
+      <div class="flex items-center gap-3 md:gap-8">
         <div
-          class="flex items-center gap-3.5 cursor-pointer px-4 py-2.5 rounded-2xl bg-muted border border-border transition-all duration-300 hover:border-primary hover:bg-background hover:-translate-y-[1px] active:scale-[0.96]"
+          class="flex items-center gap-2 md:gap-3.5 cursor-pointer px-3 md:px-4 py-2 md:py-2.5 rounded-xl md:rounded-2xl bg-muted border border-border transition-all duration-300 hover:border-primary hover:bg-background active:scale-[0.96] shrink-0"
           @click="store.toggleAll"
         >
           <div
             class="transition-transform duration-200"
             :class="store.isAllSelected ? 'text-primary' : 'text-muted-foreground'"
           >
-            <CheckSquare v-if="store.isAllSelected" :size="20" class="drop-shadow-sm" />
-            <Square v-else :size="20" />
+            <CheckSquare v-if="store.isAllSelected" :size="18" class="md:w-5 md:h-5 drop-shadow-sm" />
+            <Square v-else :size="18" class="md:w-5 md:h-5" />
           </div>
           <div class="flex flex-col">
-            <span class="font-extrabold text-sm text-foreground leading-tight"
-              >已选择 {{ store.selectedCount }} / {{ store.images.length }}</span
+            <span class="font-extrabold text-xs md:text-sm text-foreground leading-tight"
+              >已选择 {{ store.selectedCount }}</span
             >
             <span
-              class="text-[0.65rem] text-muted-foreground font-bold uppercase tracking-widest mt-0.5 opacity-80"
+              class="hidden md:inline text-[0.65rem] text-muted-foreground font-bold uppercase tracking-widest mt-0.5 opacity-80"
               >全选/反选</span
             >
           </div>
         </div>
 
-        <div class="w-px h-9 bg-border"></div>
+        <div class="hidden md:block w-px h-9 bg-border"></div>
 
-        <div class="flex flex-col gap-2 min-w-[180px]">
+        <div class="flex flex-col gap-1.5 md:gap-2 min-w-[120px] md:min-w-[180px]">
           <div
-            class="flex justify-between text-[0.7rem] font-extrabold uppercase text-muted-foreground tracking-wide"
+            class="flex justify-between text-[0.65rem] font-extrabold uppercase text-muted-foreground tracking-wide"
           >
-            <span>压缩质量</span>
+            <span class="hidden md:inline">压缩质量</span>
+            <span class="md:hidden">质量</span>
             <span class="text-primary bg-primary/10 px-1.5 rounded"
               >{{ Math.round(compressionQuality * 100) }}%</span
             >
@@ -134,9 +135,9 @@ const handleDownload = (id: string) => {
         class="hidden"
       />
 
-      <div class="flex items-center gap-2">
-        <AppButton variant="secondary" size="sm" @click="triggerFileInput" class="!px-3 !h-9">
-          <template #icon><Plus :size="16" class="mr-1.5" /></template>
+      <div class="flex items-center gap-1.5 md:gap-2">
+        <AppButton variant="secondary" size="sm" @click="triggerFileInput" class="!px-2.5 md:!px-3 !h-8 md:!h-9 !text-xs md:!text-sm">
+          <template #icon><Plus :size="14" class="md:w-4 md:h-4 mr-1 md:mr-1.5" /></template>
           添加
         </AppButton>
         <AppButton
@@ -144,14 +145,14 @@ const handleDownload = (id: string) => {
           size="sm"
           :disabled="!store.selectedCount || isCompressing"
           @click="store.removeSelected"
-          class="!px-3 !h-9 text-destructive border-transparent hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
+          class="!px-2.5 md:!px-3 !h-8 md:!h-9 !text-xs md:!text-sm text-destructive border-transparent hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
         >
-          <template #icon><Trash2 :size="16" class="mr-1.5" /></template>
+          <template #icon><Trash2 :size="14" class="md:w-4 md:h-4 mr-1 md:mr-1.5" /></template>
           删除
         </AppButton>
       </div>
 
-      <div class="w-px h-6 bg-border mx-2"></div>
+      <div class="w-px h-5 md:h-6 bg-border mx-1 md:mx-2"></div>
 
       <AppButton
         variant="cta"
@@ -159,10 +160,10 @@ const handleDownload = (id: string) => {
         :loading="isCompressing"
         :disabled="!store.images.length"
         @click="compressAll"
-        class="!px-4 !h-9"
+        class="!px-3 md:!px-4 !h-8 md:!h-9 !text-xs md:!text-sm"
       >
         <template #icon>
-          <Zap v-if="!isCompressing" :size="16" class="mr-1.5" />
+          <Zap v-if="!isCompressing" :size="14" class="md:w-4 md:h-4 mr-1 md:mr-1.5" />
         </template>
         处理全部
       </AppButton>
@@ -181,7 +182,7 @@ const handleDownload = (id: string) => {
         <template #overlay="{ image }">
           <div
             v-if="image.status === 'done'"
-            class="absolute top-3 right-3 px-3 py-1.5 rounded-[10px] text-xs font-extrabold flex items-center gap-1.5 shadow-lg z-10 backdrop-blur-sm animate-in fade-in slide-in-from-top-2"
+            class="absolute top-2 md:top-3 right-2 md:right-3 px-2 md:px-3 py-1 md:py-1.5 rounded-lg md:rounded-[10px] text-[0.6rem] md:text-xs font-extrabold flex items-center gap-1 md:gap-1.5 shadow-lg z-10 backdrop-blur-sm animate-in fade-in slide-in-from-top-2"
             :class="
               image.processedSize === image.originalSize
                 ? 'bg-muted/90 text-muted-foreground border border-border shadow-black/10'
@@ -189,10 +190,10 @@ const handleDownload = (id: string) => {
             "
           >
             <template v-if="image.processedSize === image.originalSize">
-              <span>已跳过 (无优化空间)</span>
+              <span>已跳过</span>
             </template>
             <template v-else>
-              <Zap :size="12" /> 节省
+              <Zap :size="10" class="md:w-3 md:h-3" /> 节省
               {{ Math.round((1 - image.processedSize! / image.originalSize) * 100) }}%
             </template>
           </div>
@@ -200,27 +201,27 @@ const handleDownload = (id: string) => {
 
         <template #meta="{ image }">
           <div
-            class="flex items-center gap-3 bg-background p-3 rounded-2xl mt-1.5 border border-border transition-all duration-300 group-hover:border-primary/20"
+            class="flex items-center gap-2 md:gap-3 bg-background p-2 md:p-3 rounded-xl md:rounded-2xl mt-1.5 border border-border transition-all duration-300 group-hover:border-primary/20"
           >
             <div class="flex-1 flex flex-col gap-0.5">
               <span
-                class="text-[0.65rem] font-extrabold uppercase text-muted-foreground tracking-widest mt-0.5 opacity-80"
+                class="text-[0.6rem] md:text-[0.65rem] font-extrabold uppercase text-muted-foreground tracking-widest mt-0.5 opacity-80"
                 >原始</span
               >
-              <span class="text-[0.8125rem] font-bold text-foreground">{{
+              <span class="text-[0.75rem] md:text-[0.8125rem] font-bold text-foreground">{{
                 formatSize(image.originalSize)
               }}</span>
             </div>
-            <div class="text-muted-foreground/60 flex">
-              <ArrowRight :size="14" />
+            <div class="text-muted-foreground/60 flex shrink-0">
+              <ArrowRight :size="12" class="md:w-3.5 md:h-3.5" />
             </div>
             <div class="flex-1 flex flex-col gap-0.5">
               <span
-                class="text-[0.65rem] font-extrabold uppercase text-muted-foreground tracking-widest mt-0.5 opacity-80"
+                class="text-[0.6rem] md:text-[0.65rem] font-extrabold uppercase text-muted-foreground tracking-widest mt-0.5 opacity-80"
                 >压缩后</span
               >
               <span
-                class="text-[0.8125rem] font-bold transition-colors"
+                class="text-[0.75rem] md:text-[0.8125rem] font-bold transition-colors"
                 :class="image.status === 'done' ? 'text-primary' : 'text-foreground'"
                 >{{ image.status === 'done' ? formatSize(image.processedSize!) : '--' }}</span
               >

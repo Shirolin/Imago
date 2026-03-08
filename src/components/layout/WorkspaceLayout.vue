@@ -24,18 +24,20 @@ withDefaults(defineProps<Props>(), {
     <div v-else class="flex-1 flex overflow-hidden h-full">
       <div class="flex-1 flex flex-col min-w-0 relative">
         <header
-          class="h-[72px] px-6 bg-card border-b border-border flex items-center justify-between gap-6 shrink-0 relative z-10"
+          class="h-14 md:h-[72px] px-4 md:px-6 bg-card border-b border-border flex items-center justify-between gap-3 md:gap-6 shrink-0 relative z-10 overflow-x-auto no-scrollbar"
         >
-          <slot name="header-left"></slot>
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-3 md:gap-6 min-w-max">
+            <slot name="header-left"></slot>
+          </div>
+          <div class="flex items-center gap-2 md:gap-3 shrink-0">
             <slot name="header-actions"></slot>
           </div>
         </header>
 
         <div
-          class="flex-1 overflow-y-auto p-6 bg-background custom-scrollbar"
+          class="flex-1 overflow-y-auto p-4 md:p-6 bg-background custom-scrollbar"
         >
-          <div class="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
+          <div class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 md:gap-6">
             <slot name="content"></slot>
           </div>
         </div>
