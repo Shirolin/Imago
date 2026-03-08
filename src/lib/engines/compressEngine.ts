@@ -3,14 +3,19 @@ import type { ImageProcessor, ProcessResult } from './types'
 
 export interface CompressionOptions {
   quality: number
+  maxSizeMB?: number
+  maxWidth?: number
+  maxHeight?: number
+  format?: 'image/jpeg' | 'image/png' | 'image/webp'
 }
 
 export const compressEngine: ImageProcessor<CompressionOptions> = async (file, options) => {
   const compressionOptions = {
-    maxSizeMB: 10,
-    maxWidthOrHeight: 4096,
+    maxSizeMB: options.maxSizeMB || 10,
+    maxWidthOrHeight: options.maxWidth || options.maxHeight || 4096,
     useWebWorker: true,
     initialQuality: options.quality,
+    fileType: options.format,
     signal: options.signal
   }
 

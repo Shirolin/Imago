@@ -61,14 +61,27 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
   const processAll = async (options: T) => {
     isProcessing.value = true
     const pendingImages = store.images.filter((img) => img.status !== 'done')
-    await Promise.all(pendingImages.map((img) => processSingle(img.id, options)))
+    
+    // 简单的并发控制：每次最多处理 3 张
+    const CONCURRENCY_LIMIT = 3
+    for (let i = 0; i < pendingImages.length; i += CONCURRENCY_LIMIT) {
+      const chunk = pendingImages.slice(i, i + CONCURRENCY_LIMIT)
+      await Promise.all(chunk.map((img) => processSingle(img.id, options)))
+    }
+    
     isProcessing.value = false
   }
 
   const processSelected = async (options: T) => {
     isProcessing.value = true
     const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
-    await Promise.all(selectedImages.map((img) => processSingle(img.id, options)))
+    
+    const CONCURRENCY_LIMIT = 3
+    for (let i = 0; i < selectedImages.length; i += CONCURRENCY_LIMIT) {
+      const chunk = selectedImages.slice(i, i + CONCURRENCY_LIMIT)
+      await Promise.all(chunk.map((img) => processSingle(img.id, options)))
+    }
+    
     isProcessing.value = false
   }
 
