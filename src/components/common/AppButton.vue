@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useSlots } from 'vue'
+import { Loader2 } from 'lucide-vue-next'
+import { Button } from '@/components/ui/button'
 
 interface Props {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'tool'
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'tool' | 'cta'
   size?: 'sm' | 'md' | 'lg'
   disabled?: boolean
   loading?: boolean
@@ -15,93 +17,67 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false
 })
 
-const classes = computed(() => [
-  'app-btn',
-  `variant-${props.variant}`,
-  `size-${props.size}`,
-  { 'is-loading': props.loading, 'is-disabled': props.disabled }
-])
+const slots = useSlots()
+
+const shadcnVariant = computed(() => {
+  switch (props.variant) {
+    case 'primary':
+      return 'default'
+    case 'secondary':
+      return 'outline'
+    case 'danger':
+      return 'destructive'
+    case 'ghost':
+      return 'ghost'
+    case 'tool':
+      return 'ghost'
+    case 'cta':
+      return 'default'
+    default:
+      return 'default'
+  }
+})
+
+const shadcnSize = computed(() => {
+  switch (props.size) {
+    case 'sm':
+      return 'sm'
+    case 'md':
+      return 'default'
+    case 'lg':
+      return 'lg'
+    default:
+      return 'default'
+  }
+})
+
+const extraClasses = computed(() => {
+  let classes = 'gap-2 font-bold transition-all duration-300 '
+  if (props.variant === 'cta') {
+    classes += 'bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20 '
+  }
+  if (props.variant === 'primary') {
+    classes += 'shadow-lg shadow-primary/20 hover:-translate-y-0.5 '
+  }
+  if (props.variant === 'tool') {
+    classes += 'text-muted-foreground hover:bg-muted hover:text-primary rounded-xl '
+  }
+  if (props.variant === 'secondary') {
+    classes += 'border-border hover:border-primary hover:bg-muted text-foreground rounded-xl '
+  }
+  return classes
+})
 </script>
 
 <template>
-  <button :class="classes" :disabled="disabled || loading">
-    <slot name="icon"></slot>
+  <Button
+    :variant="shadcnVariant"
+    :size="shadcnSize"
+    :disabled="disabled || loading"
+    :class="extraClasses"
+  >
+    <Loader2 v-if="loading" class="animate-spin" :size="16" />
+    <slot v-else name="icon"></slot>
     <slot></slot>
-  </button>
+  </Button>
 </template>
-
-<style scoped>
-.app-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border-radius: 12px;
-  font-weight: 600;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-  border: 1px solid transparent;
-  font-family: var(--font-body);
-  user-select: none;
-}
-
-.size-sm { padding: 0.5rem 0.875rem; font-size: 0.8125rem; }
-.size-md { padding: 0.625rem 1.25rem; font-size: 0.875rem; }
-.size-lg { padding: 0.875rem 1.75rem; font-size: 1rem; }
-
-.variant-primary {
-  background: var(--accent-color);
-  color: #FFFFFF;
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
-}
-
-.variant-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  filter: brightness(1.1);
-  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.3);
-}
-
-.variant-secondary {
-  background: var(--card-bg);
-  border-color: var(--border-color);
-  color: var(--text-primary);
-}
-
-.variant-secondary:hover:not(:disabled) {
-  background: var(--hover-bg);
-  border-color: var(--text-secondary);
-}
-
-.variant-tool {
-  background: transparent;
-  color: var(--text-secondary);
-  border-radius: 8px;
-  padding: 0.5rem;
-}
-
-.variant-tool:hover:not(:disabled) {
-  background: var(--hover-bg);
-  color: var(--text-primary);
-}
-
-.variant-danger {
-  background: rgba(239, 68, 68, 0.1);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
-}
-
-.variant-danger:hover:not(:disabled) {
-  background: #EF4444;
-  color: white;
-}
-
-.app-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  filter: grayscale(1);
-}
-
-.app-btn:active:not(:disabled) {
-  transform: translateY(0) scale(0.98);
-}
-</style>

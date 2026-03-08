@@ -1,27 +1,51 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
-import { 
-  Image, Minimize2, Maximize2, Scissors, Settings2, Trash2, 
-  Split, Layers, Palette, Grid3X3, Sun, Moon, Monitor 
+import { ref, onMounted } from 'vue'
+import {
+  Image,
+  Minimize2,
+  Maximize2,
+  Scissors,
+  Settings2,
+  Trash2,
+  Split,
+  Layers,
+  Palette,
+  Grid3X3,
+  Sun,
+  Moon,
+  Monitor,
+  Menu,
+  X,
+  Loader2
 } from 'lucide-vue-next'
+import { useImageStore } from './stores/imageStore'
+
+const store = useImageStore()
 
 const theme = ref<'light' | 'dark' | 'system'>('system')
+const themeModes = ['light', 'system', 'dark'] as const
 
-const toggleTheme = () => {
-  if (theme.value === 'system') theme.value = 'dark'
-  else if (theme.value === 'dark') theme.value = 'light'
-  else theme.value = 'system'
+const isMobileSidebarOpen = ref(false)
+const toggleMobileSidebar = () => {
+  isMobileSidebarOpen.value = !isMobileSidebarOpen.value
+}
+const closeMobileSidebar = () => {
+  isMobileSidebarOpen.value = false
+}
+
+const setTheme = (mode: 'light' | 'dark' | 'system') => {
+  theme.value = mode
   applyTheme()
 }
 
 const applyTheme = () => {
   const root = document.documentElement
   let effectiveTheme = theme.value
-  
+
   if (theme.value === 'system') {
     effectiveTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   }
-  
+
   root.setAttribute('data-theme', effectiveTheme)
   localStorage.setItem('imago-theme', theme.value)
 }
@@ -30,7 +54,7 @@ onMounted(() => {
   const saved = localStorage.getItem('imago-theme') as any
   if (saved) theme.value = saved
   applyTheme()
-  
+
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     if (theme.value === 'system') applyTheme()
   })
@@ -41,7 +65,7 @@ const menuGroups = [
     label: '核心工具',
     items: [
       { name: '图片压缩', path: '/compress', icon: Minimize2 },
-      { name: '调整尺寸', path: '/resize', icon: Maximize2 },
+      { name: '调整尺寸', path: '/resize', icon: Maximize2 }
     ]
   },
   {
@@ -49,7 +73,7 @@ const menuGroups = [
     items: [
       { name: '裁剪图片', path: '/crop', icon: Scissors },
       { name: '清除 EXIF', path: '/exif', icon: Trash2 },
-      { name: '图片分割', path: '/split', icon: Split },
+      { name: '图片分割', path: '/split', icon: Split }
     ]
   },
   {
@@ -57,37 +81,63 @@ const menuGroups = [
     items: [
       { name: '图片合并', path: '/combine', icon: Layers },
       { name: '色彩滤镜', path: '/filters', icon: Palette },
-      { name: '网格生成', path: '/grid', icon: Grid3X3 },
+      { name: '网格生成', path: '/grid', icon: Grid3X3 }
     ]
   }
 ]
 </script>
 
 <template>
-  <div class="app-container">
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <div class="logo">
-          <div class="logo-icon">
-            <Image :size="22" color="#22C55E" />
+  <div
+    class="flex h-screen w-full overflow-hidden relative bg-background text-foreground antialiased transition-colors duration-300"
+  >
+    <div
+      v-show="isMobileSidebarOpen"
+      @click="closeMobileSidebar"
+      class="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 md:hidden"
+    ></div>
+
+    <aside
+      class="w-[280px] bg-card border-r border-border flex flex-col z-40 transition-transform duration-300 md:static fixed inset-y-0 left-0"
+      :class="
+        isMobileSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'
+      "
+    >
+      <div class="p-10 pb-6">
+        <div class="flex items-center gap-4">
+          <div
+            class="bg-primary text-primary-foreground p-2.5 rounded-xl shadow-lg shadow-primary/20"
+          >
+            <Image :size="22" />
           </div>
-          <h1>Imago</h1>
+          <h1 class="text-2xl font-extrabold tracking-tight">Imago</h1>
         </div>
       </div>
 
-      <nav class="sidebar-nav custom-scrollbar">
-        <router-link to="/" class="nav-item main-nav">
+      <nav class="flex-1 overflow-y-auto px-4 flex flex-col gap-1 custom-scrollbar">
+        <router-link
+          to="/"
+          class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-muted-foreground font-semibold text-sm transition-all hover:bg-muted hover:text-foreground hover:translate-x-1"
+          active-class="bg-primary/10 text-primary dark:text-primary relative after:content-[''] after:absolute after:right-4 after:w-1.5 after:h-1.5 after:bg-primary after:rounded-full after:shadow-[0_0_10px_var(--primary)]"
+          @click="closeMobileSidebar"
+        >
           <Settings2 :size="18" />
           <span>所有工具</span>
         </router-link>
 
-        <div v-for="group in menuGroups" :key="group.label" class="nav-group-wrapper">
-          <div class="nav-group-label">{{ group.label }}</div>
-          <router-link 
-            v-for="item in group.items" 
-            :key="item.path" 
-            :to="item.path" 
-            class="nav-item"
+        <div v-for="group in menuGroups" :key="group.label" class="mt-7">
+          <div
+            class="text-[11px] font-extrabold uppercase text-muted-foreground tracking-widest mb-3 ml-4 opacity-70"
+          >
+            {{ group.label }}
+          </div>
+          <router-link
+            v-for="item in group.items"
+            :key="item.path"
+            :to="item.path"
+            class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-muted-foreground font-semibold text-sm transition-all hover:bg-muted hover:text-foreground hover:translate-x-1"
+            active-class="bg-primary/10 text-primary dark:text-primary relative after:content-[''] after:absolute after:right-4 after:w-1.5 after:h-1.5 after:bg-primary after:rounded-full after:shadow-[0_0_10px_var(--primary)]"
+            @click="closeMobileSidebar"
           >
             <component :is="item.icon" :size="18" />
             <span>{{ item.name }}</span>
@@ -95,46 +145,114 @@ const menuGroups = [
         </div>
       </nav>
 
-      <div class="sidebar-footer">
-        <div class="theme-switcher" @click="toggleTheme">
-          <div class="switch-track">
-            <div class="switch-thumb" :class="theme">
-              <Sun v-if="theme === 'light'" :size="14" />
-              <Moon v-if="theme === 'dark'" :size="14" />
-              <Monitor v-if="theme === 'system'" :size="14" />
-            </div>
-            <span class="theme-label">
-              {{ theme === 'system' ? '系统' : theme === 'dark' ? '深色' : '浅色' }}
-            </span>
-          </div>
+      <div class="p-6 flex flex-col gap-5 border-t border-border">
+        <div class="bg-muted p-1 rounded-xl flex gap-1">
+          <button
+            v-for="mode in themeModes"
+            :key="mode"
+            class="flex-1 flex items-center justify-center py-2 rounded-lg text-muted-foreground transition-all hover:text-foreground"
+            :class="{ 'bg-card text-primary shadow-sm dark:text-primary': theme === mode }"
+            @click="setTheme(mode)"
+            :title="mode"
+          >
+            <Sun v-if="mode === 'light'" :size="14" />
+            <Monitor v-if="mode === 'system'" :size="14" />
+            <Moon v-if="mode === 'dark'" :size="14" />
+          </button>
         </div>
-        
-        <div class="security-card">
-          <div class="security-tag">
-            <div class="dot"></div>
-            Privacy Guaranteed
+
+        <div
+          class="flex items-center gap-2.5 p-3 bg-primary/5 hover:bg-primary/10 transition-colors rounded-xl text-primary dark:text-primary cursor-help"
+          title="您的所有图片处理均在本地浏览器中完成，100% 安全隐私。"
+        >
+          <div class="opacity-80">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+              <path
+                d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"
+              />
+            </svg>
           </div>
-          <p>所有操作均在本地完成</p>
+          <span class="text-xs font-bold tracking-wide">Local Secured</span>
         </div>
       </div>
     </aside>
 
-    <main class="main-content">
-      <header class="top-bar">
-        <div class="breadcrumb">
-          <span class="folder">Dashboard</span>
-          <span class="separator">/</span>
-          <span class="current">{{ $route.name || 'Overview' }}</span>
-        </div>
-        <div class="top-bar-actions">
-          <div class="status-indicator">
-            <span class="status-dot"></span>
-            Offline Mode
+    <div
+      class="absolute top-0 left-0 right-0 h-[3px] z-50 pointer-events-none"
+      v-if="store.processingCount > 0"
+    >
+      <div
+        class="h-full bg-primary transition-all duration-300 ease-out shadow-[0_0_10px_var(--primary)]"
+        :style="{ width: store.globalProgress + '%' }"
+      ></div>
+    </div>
+
+    <main class="flex-1 flex flex-col overflow-hidden">
+      <header
+        class="h-20 shrink-0 flex items-center justify-between px-4 md:px-8 bg-background/80 backdrop-blur-xl border-b border-border z-10 sticky top-0"
+      >
+        <div class="flex items-center gap-3">
+          <button
+            class="md:hidden text-foreground hover:text-primary p-2 -ml-2 transition-colors"
+            @click="toggleMobileSidebar"
+          >
+            <Menu :size="20" />
+          </button>
+          <div
+            class="hidden md:flex items-center gap-2 text-sm font-semibold text-muted-foreground tracking-tight"
+          >
+            <Monitor :size="14" />
+            <span>Workspace</span>
+          </div>
+          <span class="hidden md:inline text-border font-light">/</span>
+          <div class="bg-muted px-3 py-1.5 rounded-lg text-sm font-bold text-foreground">
+            <span>{{ $route.name || 'Overview' }}</span>
           </div>
         </div>
+
+        <div class="flex items-center gap-5">
+          <div id="top-bar-tools" class="flex items-center gap-2"></div>
+
+          <div class="w-px h-6 bg-border hidden md:block"></div>
+
+          <div
+            class="flex items-center gap-2.5 text-xs font-bold text-primary dark:text-primary bg-primary/10 px-4 py-2 rounded-full hidden sm:flex"
+          >
+            <span
+              v-if="store.processingCount === 0"
+              class="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--primary)]"
+            ></span>
+            <Loader2 v-else class="animate-spin" :size="12" />
+            <span v-if="store.processingCount === 0">Offline Safe</span>
+            <span v-else>处理中 ({{ store.globalProgress }}%)</span>
+          </div>
+
+          <div class="w-px h-6 bg-border"></div>
+
+          <a
+            href="https://github.com/shironone/imago"
+            target="_blank"
+            class="text-muted-foreground hover:text-primary hover:-translate-y-0.5 transition-all"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              stroke="currentColor"
+              stroke-width="2"
+              fill="none"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
+              />
+            </svg>
+          </a>
+        </div>
       </header>
-      
-      <div class="content-wrapper custom-scrollbar">
+
+      <div class="flex-1 overflow-y-auto scroll-smooth custom-scrollbar relative">
         <router-view v-slot="{ Component }">
           <transition name="page-fade" mode="out-in">
             <component :is="Component" />
@@ -146,350 +264,12 @@ const menuGroups = [
 </template>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
-
-:root {
-  /* Dark Theme (Default) */
-  --primary-color: #1E293B;
-  --accent-color: #22C55E;
-  --bg-color: #0F172A;
-  --sidebar-bg: #1E293B;
-  --text-primary: #F8FAFC;
-  --text-secondary: #94A3B8;
-  --border-color: #334155;
-  --hover-bg: #334155;
-  --card-bg: #1E293B;
-  --topbar-bg: rgba(15, 23, 42, 0.8);
-  
-  --font-heading: 'Space Grotesk', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
-  --scrollbar-thumb: #334155;
-  --scrollbar-track: transparent;
-}
-
-[data-theme="light"] {
-  --primary-color: #FFFFFF;
-  --accent-color: #16A34A;
-  --bg-color: #F8FAF9;
-  --sidebar-bg: #FFFFFF;
-  --text-primary: #0F172A;
-  --text-secondary: #64748B;
-  --border-color: #E2E8F0;
-  --hover-bg: #F1F5F9;
-  --card-bg: #FFFFFF;
-  --topbar-bg: rgba(248, 250, 249, 0.8);
-  --scrollbar-thumb: #CBD5E1;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: var(--font-body);
-  background-color: var(--bg-color);
-  color: var(--text-primary);
-  -webkit-font-smoothing: antialiased;
-  overflow: hidden;
-  transition: background-color 0.3s ease;
-}
-
-/* Custom Scrollbar Styling */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-color);
-}
-
-.app-container {
-  display: flex;
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
-}
-
-/* Sidebar */
-.sidebar {
-  width: 280px;
-  background: var(--sidebar-bg);
-  border-right: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-  z-index: 20;
-  transition: all 0.3s ease;
-}
-
-.sidebar-header {
-  padding: 2rem 1.5rem;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.logo-icon {
-  background: var(--bg-color);
-  padding: 8px;
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-  display: flex;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.logo h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
-  font-family: var(--font-heading);
-}
-
-.sidebar-nav {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.nav-group-wrapper {
-  margin-top: 1.5rem;
-}
-
-.nav-group-label {
-  font-family: var(--font-heading);
-  font-size: 0.65rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-  letter-spacing: 0.15em;
-  margin: 0 0 0.5rem 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.nav-group-label::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border-color);
-  opacity: 0.5;
-}
-
-.nav-item {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.875rem;
-  padding: 0.75rem 1rem;
-  text-decoration: none;
-  color: var(--text-secondary);
-  border-radius: 12px;
-  transition: 
-    background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-    color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  font-weight: 500;
-  font-size: 0.925rem;
-  cursor: pointer;
-  overflow: hidden;
-}
-
-.nav-item:hover {
-  background-color: var(--hover-bg);
-  color: var(--text-primary);
-  transform: translateX(4px);
-}
-
-.nav-item:active {
-  transform: scale(0.96) translateX(4px);
-}
-
-/* Active Indicator */
-.nav-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%) scaleY(0);
-  width: 4px;
-  height: 16px;
-  background: #FFFFFF;
-  border-radius: 0 4px 4px 0;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  opacity: 0;
-}
-
-.nav-item.router-link-active {
-  background-color: var(--accent-color);
-  color: #FFFFFF;
-  font-weight: 700;
-  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
-}
-
-.nav-item.router-link-active::before {
-  transform: translateY(-50%) scaleY(1);
-  opacity: 1;
-}
-
-.nav-item.router-link-active svg {
-  transform: scale(1.1);
-  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
-}
-
-[data-theme="light"] .nav-item.router-link-active {
-  color: #FFFFFF;
-}
-
-.main-nav {
-  margin-bottom: 0.5rem;
-}
-
-/* Sidebar Footer & Theme Switcher */
-.sidebar-footer {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  border-top: 1px solid var(--border-color);
-}
-
-.theme-switcher {
-  cursor: pointer;
-}
-
-.switch-track {
-  background: var(--bg-color);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  transition: all 0.2s;
-}
-
-.switch-thumb {
-  width: 28px;
-  height: 28px;
-  background: var(--accent-color);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.theme-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.security-card {
-  padding: 1rem;
-  background: var(--bg-color);
-  border-radius: 16px;
-  border: 1px solid var(--border-color);
-}
-
-.security-tag {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--accent-color);
-  margin-bottom: 0.25rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.security-tag .dot {
-  width: 6px;
-  height: 6px;
-  background: var(--accent-color);
-  border-radius: 50%;
-  box-shadow: 0 0 8px var(--accent-color);
-}
-
-.security-card p {
-  font-size: 0.7rem;
-  color: var(--text-secondary);
-}
-
-/* Main Content */
-.main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.top-bar {
-  height: 72px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 2.5rem;
-  background: var(--topbar-bg);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border-color);
-  z-index: 10;
-}
-
-.status-indicator {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  background: var(--hover-bg);
-  padding: 0.4rem 0.8rem;
-  border-radius: 99px;
-  border: 1px solid var(--border-color);
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  background: #22C55E;
-  border-radius: 50%;
-}
-
-.content-wrapper {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0;
-  scroll-behavior: smooth;
-  scrollbar-gutter: stable;
-}
-
-/* Page Transitions */
+/* 依赖 Tailwind CSS, 仅保留页面路由切换动画 */
 .page-fade-enter-active,
 .page-fade-leave-active {
-  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .page-fade-enter-from {
@@ -502,5 +282,3 @@ body {
   transform: translateY(-12px);
 }
 </style>
-
-

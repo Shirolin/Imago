@@ -5,8 +5,16 @@ import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import ImageCard from '../components/common/ImageCard.vue'
 import AppButton from '../components/common/AppButton.vue'
-import { 
-  X, Download, Zap, Trash2, Settings2, Loader2, Plus, Square, CheckSquare
+import {
+  X,
+  Download,
+  Zap,
+  Trash2,
+  Settings2,
+  Loader2,
+  Plus,
+  Square,
+  CheckSquare
 } from 'lucide-vue-next'
 
 const store = useImageStore()
@@ -22,20 +30,22 @@ const isProcessing = ref(false)
 const handleResize = async () => {
   isProcessing.value = true
   // 模拟处理逻辑
-  await new Promise(resolve => setTimeout(resolve, 1500))
-  store.images.forEach(img => {
+  await new Promise((resolve) => setTimeout(resolve, 1500))
+  store.images.forEach((img) => {
     store.updateImage(img.id, { status: 'done' })
   })
   isProcessing.value = false
 }
 
 const handleDownload = (id: string) => {
-  const item = store.images.find(img => img.id === id)
+  const item = store.images.find((img) => img.id === id)
   if (item?.processedBlob || item?.preview) {
     // 这里暂时使用预览图模拟，实际逻辑应根据处理后的 Blob
-    fetch(item.preview).then(res => res.blob()).then(blob => {
-      downloadImage(blob, item.file.name, 'resized_')
-    })
+    fetch(item.preview)
+      .then((res) => res.blob())
+      .then((blob) => {
+        downloadImage(blob, item.file.name, 'resized_')
+      })
   }
 }
 </script>
@@ -43,38 +53,62 @@ const handleDownload = (id: string) => {
 <template>
   <WorkspaceLayout show-sidebar>
     <template #header-left>
-      <div class="select-control" @click="store.toggleAll">
-        <div class="checkbox-wrapper">
-          <CheckSquare v-if="store.isAllSelected" :size="20" class="checked" />
+      <div
+        class="flex items-center gap-3.5 cursor-pointer px-4 py-2.5 rounded-2xl bg-muted border border-border transition-all duration-300 hover:border-primary hover:bg-background hover:-translate-y-[1px] active:scale-[0.96]"
+        @click="store.toggleAll"
+      >
+        <div
+          class="transition-transform duration-200"
+          :class="store.isAllSelected ? 'text-primary' : 'text-muted-foreground'"
+        >
+          <CheckSquare v-if="store.isAllSelected" :size="20" class="drop-shadow-sm" />
           <Square v-else :size="20" />
         </div>
-        <div class="selection-info">
-          <span class="count">已选择 {{ store.selectedCount }} / {{ store.images.length }}</span>
-          <span class="label">全选/反选</span>
+        <div class="flex flex-col">
+          <span class="font-extrabold text-sm text-foreground leading-tight"
+            >已选择 {{ store.selectedCount }} / {{ store.images.length }}</span
+          >
+          <span
+            class="text-[0.65rem] text-muted-foreground font-bold uppercase tracking-widest mt-0.5 opacity-80"
+            >全选/反选</span
+          >
         </div>
       </div>
     </template>
 
     <template #header-actions>
-      <input type="file" ref="fileInput" multiple accept="image/*" @change="handleFileChange" style="display: none">
-      <AppButton variant="tool" @click="triggerFileInput">
-        <template #icon><Plus :size="18" /></template>
+      <input
+        type="file"
+        ref="fileInput"
+        multiple
+        accept="image/*"
+        @change="handleFileChange"
+        class="hidden"
+      />
+      <AppButton variant="secondary" size="sm" @click="triggerFileInput" class="!px-3 !h-9">
+        <template #icon><Plus :size="16" class="mr-1.5" /></template>
         添加图片
       </AppButton>
-      <AppButton variant="tool" :disabled="!store.selectedCount" @click="store.removeSelected">
-        <template #icon><Trash2 :size="18" /></template>
+      <AppButton
+        variant="secondary"
+        size="sm"
+        :disabled="!store.selectedCount"
+        @click="store.removeSelected"
+        class="!px-3 !h-9 text-destructive border-transparent hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
+      >
+        <template #icon><Trash2 :size="16" class="mr-1.5" /></template>
         删除选中
       </AppButton>
-      <AppButton variant="tool" @click="store.clearImages">
-        <template #icon><X :size="18" /></template>
+      <AppButton variant="secondary" size="sm" @click="store.clearImages" class="!px-3 !h-9">
+        <template #icon><X :size="16" class="mr-1.5" /></template>
         清空全部
       </AppButton>
     </template>
 
     <template #content>
-      <ImageCard 
-        v-for="img in store.images" 
-        :key="img.id" 
+      <ImageCard
+        v-for="img in store.images"
+        :key="img.id"
         :image="img"
         :is-selected="store.selectedIds.has(img.id)"
         @toggle="store.toggleSelection"
@@ -84,31 +118,60 @@ const handleDownload = (id: string) => {
     </template>
 
     <template #sidebar>
-      <div class="sidebar-content">
-        <div class="panel-section">
-          <div class="section-title">
-            <Settings2 :size="18" /> 调整模式
+      <div class="p-6 flex flex-col gap-6 h-full">
+        <div class="flex flex-col gap-4">
+          <div
+            class="flex items-center justify-between font-bold text-[0.85rem] text-foreground uppercase"
+          >
+            <div class="flex items-center gap-2">
+              <Settings2 :size="18" class="text-primary" /> 调整模式
+            </div>
           </div>
-          <div class="toggle-group">
-            <button 
-              :class="{ active: resizeMode === 'percentage' }" 
+          <div class="flex bg-muted p-1 rounded-xl border border-border">
+            <button
+              class="flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all"
+              :class="
+                resizeMode === 'percentage'
+                  ? 'bg-card text-primary shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              "
               @click="resizeMode = 'percentage'"
-            >百分比</button>
-            <button 
-              :class="{ active: resizeMode === 'pixels' }" 
+            >
+              百分比
+            </button>
+            <button
+              class="flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all"
+              :class="
+                resizeMode === 'pixels'
+                  ? 'bg-card text-primary shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              "
               @click="resizeMode = 'pixels'"
-            >像素</button>
+            >
+              像素
+            </button>
           </div>
         </div>
 
-        <div class="panel-section" v-if="resizeMode === 'percentage'">
-          <div class="section-title">
+        <div v-if="resizeMode === 'percentage'" class="flex flex-col gap-4">
+          <div
+            class="flex items-center justify-between font-bold text-[0.85rem] text-foreground uppercase"
+          >
             <span>缩放比例</span>
-            <span class="val-badge">{{ percentage }}%</span>
+            <span class="bg-green-500/10 text-primary px-2 py-0.5 rounded-md text-xs"
+              >{{ percentage }}%</span
+            >
           </div>
-          <div class="slider-container">
-            <input type="range" v-model.number="percentage" min="1" max="200" step="1" class="pro-slider">
-            <div class="slider-marks">
+          <div class="flex flex-col">
+            <input
+              type="range"
+              v-model.number="percentage"
+              min="1"
+              max="200"
+              step="1"
+              class="w-full h-1.5 bg-muted rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer mb-3 shadow-[0_0_0_3px_hsl(var(--card))] border-none focus:outline-none"
+            />
+            <div class="flex justify-between text-[0.65rem] text-muted-foreground font-bold">
               <span>1%</span>
               <span>100%</span>
               <span>200%</span>
@@ -116,242 +179,62 @@ const handleDownload = (id: string) => {
           </div>
         </div>
 
-        <div v-else class="panel-section">
-          <div class="input-grid">
-            <div class="input-field">
-              <label>宽度 (px)</label>
-              <input type="number" v-model.number="width">
+        <div v-else class="flex flex-col gap-4">
+          <div class="grid grid-cols-2 gap-3 mb-2">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[0.7rem] font-bold text-muted-foreground">宽度 (px)</label>
+              <input
+                type="number"
+                v-model.number="width"
+                class="p-3 bg-muted border border-border rounded-xl text-foreground font-bold outline-none focus:border-primary transition-colors w-full"
+              />
             </div>
-            <div class="input-field">
-              <label>高度 (px)</label>
-              <input type="number" v-model.number="height">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[0.7rem] font-bold text-muted-foreground">高度 (px)</label>
+              <input
+                type="number"
+                v-model.number="height"
+                class="p-3 bg-muted border border-border rounded-xl text-foreground font-bold outline-none focus:border-primary transition-colors w-full"
+              />
             </div>
           </div>
-          <label class="checkbox-label">
-            <input type="checkbox" v-model="maintainAspectRatio">
-            <span class="checkbox-box"></span>
+          <label
+            class="flex items-center gap-2.5 cursor-pointer text-sm font-bold text-muted-foreground hover:text-foreground transition-colors group"
+          >
+            <div
+              class="relative w-5 h-5 rounded-md border border-border bg-muted flex items-center justify-center group-hover:border-primary transition-colors"
+            >
+              <input
+                type="checkbox"
+                v-model="maintainAspectRatio"
+                class="absolute opacity-0 w-full h-full cursor-pointer z-10"
+              />
+              <Check v-if="maintainAspectRatio" :size="14" class="text-primary" />
+            </div>
             锁定纵横比
           </label>
         </div>
 
-        <div class="panel-section info-section">
-          <div class="info-card">
-            <Zap :size="16" />
-            <p>处理后图片质量将保持在最高水平，采用 Lanczos 算法进行高质量缩放。</p>
-          </div>
+        <div
+          class="bg-green-500/5 p-4 rounded-xl flex gap-3 text-muted-foreground text-xs leading-relaxed border border-dashed border-primary/30"
+        >
+          <Zap :size="16" class="text-primary shrink-0" />
+          <p>处理后图片质量将保持在最高水平，采用 Lanczos 算法进行高质量缩放。</p>
         </div>
 
-        <div class="panel-footer">
-          <AppButton size="lg" class="w-full" :loading="isProcessing" @click="handleResize">
+        <div class="mt-auto flex flex-col gap-3">
+          <AppButton
+            size="lg"
+            variant="cta"
+            class="w-full"
+            :loading="isProcessing"
+            @click="handleResize"
+          >
             {{ isProcessing ? '正在处理...' : '执行调整' }}
           </AppButton>
-          <p class="footer-hint">所有操作在浏览器本地完成</p>
+          <p class="text-center text-xs text-muted-foreground">所有操作在浏览器本地完成</p>
         </div>
       </div>
     </template>
   </WorkspaceLayout>
 </template>
-
-<style scoped>
-.select-control {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 10px;
-  transition: all 0.2s;
-}
-
-.select-control:hover {
-  background: var(--hover-bg);
-}
-
-.checkbox-wrapper {
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-}
-
-.checkbox-wrapper .checked {
-  color: var(--accent-color);
-}
-
-.selection-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.selection-info .count {
-  font-weight: 700;
-  font-size: 0.95rem;
-}
-
-.selection-info .label {
-  font-size: 0.65rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.sidebar-content {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  height: 100%;
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-weight: 700;
-  font-size: 0.85rem;
-  color: var(--text-primary);
-  margin-bottom: 1rem;
-  text-transform: uppercase;
-}
-
-.toggle-group {
-  display: flex;
-  background: var(--bg-color);
-  padding: 4px;
-  border-radius: 10px;
-  border: 1px solid var(--border-color);
-}
-
-.toggle-group button {
-  flex: 1;
-  padding: 0.6rem;
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  font-weight: 600;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-
-.toggle-group button.active {
-  background: var(--card-bg);
-  color: var(--accent-color);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.val-badge {
-  background: rgba(34, 197, 94, 0.1);
-  color: var(--accent-color);
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-}
-
-.pro-slider {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 6px;
-  background: var(--bg-color);
-  border-radius: 3px;
-  margin-bottom: 0.75rem;
-}
-
-.pro-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  background: var(--accent-color);
-  border: 3px solid var(--card-bg);
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.slider-marks {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.65rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-}
-
-.input-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.input-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.input-field label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-}
-
-.input-field input {
-  padding: 0.75rem;
-  background: var(--bg-color);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  color: var(--text-primary);
-  font-weight: 600;
-  outline: none;
-  width: 100%;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.checkbox-box {
-  width: 18px;
-  height: 18px;
-  background: var(--bg-color);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-}
-
-.info-card {
-  background: rgba(34, 197, 94, 0.05);
-  padding: 1rem;
-  border-radius: 12px;
-  display: flex;
-  gap: 0.75rem;
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-  line-height: 1.4;
-}
-
-.info-card svg {
-  color: var(--accent-color);
-  flex-shrink: 0;
-}
-
-.panel-footer {
-  margin-top: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.w-full {
-  width: 100%;
-}
-
-.footer-hint {
-  text-align: center;
-  font-size: 0.7rem;
-  color: var(--text-secondary);
-}
-</style>

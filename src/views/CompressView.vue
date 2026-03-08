@@ -6,51 +6,68 @@ import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import ImageCard from '../components/common/ImageCard.vue'
 import AppButton from '../components/common/AppButton.vue'
 import imageCompression from 'browser-image-compression'
-import { 
-  Download, X, Loader2, Zap, Plus, Trash2, ArrowRight, Square, CheckSquare 
-} from 'lucide-vue-next'
+import { Zap, Plus, Trash2, ArrowRight, Square, CheckSquare } from 'lucide-vue-next'
 
 const store = useImageStore()
-const { fileInput, formatSize, triggerFileInput, handleFileChange, downloadImage } = useFileHelpers()
+const { fileInput, formatSize, triggerFileInput, handleFileChange, downloadImage } =
+  useFileHelpers()
 
 const compressionQuality = ref(0.8)
 const isCompressing = ref(false)
 
 const compressImage = async (id: string) => {
-  const item = store.images.find(img => img.id === id)
+  const item = store.images.find((img) => img.id === id)
   if (!item) return
 
-  store.updateImage(id, { status: 'processing' })
-  
+  const abortController = new AbortController()
+  store.updateImage(id, { status: 'processing', abortController })
+
   try {
     const options = {
       maxSizeMB: 10,
       maxWidthOrHeight: 4096,
       useWebWorker: true,
-      initialQuality: compressionQuality.value
+      initialQuality: compressionQuality.value,
+      signal: abortController.signal
     }
-    
+
     const compressedFile = await imageCompression(item.file, options)
-    store.updateImage(id, {
-      status: 'done',
-      processedSize: compressedFile.size,
-      processedBlob: compressedFile
-    })
-  } catch (error) {
+
+    // 如果压缩后反而变大了（由于小体积或者已有损格式导致）
+    if (compressedFile.size >= item.originalSize) {
+      store.updateImage(id, {
+        status: 'done',
+        processedSize: item.originalSize,
+        processedBlob: item.file, // 保留原图
+        abortController: undefined
+      })
+    } else {
+      store.updateImage(id, {
+        status: 'done',
+        processedSize: compressedFile.size,
+        processedBlob: compressedFile,
+        abortController: undefined
+      })
+    }
+  } catch (error: any) {
+    if (error.name === 'AbortError' || error.message?.includes('abort')) {
+      console.log(`[Task Aborted] Compression cancelled for ${id}`)
+      return
+    }
     console.error('Compression failed:', error)
-    store.updateImage(id, { status: 'error', error: '压缩失败' })
+    store.updateImage(id, { status: 'error', error: '压缩失败', abortController: undefined })
   }
 }
 
 const compressAll = async () => {
   isCompressing.value = true
-  const idleImages = store.images.filter(img => img.status !== 'done')
-  await Promise.all(idleImages.map(img => compressImage(img.id)))
+  const idleImages = store.images.filter((img) => img.status !== 'done')
+  await Promise.all(idleImages.map((img) => compressImage(img.id)))
   isCompressing.value = false
 }
 
 const handleDownload = (id: string) => {
-  const item = store.images.find(img => img.id === id)
+  const item = store.images.find((img) => img.id === id)
   if (item?.processedBlob) {
     downloadImage(item.processedBlob, item.file.name, 'compressed_')
   }
@@ -60,56 +77,101 @@ const handleDownload = (id: string) => {
 <template>
   <WorkspaceLayout>
     <template #header-left>
-      <div class="header-left-content">
-        <div class="select-control" @click="store.toggleAll">
-          <div class="checkbox-wrapper">
-            <CheckSquare v-if="store.isAllSelected" :size="20" class="checked" />
+      <div class="flex items-center gap-8">
+        <div
+          class="flex items-center gap-3.5 cursor-pointer px-4 py-2.5 rounded-2xl bg-muted border border-border transition-all duration-300 hover:border-primary hover:bg-background hover:-translate-y-[1px] active:scale-[0.96]"
+          @click="store.toggleAll"
+        >
+          <div
+            class="transition-transform duration-200"
+            :class="store.isAllSelected ? 'text-primary' : 'text-muted-foreground'"
+          >
+            <CheckSquare v-if="store.isAllSelected" :size="20" class="drop-shadow-sm" />
             <Square v-else :size="20" />
           </div>
-          <div class="selection-info">
-            <span class="count">已选择 {{ store.selectedCount }} / {{ store.images.length }}</span>
-            <span class="label">全选/反选</span>
+          <div class="flex flex-col">
+            <span class="font-extrabold text-sm text-foreground leading-tight"
+              >已选择 {{ store.selectedCount }} / {{ store.images.length }}</span
+            >
+            <span
+              class="text-[0.65rem] text-muted-foreground font-bold uppercase tracking-widest mt-0.5 opacity-80"
+              >全选/反选</span
+            >
           </div>
         </div>
-        <div class="vertical-divider"></div>
-        <div class="compression-settings">
-          <div class="control-label">
+
+        <div class="w-px h-9 bg-border"></div>
+
+        <div class="flex flex-col gap-2 min-w-[180px]">
+          <div
+            class="flex justify-between text-[0.7rem] font-extrabold uppercase text-muted-foreground tracking-wide"
+          >
             <span>压缩质量</span>
-            <span class="value">{{ Math.round(compressionQuality * 100) }}%</span>
+            <span class="text-primary bg-primary/10 px-1.5 rounded"
+              >{{ Math.round(compressionQuality * 100) }}%</span
+            >
           </div>
-          <input type="range" v-model.number="compressionQuality" min="0.1" max="1.0" step="0.05" class="custom-range">
+          <input
+            type="range"
+            v-model.number="compressionQuality"
+            min="0.1"
+            max="1.0"
+            step="0.05"
+            class="w-full h-1.5 bg-border rounded-full appearance-none outline-none cursor-pointer hover:bg-muted accent-primary focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-all"
+          />
         </div>
       </div>
     </template>
 
-    <template #header-actions>
-      <input type="file" ref="fileInput" multiple accept="image/*" @change="handleFileChange" style="display: none">
-      <AppButton variant="secondary" @click="triggerFileInput">
-        <template #icon><Plus :size="18" /></template>
-        添加图片
-      </AppButton>
-      <AppButton variant="secondary" :disabled="!store.selectedCount" @click="store.removeSelected">
-        <template #icon><Trash2 :size="18" /></template>
-        删除选中
-      </AppButton>
-      <AppButton variant="secondary" @click="store.clearImages">
-        <template #icon><X :size="18" /></template>
-        清空全部
-      </AppButton>
-      <div class="vertical-divider"></div>
-      <AppButton :loading="isCompressing" @click="compressAll">
+    <!-- 核心操作传送至顶栏 -->
+    <Teleport to="#top-bar-tools">
+      <input
+        type="file"
+        ref="fileInput"
+        multiple
+        accept="image/*"
+        @change="handleFileChange"
+        class="hidden"
+      />
+
+      <div class="flex items-center gap-2">
+        <AppButton variant="secondary" size="sm" @click="triggerFileInput" class="!px-3 !h-9">
+          <template #icon><Plus :size="16" class="mr-1.5" /></template>
+          添加
+        </AppButton>
+        <AppButton
+          variant="secondary"
+          size="sm"
+          :disabled="!store.selectedCount || isCompressing"
+          @click="store.removeSelected"
+          class="!px-3 !h-9 text-destructive border-transparent hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
+        >
+          <template #icon><Trash2 :size="16" class="mr-1.5" /></template>
+          删除
+        </AppButton>
+      </div>
+
+      <div class="w-px h-6 bg-border mx-2"></div>
+
+      <AppButton
+        variant="cta"
+        size="sm"
+        :loading="isCompressing"
+        :disabled="!store.images.length"
+        @click="compressAll"
+        class="!px-4 !h-9"
+      >
         <template #icon>
-          <Loader2 v-if="isCompressing" class="spin" :size="18" />
-          <Zap v-else :size="18" />
+          <Zap v-if="!isCompressing" :size="16" class="mr-1.5" />
         </template>
-        全部压缩
+        处理全部
       </AppButton>
-    </template>
+    </Teleport>
 
     <template #content>
-      <ImageCard 
-        v-for="img in store.images" 
-        :key="img.id" 
+      <ImageCard
+        v-for="img in store.images"
+        :key="img.id"
         :image="img"
         :is-selected="store.selectedIds.has(img.id)"
         @toggle="store.toggleSelection"
@@ -117,23 +179,51 @@ const handleDownload = (id: string) => {
         @download="handleDownload"
       >
         <template #overlay="{ image }">
-          <div v-if="image.status === 'done'" class="success-badge">
-            <Zap :size="12" /> 节省 {{ Math.round((1 - image.processedSize! / image.originalSize) * 100) }}%
+          <div
+            v-if="image.status === 'done'"
+            class="absolute top-3 right-3 px-3 py-1.5 rounded-[10px] text-xs font-extrabold flex items-center gap-1.5 shadow-lg z-10 backdrop-blur-sm animate-in fade-in slide-in-from-top-2"
+            :class="
+              image.processedSize === image.originalSize
+                ? 'bg-muted/90 text-muted-foreground border border-border shadow-black/10'
+                : 'bg-primary text-primary-foreground shadow-primary/40'
+            "
+          >
+            <template v-if="image.processedSize === image.originalSize">
+              <span>已跳过 (无优化空间)</span>
+            </template>
+            <template v-else>
+              <Zap :size="12" /> 节省
+              {{ Math.round((1 - image.processedSize! / image.originalSize) * 100) }}%
+            </template>
           </div>
         </template>
 
         <template #meta="{ image }">
-          <div class="comparison-grid">
-            <div class="size-box original">
-              <span class="label">原始</span>
-              <span class="val">{{ formatSize(image.originalSize) }}</span>
+          <div
+            class="flex items-center gap-3 bg-background p-3 rounded-2xl mt-1.5 border border-border transition-all duration-300 group-hover:border-primary/20"
+          >
+            <div class="flex-1 flex flex-col gap-0.5">
+              <span
+                class="text-[0.65rem] font-extrabold uppercase text-muted-foreground tracking-widest mt-0.5 opacity-80"
+                >原始</span
+              >
+              <span class="text-[0.8125rem] font-bold text-foreground">{{
+                formatSize(image.originalSize)
+              }}</span>
             </div>
-            <div class="size-arrow">
+            <div class="text-muted-foreground/60 flex">
               <ArrowRight :size="14" />
             </div>
-            <div class="size-box compressed" :class="{ active: image.status === 'done' }">
-              <span class="label">压缩后</span>
-              <span class="val">{{ image.status === 'done' ? formatSize(image.processedSize!) : '--' }}</span>
+            <div class="flex-1 flex flex-col gap-0.5">
+              <span
+                class="text-[0.65rem] font-extrabold uppercase text-muted-foreground tracking-widest mt-0.5 opacity-80"
+                >压缩后</span
+              >
+              <span
+                class="text-[0.8125rem] font-bold transition-colors"
+                :class="image.status === 'done' ? 'text-primary' : 'text-foreground'"
+                >{{ image.status === 'done' ? formatSize(image.processedSize!) : '--' }}</span
+              >
             </div>
           </div>
         </template>
@@ -143,163 +233,22 @@ const handleDownload = (id: string) => {
 </template>
 
 <style scoped>
-.header-left-content {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.select-control {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 12px;
-  transition: all 0.2s;
-}
-
-.select-control:hover {
-  background: var(--hover-bg);
-}
-
-.checkbox-wrapper {
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-}
-
-.checkbox-wrapper .checked {
-  color: var(--accent-color);
-}
-
-.selection-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.selection-info .count {
-  font-weight: 700;
-  font-size: 0.95rem;
-}
-
-.selection-info .label {
-  font-size: 0.65rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.vertical-divider {
-  width: 1px;
-  height: 32px;
-  background: var(--border-color);
-}
-
-.compression-settings {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  min-width: 160px;
-}
-
-.control-label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-}
-
-.control-label .value {
-  color: var(--accent-color);
-}
-
-.custom-range {
+/* Range Slider Custom Styles Since Tailwind Accent is Limited for deep custom thumbs */
+input[type='range'] {
   -webkit-appearance: none;
-  width: 100%;
-  height: 4px;
-  background: var(--bg-color);
-  border-radius: 2px;
-  outline: none;
 }
-
-.custom-range::-webkit-slider-thumb {
+input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  background: var(--accent-color);
+  width: 18px;
+  height: 18px;
+  background: var(--primary);
   border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid var(--card-bg);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 3px solid var(--card);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-
-/* 压缩页面特有的比较网格 */
-.comparison-grid {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--bg-color);
-  padding: 0.6rem;
-  border-radius: 10px;
-  margin-top: 0.5rem;
-  border: 1px solid var(--border-color);
-}
-
-.size-box {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.size-box .label {
-  font-size: 0.6rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-}
-
-.size-box .val {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.size-box.compressed.active .val {
-  color: var(--accent-color);
-}
-
-.size-arrow {
-  color: var(--text-secondary);
-  opacity: 0.5;
-  display: flex;
-}
-
-.success-badge {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: var(--accent-color);
-  color: white;
-  padding: 4px 10px;
-  border-radius: 8px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
-  z-index: 5;
-}
-
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+input[type='range']:active::-webkit-slider-thumb {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 6px var(--primary-10); /* primary/10 fallback */
 }
 </style>

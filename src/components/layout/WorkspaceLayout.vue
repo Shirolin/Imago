@@ -14,110 +14,41 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <div class="view-container">
+  <div class="h-full flex flex-col">
     <!-- 空状态 -->
-    <div v-if="store.images.length === 0" class="empty-state">
+    <div v-if="store.images.length === 0" class="flex-1 flex items-center justify-center p-8">
       <ImageUpload @upload="store.addImages" />
     </div>
-    
+
     <!-- 工作区 -->
-    <div v-else class="workspace" :class="{ 'has-sidebar': showSidebar }">
-      <div class="main-area">
-        <header class="workspace-header">
+    <div v-else class="flex-1 flex overflow-hidden h-full">
+      <div class="flex-1 flex flex-col min-w-0 relative">
+        <header
+          class="h-[72px] px-6 bg-card border-b border-border flex items-center justify-between gap-6 shrink-0 relative z-10"
+        >
           <slot name="header-left"></slot>
-          <div class="header-actions">
+          <div class="flex items-center gap-3">
             <slot name="header-actions"></slot>
           </div>
         </header>
 
-        <div class="image-grid-wrapper custom-scrollbar">
-          <div class="image-grid">
+        <div
+          class="flex-1 overflow-y-auto p-6 bg-background custom-scrollbar"
+          style="scrollbar-gutter: stable"
+        >
+          <div class="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
             <slot name="content"></slot>
           </div>
         </div>
       </div>
 
       <!-- 右侧控制面板 (可选) -->
-      <aside v-if="showSidebar" class="control-panel">
+      <aside
+        v-if="showSidebar"
+        class="w-[280px] xl:w-[320px] bg-card border-l border-border flex flex-col overflow-y-auto shrink-0 relative z-10"
+      >
         <slot name="sidebar"></slot>
       </aside>
     </div>
   </div>
 </template>
-
-<style scoped>
-.view-container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.empty-state {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-}
-
-.workspace {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-  height: 100%;
-}
-
-.main-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.workspace-header {
-  height: 72px;
-  padding: 0 1.5rem;
-  background: var(--card-bg);
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  flex-shrink: 0;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.image-grid-wrapper {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1.5rem;
-  background: var(--bg-color);
-}
-
-.image-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
-}
-
-.control-panel {
-  width: 320px;
-  background: var(--card-bg);
-  border-left: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  flex-shrink: 0;
-}
-
-@media (max-width: 1200px) {
-  .control-panel {
-    width: 280px;
-  }
-}
-</style>

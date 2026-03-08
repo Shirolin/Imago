@@ -5,9 +5,21 @@ import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import ImageCard from '../components/common/ImageCard.vue'
 import AppButton from '../components/common/AppButton.vue'
-import { 
-  Palette, X, Loader2, Settings2, Sun, Contrast, Droplets,
-  Check, Sparkles, Image as ImageIcon, Plus, Trash2, Square, CheckSquare
+import {
+  Palette,
+  X,
+  Loader2,
+  Settings2,
+  Sun,
+  Contrast,
+  Droplets,
+  Check,
+  Sparkles,
+  Image as ImageIcon,
+  Plus,
+  Trash2,
+  Square,
+  CheckSquare
 } from 'lucide-vue-next'
 
 const store = useImageStore()
@@ -24,7 +36,7 @@ const grayscale = ref(0)
 const sepia = ref(0)
 
 const activeImage = computed(() => {
-  return store.images.find(img => img.id === activeImageId.value) || store.images[0]
+  return store.images.find((img) => img.id === activeImageId.value) || store.images[0]
 })
 
 const filterStyle = computed(() => {
@@ -34,14 +46,29 @@ const filterStyle = computed(() => {
 })
 
 const presets = [
-  { name: '默认', values: { brightness: 100, contrast: 100, saturation: 100, blur: 0, grayscale: 0, sepia: 0 } },
-  { name: '明亮', values: { brightness: 120, contrast: 110, saturation: 110, blur: 0, grayscale: 0, sepia: 0 } },
-  { name: '复古', values: { brightness: 100, contrast: 90, saturation: 80, blur: 0, grayscale: 0, sepia: 80 } },
-  { name: '黑白', values: { brightness: 100, contrast: 120, saturation: 0, blur: 0, grayscale: 100, sepia: 0 } },
-  { name: '柔和', values: { brightness: 110, contrast: 90, saturation: 90, blur: 2, grayscale: 0, sepia: 0 } }
+  {
+    name: '默认',
+    values: { brightness: 100, contrast: 100, saturation: 100, blur: 0, grayscale: 0, sepia: 0 }
+  },
+  {
+    name: '明亮',
+    values: { brightness: 120, contrast: 110, saturation: 110, blur: 0, grayscale: 0, sepia: 0 }
+  },
+  {
+    name: '复古',
+    values: { brightness: 100, contrast: 90, saturation: 80, blur: 0, grayscale: 0, sepia: 80 }
+  },
+  {
+    name: '黑白',
+    values: { brightness: 100, contrast: 120, saturation: 0, blur: 0, grayscale: 100, sepia: 0 }
+  },
+  {
+    name: '柔和',
+    values: { brightness: 110, contrast: 90, saturation: 90, blur: 2, grayscale: 0, sepia: 0 }
+  }
 ]
 
-const applyPreset = (preset: typeof presets[0]) => {
+const applyPreset = (preset: (typeof presets)[0]) => {
   brightness.value = preset.values.brightness
   contrast.value = preset.values.contrast
   saturation.value = preset.values.saturation
@@ -52,8 +79,8 @@ const applyPreset = (preset: typeof presets[0]) => {
 
 const handleApplyFilters = async () => {
   isProcessing.value = true
-  await new Promise(resolve => setTimeout(resolve, 1500))
-  store.images.forEach(img => {
+  await new Promise((resolve) => setTimeout(resolve, 1500))
+  store.images.forEach((img) => {
     if (store.selectedIds.size === 0 || store.selectedIds.has(img.id)) {
       store.updateImage(img.id, { status: 'done' })
     }
@@ -74,72 +101,110 @@ const handleCardClick = (id: string) => {
 <template>
   <WorkspaceLayout show-sidebar>
     <template #header-left>
-      <div class="select-control" @click="store.toggleAll">
-        <div class="checkbox-wrapper">
-          <CheckSquare v-if="store.isAllSelected" :size="20" class="checked" />
+      <div
+        class="flex items-center gap-3.5 cursor-pointer px-4 py-2.5 rounded-2xl bg-muted border border-border transition-all duration-300 hover:border-primary hover:bg-background hover:-translate-y-[1px] active:scale-[0.96]"
+        @click="store.toggleAll"
+      >
+        <div
+          class="transition-transform duration-200"
+          :class="store.isAllSelected ? 'text-primary' : 'text-muted-foreground'"
+        >
+          <CheckSquare v-if="store.isAllSelected" :size="20" class="drop-shadow-sm" />
           <Square v-else :size="20" />
         </div>
-        <div class="selection-info">
-          <span class="count">已选择 {{ store.selectedCount }} / {{ store.images.length }}</span>
-          <span class="label">全选/反选</span>
+        <div class="flex flex-col">
+          <span class="font-extrabold text-sm text-foreground leading-tight"
+            >已选择 {{ store.selectedCount }} / {{ store.images.length }}</span
+          >
+          <span
+            class="text-[0.65rem] text-muted-foreground font-bold uppercase tracking-widest mt-0.5 opacity-80"
+            >全选/反选</span
+          >
         </div>
       </div>
     </template>
 
     <template #header-actions>
-      <input type="file" ref="fileInput" multiple accept="image/*" @change="handleFileChange" style="display: none">
-      <AppButton variant="tool" @click="triggerFileInput">
-        <template #icon><Plus :size="18" /></template>
+      <input
+        type="file"
+        ref="fileInput"
+        multiple
+        accept="image/*"
+        @change="handleFileChange"
+        class="hidden"
+      />
+      <AppButton variant="secondary" size="sm" @click="triggerFileInput" class="!px-3 !h-9">
+        <template #icon><Plus :size="16" class="mr-1.5" /></template>
         添加图片
       </AppButton>
-      <AppButton variant="tool" :disabled="!store.selectedCount" @click="store.removeSelected">
-        <template #icon><Trash2 :size="18" /></template>
+      <AppButton
+        variant="secondary"
+        size="sm"
+        :disabled="!store.selectedCount"
+        @click="store.removeSelected"
+        class="!px-3 !h-9 text-destructive border-transparent hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
+      >
+        <template #icon><Trash2 :size="16" class="mr-1.5" /></template>
         删除选中
       </AppButton>
-      <AppButton variant="tool" @click="store.clearImages">
-        <template #icon><X :size="18" /></template>
+      <AppButton variant="secondary" size="sm" @click="store.clearImages" class="!px-3 !h-9">
+        <template #icon><X :size="16" class="mr-1.5" /></template>
         清空全部
       </AppButton>
     </template>
 
     <template #content>
-      <ImageCard 
-        v-for="img in store.images" 
-        :key="img.id" 
+      <ImageCard
+        v-for="img in store.images"
+        :key="img.id"
         :image="img"
         :is-selected="store.selectedIds.has(img.id)"
-        :class="{ active: activeImage?.id === img.id }"
+        :class="{
+          'ring-2 ring-primary ring-offset-2 ring-offset-background': activeImage?.id === img.id
+        }"
         @click="handleCardClick(img.id)"
         @toggle="store.toggleSelection"
         @remove="store.removeImage"
       >
         <template #overlay="{ image }">
-          <div class="card-filter-overlay" v-if="activeImage?.id === image.id" :style="filterStyle"></div>
+          <div
+            class="absolute inset-0 pointer-events-none"
+            v-if="activeImage?.id === image.id"
+            :style="filterStyle"
+          ></div>
         </template>
       </ImageCard>
     </template>
 
     <template #sidebar>
-      <div class="sidebar-content">
-        <div class="panel-section preview-mini">
-          <div class="section-title">
-            <ImageIcon :size="18" /> 当前预览
+      <div class="p-6 flex flex-col gap-6 h-full overflow-y-auto custom-scrollbar">
+        <div class="flex flex-col gap-4 shrink-0">
+          <div class="flex items-center gap-2 font-bold text-[0.85rem] text-foreground uppercase">
+            <ImageIcon :size="18" class="text-primary" /> 当前预览
           </div>
-          <div class="mini-viewport">
-            <img v-if="activeImage" :src="activeImage.preview" :style="filterStyle" alt="Preview">
-            <div v-else class="no-selection">请选择图片</div>
+          <div
+            class="h-[160px] bg-muted rounded-xl border border-border flex items-center justify-center overflow-hidden shadow-inner relative"
+          >
+            <img
+              v-if="activeImage"
+              :src="activeImage.preview"
+              :style="filterStyle"
+              alt="Preview"
+              class="max-w-full max-h-full object-contain"
+            />
+            <div v-else class="text-xs font-bold text-muted-foreground">请选择图片</div>
           </div>
         </div>
 
-        <div class="panel-section">
-          <div class="section-title">
-            <Sparkles :size="18" /> 预设滤镜
+        <div class="flex flex-col gap-4 shrink-0">
+          <div class="flex items-center gap-2 font-bold text-[0.85rem] text-foreground uppercase">
+            <Sparkles :size="18" class="text-primary" /> 预设滤镜
           </div>
-          <div class="preset-grid">
-            <button 
-              v-for="preset in presets" 
-              :key="preset.name" 
-              class="preset-btn"
+          <div class="grid grid-cols-3 gap-1.5">
+            <button
+              v-for="preset in presets"
+              :key="preset.name"
+              class="p-2 bg-muted border border-border rounded-lg text-[0.7rem] font-bold text-foreground cursor-pointer transition-colors hover:border-primary hover:text-primary active:scale-[0.98]"
               @click="applyPreset(preset)"
             >
               {{ preset.name }}
@@ -147,227 +212,90 @@ const handleCardClick = (id: string) => {
           </div>
         </div>
 
-        <div class="panel-section">
-          <div class="section-title">
-            <Settings2 :size="18" /> 手动调整
-            <button @click="resetFilters" class="reset-btn-text">重置</button>
+        <div class="flex flex-col gap-5 shrink-0">
+          <div
+            class="flex items-center justify-between font-bold text-[0.85rem] text-foreground uppercase"
+          >
+            <div class="flex items-center gap-2">
+              <Settings2 :size="18" class="text-primary" /> 手动调整
+            </div>
+            <button
+              @click="resetFilters"
+              class="text-[0.7rem] font-bold text-primary hover:text-primary/80 transition-colors bg-transparent border-none cursor-pointer"
+            >
+              重置
+            </button>
           </div>
-          
-          <div class="adjust-list">
-            <div class="adjust-item">
-              <div class="adjust-label">
-                <Sun :size="14" /> 亮度
-                <span class="val">{{ brightness }}%</span>
+
+          <div class="flex flex-col gap-4">
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center text-[0.7rem] font-bold text-muted-foreground">
+                <Sun :size="14" class="mr-1.5" /> 亮度
+                <span class="ml-auto text-primary">{{ brightness }}%</span>
               </div>
-              <input type="range" v-model.number="brightness" min="0" max="200" class="pro-slider">
+              <input
+                type="range"
+                v-model.number="brightness"
+                min="0"
+                max="200"
+                class="w-full h-1 bg-muted rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer shadow-[0_0_0_2px_hsl(var(--card))] border-none focus:outline-none"
+              />
             </div>
-            <div class="adjust-item">
-              <div class="adjust-label">
-                <Contrast :size="14" /> 对比度
-                <span class="val">{{ contrast }}%</span>
+
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center text-[0.7rem] font-bold text-muted-foreground">
+                <Contrast :size="14" class="mr-1.5" /> 对比度
+                <span class="ml-auto text-primary">{{ contrast }}%</span>
               </div>
-              <input type="range" v-model.number="contrast" min="0" max="200" class="pro-slider">
+              <input
+                type="range"
+                v-model.number="contrast"
+                min="0"
+                max="200"
+                class="w-full h-1 bg-muted rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer shadow-[0_0_0_2px_hsl(var(--card))] border-none focus:outline-none"
+              />
             </div>
-            <div class="adjust-item">
-              <div class="adjust-label">
-                <Droplets :size="14" /> 饱和度
-                <span class="val">{{ saturation }}%</span>
+
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center text-[0.7rem] font-bold text-muted-foreground">
+                <Droplets :size="14" class="mr-1.5" /> 饱和度
+                <span class="ml-auto text-primary">{{ saturation }}%</span>
               </div>
-              <input type="range" v-model.number="saturation" min="0" max="200" class="pro-slider">
+              <input
+                type="range"
+                v-model.number="saturation"
+                min="0"
+                max="200"
+                class="w-full h-1 bg-muted rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer shadow-[0_0_0_2px_hsl(var(--card))] border-none focus:outline-none"
+              />
             </div>
-            <div class="adjust-item">
-              <div class="adjust-label">灰度 <span class="val">{{ grayscale }}%</span></div>
-              <input type="range" v-model.number="grayscale" min="0" max="100" class="pro-slider">
+
+            <div class="flex flex-col gap-2">
+              <div
+                class="flex items-center justify-between text-[0.7rem] font-bold text-muted-foreground"
+              >
+                灰度
+                <span class="text-primary">{{ grayscale }}%</span>
+              </div>
+              <input
+                type="range"
+                v-model.number="grayscale"
+                min="0"
+                max="100"
+                class="w-full h-1 bg-muted rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer shadow-[0_0_0_2px_hsl(var(--card))] border-none focus:outline-none"
+              />
             </div>
           </div>
         </div>
 
-        <div class="panel-footer">
-          <AppButton size="lg" :loading="isProcessing" @click="handleApplyFilters">
-            <template #icon><Check v-if="!isProcessing" :size="20" /></template>
+        <div class="mt-auto shrink-0 flex flex-col gap-3 pt-6">
+          <AppButton size="lg" variant="cta" :loading="isProcessing" @click="handleApplyFilters">
+            <template #icon><Check v-if="!isProcessing" :size="20" class="mr-2" /></template>
             执行滤镜处理
           </AppButton>
-          <p class="footer-hint">滤镜将应用到所有选中的图片</p>
+          <p class="text-center text-xs text-muted-foreground">滤镜将应用到所有选中的图片</p>
         </div>
       </div>
     </template>
   </WorkspaceLayout>
 </template>
-
-<style scoped>
-.select-control {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 10px;
-  transition: all 0.2s;
-}
-
-.select-control:hover {
-  background: var(--hover-bg);
-}
-
-.checkbox-wrapper {
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-}
-
-.checkbox-wrapper .checked {
-  color: var(--accent-color);
-}
-
-.selection-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.selection-info .count {
-  font-weight: 700;
-  font-size: 0.95rem;
-}
-
-.selection-info .label {
-  font-size: 0.65rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.sidebar-content {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  height: 100%;
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-weight: 700;
-  font-size: 0.85rem;
-  color: var(--text-primary);
-  margin-bottom: 1rem;
-}
-
-.mini-viewport {
-  height: 160px;
-  background: var(--bg-color);
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.mini-viewport img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.no-selection {
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.preset-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.4rem;
-}
-
-.preset-btn {
-  padding: 0.5rem;
-  background: var(--bg-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  cursor: pointer;
-}
-
-.preset-btn:hover {
-  border-color: var(--accent-color);
-  color: var(--accent-color);
-}
-
-.reset-btn-text {
-  background: none;
-  border: none;
-  color: var(--accent-color);
-  font-size: 0.7rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.adjust-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.adjust-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.adjust-label {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-}
-
-.adjust-label .val {
-  margin-left: auto;
-  color: var(--accent-color);
-}
-
-.pro-slider {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 4px;
-  background: var(--bg-color);
-  border-radius: 2px;
-}
-
-.pro-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  background: var(--accent-color);
-  border: 2px solid var(--card-bg);
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.panel-footer {
-  margin-top: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.footer-hint {
-  text-align: center;
-  font-size: 0.7rem;
-  color: var(--text-secondary);
-}
-
-.card-filter-overlay {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-</style>

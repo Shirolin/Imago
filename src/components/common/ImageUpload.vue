@@ -4,18 +4,60 @@ import { Upload, Clipboard, Image as ImageIcon, FileImage, MousePointer2 } from 
 import AppButton from './AppButton.vue'
 
 const emit = defineEmits(['upload'])
-const isDragging = ref(false)
+const isGlobalDragging = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
 
 const handleFiles = (files: FileList | File[]) => {
-  const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'))
-  if (imageFiles.length > 0) {
-    emit('upload', imageFiles)
+  const MAX_SIZE = 50 * 1024 * 1024 // 50MB
+  const validTypes = [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'image/avif',
+    'image/gif',
+    'image/svg+xml'
+  ]
+
+  const validFiles = Array.from(files).filter((file) => {
+    if (!file.type.startsWith('image/') && !validTypes.includes(file.type)) {
+      return false
+    }
+    if (file.size > MAX_SIZE) {
+      alert(
+        `图片 [${file.name}] 体积过大 (${(file.size / 1024 / 1024).toFixed(1)}MB)，已被拦截以免导致浏览器崩溃。最大支持 50MB。`
+      )
+      return false
+    }
+    return true
+  })
+
+  if (validFiles.length > 0) {
+    emit('upload', validFiles)
   }
 }
 
-const onDrop = (e: DragEvent) => {
-  isDragging.value = false
+let dragTarget: EventTarget | null = null
+
+const onGlobalDragEnter = (e: DragEvent) => {
+  e.preventDefault()
+  dragTarget = e.target
+  isGlobalDragging.value = true
+}
+
+const onGlobalDragOver = (e: DragEvent) => {
+  e.preventDefault()
+}
+
+const onGlobalDragLeave = (e: DragEvent) => {
+  // Only hide if we leave the outer window/document
+  if (e.target === dragTarget || e.target === document) {
+    isGlobalDragging.value = false
+  }
+}
+
+const onGlobalDrop = (e: DragEvent) => {
+  e.preventDefault()
+  isGlobalDragging.value = false
   if (e.dataTransfer?.files) {
     handleFiles(e.dataTransfer.files)
   }
@@ -40,297 +82,110 @@ const triggerSelect = () => {
 
 onMounted(() => {
   window.addEventListener('paste', onPaste)
+  document.addEventListener('dragenter', onGlobalDragEnter)
+  document.addEventListener('dragover', onGlobalDragOver)
+  document.addEventListener('dragleave', onGlobalDragLeave)
+  document.addEventListener('drop', onGlobalDrop)
 })
 
 onUnmounted(() => {
   window.removeEventListener('paste', onPaste)
+  document.removeEventListener('dragenter', onGlobalDragEnter)
+  document.removeEventListener('dragover', onGlobalDragOver)
+  document.removeEventListener('dragleave', onGlobalDragLeave)
+  document.removeEventListener('drop', onGlobalDrop)
 })
 </script>
 
 <template>
-  <div 
-    class="upload-container"
-    :class="{ 'is-dragging': isDragging }"
-    @dragover.prevent="isDragging = true"
-    @dragleave.prevent="isDragging = false"
-    @drop.prevent="onDrop"
+  <div
+    class="relative w-full min-h-[480px] bg-card border-2 border-dashed border-border rounded-[40px] flex items-center justify-center cursor-pointer overflow-hidden p-8 outline-none transition-all duration-400 focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 hover:border-primary hover:bg-muted hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/10 group"
+    :class="{ 'border-primary bg-primary/10 scale-[0.985]': isGlobalDragging }"
     @click="triggerSelect"
   >
-    <div class="drag-overlay" v-if="isDragging">
-      <div class="overlay-content">
-        <MousePointer2 :size="48" class="bounce-icon" />
-        <span>松开鼠标立即上传</span>
+    <Teleport to="body">
+      <div
+        v-if="isGlobalDragging"
+        class="fixed inset-3 bg-primary/15 backdrop-blur-md z-[9999] flex items-center justify-center border-4 border-dashed border-primary rounded-[38px] pointer-events-none animate-in fade-in zoom-in-95 duration-200"
+      >
+        <div
+          class="flex flex-col items-center gap-6 text-primary font-extrabold text-3xl drop-shadow-md"
+        >
+          <MousePointer2 :size="64" class="animate-bounce" />
+          <span>松开鼠标，将图片放入 Imago</span>
+        </div>
       </div>
-    </div>
+    </Teleport>
 
-    <input 
-      type="file" 
-      ref="fileInput" 
-      multiple 
-      accept="image/*" 
-      class="hidden-input"
+    <input
+      type="file"
+      ref="fileInput"
+      multiple
+      accept="image/*"
+      class="hidden"
       @change="onFileSelect"
-    >
-    
-    <div class="upload-content">
-      <div class="icon-stack">
-        <div class="icon-block main">
+    />
+
+    <div class="relative z-10 flex flex-col items-center text-center">
+      <div class="relative mb-12 w-[120px] h-[100px] flex justify-center">
+        <div
+          class="w-[84px] h-[84px] rounded-3xl bg-background border-2 border-border text-primary flex items-center justify-center relative z-10 transition-all duration-400 group-hover:border-primary group-hover:scale-110 shadow-sm"
+        >
           <Upload :size="32" />
         </div>
-        <div class="icon-block sub left">
+        <div
+          class="absolute bottom-0 left-0 w-[44px] h-[44px] rounded-2xl bg-card border-2 border-border text-muted-foreground z-0 -rotate-12 flex items-center justify-center transition-all duration-400 group-hover:border-primary group-hover:text-primary group-hover:-translate-x-2.5 group-hover:translate-y-1 group-hover:-rotate-[20deg]"
+        >
           <ImageIcon :size="16" />
         </div>
-        <div class="icon-block sub right">
+        <div
+          class="absolute top-0 right-0 w-[44px] h-[44px] rounded-2xl bg-card border-2 border-border text-muted-foreground z-0 rotate-12 flex items-center justify-center transition-all duration-400 group-hover:border-primary group-hover:text-primary group-hover:translate-x-2.5 group-hover:-translate-y-1 group-hover:rotate-[20deg]"
+        >
           <FileImage :size="16" />
         </div>
       </div>
 
-      <div class="text-group">
-        <h2>点击、拖拽或粘贴图片到这里</h2>
-        <p>支持 JPG, PNG, WebP, AVIF 等格式 · 100% 本地处理</p>
+      <div class="mb-10 flex flex-col items-center">
+        <h2 class="text-3xl font-extrabold text-foreground mb-4 tracking-tight">
+          点击、拖拽或粘贴图片到这里
+        </h2>
+        <p class="text-base text-muted-foreground">
+          支持 JPG, PNG, WebP, AVIF 等格式 · 100% 本地处理
+        </p>
       </div>
-      
-      <div class="action-row">
-        <div class="shortcut-badge">
-          <kbd>Ctrl</kbd> + <kbd>V</kbd> 粘贴
+
+      <div class="flex items-center gap-5 mb-12">
+        <div class="flex items-center gap-2 text-sm text-muted-foreground font-semibold">
+          <kbd
+            class="bg-background border border-border rounded-md px-1.5 py-0.5 shadow-[0_2px_0_var(--border)] font-sans"
+            >Ctrl</kbd
+          >
+          +
+          <kbd
+            class="bg-background border border-border rounded-md px-1.5 py-0.5 shadow-[0_2px_0_var(--border)] font-sans"
+            >V</kbd
+          >
+          粘贴
         </div>
-        <div class="divider"></div>
-        <div class="format-list">
-          <span class="dot"></span>
+        <div class="w-px h-4 bg-border"></div>
+        <div class="flex items-center gap-2 text-sm text-muted-foreground font-medium">
+          <span class="w-1.5 h-1.5 bg-primary rounded-full"></span>
           浏览器原生支持的所有图片格式
         </div>
       </div>
 
-      <AppButton size="lg" @click.stop="triggerSelect">
-        选择图片文件
-      </AppButton>
+      <AppButton size="lg" @click.stop="triggerSelect" class="!px-8 !h-14 !text-base !rounded-2xl"
+        >选择图片文件</AppButton
+      >
     </div>
 
-    <!-- Background Decoration -->
-    <div class="bg-pattern"></div>
+    <!-- Background Pattern -->
+    <div
+      class="absolute inset-0 opacity-5 pointer-events-none"
+      style="
+        background-image: radial-gradient(var(--border) 1px, transparent 1px);
+        background-size: 32px 32px;
+      "
+    ></div>
   </div>
 </template>
-
-<style scoped>
-.upload-container {
-  position: relative;
-  width: 100%;
-  min-height: 480px;
-  background: var(--card-bg);
-  border: 2px dashed var(--border-color);
-  border-radius: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: 
-    background 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-  padding: 2rem;
-}
-
-.upload-container:hover {
-  border-color: var(--accent-color);
-  background: var(--hover-bg);
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.2);
-}
-
-.upload-container.is-dragging {
-  border-color: var(--accent-color);
-  background: rgba(34, 197, 94, 0.05);
-  transform: scale(0.99);
-}
-
-/* Drag Overlay */
-.drag-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(34, 197, 94, 0.1);
-  backdrop-filter: blur(8px);
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 3px solid var(--accent-color);
-  border-radius: 30px;
-}
-
-.overlay-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-  color: var(--accent-color);
-  font-family: var(--font-heading);
-  font-weight: 800;
-  font-size: 1.5rem;
-}
-
-.bounce-icon {
-  animation: bounce 0.6s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes bounce {
-  from { transform: translateY(0); }
-  to { transform: translateY(-20px); }
-}
-
-/* Hidden Input */
-.hidden-input {
-  display: none;
-}
-
-/* Upload Content */
-.upload-content {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-/* Icon Stack Styling */
-.icon-stack {
-  position: relative;
-  margin-bottom: 2.5rem;
-  width: 100px;
-  height: 100px;
-}
-
-.icon-block {
-  background: var(--bg-color);
-  border: 2px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 6px 6px 0px var(--border-color);
-  transition: all 0.3s;
-}
-
-[data-theme="light"] .icon-block {
-  box-shadow: 4px 4px 0px var(--border-color);
-}
-
-[data-theme="light"] kbd {
-  background: #FFFFFF;
-  box-shadow: 0 2px 0 #CBD5E1;
-}
-
-[data-theme="light"] .bg-pattern {
-  opacity: 0.15;
-}
-
-.icon-block.main {
-  width: 80px;
-  height: 80px;
-  border-radius: 20px;
-  color: var(--accent-color);
-  position: relative;
-  z-index: 2;
-}
-
-.icon-block.sub {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  position: absolute;
-  color: var(--text-secondary);
-  z-index: 1;
-}
-
-.icon-block.sub.left {
-  bottom: -10px;
-  left: -20px;
-}
-
-.icon-block.sub.right {
-  top: -10px;
-  right: -20px;
-}
-
-.upload-container:hover .icon-block.main {
-  transform: translate(-4px, -4px);
-  box-shadow: 10px 10px 0px var(--accent-color);
-  border-color: var(--accent-color);
-}
-
-/* Text Styling */
-.text-group h2 {
-  font-family: var(--font-heading);
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin-bottom: 0.75rem;
-  letter-spacing: -0.02em;
-}
-
-.text-group p {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  margin-bottom: 2.5rem;
-}
-
-/* Action Row */
-.action-row {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  margin-bottom: 3rem;
-}
-
-.shortcut-badge {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-}
-
-kbd {
-  background: var(--bg-color);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 2px 6px;
-  font-family: inherit;
-  box-shadow: 0 2px 0 var(--border-color);
-}
-
-.divider {
-  width: 1px;
-  height: 16px;
-  background: var(--border-color);
-}
-
-.format-list {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.format-list .dot {
-  width: 6px;
-  height: 6px;
-  background: var(--accent-color);
-  border-radius: 50%;
-}
-
-/* Background Pattern */
-.bg-pattern {
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
-  background-size: 32px 32px;
-  opacity: 0.05;
-  pointer-events: none;
-}
-</style>
-
