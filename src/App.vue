@@ -114,18 +114,26 @@ const menuGroups = [
         </div>
       </div>
 
-      <nav class="flex-1 overflow-y-auto px-4 flex flex-col gap-1 custom-scrollbar">
+      <nav class="flex-1 overflow-y-auto px-4 flex flex-col gap-1.5 custom-scrollbar">
         <router-link
           to="/"
-          class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-muted-foreground font-semibold text-sm transition-all hover:bg-muted hover:text-foreground hover:translate-x-1"
-          active-class="bg-primary/10 text-primary dark:text-primary relative after:content-[''] after:absolute after:right-4 after:w-1.5 after:h-1.5 after:bg-primary after:rounded-full after:shadow-[0_0_10px_var(--primary)]"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-200 group relative"
+          :class="[
+            $route.path === '/'
+              ? 'bg-primary/10 text-primary hover:bg-primary/20'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground hover:translate-x-1'
+          ]"
           @click="closeMobileSidebar"
         >
           <Settings2 :size="18" />
           <span>所有工具</span>
+          <div
+            v-if="$route.path === '/'"
+            class="absolute right-4 w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_10px_var(--primary)]"
+          ></div>
         </router-link>
 
-        <div v-for="group in menuGroups" :key="group.label" class="mt-7">
+        <div v-for="group in menuGroups" :key="group.label" class="mt-7 flex flex-col gap-1.5">
           <div
             class="text-[11px] font-extrabold uppercase text-muted-foreground tracking-widest mb-3 ml-4 opacity-70"
           >
@@ -135,12 +143,20 @@ const menuGroups = [
             v-for="item in group.items"
             :key="item.path"
             :to="item.path"
-            class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-muted-foreground font-semibold text-sm transition-all hover:bg-muted hover:text-foreground hover:translate-x-1"
-            active-class="bg-primary/10 text-primary dark:text-primary relative after:content-[''] after:absolute after:right-4 after:w-1.5 after:h-1.5 after:bg-primary after:rounded-full after:shadow-[0_0_10px_var(--primary)]"
+            class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-200 group relative"
+            :class="[
+              $route.path === item.path
+                ? 'bg-primary/10 text-primary hover:bg-primary/20'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground hover:translate-x-1'
+            ]"
             @click="closeMobileSidebar"
           >
             <component :is="item.icon" :size="18" />
             <span>{{ item.name }}</span>
+            <div
+              v-if="$route.path === item.path"
+              class="absolute right-4 w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_10px_var(--primary)]"
+            ></div>
           </router-link>
         </div>
       </nav>

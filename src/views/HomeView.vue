@@ -83,10 +83,11 @@ const tools = [
       <div>
         <AppButton
           size="lg"
+          :icon="ArrowRight"
           @click="scrollToTools"
-          class="!text-lg !px-8 !py-6 !rounded-2xl shadow-lg shadow-primary/20"
+          class="!rounded-2xl shadow-lg shadow-primary/20 text-lg px-8 py-6"
         >
-          快速开始 <ArrowRight :size="20" class="ml-2" />
+          快速开始
         </AppButton>
       </div>
     </section>
@@ -118,12 +119,10 @@ const tools = [
           <h3 class="text-2xl font-bold mb-3 text-foreground">{{ tool.name }}</h3>
           <p class="text-[0.95rem] text-muted-foreground leading-relaxed">{{ tool.desc }}</p>
         </div>
-        <div class="mt-auto flex items-center gap-2 text-primary font-bold text-sm">
-          <span>打开工具</span>
-          <ArrowRight
-            :size="16"
-            class="transition-transform duration-300 group-hover:translate-x-1"
-          />
+        <div class="mt-auto">
+          <AppButton variant="link" :icon="ArrowRight" size="sm">
+            打开工具
+          </AppButton>
         </div>
       </router-link>
     </div>
