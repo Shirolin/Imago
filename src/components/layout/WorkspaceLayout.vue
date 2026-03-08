@@ -2,7 +2,7 @@
 import { useImageStore } from '../../stores/imageStore'
 import { useLayoutStore } from '../../stores/layoutStore'
 import ImageUpload from '../common/ImageUpload.vue'
-import { ChevronLeft, ChevronRight, PanelRightClose, PanelRightOpen } from 'lucide-vue-next'
+import { PanelRightClose, PanelRightOpen } from 'lucide-vue-next'
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
@@ -27,12 +27,13 @@ withDefaults(defineProps<Props>(), {
     <div v-else class="flex-1 flex flex-col md:flex-row overflow-hidden h-full relative">
       <div class="flex-1 flex flex-col min-w-0 min-h-[40vh] md:min-h-0 relative">
         <header
-          class="bg-card border-b border-border shrink-0 relative z-10 overflow-x-auto overflow-y-hidden no-scrollbar transition-all duration-300 ease-in-out"
+          class="bg-card border-b border-border shrink-0 relative z-10 overflow-x-auto overflow-y-hidden no-scrollbar transition-all duration-300 ease-in-out scrollbar-gutter-stable"
           :class="layoutStore.isTopBarCompact ? 'h-12 md:h-12' : 'h-14 md:h-[72px]'"
+          style="scrollbar-gutter: stable"
         >
           <div class="h-full flex items-center min-w-max">
             <!-- 左侧边距占位 -->
-            <div class="w-4 md:w-6 shrink-0"></div>
+            <div class="w-4 md:w-8 shrink-0"></div>
 
             <div class="flex items-center gap-3 md:gap-6">
               <slot name="header-left"></slot>
@@ -56,14 +57,16 @@ withDefaults(defineProps<Props>(), {
               </button>
             </div>
 
-            <!-- 右侧边距占位 -->
-            <div class="w-4 md:w-6 shrink-0"></div>
+            <!-- 右侧边距占位 (关键：减去部分 padding 以抵消 gutter 的感官间距) -->
+            <div class="w-4 md:w-4 shrink-0"></div>
           </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-4 md:p-6 bg-background custom-scrollbar">
+        <div
+          class="flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-8 bg-background custom-scrollbar"
+        >
           <div
-            class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 md:gap-6"
+            class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 md:gap-8"
           >
             <slot name="content"></slot>
           </div>

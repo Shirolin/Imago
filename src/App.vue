@@ -113,8 +113,9 @@ const menuGroups = [
       ]"
     >
       <div
-        class="transition-all duration-300 overflow-hidden flex-shrink-0"
-        :class="layoutStore.isMenuCollapsed ? 'p-4 pb-5' : 'p-6 pb-8'"
+        class="transition-all duration-300 overflow-hidden flex-shrink-0 flex flex-col"
+        :style="!layoutStore.isMenuCollapsed ? 'scrollbar-gutter: stable' : ''"
+        :class="[layoutStore.isMenuCollapsed ? 'p-0 pt-4 pb-3 items-center' : 'p-6 pb-8 pl-4 pr-0']"
       >
         <div class="flex items-center gap-4">
           <div
@@ -135,7 +136,8 @@ const menuGroups = [
 
       <nav
         class="flex-1 overflow-y-auto flex flex-col custom-scrollbar overflow-x-hidden pb-10 transition-all duration-300 pt-2"
-        :class="[layoutStore.isMenuCollapsed ? 'px-2 gap-1' : 'px-4 gap-1.5']"
+        :style="!layoutStore.isMenuCollapsed ? 'scrollbar-gutter: stable' : ''"
+        :class="[layoutStore.isMenuCollapsed ? 'px-0 items-center gap-1' : 'pl-4 pr-0 gap-1.5']"
       >
         <router-link
           to="/"
@@ -144,7 +146,7 @@ const menuGroups = [
             $route.path === '/'
               ? 'bg-primary/10 text-primary shadow-[inset_0_0_12px_rgba(var(--primary-rgb),0.05)]'
               : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
-            layoutStore.isMenuCollapsed ? 'justify-center h-12 w-12 mx-auto' : 'px-4 py-3.5 gap-3'
+            layoutStore.isMenuCollapsed ? 'justify-center h-11 w-11' : 'px-4 py-3.5 gap-3'
           ]"
           :title="layoutStore.isMenuCollapsed ? '所有工具' : ''"
           @click="closeMobileSidebar"
@@ -164,8 +166,8 @@ const menuGroups = [
         <div
           v-for="group in menuGroups"
           :key="group.label"
-          class="flex flex-col transition-all duration-300"
-          :class="layoutStore.isMenuCollapsed ? 'mt-2 gap-1' : 'mt-6 gap-1.5'"
+          class="flex flex-col transition-all duration-300 w-full"
+          :class="layoutStore.isMenuCollapsed ? 'mt-1 gap-1 items-center' : 'mt-6 gap-1.5'"
         >
           <div
             v-if="!layoutStore.isMenuCollapsed"
@@ -173,7 +175,7 @@ const menuGroups = [
           >
             {{ group.label }}
           </div>
-          <div v-else class="h-px bg-border/40 my-1 mx-2"></div>
+          <div v-else class="h-px bg-border/40 my-0.5 w-8"></div>
 
           <router-link
             v-for="item in group.items"
@@ -184,7 +186,7 @@ const menuGroups = [
               $route.path === item.path
                 ? 'bg-primary/10 text-primary shadow-[inset_0_0_12px_rgba(var(--primary-rgb),0.05)]'
                 : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
-              layoutStore.isMenuCollapsed ? 'justify-center h-12 w-12 mx-auto' : 'px-4 py-3.5 gap-3'
+              layoutStore.isMenuCollapsed ? 'justify-center h-11 w-11' : 'px-4 py-3.5 gap-3'
             ]"
             :title="layoutStore.isMenuCollapsed ? item.name : ''"
             @click="closeMobileSidebar"
@@ -208,25 +210,30 @@ const menuGroups = [
 
       <div
         class="flex flex-col border-t border-border shrink-0 bg-card/50 backdrop-blur-md transition-all duration-300"
-        :class="layoutStore.isMenuCollapsed ? 'p-2 gap-2' : 'p-4 gap-3'"
+        :style="!layoutStore.isMenuCollapsed ? 'scrollbar-gutter: stable' : ''"
+        :class="
+          layoutStore.isMenuCollapsed
+            ? 'p-0 pt-4 pb-4 items-center gap-4'
+            : 'p-4 pb-6 pl-6 pr-4 gap-3'
+        "
       >
         <div
           class="flex items-center gap-2"
-          :class="layoutStore.isMenuCollapsed ? 'flex-col' : 'flex-row'"
+          :class="layoutStore.isMenuCollapsed ? 'flex-col' : 'flex-row w-full'"
         >
           <div
-            class="flex-1 bg-muted/60 p-1 rounded-xl flex gap-1"
-            :class="layoutStore.isMenuCollapsed ? 'flex-col w-full' : 'flex-row'"
+            class="bg-muted/60 p-1 rounded-xl flex gap-1 transition-all duration-300"
+            :class="layoutStore.isMenuCollapsed ? 'flex-col w-12 items-center' : 'flex-1 flex-row'"
           >
             <button
               v-for="mode in themeModes"
               :key="mode"
-              class="flex-1 flex items-center justify-center rounded-lg text-muted-foreground transition-all hover:text-foreground hover:bg-card/50"
+              class="flex items-center justify-center rounded-lg text-muted-foreground transition-all hover:text-foreground hover:bg-card/50"
               :class="[
                 theme === mode
                   ? 'bg-card text-primary shadow-sm ring-1 ring-black/5 dark:ring-white/5'
                   : '',
-                layoutStore.isMenuCollapsed ? 'py-1.5' : 'py-2'
+                layoutStore.isMenuCollapsed ? 'h-10 w-10' : 'flex-1 py-2'
               ]"
               @click="setTheme(mode)"
               :title="mode"
@@ -250,7 +257,7 @@ const menuGroups = [
         <button
           v-if="layoutStore.isMenuCollapsed"
           @click="layoutStore.toggleMenu"
-          class="hidden md:flex items-center justify-center h-10 w-full rounded-xl bg-muted/60 hover:bg-primary/10 hover:text-primary transition-all text-muted-foreground group"
+          class="hidden md:flex items-center justify-center h-12 w-12 rounded-xl bg-muted/60 hover:bg-primary/10 hover:text-primary transition-all text-muted-foreground group"
           title="展开菜单"
         >
           <ChevronRight :size="18" class="group-hover:translate-x-0.5 transition-transform" />

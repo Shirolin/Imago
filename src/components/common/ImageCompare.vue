@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { Zap, ChevronsLeftRight, Loader2, ZoomIn, ZoomOut, Maximize, Grip } from 'lucide-vue-next'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { ChevronsLeftRight, Loader2, ZoomIn, ZoomOut, Maximize, Grip } from 'lucide-vue-next'
 
 interface Props {
   originalUrl: string
@@ -31,14 +31,14 @@ const preloadImages = async () => {
     img2.src = props.processedUrl
     await Promise.all([img1.decode(), img2.decode()])
     isDecoding.value = false
-  } catch (e) {
+  } catch {
     isDecoding.value = false
   }
 }
 
-const handleMove = (e: MouseEvent | TouchEvent) => {
-  const x = 'touches' in e ? e.touches[0].clientX : e.clientX
-  const y = 'touches' in e ? e.touches[0].clientY : e.clientY
+const handlePointerMove = (e: PointerEvent) => {
+  const x = e.clientX
+  const y = e.clientY
 
   if (isResizing.value && container.value) {
     const rect = container.value.getBoundingClientRect()
@@ -51,16 +51,24 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
   lastMousePos.value = { x, y }
 }
 
-const handleMouseDown = (e: MouseEvent, type: 'resize' | 'pan') => {
+const handlePointerDown = (e: PointerEvent, type: 'resize' | 'pan') => {
   if (type === 'resize') {
     isResizing.value = true
+    // 捕获指针以确保移出元素后仍能触发 move/up
+    ;(e.currentTarget as HTMLElement)?.setPointerCapture(e.pointerId)
   } else {
     isPanning.value = true
     lastMousePos.value = { x: e.clientX, y: e.clientY }
   }
 }
 
+const handlePointerUp = () => {
+  isResizing.value = false
+  isPanning.value = false
+}
+
 const handleWheel = (e: WheelEvent) => {
+  if (!e.ctrlKey && e.deltaY === 0) return
   e.preventDefault()
   const delta = e.deltaY > 0 ? -0.1 : 0.1
   const newScale = Math.max(1, Math.min(5, scale.value + delta))
@@ -81,16 +89,14 @@ const reset = () => {
 
 onMounted(() => {
   preloadImages()
-  window.addEventListener('mousemove', handleMove)
-  window.addEventListener('mouseup', () => {
-    isResizing.value = false
-    isPanning.value = false
-  })
+  window.addEventListener('pointermove', handlePointerMove)
+  window.addEventListener('pointerup', handlePointerUp)
   window.addEventListener('wheel', handleWheel, { passive: false })
 })
 
 onUnmounted(() => {
-  window.removeEventListener('mousemove', handleMove)
+  window.removeEventListener('pointermove', handlePointerMove)
+  window.removeEventListener('pointerup', handlePointerUp)
   window.removeEventListener('wheel', handleWheel)
 })
 </script>
@@ -117,7 +123,7 @@ onUnmounted(() => {
           isResizing || isPanning ? 'select-none' : ''
         ]"
         ref="container"
-        @mousedown.self="handleMouseDown($event, 'pan')"
+        @pointerdown.self="handlePointerDown($event, 'pan')"
       >
         <!-- 图片内容层 (带缩放和平移) -->
         <div
@@ -125,7 +131,7 @@ onUnmounted(() => {
           :style="{
             transform: `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`
           }"
-          @mousedown.self="handleMouseDown($event, 'pan')"
+          @pointerdown.self="handlePointerDown($event, 'pan')"
         >
           <!-- 下层 (处理后) -->
           <img
@@ -162,8 +168,7 @@ onUnmounted(() => {
         <div
           class="absolute inset-y-0 z-40 w-12 -ml-6 cursor-col-resize flex items-center justify-center group active:scale-110 transition-transform"
           :style="{ left: `${sliderPos}%` }"
-          @mousedown.prevent="handleMouseDown($event, 'resize')"
-          @touchstart.prevent="handleMouseDown($event, 'resize')"
+          @pointerdown.prevent="handlePointerDown($event, 'resize')"
         >
           <div
             class="w-10 h-10 bg-primary text-primary-foreground rounded-full shadow-2xl flex items-center justify-center ring-4 ring-background/20 group-hover:ring-primary/20 transition-all"

@@ -57,31 +57,33 @@
   html,
   body {
     @apply bg-background text-foreground antialiased;
-    scrollbar-gutter: stable;
+    /* 顶级容器不开启占位，防止全屏布局出现多余间隙 */
   }
 
-  /* 精雕细琢的自定义滚动条 (Premium Slim Style) */
+  /* 核心成熟方案：滚动占位同步 */
   .custom-scrollbar {
     scrollbar-gutter: stable;
   }
 
+  /* 解决 Windows 默认滚动条轨道颜色的违和感 */
   .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px; /* 稍微增加宽度以便操作 */
+    height: 8px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
+    background-color: transparent; /* 轨道完全透明，显示容器背景 */
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted-foreground) / 0.2);
-    border-radius: 10px;
-    transition: background 0.2s;
+    @apply bg-muted-foreground/10 rounded-full transition-all;
+    /* 通过边框模拟悬浮感，不让滑块贴边，增加高级感 */
+    border: 2px solid transparent;
+    background-clip: padding-box;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground) / 0.4);
+    @apply bg-muted-foreground/30;
   }
 
   /* Firefox 适配 */

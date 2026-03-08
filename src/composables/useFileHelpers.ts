@@ -67,7 +67,8 @@ export function useFileHelpers() {
 
       // 生成格式化时间戳: YYYYMMDD_HHMMSS
       const now = new Date()
-      const timestamp = now.toISOString().replace(/[-:T]/g, '').split('.')[0].slice(0, 14)
+      const timestamp =
+        now.toISOString().replace(/[-:T]/g, '').split('.')[0]?.slice(0, 14) || 'date'
       const fileName = `Imago_${prefix}_${timestamp}.zip`
 
       const a = document.createElement('a')
