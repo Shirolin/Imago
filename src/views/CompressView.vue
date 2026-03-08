@@ -77,38 +77,40 @@ const handleDownload = (id: string) => {
 <template>
   <WorkspaceLayout>
     <template #header-left>
-      <div class="flex items-center gap-3 md:gap-8">
+      <div class="flex items-center gap-4 md:gap-7 h-11">
+        <!-- 统一的“已选择”状态块 -->
         <div
-          class="flex items-center gap-2 md:gap-3.5 cursor-pointer px-3 md:px-4 py-2 md:py-2.5 rounded-xl md:rounded-2xl bg-muted border border-border transition-all duration-300 hover:border-primary hover:bg-background active:scale-[0.96] shrink-0"
+          class="flex items-center gap-3.5 cursor-pointer px-5 h-full rounded-full bg-muted/40 border border-border/50 transition-all duration-300 hover:border-primary/50 hover:bg-background hover:-translate-y-[1px] active:scale-[0.96] group"
           @click="store.toggleAll"
         >
           <div
-            class="transition-transform duration-200"
-            :class="store.isAllSelected ? 'text-primary' : 'text-muted-foreground'"
+            class="flex items-center justify-center transition-colors duration-200"
+            :class="store.isAllSelected ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'"
           >
-            <CheckSquare v-if="store.isAllSelected" :size="18" class="md:w-5 md:h-5 drop-shadow-sm" />
-            <Square v-else :size="18" class="md:w-5 md:h-5" />
+            <CheckSquare v-if="store.isAllSelected" :size="18" class="drop-shadow-sm" />
+            <Square v-else :size="18" />
           </div>
-          <div class="flex flex-col">
-            <span class="font-extrabold text-xs md:text-sm text-foreground leading-tight"
+          <div class="flex flex-col justify-center">
+            <span class="font-bold text-[0.8rem] text-foreground leading-none tracking-tight"
               >已选择 {{ store.selectedCount }}</span
             >
             <span
-              class="hidden md:inline text-[0.65rem] text-muted-foreground font-bold uppercase tracking-widest mt-0.5 opacity-80"
+              class="hidden md:inline text-[0.6rem] text-muted-foreground font-black uppercase tracking-[0.1em] mt-0.5 opacity-60 leading-none"
               >全选/反选</span
             >
           </div>
         </div>
 
-        <div class="hidden md:block w-px h-9 bg-border"></div>
+        <div class="hidden md:block w-px h-6 bg-border/60"></div>
 
-        <div class="flex flex-col gap-1.5 md:gap-2 min-w-[120px] md:min-w-[180px]">
+        <!-- 质量调节区 -->
+        <div class="flex flex-col gap-1.5 md:gap-2 min-w-[120px] md:min-w-[180px] justify-center">
           <div
-            class="flex justify-between text-[0.65rem] font-extrabold uppercase text-muted-foreground tracking-wide"
+            class="flex items-center justify-between text-[0.65rem] font-black uppercase text-muted-foreground tracking-wider leading-none"
           >
             <span class="hidden md:inline">压缩质量</span>
             <span class="md:hidden">质量</span>
-            <span class="text-primary bg-primary/10 px-1.5 rounded"
+            <span class="text-primary bg-primary/10 px-1.5 py-0.5 rounded leading-none"
               >{{ Math.round(compressionQuality * 100) }}%</span
             >
           </div>
@@ -118,7 +120,7 @@ const handleDownload = (id: string) => {
             min="0.1"
             max="1.0"
             step="0.05"
-            class="w-full h-1.5 bg-border rounded-full appearance-none outline-none cursor-pointer hover:bg-muted accent-primary focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-all"
+            class="w-full h-1 bg-border rounded-full appearance-none outline-none cursor-pointer hover:bg-muted accent-primary transition-all"
           />
         </div>
       </div>
@@ -136,18 +138,17 @@ const handleDownload = (id: string) => {
       />
 
       <div class="flex items-center gap-1.5 md:gap-2">
-        <AppButton variant="secondary" size="sm" @click="triggerFileInput" class="!px-2.5 md:!px-3 !h-8 md:!h-9 !text-xs md:!text-sm">
-          <template #icon><Plus :size="14" class="md:w-4 md:h-4 mr-1 md:mr-1.5" /></template>
+        <AppButton variant="secondary" size="md" @click="triggerFileInput">
+          <template #icon><Plus :size="16" class="mr-1.5" /></template>
           添加
         </AppButton>
         <AppButton
-          variant="secondary"
-          size="sm"
+          variant="danger"
+          size="md"
           :disabled="!store.selectedCount || isCompressing"
           @click="store.removeSelected"
-          class="!px-2.5 md:!px-3 !h-8 md:!h-9 !text-xs md:!text-sm text-destructive border-transparent hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
         >
-          <template #icon><Trash2 :size="14" class="md:w-4 md:h-4 mr-1 md:mr-1.5" /></template>
+          <template #icon><Trash2 :size="16" class="mr-1.5" /></template>
           删除
         </AppButton>
       </div>
@@ -156,14 +157,13 @@ const handleDownload = (id: string) => {
 
       <AppButton
         variant="cta"
-        size="sm"
+        size="md"
         :loading="isCompressing"
         :disabled="!store.images.length"
         @click="compressAll"
-        class="!px-3 md:!px-4 !h-8 md:!h-9 !text-xs md:!text-sm"
       >
         <template #icon>
-          <Zap v-if="!isCompressing" :size="14" class="md:w-4 md:h-4 mr-1 md:mr-1.5" />
+          <Zap v-if="!isCompressing" :size="16" class="mr-1.5" />
         </template>
         处理全部
       </AppButton>

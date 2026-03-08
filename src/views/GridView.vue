@@ -50,22 +50,22 @@ const gridStyle = computed(() => {
   <WorkspaceLayout show-sidebar>
     <template #header-left>
       <div
-        class="flex items-center gap-3.5 cursor-pointer px-4 py-2.5 rounded-2xl bg-muted border border-border transition-all duration-300 hover:border-primary hover:bg-background hover:-translate-y-[1px] active:scale-[0.96]"
+        class="flex items-center gap-3.5 cursor-pointer px-5 h-11 rounded-full bg-muted/40 border border-border/50 transition-all duration-300 hover:border-primary/50 hover:bg-background hover:-translate-y-[1px] active:scale-[0.96] group"
         @click="store.toggleAll"
       >
         <div
-          class="transition-transform duration-200"
-          :class="store.isAllSelected ? 'text-primary' : 'text-muted-foreground'"
+          class="flex items-center justify-center transition-colors duration-200"
+          :class="store.isAllSelected ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'"
         >
-          <CheckSquare v-if="store.isAllSelected" :size="20" class="drop-shadow-sm" />
-          <Square v-else :size="20" />
+          <CheckSquare v-if="store.isAllSelected" :size="18" class="drop-shadow-sm" />
+          <Square v-else :size="18" />
         </div>
-        <div class="flex flex-col">
-          <span class="font-extrabold text-sm text-foreground leading-tight"
+        <div class="flex flex-col justify-center">
+          <span class="font-bold text-[0.8rem] text-foreground leading-none tracking-tight"
             >已选择 {{ store.selectedCount }} / {{ store.images.length }}</span
           >
           <span
-            class="text-[0.65rem] text-muted-foreground font-bold uppercase tracking-widest mt-0.5 opacity-80"
+            class="text-[0.6rem] text-muted-foreground font-black uppercase tracking-[0.1em] mt-0.5 opacity-60 leading-none"
             >全选/反选</span
           >
         </div>
@@ -81,21 +81,20 @@ const gridStyle = computed(() => {
         @change="handleFileChange"
         class="hidden"
       />
-      <AppButton variant="secondary" size="sm" @click="triggerFileInput" class="!px-3 !h-9">
+      <AppButton variant="secondary" size="md" @click="triggerFileInput">
         <template #icon><Plus :size="16" class="mr-1.5" /></template>
         添加图片
       </AppButton>
       <AppButton
-        variant="secondary"
-        size="sm"
+        variant="danger"
+        size="md"
         :disabled="!store.selectedCount"
         @click="store.removeSelected"
-        class="!px-3 !h-9 text-destructive border-transparent hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
       >
         <template #icon><Trash2 :size="16" class="mr-1.5" /></template>
         删除选中
       </AppButton>
-      <AppButton variant="secondary" size="sm" @click="store.clearImages" class="!px-3 !h-9">
+      <AppButton variant="secondary" size="md" @click="store.clearImages">
         <template #icon><X :size="16" class="mr-1.5" /></template>
         清空全部
       </AppButton>

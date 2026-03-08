@@ -63,29 +63,31 @@ const tools = [
 
 <template>
   <div class="px-6 py-8 md:px-16 md:py-16 w-full max-w-7xl mx-auto">
-    <section class="mb-20 flex flex-col items-start w-full">
+    <section class="mb-24 flex flex-col items-center text-center w-full">
       <div
-        class="inline-block px-4 py-2 bg-green-500/10 text-green-600 dark:text-green-500 rounded-full font-bold text-xs uppercase tracking-widest border border-green-500/20 mb-6"
+        class="inline-flex items-center gap-2 px-4 py-1.5 bg-green-500/10 text-green-600 dark:text-green-500 rounded-full font-bold text-[0.7rem] uppercase tracking-[0.2em] border border-green-500/20 mb-8 backdrop-blur-sm"
       >
+        <div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
         Privacy First
       </div>
       <h1
-        class="text-4xl md:text-[4rem] font-extrabold leading-[1.1] mb-6 text-foreground tracking-tight"
+        class="text-4xl md:text-[5rem] font-black leading-[1.05] mb-8 text-foreground tracking-tighter"
       >
-        简单、快速、<span
-          class="bg-gradient-to-r from-green-500 to-blue-500 bg-clip-text text-transparent"
+        简单、快速、<br class="hidden md:block" />
+        <span
+          class="bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 bg-clip-text text-transparent drop-shadow-sm"
           >隐私安全</span
         >
       </h1>
-      <p class="text-xl text-muted-foreground leading-relaxed mb-10 max-w-2xl">
-        所有图片处理均在您的浏览器本地完成，文件永远不会上传到我们的服务器。真正的离线式生产力工具。
+      <p class="text-lg md:text-xl text-muted-foreground leading-relaxed mb-12 max-w-2xl font-medium opacity-90">
+        所有图片处理均在您的浏览器本地完成，文件永远不会上传服务器。<br class="hidden md:block" />真正的离线式生产力工具。
       </p>
-      <div>
+      <div class="flex flex-col md:flex-row gap-4">
         <AppButton
           size="lg"
           :icon="ArrowRight"
           @click="scrollToTools"
-          class="!rounded-2xl shadow-lg shadow-primary/20 text-lg px-8 py-6"
+          class="shadow-xl shadow-primary/20 text-lg px-10 py-7 active:scale-95 transition-all duration-300"
         >
           快速开始
         </AppButton>
@@ -100,29 +102,35 @@ const tools = [
         v-for="tool in tools"
         :key="tool.name"
         :to="tool.path"
-        class="bg-card border-2 border-border rounded-3xl p-8 flex flex-col no-underline text-inherit transition-all duration-300 relative overflow-hidden group hover:border-primary hover:-translate-y-2 hover:shadow-2xl hover:shadow-black/10 dark:hover:shadow-black/50"
+        class="group bg-card/60 backdrop-blur-xl border border-border/50 rounded-[2rem] p-8 flex flex-col no-underline text-inherit transition-all duration-500 relative overflow-hidden hover:border-primary/50 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.4)]"
       >
-        <div class="flex justify-between items-start mb-8">
+        <!-- 背景高光装饰 -->
+        <div 
+          class="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[80px] opacity-0 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none"
+          :style="{ backgroundColor: tool.color }"
+        ></div>
+
+        <div class="flex justify-between items-start mb-10 relative z-10">
           <div
-            class="w-14 h-14 rounded-2xl flex items-center justify-center bg-background border-2 transition-all duration-300 group-hover:scale-110"
-            :style="{ borderColor: tool.color + '40', color: tool.color }"
+            class="w-16 h-16 rounded-[1.25rem] flex items-center justify-center bg-background/50 border border-border transition-all duration-500 group-hover:scale-110 group-hover:shadow-lg group-hover:bg-background"
+            :style="{ color: tool.color }"
           >
-            <component :is="tool.icon" :size="24" />
+            <component :is="tool.icon" :size="28" stroke-width="2.5" />
           </div>
           <div
-            class="text-[0.7rem] font-bold bg-muted text-muted-foreground px-2.5 py-1 rounded-md uppercase tracking-wider group-hover:bg-primary/10 group-hover:text-primary transition-colors"
+            class="text-[0.65rem] font-black bg-muted text-muted-foreground px-3 py-1 rounded-full uppercase tracking-tighter group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
           >
-            Pro
+            Fast
           </div>
         </div>
-        <div class="mb-8">
-          <h3 class="text-2xl font-bold mb-3 text-foreground">{{ tool.name }}</h3>
-          <p class="text-[0.95rem] text-muted-foreground leading-relaxed">{{ tool.desc }}</p>
+        <div class="mb-8 relative z-10">
+          <h3 class="text-2xl font-black mb-3 text-foreground tracking-tight group-hover:text-primary transition-colors">{{ tool.name }}</h3>
+          <p class="text-[0.9rem] text-muted-foreground font-medium leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">{{ tool.desc }}</p>
         </div>
-        <div class="mt-auto">
-          <AppButton variant="link" :icon="ArrowRight" size="sm">
-            打开工具
-          </AppButton>
+        <div class="mt-auto relative z-10">
+          <div class="flex items-center text-primary font-bold text-sm tracking-tight opacity-0 group-hover:opacity-100 translate-x-[-10px] group-hover:translate-x-0 transition-all duration-300">
+            即刻开始 <ArrowRight :size="16" class="ml-2" />
+          </div>
         </div>
       </router-link>
     </div>

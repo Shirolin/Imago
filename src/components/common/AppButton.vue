@@ -67,10 +67,13 @@ const extraClasses = computed(() => {
       classes += 'shadow-lg shadow-primary/20 hover:-translate-y-0.5 '
     }
     if (props.variant === 'tool') {
-      classes += 'text-muted-foreground hover:bg-muted hover:text-primary rounded-xl '
+      classes += 'text-muted-foreground hover:bg-muted hover:text-primary '
     }
     if (props.variant === 'secondary') {
-      classes += 'border-border hover:border-primary hover:bg-muted text-foreground rounded-xl '
+      classes += 'bg-secondary/20 border-border hover:border-primary hover:bg-secondary/40 hover:text-foreground text-foreground '
+    }
+    if (props.variant === 'danger') {
+      classes += 'bg-destructive/10 text-destructive border-transparent hover:bg-destructive hover:text-destructive-foreground '
     }
   }
   return classes

@@ -21,16 +21,28 @@ withDefaults(defineProps<Props>(), {
     </div>
 
     <!-- 工作区 -->
-    <div v-else class="flex-1 flex overflow-hidden h-full">
-      <div class="flex-1 flex flex-col min-w-0 relative">
+    <div v-else class="flex-1 flex flex-col md:flex-row overflow-hidden h-full">
+      <div class="flex-1 flex flex-col min-w-0 min-h-[40vh] md:min-h-0 relative">
         <header
-          class="h-14 md:h-[72px] px-4 md:px-6 bg-card border-b border-border flex items-center justify-between gap-3 md:gap-6 shrink-0 relative z-10 overflow-x-auto no-scrollbar"
+          class="h-14 md:h-[72px] bg-card border-b border-border shrink-0 relative z-10 overflow-x-auto overflow-y-hidden no-scrollbar"
         >
-          <div class="flex items-center gap-3 md:gap-6 min-w-max">
-            <slot name="header-left"></slot>
-          </div>
-          <div class="flex items-center gap-2 md:gap-3 shrink-0">
-            <slot name="header-actions"></slot>
+          <div class="h-full flex items-center min-w-max">
+            <!-- 左侧边距占位 -->
+            <div class="w-4 md:w-6 shrink-0"></div>
+            
+            <div class="flex items-center gap-3 md:gap-6">
+              <slot name="header-left"></slot>
+            </div>
+
+            <!-- 中间间距占位 -->
+            <div class="w-4 md:w-6 shrink-0"></div>
+
+            <div class="flex items-center gap-2 md:gap-3 shrink-0 ml-auto">
+              <slot name="header-actions"></slot>
+            </div>
+
+            <!-- 右侧边距占位 (关键修复: 确保滚动末端不截断) -->
+            <div class="w-4 md:w-6 shrink-0"></div>
           </div>
         </header>
 
@@ -46,7 +58,7 @@ withDefaults(defineProps<Props>(), {
       <!-- 右侧控制面板 (可选) -->
       <aside
         v-if="showSidebar"
-        class="w-[280px] xl:w-[320px] bg-card border-l border-border flex flex-col overflow-y-auto shrink-0 relative z-10"
+        class="w-full md:w-[280px] xl:w-[320px] max-h-[50vh] md:max-h-none bg-card border-t md:border-t-0 md:border-l border-border flex flex-col overflow-y-auto shrink-0 relative z-10"
       >
         <slot name="sidebar"></slot>
       </aside>

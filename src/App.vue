@@ -117,19 +117,19 @@ const menuGroups = [
       <nav class="flex-1 overflow-y-auto px-4 flex flex-col gap-1.5 custom-scrollbar">
         <router-link
           to="/"
-          class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-200 group relative"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 group relative overflow-hidden"
           :class="[
             $route.path === '/'
-              ? 'bg-primary/10 text-primary hover:bg-primary/20'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground hover:translate-x-1'
+              ? 'bg-primary/10 text-primary shadow-[inset_0_0_12px_rgba(var(--primary-rgb),0.05)]'
+              : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:translate-x-1'
           ]"
           @click="closeMobileSidebar"
         >
-          <Settings2 :size="18" />
+          <Settings2 :size="18" :class="{ 'scale-110': $route.path === '/' }" class="transition-transform duration-300" />
           <span>所有工具</span>
           <div
             v-if="$route.path === '/'"
-            class="absolute right-4 w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_10px_var(--primary)]"
+            class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]"
           ></div>
         </router-link>
 
@@ -143,19 +143,19 @@ const menuGroups = [
             v-for="item in group.items"
             :key="item.path"
             :to="item.path"
-            class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-200 group relative"
+            class="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 group relative overflow-hidden"
             :class="[
               $route.path === item.path
-                ? 'bg-primary/10 text-primary hover:bg-primary/20'
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground hover:translate-x-1'
+                ? 'bg-primary/10 text-primary shadow-[inset_0_0_12px_rgba(var(--primary-rgb),0.05)]'
+                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:translate-x-1'
             ]"
             @click="closeMobileSidebar"
           >
-            <component :is="item.icon" :size="18" />
+            <component :is="item.icon" :size="18" :class="{ 'scale-110': $route.path === item.path }" class="transition-transform duration-300" />
             <span>{{ item.name }}</span>
             <div
               v-if="$route.path === item.path"
-              class="absolute right-4 w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_10px_var(--primary)]"
+              class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]"
             ></div>
           </router-link>
         </div>
@@ -215,13 +215,13 @@ const menuGroups = [
             <Menu :size="20" />
           </button>
           <div
-            class="hidden md:flex items-center gap-2 text-sm font-semibold text-muted-foreground tracking-tight"
+            class="hidden md:flex items-center gap-2.5 text-[0.7rem] font-black text-muted-foreground/60 uppercase tracking-[0.2em]"
           >
-            <Monitor :size="14" />
+            <div class="w-2 h-2 rounded-full bg-muted-foreground/30"></div>
             <span>Workspace</span>
           </div>
-          <span class="hidden md:inline text-border font-light">/</span>
-          <div class="bg-muted px-3 py-1.5 rounded-lg text-sm font-bold text-foreground">
+          <span class="hidden md:inline text-border/60 mx-1">/</span>
+          <div class="h-8 md:h-9 px-4 flex items-center bg-primary/10 border border-primary/20 rounded-full text-[0.7rem] font-bold text-primary uppercase tracking-[0.1em] shadow-sm backdrop-blur-sm">
             <span>{{ $route.name || 'Overview' }}</span>
           </div>
         </div>
@@ -280,21 +280,24 @@ const menuGroups = [
 </template>
 
 <style>
-/* 依赖 Tailwind CSS, 仅保留页面路由切换动画 */
+/* 页面路由切换动画 - iOS 风格更平滑的曲线 */
 .page-fade-enter-active,
 .page-fade-leave-active {
   transition:
-    opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity 0.4s cubic-bezier(0.32, 0.72, 0, 1),
+    transform 0.4s cubic-bezier(0.32, 0.72, 0, 1),
+    filter 0.4s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .page-fade-enter-from {
   opacity: 0;
-  transform: translateY(12px);
+  transform: scale(0.98) translateY(10px);
+  filter: blur(4px);
 }
 
 .page-fade-leave-to {
   opacity: 0;
-  transform: translateY(-12px);
+  transform: scale(1.02) translateY(-10px);
+  filter: blur(4px);
 }
 </style>
