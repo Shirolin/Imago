@@ -56,7 +56,7 @@ const handleDownload = (id: string) => {
     </template>
 
     <template #header-actions>
-      <ImageActionsToolbar show-clear-all zip-prefix="Resize" />
+      <ImageActionsToolbar show-clear-all zip-prefix="调整尺寸" />
     </template>
 
     <template #content>
@@ -137,7 +137,6 @@ const handleDownload = (id: string) => {
           >
             {{ isProcessing ? '正在处理...' : '执行调整' }}
           </AppButton>
-          <p class="text-center text-xs text-muted-foreground">所有操作在浏览器本地完成</p>
         </div>
       </div>
     </template>

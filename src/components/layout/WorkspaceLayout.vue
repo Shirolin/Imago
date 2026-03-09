@@ -27,8 +27,7 @@ withDefaults(defineProps<Props>(), {
     <div v-else class="flex-1 flex flex-col md:flex-row overflow-hidden h-full relative">
       <div class="flex-1 flex flex-col min-w-0 min-h-[40vh] md:min-h-0 relative">
         <header
-          class="bg-card border-b border-border shrink-0 relative z-10 overflow-x-auto overflow-y-hidden no-scrollbar transition-all duration-300 ease-in-out scrollbar-gutter-stable"
-          :class="layoutStore.isTopBarCompact ? 'h-12 md:h-12' : 'h-14 md:h-[72px]'"
+          class="bg-card border-b border-border shrink-0 relative z-10 overflow-x-auto overflow-y-hidden no-scrollbar h-16 scrollbar-gutter-stable"
           style="scrollbar-gutter: stable"
         >
           <div class="h-full flex items-center min-w-max">

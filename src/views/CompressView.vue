@@ -123,7 +123,7 @@ const buttonText = computed(() => {
       </template>
 
       <template #header-actions>
-        <ImageActionsToolbar :is-processing="isProcessing" show-clear-all zip-prefix="Compress" />
+        <ImageActionsToolbar :is-processing="isProcessing" show-clear-all zip-prefix="图片压缩" />
       </template>
       <template #content>
         <ImageCard
@@ -262,11 +262,7 @@ const buttonText = computed(() => {
               @click="showAdvanced = !showAdvanced"
               class="flex items-center justify-between group hover:text-primary transition-colors"
             >
-              <AppSectionHeader
-                title="调整分辨率 (Resize)"
-                :icon="Maximize2"
-                class="cursor-pointer"
-              />
+              <AppSectionHeader title="调整分辨率" :icon="Maximize2" class="cursor-pointer" />
               <component
                 :is="showAdvanced ? ChevronUp : ChevronDown"
                 :size="16"
@@ -305,7 +301,7 @@ const buttonText = computed(() => {
             </div>
           </div>
 
-          <AppTip> 处理完全在本地完成。压缩后若体积反而变大，系统将自动保留原图。 </AppTip>
+          <AppTip> 压缩后若体积反而变大，系统将自动保留原图。 </AppTip>
           <div class="mt-auto pt-6 flex flex-col gap-3">
             <AppButton
               size="lg"
@@ -320,11 +316,6 @@ const buttonText = computed(() => {
               </template>
               {{ buttonText }}
             </AppButton>
-            <p
-              class="text-center text-[0.65rem] text-muted-foreground font-medium uppercase tracking-widest opacity-60"
-            >
-              {{ isProcessing ? '计算中...' : 'Local Processing' }}
-            </p>
           </div>
         </div>
       </template>

@@ -57,27 +57,24 @@
   html,
   body {
     @apply bg-background text-foreground antialiased;
-    /* 顶级容器不开启占位，防止全屏布局出现多余间隙 */
   }
 
-  /* 核心成熟方案：滚动占位同步 */
+  /* Custom Scrollbar Logic */
   .custom-scrollbar {
     scrollbar-gutter: stable;
   }
 
-  /* 解决 Windows 默认滚动条轨道颜色的违和感 */
   .custom-scrollbar::-webkit-scrollbar {
-    width: 8px; /* 稍微增加宽度以便操作 */
+    width: 8px;
     height: 8px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    background-color: transparent; /* 轨道完全透明，显示容器背景 */
+    background-color: transparent;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
     @apply bg-muted-foreground/10 rounded-full transition-all;
-    /* 通过边框模拟悬浮感，不让滑块贴边，增加高级感 */
     border: 2px solid transparent;
     background-clip: padding-box;
   }
@@ -86,7 +83,7 @@
     @apply bg-muted-foreground/30;
   }
 
-  /* Firefox 适配 */
+  /* Firefox */
   .custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
@@ -94,16 +91,12 @@
 }
 
 @layer utilities {
-  /* Hide scrollbar for Chrome, Safari and Opera */
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
 
-  /* Hide scrollbar for IE, Edge and Firefox */
   .no-scrollbar {
     -ms-overflow-style: none;
-    /* IE and Edge */
     scrollbar-width: none;
-    /* Firefox */
   }
 }

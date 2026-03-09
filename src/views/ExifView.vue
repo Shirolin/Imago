@@ -135,11 +135,7 @@ const handleClearExif = async () => {
           </div>
         </div>
 
-        <div class="mt-6 flex justify-between items-center">
-          <div class="flex items-center gap-2 text-muted-foreground text-xs font-semibold">
-            <Zap :size="16" class="text-primary" />
-            <span>隐私保护：所有处理仅在浏览器本地完成。</span>
-          </div>
+        <div class="mt-6 flex justify-end items-center">
           <AppButton size="lg" variant="danger" :loading="isProcessing" @click="handleClearExif">
             <template #icon><Trash2 v-if="!isProcessing" :size="20" class="mr-2" /></template>
             清除选定图片的隐私信息

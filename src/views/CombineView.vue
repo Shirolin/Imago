@@ -148,7 +148,6 @@ const moveImage = (index: number, direction: 'prev' | 'next') => {
             <template #icon><Layers v-if="!isProcessing" :size="20" class="mr-2" /></template>
             执行合并
           </AppButton>
-          <AppTip>图片将按队列顺序拼合</AppTip>
         </div>
       </div>
     </template>

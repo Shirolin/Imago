@@ -109,7 +109,6 @@ const gridStyle = computed(() => {
             <template #icon><Layout v-if="!isProcessing" :size="20" class="mr-2" /></template>
             {{ isProcessing ? '正在生成...' : '生成拼图' }}
           </AppButton>
-          <AppTip>所有操作在浏览器本地完成</AppTip>
         </div>
       </div>
     </template>
