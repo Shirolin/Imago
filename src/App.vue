@@ -408,7 +408,7 @@ const menuGroups = [
         </div>
       </header>
 
-      <div class="flex-1 overflow-y-auto scroll-smooth custom-scrollbar relative">
+      <div class="flex-1 overflow-hidden relative">
         <router-view v-slot="{ Component }">
           <transition name="page-fade" mode="out-in">
             <component :is="Component" />

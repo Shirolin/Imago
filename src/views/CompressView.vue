@@ -154,7 +154,7 @@ const buttonText = computed(() => {
 </script>
 
 <template>
-  <div class="contents">
+  <div class="h-full flex flex-col">
     <WorkspaceLayout show-sidebar>
       <template #header-left>
         <ImageSelectionStatus />
@@ -163,6 +163,7 @@ const buttonText = computed(() => {
       <template #header-actions>
         <ImageActionsToolbar :is-processing="isProcessing" show-clear-all zip-prefix="图片压缩" />
       </template>
+
       <template #content>
         <ImageCard
           v-for="img in store.images"

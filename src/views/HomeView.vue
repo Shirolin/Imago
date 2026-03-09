@@ -62,7 +62,8 @@ const tools = [
 </script>
 
 <template>
-  <div class="px-6 py-8 md:px-16 md:py-16 w-full max-w-7xl mx-auto">
+  <div class="h-full overflow-y-auto custom-scrollbar">
+    <div class="px-6 py-8 md:px-16 md:py-16 w-full max-w-7xl mx-auto">
     <section class="mb-24 flex flex-col items-center text-center w-full">
       <div
         class="inline-flex items-center gap-2 px-4 py-1.5 bg-green-500/10 text-green-600 dark:text-green-500 rounded-full font-bold text-[0.7rem] uppercase tracking-[0.2em] border border-green-500/20 mb-8 backdrop-blur-sm"
@@ -150,4 +151,5 @@ const tools = [
       </router-link>
     </div>
   </div>
+    </div>
 </template>
