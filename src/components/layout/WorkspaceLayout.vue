@@ -27,19 +27,12 @@ withDefaults(defineProps<Props>(), {
     <div v-else class="flex-1 flex flex-col md:flex-row overflow-hidden h-full relative">
       <div class="flex-1 flex flex-col min-w-0 min-h-[40vh] md:min-h-0 relative">
         <header
-          class="bg-card border-b border-border shrink-0 relative z-10 overflow-x-auto overflow-y-hidden no-scrollbar h-16 scrollbar-gutter-stable"
-          style="scrollbar-gutter: stable"
+          class="bg-card/80 backdrop-blur-md border-b border-border shrink-0 relative z-20 overflow-x-auto overflow-y-hidden no-scrollbar h-14"
         >
-          <div class="h-full flex items-center min-w-max">
-            <!-- 左侧边距占位 -->
-            <div class="w-4 md:w-8 shrink-0"></div>
-
-            <div class="flex items-center gap-3 md:gap-6">
+          <div class="h-full flex items-center px-4 md:px-6">
+            <div class="flex items-center gap-4 md:gap-6">
               <slot name="header-left"></slot>
             </div>
-
-            <!-- 中间间距占位 -->
-            <div class="w-4 md:w-6 shrink-0"></div>
 
             <div class="flex items-center gap-2 md:gap-3 shrink-0 ml-auto">
               <slot name="header-actions"></slot>
@@ -48,24 +41,22 @@ withDefaults(defineProps<Props>(), {
               <button
                 v-if="showSidebar"
                 @click="layoutStore.toggleInspector"
-                class="hidden md:flex p-2 hover:bg-muted rounded-lg transition-colors text-muted-foreground ml-2"
+                class="hidden md:flex p-2 hover:bg-muted rounded-lg transition-all duration-200 text-muted-foreground ml-1 active:scale-95"
+                :class="{ 'bg-muted text-primary': !layoutStore.isInspectorCollapsed }"
                 :title="layoutStore.isInspectorCollapsed ? '展开属性面板' : '收起属性面板'"
               >
                 <PanelRightOpen v-if="layoutStore.isInspectorCollapsed" :size="18" />
                 <PanelRightClose v-else :size="18" />
               </button>
             </div>
-
-            <!-- 右侧边距占位 (关键：减去部分 padding 以抵消 gutter 的感官间距) -->
-            <div class="w-4 md:w-4 shrink-0"></div>
           </div>
         </header>
 
         <div
-          class="flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-8 bg-background custom-scrollbar"
+          class="flex-1 overflow-y-auto px-6 py-6 md:px-10 md:py-10 bg-background/50 custom-scrollbar overscroll-contain"
         >
           <div
-            class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 md:gap-8"
+            class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6 md:gap-10"
           >
             <slot name="content"></slot>
           </div>
@@ -75,13 +66,15 @@ withDefaults(defineProps<Props>(), {
       <!-- 右侧控制面板 (Inspector) - 独立控制 -->
       <aside
         v-if="showSidebar"
-        class="bg-card border-t md:border-t-0 md:border-l border-border flex flex-col shrink-0 relative z-10 transition-all duration-300 ease-in-out overflow-hidden"
+        class="bg-card border-t md:border-t-0 md:border-l border-border flex flex-col shrink-0 relative z-10 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden shadow-2xl md:shadow-none"
         :class="[
           'w-full max-h-[50vh] md:max-h-none',
-          layoutStore.isInspectorCollapsed ? 'md:w-0' : 'md:w-[280px] xl:w-[320px]'
+          layoutStore.isInspectorCollapsed
+            ? 'md:w-0 border-transparent'
+            : 'md:w-[300px] xl:w-[340px]'
         ]"
       >
-        <div class="min-w-[280px] xl:min-w-[320px] h-full flex flex-col">
+        <div class="min-w-[300px] xl:min-w-[340px] h-full flex flex-col">
           <slot name="sidebar"></slot>
         </div>
       </aside>

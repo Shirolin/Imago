@@ -47,6 +47,14 @@
     --input: 240 3.7% 15.9%;
     --ring: 173 80% 40%;
   }
+
+  /* 核心按钮系统变量 (Standardization) */
+  :root {
+    --cta: 32 95% 50%; /* 更加高级的琥珀橙 */
+    --button-shadow-opacity: 0.25;
+    --button-hover-offset: -1px;
+    --card-inner-glow: hsla(0, 0%, 100%, 0.05); /* 深色模式下的微弱内边框 */
+  }
 }
 
 @layer base {
@@ -59,14 +67,14 @@
     @apply bg-background text-foreground antialiased;
   }
 
-  /* Custom Scrollbar Logic */
+  /* Custom Scrollbar Logic (Immersive Refinement) */
   .custom-scrollbar {
     scrollbar-gutter: stable;
   }
 
   .custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
@@ -74,29 +82,33 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/10 rounded-full transition-all;
-    border: 2px solid transparent;
-    background-clip: padding-box;
+    background-color: hsla(173, 5%, 50%, 0.15); /* 极淡的初始状态 */
+    border-radius: 20px;
+    transition: background-color 0.3s ease;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground/30;
+    background-color: hsla(173, 80%, 40%, 0.4); /* 悬停时品牌色激活 */
   }
 
   /* Firefox */
   .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
+    scrollbar-color: hsla(173, 5%, 50%, 0.15) transparent;
   }
 }
-
 @layer utilities {
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
+  /* 层级强化：内边框光晕效果 */
+  .shadow-inner-glow {
+    box-shadow: inset 0 1px 1px 0 var(--card-inner-glow);
   }
 
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }

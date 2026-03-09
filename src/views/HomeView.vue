@@ -89,9 +89,10 @@ const tools = [
       <div class="flex flex-col md:flex-row gap-4">
         <AppButton
           size="lg"
+          variant="primary"
           :icon="ArrowRight"
           @click="scrollToTools"
-          class="shadow-xl shadow-primary/20 text-lg px-10 py-7 active:scale-95 transition-all duration-300"
+          class="text-lg px-10 h-14 active:scale-95 transition-all duration-300"
         >
           快速开始
         </AppButton>
@@ -99,51 +100,51 @@ const tools = [
     </section>
 
     <div
-      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 scroll-mt-24"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8 scroll-mt-24"
       ref="toolsGrid"
     >
       <router-link
         v-for="tool in tools"
         :key="tool.name"
         :to="tool.path"
-        class="group bg-card/60 backdrop-blur-xl border border-border/50 rounded-[2rem] p-8 flex flex-col no-underline text-inherit transition-all duration-500 relative overflow-hidden hover:border-primary/50 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.4)]"
+        class="group bg-card border border-border/60 rounded-2xl p-6 md:p-8 flex flex-col no-underline text-inherit transition-all duration-300 relative overflow-hidden hover:border-primary/40 hover:-translate-y-1.5 shadow-soft hover:shadow-elevated"
       >
-        <!-- 背景高光装饰 -->
+        <!-- 背景高光装饰 - 极大程度淡化 -->
         <div
-          class="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[80px] opacity-0 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none"
+          class="absolute -top-12 -right-12 w-32 h-32 rounded-full blur-[60px] opacity-0 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none"
           :style="{ backgroundColor: tool.color }"
         ></div>
 
-        <div class="flex justify-between items-start mb-10 relative z-10">
+        <div class="flex justify-between items-start mb-8 relative z-10">
           <div
-            class="w-16 h-16 rounded-[1.25rem] flex items-center justify-center bg-background/50 border border-border transition-all duration-500 group-hover:scale-110 group-hover:shadow-lg group-hover:bg-background"
+            class="w-14 h-14 rounded-xl flex items-center justify-center bg-muted/50 border border-border/50 transition-all duration-300 group-hover:scale-105 group-hover:bg-background group-hover:border-primary/20"
             :style="{ color: tool.color }"
           >
-            <component :is="tool.icon" :size="28" stroke-width="2.5" />
+            <component :is="tool.icon" :size="24" stroke-width="2.5" />
           </div>
           <div
-            class="text-[0.65rem] font-black bg-muted text-muted-foreground px-3 py-1 rounded-full uppercase tracking-tighter group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
+            class="text-[0.6rem] font-black bg-muted text-muted-foreground/80 px-2.5 py-1 rounded-full uppercase tracking-widest group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
           >
-            Fast
+            Ready
           </div>
         </div>
-        <div class="mb-8 relative z-10">
+        <div class="mb-6 relative z-10">
           <h3
-            class="text-2xl font-black mb-3 text-foreground tracking-tight group-hover:text-primary transition-colors"
+            class="text-xl font-bold mb-2.5 text-foreground tracking-tight group-hover:text-primary transition-colors"
           >
             {{ tool.name }}
           </h3>
           <p
-            class="text-[0.9rem] text-muted-foreground font-medium leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity"
+            class="text-[0.85rem] text-muted-foreground font-medium leading-relaxed opacity-85 group-hover:opacity-100 transition-opacity"
           >
             {{ tool.desc }}
           </p>
         </div>
         <div class="mt-auto relative z-10">
           <div
-            class="flex items-center text-primary font-bold text-sm tracking-tight opacity-0 group-hover:opacity-100 translate-x-[-10px] group-hover:translate-x-0 transition-all duration-300"
+            class="flex items-center text-primary font-bold text-xs tracking-tight opacity-0 group-hover:opacity-100 translate-x-[-8px] group-hover:translate-x-0 transition-all duration-300"
           >
-            即刻开始 <ArrowRight :size="16" class="ml-2" />
+            即刻开始 <ArrowRight :size="14" class="ml-1.5" />
           </div>
         </div>
       </router-link>

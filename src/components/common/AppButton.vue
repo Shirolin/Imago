@@ -56,35 +56,37 @@ const shadcnSize = computed(() => {
 
 const extraClasses = computed(() => {
   let classes =
-    'font-bold transition-all duration-300 whitespace-nowrap shrink-0 flex items-center justify-center '
+    'font-bold transition-all duration-300 whitespace-nowrap shrink-0 flex items-center justify-center select-none active:scale-[0.97] '
 
-  // 只有在使用 icon prop 或处于加载状态时才由组件自动添加 gap
-  // 如果使用 #icon 插槽，建议使用者在插槽内自行处理间距或依赖父级的 flex
   if (props.icon || props.loading) {
-    classes += 'gap-2 '
+    classes += 'gap-2.5 '
   }
 
   if (props.variant === 'link') {
     classes +=
-      'p-0 h-auto text-primary hover:bg-transparent hover:underline shadow-none border-none active:scale-95 '
+      'p-0 h-auto text-primary hover:bg-transparent hover:underline shadow-none border-none '
   } else {
-    // 非 link 变体才应用这些样式
+    // 物理一致性：统一的悬停位移
+    classes += 'hover:translate-y-[var(--button-hover-offset)] '
+
     if (props.variant === 'cta') {
-      classes += 'bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20 '
+      classes +=
+        'bg-[hsl(var(--cta))] hover:bg-[hsl(32,95%,55%)] text-white shadow-[0_10px_20px_-5px_hsla(var(--cta),var(--button-shadow-opacity))] hover:shadow-[0_15px_30px_-5px_hsla(var(--cta),0.4)] '
     }
     if (props.variant === 'primary') {
-      classes += 'shadow-lg shadow-primary/20 hover:-translate-y-0.5 '
+      classes +=
+        'bg-primary text-primary-foreground shadow-[0_10px_20px_-5px_hsla(var(--primary),var(--button-shadow-opacity))] hover:shadow-[0_15px_30px_-5px_hsla(var(--primary),0.4)] '
     }
     if (props.variant === 'tool') {
       classes += 'text-muted-foreground hover:bg-muted hover:text-primary '
     }
     if (props.variant === 'secondary') {
       classes +=
-        'bg-secondary/20 border-border hover:border-primary hover:bg-secondary/40 hover:text-foreground text-foreground '
+        'bg-secondary/40 border border-border/60 hover:border-primary/40 hover:bg-secondary/60 hover:text-foreground text-foreground '
     }
     if (props.variant === 'danger') {
       classes +=
-        'bg-destructive/10 text-destructive border-transparent hover:bg-destructive hover:text-destructive-foreground '
+        'bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive hover:text-white '
     }
   }
   return classes

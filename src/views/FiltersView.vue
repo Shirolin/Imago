@@ -130,64 +130,172 @@ const handleCardClick = (id: string) => {
     </template>
 
     <template #sidebar>
-      <div class="p-6 flex flex-col gap-6 h-full overflow-y-auto custom-scrollbar">
-        <div class="flex flex-col gap-4 shrink-0">
-          <AppSectionHeader title="当前预览" :icon="ImageIcon" />
-          <div
-            class="h-[160px] bg-muted rounded-xl border border-border flex items-center justify-center overflow-hidden shadow-inner relative"
-          >
-            <img
-              v-if="activeImage"
-              :src="activeImage.preview"
-              :style="filterStyle"
-              alt="Preview"
-              class="max-w-full max-h-full object-contain"
-            />
-            <div v-else class="text-xs font-bold text-muted-foreground">请选择图片</div>
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-4 shrink-0">
-          <AppSectionHeader title="预设滤镜" :icon="Sparkles" />
-          <div class="grid grid-cols-3 gap-1.5">
-            <button
-              v-for="preset in presets"
-              :key="preset.name"
-              class="p-2 bg-muted border border-border rounded-lg text-[0.7rem] font-bold text-foreground cursor-pointer transition-colors hover:border-primary hover:text-primary active:scale-[0.98]"
-              @click="applyPreset(preset)"
+      <div class="flex flex-col h-full bg-card/40 backdrop-blur-sm border-l border-border/50">
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-10">
+          <!-- 1. 沉浸式预览区 -->
+          <section class="space-y-4">
+            <div class="flex items-center justify-between px-0.5">
+              <AppSectionHeader title="当前预览" :icon="ImageIcon" />
+              <span class="text-[0.6rem] font-black text-primary/60 uppercase tracking-[0.2em]"
+                >Real-time</span
+              >
+            </div>
+            <div
+              class="group relative aspect-video bg-slate-950 rounded-2xl border border-border/40 overflow-hidden shadow-soft ring-1 ring-white/5"
             >
-              {{ preset.name }}
-            </button>
-          </div>
-        </div>
+              <img
+                v-if="activeImage"
+                :src="activeImage.preview"
+                :style="filterStyle"
+                alt="Preview"
+                class="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
+              />
+              <div
+                v-else
+                class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground/40"
+              >
+                <ImageIcon :size="32" stroke-width="1.5" />
+                <span class="text-[0.65rem] font-bold uppercase tracking-widest"
+                  >Select an Image</span
+                >
+              </div>
 
-        <div class="flex flex-col gap-5 shrink-0">
-          <div
-            class="flex items-center justify-between font-bold text-[0.85rem] text-foreground uppercase"
-          >
-            <AppSectionHeader title="手动调整" :icon="Settings2" />
-            <button
-              @click="resetFilters"
-              class="text-[0.7rem] font-bold text-primary hover:text-primary/80 transition-colors bg-transparent border-none cursor-pointer"
+              <!-- 悬浮对比提示 -->
+              <div
+                v-if="activeImage"
+                class="absolute bottom-3 right-3 px-2 py-1 bg-black/40 backdrop-blur-md rounded-md border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+              >
+                <span class="text-[0.55rem] font-black text-white uppercase tracking-widest"
+                  >Preview Mode</span
+                >
+              </div>
+            </div>
+          </section>
+
+          <!-- 2. 视觉化预设区 -->
+          <section class="space-y-5">
+            <AppSectionHeader title="风格预设" :icon="Sparkles" />
+            <div class="grid grid-cols-2 gap-3">
+              <button
+                v-for="preset in presets"
+                :key="preset.name"
+                @click="applyPreset(preset)"
+                class="group relative flex flex-col gap-2 p-1 rounded-xl transition-all duration-300 hover:bg-muted/50 border border-transparent hover:border-border/60"
+              >
+                <div
+                  class="relative aspect-[4/3] rounded-lg overflow-hidden bg-muted border border-border/40 transition-all group-hover:shadow-soft"
+                >
+                  <img
+                    v-if="activeImage"
+                    :src="activeImage.preview"
+                    :style="{
+                      filter: `brightness(${preset.values.brightness}%) contrast(${preset.values.contrast}%) saturate(${preset.values.saturation}%) blur(${preset.values.blur}px) grayscale(${preset.values.grayscale}%) sepia(${preset.values.sepia}%)`
+                    }"
+                    class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                  />
+                  <div
+                    class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+                  ></div>
+                  <div
+                    class="absolute bottom-1.5 left-2 text-[0.55rem] font-black text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    Apply
+                  </div>
+                </div>
+                <span
+                  class="text-[0.65rem] font-bold text-muted-foreground group-hover:text-primary transition-colors text-center pb-1 uppercase tracking-tighter"
+                  >{{ preset.name }}</span
+                >
+              </button>
+            </div>
+          </section>
+
+          <!-- 3. 精细调色面板 -->
+          <section class="space-y-7">
+            <div class="flex items-center justify-between px-0.5">
+              <AppSectionHeader title="精细调色" :icon="Settings2" />
+              <button
+                @click="resetFilters"
+                class="text-[0.6rem] font-black text-primary/60 hover:text-primary uppercase tracking-[0.2em] transition-colors"
+              >
+                Reset All
+              </button>
+            </div>
+
+            <div
+              class="space-y-9 bg-background/40 p-5 rounded-2xl border border-border/40 shadow-soft"
             >
-              重置
-            </button>
-          </div>
+              <!-- 曝光分组 -->
+              <div class="space-y-6">
+                <div class="flex items-center gap-2 mb-2">
+                  <div class="w-1 h-3 bg-primary/40 rounded-full"></div>
+                  <span
+                    class="text-[0.55rem] font-black text-muted-foreground uppercase tracking-[0.2em]"
+                    >Exposure</span
+                  >
+                </div>
+                <AppSlider v-model="brightness" label="曝光亮度" :max="200" :icon="Sun" unit="%">
+                  <template #default="{ modelValue }">
+                    <span class="font-mono text-xs font-bold text-primary">{{ modelValue }}%</span>
+                  </template>
+                </AppSlider>
+                <AppSlider v-model="contrast" label="对比强度" :max="200" :icon="Contrast" unit="%">
+                  <template #default="{ modelValue }">
+                    <span class="font-mono text-xs font-bold text-primary">{{ modelValue }}%</span>
+                  </template>
+                </AppSlider>
+              </div>
 
-          <div class="flex flex-col gap-4">
-            <AppSlider v-model="brightness" label="亮度" :max="200" :icon="Sun" unit="%" />
-            <AppSlider v-model="contrast" label="对比度" :max="200" :icon="Contrast" unit="%" />
-            <AppSlider v-model="saturation" label="饱和度" :max="200" :icon="Droplets" unit="%" />
-            <AppSlider v-model="grayscale" label="灰度" unit="%" />
-          </div>
+              <!-- 色彩分组 -->
+              <div class="space-y-6">
+                <div class="flex items-center gap-2 mb-2">
+                  <div class="w-1 h-3 bg-primary/40 rounded-full"></div>
+                  <span
+                    class="text-[0.55rem] font-black text-muted-foreground uppercase tracking-[0.2em]"
+                    >Color & Tone</span
+                  >
+                </div>
+                <AppSlider
+                  v-model="saturation"
+                  label="色彩饱和度"
+                  :max="200"
+                  :icon="Droplets"
+                  unit="%"
+                >
+                  <template #default="{ modelValue }">
+                    <span class="font-mono text-xs font-bold text-primary">{{ modelValue }}%</span>
+                  </template>
+                </AppSlider>
+                <AppSlider v-model="grayscale" label="黑白深度" unit="%">
+                  <template #default="{ modelValue }">
+                    <span class="font-mono text-xs font-bold text-primary">{{ modelValue }}%</span>
+                  </template>
+                </AppSlider>
+              </div>
+            </div>
+          </section>
         </div>
 
-        <div class="mt-auto shrink-0 flex flex-col gap-3 pt-6">
-          <AppButton size="lg" variant="cta" :loading="isProcessing" @click="handleApplyFilters">
-            <template #icon><Check v-if="!isProcessing" :size="20" class="mr-2" /></template>
-            执行滤镜处理
+        <div
+          class="p-6 bg-gradient-to-t from-card via-card to-transparent pt-12 mt-auto border-t border-border/40 relative z-20 shrink-0"
+        >
+          <AppButton
+            size="lg"
+            variant="cta"
+            class="w-full h-14 rounded-2xl hover:-translate-y-0.5 transition-all duration-300 active:scale-95 shrink-0"
+            :loading="isProcessing"
+            @click="handleApplyFilters"
+          >
+            <template #icon
+              ><Check v-if="!isProcessing" :size="20" class="mr-2.5 stroke-[3px]"
+            /></template>
+            <span class="tracking-tight uppercase font-black text-sm">Apply Changes</span>
           </AppButton>
-          <p class="text-center text-xs text-muted-foreground">滤镜将应用到所有选中的图片</p>
+          <p
+            class="text-center text-[0.6rem] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mt-4"
+          >
+            Processing {{ store.selectedCount || store.images.length }} Assets
+          </p>
         </div>
       </div>
     </template>

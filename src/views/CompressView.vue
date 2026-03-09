@@ -226,199 +226,261 @@ const buttonText = computed(() => {
       </template>
 
       <template #sidebar>
-        <div class="p-6 flex flex-col gap-6 h-full overflow-y-auto custom-scrollbar">
-          <div class="flex flex-col gap-4">
-            <AppSectionHeader title="压缩策略" :icon="Settings2" />
-            <AppSegmentedControl v-model="compressionMode" :options="modeOptions" />
-          </div>
-
-          <div class="flex flex-col gap-5 bg-muted/40 p-4 rounded-2xl border border-border/50">
-            <div v-if="compressionMode === 'quality'" class="space-y-4">
-              <!-- PNG 特殊处理：颜色量化与优化强度 -->
-              <template v-if="outputFormat === 'image/png'">
-                <div class="space-y-6">
-                  <AppSlider
-                    v-model="pngColors"
-                    label="最大颜色数"
-                    :min="2"
-                    :max="256"
-                    :step="1"
-                    unit=""
-                    :icon="Palette"
-                  >
-                    <template #default="{ modelValue }">
-                      <span
-                        class="text-primary bg-primary/10 px-1.5 py-0.5 rounded leading-none text-xs font-bold"
-                        >{{ modelValue }} 色</span
-                      >
-                    </template>
-                  </AppSlider>
-
-                  <AppSlider
-                    v-model="pngEffort"
-                    label="优化强度"
-                    :min="1"
-                    :max="9"
-                    :step="1"
-                    unit=""
-                    :icon="Zap"
-                  >
-                    <template #default="{ modelValue }">
-                      <span
-                        class="text-primary bg-primary/10 px-1.5 py-0.5 rounded leading-none text-xs font-bold"
-                      >
-                        Level {{ modelValue }}
-                        <span v-if="modelValue === 7" class="ml-1 opacity-80 text-[10px]"
-                          >(推荐)</span
-                        >
-                      </span>
-                    </template>
-                  </AppSlider>
-                </div>
-                <p class="text-[0.65rem] text-muted-foreground/80 leading-relaxed italic mt-2">
-                  提示: 强度越高，能在保持颜色数的前提下获得更小的体积，但处理时间会增加。
-                </p>
-              </template>
-
-              <!-- 其他格式：质量百分比 (带智能推荐) -->
-              <template v-else>
-                <AppSlider
-                  v-model="compressionQuality"
-                  label="压缩质量"
-                  :min="0.1"
-                  :max="1.0"
-                  :step="0.05"
-                  :unit="''"
+        <div class="flex flex-col h-full bg-card/40 backdrop-blur-sm border-l border-border/50">
+          <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-9">
+            <!-- 1. 核心策略选择 -->
+            <section class="space-y-4">
+              <div class="flex items-center justify-between px-0.5">
+                <AppSectionHeader title="压缩策略" :icon="Settings2" />
+                <span
+                  class="text-[0.6rem] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase tracking-widest"
+                  >Smart</span
                 >
-                  <template #default="{ modelValue }">
-                    <span
-                      class="text-primary bg-primary/10 px-1.5 py-0.5 rounded leading-none text-xs font-bold"
+              </div>
+              <AppSegmentedControl v-model="compressionMode" :options="modeOptions" />
+            </section>
+
+            <!-- 2. 参数调节区 (动态切换) -->
+            <section class="relative">
+              <div class="bg-background/40 rounded-2xl p-5 border border-border/40 shadow-soft">
+                <div v-if="compressionMode === 'quality'" class="space-y-7">
+                  <!-- PNG 特殊处理 -->
+                  <template v-if="outputFormat === 'image/png'">
+                    <AppSlider
+                      v-model="pngColors"
+                      label="最大颜色数"
+                      :min="2"
+                      :max="256"
+                      :step="1"
+                      unit=""
+                      :icon="Palette"
                     >
-                      {{ Math.round(modelValue * 100) }}%
-                      <span
-                        v-if="modelValue === recommendedQualities[outputFormat]"
-                        class="ml-1 opacity-80 text-[10px]"
-                        >(推荐)</span
-                      >
-                    </span>
+                      <template #default="{ modelValue }">
+                        <span class="font-mono text-xs font-bold text-primary"
+                          >{{ modelValue }} <span class="text-[10px] opacity-60">Colors</span></span
+                        >
+                      </template>
+                    </AppSlider>
+
+                    <AppSlider
+                      v-model="pngEffort"
+                      label="编码精细度"
+                      :min="1"
+                      :max="9"
+                      :step="1"
+                      unit=""
+                      :icon="Zap"
+                    >
+                      <template #default="{ modelValue }">
+                        <div class="flex items-center gap-1.5">
+                          <span class="font-mono text-xs font-bold text-primary"
+                            >Lv.{{ modelValue }}</span
+                          >
+                          <span
+                            v-if="modelValue >= 7"
+                            class="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-sm font-black uppercase tracking-tighter"
+                            >Pro</span
+                          >
+                        </div>
+                      </template>
+                    </AppSlider>
+                    <p class="text-[0.65rem] text-muted-foreground/60 leading-relaxed pl-1">
+                      精细度越高处理越慢，但能在保持色彩的前提下获得更极致的体积。
+                    </p>
                   </template>
-                </AppSlider>
-                <div
-                  class="flex justify-between text-[0.65rem] text-muted-foreground font-bold px-1 uppercase tracking-tight"
-                >
-                  <span>高压缩</span>
-                  <span>高画质</span>
+
+                  <!-- 通用格式质量 -->
+                  <template v-else>
+                    <AppSlider
+                      v-model="compressionQuality"
+                      label="平衡画质与体积"
+                      :min="0.1"
+                      :max="1.0"
+                      :step="0.05"
+                      :unit="''"
+                    >
+                      <template #default="{ modelValue }">
+                        <div class="flex items-center gap-2">
+                          <span class="font-mono text-sm font-black text-primary"
+                            >{{ Math.round(modelValue * 100) }}%</span
+                          >
+                          <div
+                            v-if="modelValue === recommendedQualities[outputFormat]"
+                            class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"
+                            title="推荐质量"
+                          ></div>
+                        </div>
+                      </template>
+                    </AppSlider>
+                    <div class="flex justify-between items-center px-1">
+                      <span
+                        class="text-[0.55rem] font-black text-muted-foreground uppercase tracking-[0.2em]"
+                        >Smallest</span
+                      >
+                      <div
+                        class="h-px flex-1 mx-4 bg-gradient-to-r from-transparent via-border/60 to-transparent"
+                      ></div>
+                      <span
+                        class="text-[0.55rem] font-black text-muted-foreground uppercase tracking-[0.2em]"
+                        >Best Quality</span
+                      >
+                    </div>
+                  </template>
                 </div>
-              </template>
-            </div>
 
-            <div v-else class="space-y-3">
-              <div class="flex justify-between items-end mb-1">
-                <label
-                  class="text-[0.7rem] font-bold text-muted-foreground uppercase tracking-widest"
-                  >目标大小 (KB)</label
-                >
-                <span class="text-xs font-bold text-primary">{{ targetSizeKB }} KB</span>
-              </div>
-              <input
-                type="number"
-                v-model.number="targetSizeKB"
-                class="w-full p-3 bg-background border border-border rounded-xl text-sm font-bold focus:border-primary outline-none transition-all"
-                placeholder="例如: 200"
-              />
-              <p class="text-[0.65rem] text-muted-foreground/80 leading-relaxed italic">
-                提示: 引擎将尝试通过调整质量接近该数值，但最终结果受限于原图噪点与细节。
-              </p>
-            </div>
-          </div>
-
-          <div class="flex flex-col gap-4">
-            <AppSectionHeader title="输出格式" :icon="FileType" />
-            <AppSelect v-model="outputFormat" :options="formatOptions" />
-          </div>
-
-          <div class="flex flex-col gap-3">
-            <button
-              @click="showAdvanced = !showAdvanced"
-              class="flex items-center justify-between group hover:text-primary transition-colors"
-            >
-              <AppSectionHeader title="进阶设置" :icon="Settings2" />
-              <component
-                :is="showAdvanced ? ChevronUp : ChevronDown"
-                :size="16"
-                class="text-muted-foreground group-hover:text-primary"
-              />
-            </button>
-
-            <div
-              v-if="showAdvanced"
-              class="space-y-5 pt-1 animate-in fade-in slide-in-from-top-2 duration-300"
-            >
-              <div class="flex flex-col gap-3">
-                <label class="text-[0.65rem] font-bold text-muted-foreground uppercase px-1"
-                  >调整分辨率 (可选)</label
-                >
-                <div class="grid grid-cols-2 gap-3">
-                  <div class="space-y-1.5">
+                <div v-else class="space-y-4">
+                  <div class="flex justify-between items-center mb-1">
+                    <label
+                      class="text-[0.65rem] font-black text-muted-foreground uppercase tracking-widest pl-1"
+                      >Target Size</label
+                    >
+                    <span class="font-mono text-sm font-black text-primary"
+                      >{{ targetSizeKB }} <span class="text-[10px] opacity-60">KB</span></span
+                    >
+                  </div>
+                  <div class="relative group">
                     <input
                       type="number"
-                      v-model.number="maxWidth"
-                      class="w-full p-2.5 bg-muted/30 border border-border/50 rounded-xl text-xs font-bold focus:border-primary outline-none"
-                      placeholder="最大宽度"
+                      v-model.number="targetSizeKB"
+                      class="w-full h-11 px-4 bg-muted/30 border border-border/50 rounded-xl text-sm font-bold focus:border-primary focus:bg-background outline-none transition-all tabular-nums"
+                      placeholder="500"
+                    />
+                    <Zap
+                      :size="14"
+                      class="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40 group-focus-within:text-primary group-focus-within:animate-pulse transition-colors"
                     />
                   </div>
-                  <div class="space-y-1.5">
-                    <input
-                      type="number"
-                      v-model.number="maxHeight"
-                      class="w-full p-2.5 bg-muted/30 border border-border/50 rounded-xl text-xs font-bold focus:border-primary outline-none"
-                      placeholder="最大高度"
-                    />
-                  </div>
+                  <p class="text-[0.65rem] text-muted-foreground/60 leading-relaxed italic pl-1">
+                    系统将智能调整参数以接近该目标，但结果受限于原图细节复杂度。
+                  </p>
                 </div>
               </div>
+            </section>
 
-              <label
-                class="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-muted-foreground hover:text-foreground transition-all group p-1"
+            <!-- 3. 格式与转换 -->
+            <section class="space-y-4">
+              <AppSectionHeader title="转换格式" :icon="FileType" />
+              <div class="space-y-3">
+                <AppSelect v-model="outputFormat" :options="formatOptions" />
+                <div v-if="outputFormat !== 'original'" class="px-1">
+                  <AppTip variant="info" class="bg-primary/[0.03] border-primary/10 py-2">
+                    <span class="text-[0.65rem] font-medium leading-tight">
+                      已切换至
+                      <span class="font-black underline decoration-primary/30">{{
+                        formatOptions.find((o) => o.value === outputFormat)?.label.split(' ')[0]
+                      }}</span
+                      >。系统已为您自动适配该格式的最佳压缩算法。
+                    </span>
+                  </AppTip>
+                </div>
+              </div>
+            </section>
+
+            <!-- 4. 进阶微调 -->
+            <section class="space-y-4">
+              <button
+                @click="showAdvanced = !showAdvanced"
+                class="flex items-center justify-between w-full group transition-colors px-0.5"
               >
-                <div
-                  class="relative w-5 h-5 rounded-md border border-border bg-muted flex items-center justify-center transition-all group-hover:border-primary"
-                  :class="{ 'bg-primary border-primary': keepOriginalIfLarger }"
-                >
-                  <input
-                    type="checkbox"
-                    v-model="keepOriginalIfLarger"
-                    class="absolute opacity-0 w-full h-full cursor-pointer z-10"
+                <AppSectionHeader
+                  title="进阶设置"
+                  :icon="Settings2"
+                  class="group-hover:text-primary"
+                />
+                <div class="flex items-center gap-2">
+                  <span
+                    class="text-[0.6rem] font-bold text-muted-foreground/60 uppercase tracking-widest"
+                    >{{ showAdvanced ? 'Collapse' : 'Expand' }}</span
+                  >
+                  <component
+                    :is="showAdvanced ? ChevronUp : ChevronDown"
+                    :size="14"
+                    class="text-muted-foreground/40 group-hover:text-primary transition-all"
                   />
-                  <Check v-if="keepOriginalIfLarger" :size="12" class="text-white" />
                 </div>
-                <span>体积变大时保留原图</span>
-              </label>
-            </div>
+              </button>
+
+              <div
+                v-if="showAdvanced"
+                class="space-y-6 pt-1 animate-in fade-in slide-in-from-top-3 duration-300"
+              >
+                <div class="space-y-3">
+                  <label
+                    class="text-[0.6rem] font-black text-muted-foreground uppercase tracking-widest px-1"
+                    >调整分辨率 (Optional)</label
+                  >
+                  <div class="grid grid-cols-2 gap-3">
+                    <div class="relative">
+                      <input
+                        type="number"
+                        v-model.number="maxWidth"
+                        class="w-full h-10 pl-3 pr-8 bg-muted/20 border border-border/40 rounded-lg text-xs font-bold focus:border-primary outline-none transition-all"
+                        placeholder="Width"
+                      />
+                      <span
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-muted-foreground/40 pointer-events-none"
+                        >W</span
+                      >
+                    </div>
+                    <div class="relative">
+                      <input
+                        type="number"
+                        v-model.number="maxHeight"
+                        class="w-full h-10 pl-3 pr-8 bg-muted/20 border border-border/40 rounded-lg text-xs font-bold focus:border-primary outline-none transition-all"
+                        placeholder="Height"
+                      />
+                      <span
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-muted-foreground/40 pointer-events-none"
+                        >H</span
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <label class="flex items-center gap-3 cursor-pointer group p-1 select-none">
+                  <div
+                    class="relative w-4.5 h-4.5 rounded-md border-2 border-border/80 bg-muted/30 flex items-center justify-center transition-all group-hover:border-primary shadow-sm"
+                    :class="{
+                      'bg-primary border-primary scale-110 shadow-primary/20': keepOriginalIfLarger
+                    }"
+                  >
+                    <input
+                      type="checkbox"
+                      v-model="keepOriginalIfLarger"
+                      class="absolute opacity-0 w-full h-full cursor-pointer z-10"
+                    />
+                    <Check v-if="keepOriginalIfLarger" :size="10" class="text-white stroke-[3px]" />
+                  </div>
+                  <span
+                    class="text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors"
+                    >体积变大时保留原图</span
+                  >
+                </label>
+              </div>
+            </section>
           </div>
 
-          <AppTip>
-            {{
-              keepOriginalIfLarger
-                ? '若压缩后体积反而变大，系统将自动保留原始文件。'
-                : '系统将强制保存压缩后的文件，即便体积可能由于格式转换而变大。'
-            }}
-          </AppTip>
-
-          <div class="mt-auto pt-6 flex flex-col gap-3">
+          <div
+            class="p-6 bg-gradient-to-t from-card via-card to-transparent pt-12 mt-auto border-t border-border/40 relative z-20 shrink-0"
+          >
             <AppButton
               size="lg"
               variant="cta"
-              class="w-full h-12 rounded-xl"
+              class="w-full h-14 rounded-2xl hover:-translate-y-0.5 transition-all duration-300 active:scale-95 shrink-0"
               :loading="isProcessing"
               :disabled="!store.images.length"
               @click="handleProcess"
             >
               <template #icon>
-                <Zap v-if="!isProcessing" :size="18" class="mr-2" />
+                <Zap v-if="!isProcessing" :size="20" class="mr-2.5 fill-current" />
               </template>
-              {{ buttonText }}
+              <span class="tracking-tight text-base">{{ buttonText }}</span>
             </AppButton>
+            <p
+              class="text-center text-[0.6rem] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mt-4"
+            >
+              Powered by Browser-Native Engines
+            </p>
           </div>
         </div>
       </template>

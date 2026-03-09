@@ -38,6 +38,6 @@ export default tsESLint.config(
     },
   },
   {
-    ignores: ['dist/**', 'node_modules/**', 'public/**'],
+    ignores: ['dist/**', 'node_modules/**', 'public/**', 'temp_impeccable/**'],
   }
 );
