@@ -6,7 +6,18 @@ export interface CompressionOptions {
   maxSizeMB?: number
   maxWidth?: number
   maxHeight?: number
-  format?: 'image/jpeg' | 'image/png' | 'image/webp'
+  format?:
+    | 'image/jpeg'
+    | 'image/png'
+    | 'image/webp'
+    | 'image/avif'
+    | 'image/jxl'
+    | 'image/webp2'
+    | 'image/heif'
+    | 'image/jpeg-li'
+  colors?: number // 针对 PNG 的颜色数量量化
+  effort?: number // 压缩/优化强度 (1-9)
+  keepOriginalIfLarger?: boolean // 如果变大是否保留原图
 }
 
 export const compressEngine: ImageProcessor<CompressionOptions> = async (file, options) => {
@@ -21,8 +32,9 @@ export const compressEngine: ImageProcessor<CompressionOptions> = async (file, o
 
   const compressedFile = await imageCompression(file, compressionOptions)
 
-  // 如果压缩后反而变大了，保留原图
-  if (compressedFile.size >= file.size) {
+  // 决定是否保留原图
+  const shouldKeepOriginal = options.keepOriginalIfLarger !== false // 默认 true
+  if (shouldKeepOriginal && compressedFile.size >= file.size) {
     return {
       blob: file,
       size: file.size

@@ -25,13 +25,6 @@ const containerClasses = computed(() => {
   return 'w-full h-full flex flex-col p-3 md:p-6'
 })
 
-const wrapperClasses = computed(() => {
-  if (props.variant === 'dialog') {
-    return 'fixed inset-0 z-[10000] flex items-center justify-center'
-  }
-  return 'fixed inset-0 z-[10000] flex flex-col bg-background p-3 md:p-6'
-})
-
 watch(
   () => props.show,
   (newVal) => {

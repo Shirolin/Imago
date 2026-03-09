@@ -9,7 +9,6 @@ import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSlider from '../components/common/AppSlider.vue'
-import AppTip from '../components/common/AppTip.vue'
 
 const store = useImageStore()
 
