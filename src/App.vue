@@ -140,8 +140,10 @@ const menuGroups = [
             : 'p-6 pb-8 pl-4 pr-0'
         ]"
       >
-        <div
-          class="flex items-center"
+        <router-link
+          to="/"
+          @click="closeMobileSidebar"
+          class="flex items-center hover:opacity-80 transition-opacity active:scale-95 duration-200"
           :class="layoutStore.isMenuCollapsed ? 'md:justify-center w-full gap-4 md:gap-0' : 'gap-4'"
         >
           <div
@@ -150,15 +152,20 @@ const menuGroups = [
             <Image :size="22" />
           </div>
           <transition name="fade">
-            <h1
+            <div
               v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-              class="text-2xl font-extrabold tracking-tight whitespace-nowrap"
+              class="flex flex-col justify-center"
               :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
             >
-              Imago
-            </h1>
+              <h1 class="text-2xl font-extrabold tracking-tight whitespace-nowrap leading-none">
+                Imago
+              </h1>
+              <span class="text-[10px] font-bold text-muted-foreground/60 tracking-tight mt-1.5">
+                极简图像处理工具
+              </span>
+            </div>
           </transition>
-        </div>
+        </router-link>
       </div>
 
       <nav
