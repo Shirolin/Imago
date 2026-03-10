@@ -21,8 +21,8 @@ const scrollToTools = () => {
 
 const tools = [
   {
-    name: '图片压缩',
-    desc: '减小文件大小而不失真',
+    name: '压缩转换',
+    desc: '极致压缩并互转 WebP / AVIF 等格式',
     path: '/compress',
     icon: Minimize2,
     color: '#22C55E'

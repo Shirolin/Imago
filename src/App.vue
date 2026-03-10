@@ -66,8 +66,8 @@ onMounted(() => {
 const routeNameMap: Record<string, string> = {
   home: '概览',
   Home: '概览',
-  compress: '图片压缩',
-  Compress: '图片压缩',
+  compress: '压缩转换',
+  Compress: '压缩转换',
   resize: '调整尺寸',
   Resize: '调整尺寸',
   crop: '裁剪图片',
@@ -88,7 +88,7 @@ const menuGroups = [
   {
     label: '核心工具',
     items: [
-      { name: '图片压缩', path: '/compress', icon: Minimize2 },
+      { name: '压缩转换', path: '/compress', icon: Minimize2 },
       { name: '调整尺寸', path: '/resize', icon: Maximize2 }
     ]
   },

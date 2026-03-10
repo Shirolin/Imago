@@ -148,8 +148,8 @@ const handleDownload = (id: string) => {
 
 const buttonText = computed(() => {
   if (isProcessing.value) return '正在处理...'
-  if (store.selectedCount > 0) return `压缩选中的 ${store.selectedCount} 张`
-  return '压缩全部图片'
+  if (store.selectedCount > 0) return `转换选中的 ${store.selectedCount} 张`
+  return '开始压缩转换'
 })
 </script>
 
@@ -161,7 +161,7 @@ const buttonText = computed(() => {
       </template>
 
       <template #header-actions>
-        <ImageActionsToolbar :is-processing="isProcessing" show-clear-all zip-prefix="图片压缩" />
+        <ImageActionsToolbar :is-processing="isProcessing" show-clear-all zip-prefix="压缩转换" />
       </template>
 
       <template #content>
