@@ -19,6 +19,14 @@ export interface ImageItem {
 export const useImageStore = defineStore('image', () => {
   const images = ref<ImageItem[]>([])
   const selectedIds = ref<Set<string>>(new Set())
+  
+  // 智能倍镜设置
+  const showMagnifier = ref(localStorage.getItem('imago-show-magnifier') !== 'false')
+
+  const setShowMagnifier = (value: boolean) => {
+    showMagnifier.value = value
+    localStorage.setItem('imago-show-magnifier', String(value))
+  }
 
   const hasSelected = computed(() => selectedIds.value.size > 0)
   const isAllSelected = computed(
@@ -158,6 +166,8 @@ export const useImageStore = defineStore('image', () => {
     selectAll,
     deselectAll,
     toggleAll,
-    updateImage
+    updateImage,
+    showMagnifier,
+    setShowMagnifier
   }
 })

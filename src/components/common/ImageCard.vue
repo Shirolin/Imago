@@ -1,17 +1,88 @@
 <script setup lang="ts">
-import { Download, X, Loader2, CheckCircle2, Square, CheckSquare, Columns2 } from 'lucide-vue-next'
+import { ref, computed, onUnmounted, watch } from 'vue'
+import {
+  Download,
+  X,
+  Loader2,
+  CheckCircle2,
+  Square,
+  CheckSquare,
+  Columns2
+} from 'lucide-vue-next'
 import { useFileHelpers } from '../../composables/useFileHelpers'
+import { useImageStore } from '../../stores/imageStore'
 import type { ImageItem } from '../../stores/imageStore'
 
 const { formatSize } = useFileHelpers()
+const store = useImageStore()
 
 interface Props {
   image: ImageItem
   isSelected?: boolean
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 const emit = defineEmits(['toggle', 'remove', 'download', 'compare'])
+
+// 智能倍镜逻辑
+const showMagnifier = ref(false)
+const mousePos = ref({ x: 50, y: 50 })
+const originalHDUrl = ref<string | null>(null)
+const processedUrl = ref<string | null>(null)
+const imageRef = ref<HTMLElement | null>(null)
+const rafId = ref<number | null>(null)
+
+// 只有在完成处理且悬停时才处理高清 URL
+watch(showMagnifier, (isShowing) => {
+  if (isShowing) {
+    if (props.image.processedBlob && !processedUrl.value) {
+      processedUrl.value = URL.createObjectURL(props.image.processedBlob)
+    }
+    if (!originalHDUrl.value) {
+      originalHDUrl.value = URL.createObjectURL(props.image.file)
+    }
+  }
+})
+
+onUnmounted(() => {
+  if (processedUrl.value) URL.revokeObjectURL(processedUrl.value)
+  if (originalHDUrl.value) URL.revokeObjectURL(originalHDUrl.value)
+  if (rafId.value) cancelAnimationFrame(rafId.value)
+})
+
+const handleMouseMove = (e: MouseEvent) => {
+  if (!showMagnifier.value || !imageRef.value) return
+  
+  // 使用 RAF 确保每一帧同步渲染，解决“不跟手”问题
+  if (rafId.value) cancelAnimationFrame(rafId.value)
+  
+  rafId.value = requestAnimationFrame(() => {
+    const rect = imageRef.value!.getBoundingClientRect()
+    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100))
+    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100))
+    mousePos.value = { x, y }
+  })
+}
+
+const enterMagnifier = () => {
+  if (props.image.status === 'done' && store.showMagnifier) showMagnifier.value = true
+}
+
+const leaveMagnifier = () => {
+  showMagnifier.value = false
+}
+
+const magnifierStyle = computed(() => ({
+  left: `${mousePos.value.x}%`,
+  top: `${mousePos.value.y}%`,
+  willChange: 'left, top' // 提示浏览器优化
+}))
+
+const innerImageStyle = computed(() => ({
+  transform: `scale(2.5)`, 
+  transformOrigin: `${mousePos.value.x}% ${mousePos.value.y}%`,
+  imageRendering: 'auto'
+}))
 </script>
 
 <template>
@@ -24,10 +95,14 @@ const emit = defineEmits(['toggle', 'remove', 'download', 'compare'])
   >
     <!-- 图片展示区 -->
     <div
+      ref="imageRef"
       class="relative aspect-[4/3] overflow-hidden bg-slate-900/50 flex items-center justify-center shrink-0"
+      @mouseenter="enterMagnifier"
+      @mouseleave="leaveMagnifier"
+      @mousemove="handleMouseMove"
     >
-      <!-- 【左上角】：选择框 + 业务贴纸插槽 (错位排列) -->
-      <div class="absolute top-3 left-3 z-30 flex items-center gap-2">
+      <!-- 【左上角】：选择框 + 业务贴纸插槽 -->
+      <div class="absolute top-3 left-3 z-30 flex items-center gap-2 pointer-events-none">
         <div
           class="transition-all duration-300"
           :class="
@@ -40,7 +115,6 @@ const emit = defineEmits(['toggle', 'remove', 'download', 'compare'])
           <Square v-else :size="20" />
         </div>
 
-        <!-- 业务贴纸 (如：节省 50%) 放在这里，绝不挡到底部 HUD -->
         <slot name="overlay" :image="image"></slot>
       </div>
 
@@ -52,28 +126,58 @@ const emit = defineEmits(['toggle', 'remove', 'download', 'compare'])
         <X :size="14" />
       </button>
 
+      <!-- 主预览图 -->
       <img
         :src="image.preview"
         alt="Preview"
-        class="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
+        class="w-full h-full object-contain transition-transform duration-700"
+        :class="{ 'group-hover:scale-105': !showMagnifier }"
       />
 
-      <!-- 对比预览悬浮 -->
+      <!-- 智能倍镜组件 -->
       <div
-        v-if="image.status === 'done'"
-        class="absolute inset-0 z-10 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-[2px]"
+        v-if="showMagnifier && processedUrl && originalHDUrl && store.showMagnifier"
+        class="absolute inset-0 z-20 pointer-events-none overflow-hidden"
       >
-        <button
-          type="button"
-          @click.stop="emit('compare', image.id)"
-          class="bg-white text-black hover:bg-primary hover:text-white px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-2xl"
+        <!-- 倍镜容器 -->
+        <div
+          class="absolute w-32 h-32 md:w-48 md:h-48 -ml-16 -mt-16 md:-ml-24 md:-mt-24 rounded-full border-2 border-primary shadow-[0_0_30px_rgba(var(--primary-rgb),0.5)] overflow-hidden bg-black flex items-center justify-center"
+          :style="magnifierStyle"
         >
-          <Columns2 :size="14" />
-          对比画质
-        </button>
+          <!-- 背景：原始图 (左侧) -->
+          <img
+            :src="originalHDUrl"
+            class="absolute inset-0 w-full h-full object-contain"
+            :style="innerImageStyle"
+          />
+          
+          <!-- 前景：处理后的图 (右侧) -->
+          <div 
+            class="absolute inset-0 w-full h-full"
+            :style="{ 
+              clipPath: `inset(0 0 0 50%)`,
+              ...innerImageStyle
+            }"
+          >
+            <img :src="processedUrl" class="w-full h-full object-contain" />
+          </div>
+
+          <!-- 分割线 -->
+          <div class="absolute inset-y-0 left-1/2 w-0.5 bg-primary/80 z-10 shadow-[0_0_8px_rgba(var(--primary-rgb),1)]"></div>
+          
+          <!-- 增强标签标识 -->
+          <div class="absolute inset-0 flex items-center justify-between px-2 text-[10px] pointer-events-none z-20">
+             <div class="flex flex-col items-center gap-1 opacity-80 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                <span class="bg-black/60 px-1.5 py-0.5 rounded text-white font-black border border-white/20">BEFORE</span>
+             </div>
+             <div class="flex flex-col items-center gap-1 opacity-80 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                <span class="bg-primary/80 px-1.5 py-0.5 rounded text-white font-black border border-white/20">AFTER</span>
+             </div>
+          </div>
+        </div>
       </div>
 
-      <!-- 【底部 HUD】：技术参数条 (移动端始终可见，桌面端悬停可见) -->
+      <!-- 【底部 HUD】：技术参数条 -->
       <div
         class="absolute bottom-0 left-0 right-0 h-9 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-20 flex items-end px-3 pb-2 transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100 pointer-events-none"
       >

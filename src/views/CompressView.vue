@@ -12,6 +12,8 @@ import AppSlider from '../components/common/AppSlider.vue'
 import AppTip from '../components/common/AppTip.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import AppSelect from '../components/common/AppSelect.vue'
+import AppInput from '../components/common/AppInput.vue'
+import AppCheckbox from '../components/common/AppCheckbox.vue'
 import ImageCompare from '../components/common/ImageCompare.vue'
 import AppModal from '../components/common/AppModal.vue'
 import {
@@ -339,18 +341,13 @@ const buttonText = computed(() => {
                       >{{ targetSizeKB }} <span class="text-[10px] opacity-60">KB</span></span
                     >
                   </div>
-                  <div class="relative group">
-                    <input
-                      type="number"
-                      v-model.number="targetSizeKB"
-                      class="w-full h-11 px-4 bg-muted/30 border border-border/50 rounded-xl text-sm font-bold focus:border-primary focus:bg-background outline-none transition-all tabular-nums"
-                      placeholder="500"
-                    />
-                    <Zap
-                      :size="14"
-                      class="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40 group-focus-within:text-primary group-focus-within:animate-pulse transition-colors"
-                    />
-                  </div>
+                  <AppInput
+                    v-model.number="targetSizeKB"
+                    type="number"
+                    placeholder="500"
+                    :icon="Zap"
+                    suffix="KB"
+                  />
                   <p class="text-[0.65rem] text-muted-foreground/60 leading-relaxed italic pl-1">
                     系统将智能调整参数以接近该目标，但结果受限于原图细节复杂度。
                   </p>
@@ -411,52 +408,31 @@ const buttonText = computed(() => {
                     >调整分辨率 (Optional)</label
                   >
                   <div class="grid grid-cols-2 gap-3">
-                    <div class="relative">
-                      <input
-                        type="number"
-                        v-model.number="maxWidth"
-                        class="w-full h-10 pl-3 pr-8 bg-muted/20 border border-border/40 rounded-lg text-xs font-bold focus:border-primary outline-none transition-all"
-                        placeholder="Width"
-                      />
-                      <span
-                        class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-muted-foreground/40 pointer-events-none"
-                        >W</span
-                      >
-                    </div>
-                    <div class="relative">
-                      <input
-                        type="number"
-                        v-model.number="maxHeight"
-                        class="w-full h-10 pl-3 pr-8 bg-muted/20 border border-border/40 rounded-lg text-xs font-bold focus:border-primary outline-none transition-all"
-                        placeholder="Height"
-                      />
-                      <span
-                        class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-muted-foreground/40 pointer-events-none"
-                        >H</span
-                      >
-                    </div>
+                    <AppInput
+                      v-model.number="maxWidth"
+                      type="number"
+                      placeholder="Width"
+                      suffix="W"
+                    />
+                    <AppInput
+                      v-model.number="maxHeight"
+                      type="number"
+                      placeholder="Height"
+                      suffix="H"
+                    />
                   </div>
                 </div>
 
-                <label class="flex items-center gap-3 cursor-pointer group p-1 select-none">
-                  <div
-                    class="relative w-4.5 h-4.5 rounded-md border-2 border-border/80 bg-muted/30 flex items-center justify-center transition-all group-hover:border-primary shadow-sm"
-                    :class="{
-                      'bg-primary border-primary scale-110 shadow-primary/20': keepOriginalIfLarger
-                    }"
-                  >
-                    <input
-                      type="checkbox"
-                      v-model="keepOriginalIfLarger"
-                      class="absolute opacity-0 w-full h-full cursor-pointer z-10"
-                    />
-                    <Check v-if="keepOriginalIfLarger" :size="10" class="text-white stroke-[3px]" />
-                  </div>
-                  <span
-                    class="text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors"
-                    >体积变大时保留原图</span
-                  >
-                </label>
+                <AppCheckbox
+                  v-model="keepOriginalIfLarger"
+                  label="体积变大时保留原图"
+                />
+
+                <AppCheckbox
+                  :model-value="store.showMagnifier"
+                  @update:model-value="store.setShowMagnifier"
+                  label="开启智能倍镜对比"
+                />
               </div>
             </section>
           </div>
