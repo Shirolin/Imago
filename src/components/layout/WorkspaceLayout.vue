@@ -69,7 +69,9 @@ withDefaults(defineProps<Props>(), {
         class="bg-card border-t md:border-t-0 md:border-l border-border flex flex-col shrink-0 relative z-10 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden shadow-2xl md:shadow-none"
         :class="[
           'w-full max-h-[50vh] md:max-h-none',
-          layoutStore.isInspectorCollapsed ? 'md:w-0 border-transparent' : 'md:w-[300px] xl:w-[340px]'
+          layoutStore.isInspectorCollapsed
+            ? 'md:w-0 border-transparent'
+            : 'md:w-[300px] xl:w-[340px]'
         ]"
       >
         <div class="min-w-[300px] xl:min-w-[340px] h-full flex flex-col">
