@@ -55,6 +55,9 @@
 
 ## ⚙️ 开发与构建
 
+### 部署指南
+我们推荐使用 **Cloudflare Pages** 进行自动化部署。详细配置请参考：[🚀 部署指南 (CI/CD)](docs/DEPLOYMENT.md)
+
 ### 技术栈
 - **核心框架**：Vue 3 (Composition API)
 - **构建工具**：Vite
