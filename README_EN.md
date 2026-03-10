@@ -97,16 +97,23 @@ We ensure stability through a rigorous testing process:
 
 ---
 
-## 📄 License
+## 🤝 Contribution & Support
 
-This project is open-sourced under the **GNU General Public License v3.0**. See the [LICENSE](LICENSE) file for details.
+### Welcome Contributions
+If you have any suggestions for improvement or find any bugs, feel free to:
+- [Submit an Issue](https://github.com/Shirolin/Imago/issues) to report bugs or suggest new features.
+- Submit a [Pull Request](https://github.com/Shirolin/Imago/pulls) to contribute code.
+- Join the discussion and share your experience.
+
+### Support the Project
+If you find **Imago** helpful, please consider:
+- Giving the project a **Star** ⭐ as encouragement.
+- Sharing it with more friends who need image processing.
+- If you find this project very valuable, you can also [Buy Me a Coffee](https://www.buymeacoffee.com/shirolin).
 
 ---
 
-<div align="center">
-
-**If you find this project helpful, please give it a Star ⭐!**
+## 📄 License
+This project is licensed under the [GNU General Public License v3.0](LICENSE).
 
 [Shirolin](https://github.com/Shirolin) © 2026
-
-</div>

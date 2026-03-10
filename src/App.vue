@@ -386,7 +386,7 @@ const menuGroups = [
           <div class="w-px h-6 bg-border"></div>
 
           <a
-            href="https://github.com/shironone/imago"
+            href="https://github.com/Shirolin/Imago"
             target="_blank"
             class="text-muted-foreground hover:text-primary hover:-translate-y-0.5 transition-all"
           >

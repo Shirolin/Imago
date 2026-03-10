@@ -100,16 +100,23 @@
 
 ---
 
-## 📄 许可协议
+## 🤝 贡献与支持
 
-本项目基于 **GNU General Public License v3.0** 协议开源。详细信息请参阅 [LICENSE](LICENSE) 文件。
+### 欢迎贡献
+如果您有任何改进建议或发现了 Bug，欢迎：
+- [提交 Issue](https://github.com/Shirolin/Imago/issues) 报告 Bug 或提出新功能需求。
+- 提交 [Pull Request](https://github.com/Shirolin/Imago/pulls) 贡献代码。
+- 参与讨论，分享您的使用心得。
+
+### 支持项目
+如果您觉得 **Imago** 对您有所帮助，请考虑：
+- 给项目点一个 **Star** ⭐ 以表鼓励。
+- 将它分享给更多需要处理图像的朋友。
+- 如果您觉得这个项目非常有价值，也可以通过 [Buy Me a Coffee](https://www.buymeacoffee.com/shirolin) 为我买杯咖啡。
 
 ---
 
-<div align="center">
-
-**如果您觉得这个项目对您有帮助，欢迎点个 Star ⭐！**
+## 📄 许可协议
+本项目采用 [GNU General Public License v3.0](LICENSE) 协议。
 
 [Shirolin](https://github.com/Shirolin) © 2026
-
-</div>
