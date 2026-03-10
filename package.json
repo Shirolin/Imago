@@ -2,6 +2,8 @@
   "name": "imago",
   "private": true,
   "version": "0.0.0",
+  "author": "Shirolin",
+  "license": "GPL-3.0-only",
   "type": "module",
   "scripts": {
     "dev": "vite",
