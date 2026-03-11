@@ -171,6 +171,7 @@ const buttonText = computed(() => {
           :key="img.id"
           :image="img"
           :is-selected="store.selectedIds.has(img.id)"
+          @toggle="store.toggleSelection"
           @remove="store.removeImage"
           @download="handleDownload"
           @compare="handleCompare"
@@ -413,8 +414,6 @@ const buttonText = computed(() => {
                       placeholder="Width"
                       suffix="W"
                     />
-                  </div>
-                  <div class="flex flex-col gap-1.5">
                     <AppInput
                       v-model.number="maxHeight"
                       type="number"
@@ -422,6 +421,7 @@ const buttonText = computed(() => {
                       suffix="H"
                     />
                   </div>
+
                 </div>
 
                 <AppCheckbox v-model="keepOriginalIfLarger" label="体积变大时保留原图" />

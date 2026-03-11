@@ -116,7 +116,6 @@ const handleCardClick = (id: string) => {
           'ring-2 ring-primary ring-offset-2 ring-offset-background': activeImage?.id === img.id
         }"
         @click="handleCardClick(img.id)"
-        @toggle="store.toggleSelection"
         @remove="store.removeImage"
       >
         <template #overlay="{ image }">
