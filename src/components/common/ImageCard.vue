@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted, watch } from 'vue'
+import type { CSSProperties } from 'vue'
 import { Download, X, Loader2, CheckCircle2, Square, CheckSquare, Columns2 } from 'lucide-vue-next'
 import { useFileHelpers } from '../../composables/useFileHelpers'
 import { useImageStore } from '../../stores/imageStore'
@@ -64,13 +65,13 @@ const leaveMagnifier = () => {
   showMagnifier.value = false
 }
 
-const magnifierStyle = computed(() => ({
+const magnifierStyle = computed<CSSProperties>(() => ({
   left: `${mousePos.value.x}%`,
   top: `${mousePos.value.y}%`,
   willChange: 'left, top' // 提示浏览器优化
 }))
 
-const innerImageStyle = computed(() => ({
+const innerImageStyle = computed<CSSProperties>(() => ({
   transform: `scale(2.5)`,
   transformOrigin: `${mousePos.value.x}% ${mousePos.value.y}%`
 }))
@@ -148,10 +149,10 @@ const innerImageStyle = computed(() => ({
           <!-- 前景：处理后的图 (右侧) -->
           <div
             class="absolute inset-0 w-full h-full"
-            :style="{
+            :style="({
               clipPath: `inset(0 0 0 50%)`,
               ...innerImageStyle
-            }"
+            } as CSSProperties)"
           >
             <img :src="processedUrl" class="w-full h-full object-contain" />
           </div>
@@ -248,8 +249,9 @@ const innerImageStyle = computed(() => ({
           <button
             v-if="image.status === 'done'"
             @click.stop="emit('compare', image.id)"
-            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-secondary-foreground transition-all active:scale-90"
-            title="对比"
+            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-secondary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            title="对比画质细节"
+            aria-label="打开大图对比弹窗"
           >
             <Columns2 :size="16" />
           </button>
@@ -257,8 +259,9 @@ const innerImageStyle = computed(() => ({
           <button
             v-if="image.status === 'done'"
             @click.stop="emit('download', image.id)"
-            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-primary text-muted-foreground hover:text-primary-foreground transition-all active:scale-90"
-            title="下载"
+            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-primary text-muted-foreground hover:text-primary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            title="保存处理后的图片"
+            aria-label="下载当前压缩后的图片"
           >
             <Download :size="16" />
           </button>

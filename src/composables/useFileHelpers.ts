@@ -36,13 +36,46 @@ export function useFileHelpers() {
   }
 
   /**
+   * 基于 MIME 类型获取新的文件名
+   */
+  const getNewFileName = (originalName: string, mimeType: string) => {
+    const mimeMap: Record<string, string> = {
+      'image/jpeg': '.jpg',
+      'image/png': '.png',
+      'image/webp': '.webp',
+      'image/avif': '.avif',
+      'image/heif': '.heif',
+      'image/heic': '.heic',
+      'image/jxl': '.jxl',
+      'image/webp2': '.wp2',
+      'image/jpeg-li': '.jpg',
+      'image/gif': '.gif',
+      'image/svg+xml': '.svg'
+    }
+
+    const newExt = mimeMap[mimeType]
+    if (newExt) {
+      const lastDot = originalName.lastIndexOf('.')
+      if (lastDot !== -1) {
+        return originalName.substring(0, lastDot) + newExt
+      }
+      return originalName + newExt
+    }
+    return originalName
+  }
+
+  /**
    * 下载已处理的文件
    */
-  const downloadImage = (blob: Blob, fileName: string, prefix = 'processed_') => {
+  const downloadImage = (blob: Blob, originalFileName: string, prefix = 'processed_') => {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${prefix}${fileName}`
+    
+    // 动态判断最终的扩展名
+    const finalName = getNewFileName(originalFileName, blob.type)
+    
+    a.download = `${prefix}${finalName}`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -59,7 +92,9 @@ export function useFileHelpers() {
       const zip = new JSZip()
 
       doneImages.forEach((img) => {
-        zip.file(`processed_${img.file.name}`, img.processedBlob!)
+        // 使用压缩后得到的真正 MIME 生成带正确扩展名的文件名
+        const finalName = getNewFileName(img.file.name, img.processedBlob!.type)
+        zip.file(`processed_${finalName}`, img.processedBlob!)
       })
 
       const content = await zip.generateAsync({ type: 'blob' })
