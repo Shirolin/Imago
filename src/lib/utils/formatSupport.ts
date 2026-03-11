@@ -17,7 +17,7 @@ export async function isFormatSupported(mimeType: string): Promise<boolean> {
     // 这是检测浏览器编码支持最可靠的方法
     const dataUrl = canvas.toDataURL(targetMime)
     return dataUrl.startsWith(`data:${targetMime}`)
-  } catch (e) {
+  } catch {
     return false
   }
 }
