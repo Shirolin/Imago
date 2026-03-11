@@ -12,6 +12,8 @@ export interface ImageItem {
   format: string
   processedSize?: number
   processedBlob?: Blob
+  processedWidth?: number
+  processedHeight?: number
   error?: string
   abortController?: AbortController
   isDirty?: boolean

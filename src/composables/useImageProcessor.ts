@@ -23,6 +23,8 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
         status: 'done',
         processedSize: result.size,
         processedBlob: result.blob || (result.blobs ? result.blobs[0] : undefined),
+        processedWidth: result.width,
+        processedHeight: result.height,
         abortController: undefined,
         isDirty: false
       })

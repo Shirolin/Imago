@@ -196,7 +196,7 @@ const handleProcess = () => {
 const handleDownload = (id: string) => {
   const item = store.images.find((img) => img.id === id)
   if (item?.processedBlob) {
-    downloadImage(item.processedBlob, item.file.name, 'compressed_')
+    downloadImage(item.processedBlob, item.file.name, '_Imago_Lite')
   }
 }
 
@@ -216,7 +216,11 @@ const buttonText = computed(() => {
       </template>
 
       <template #header-actions>
-        <ImageActionsToolbar :is-processing="isProcessing" show-clear-all zip-prefix="压缩转换" />
+        <ImageActionsToolbar
+          :is-processing="isProcessing"
+          show-clear-all
+          zip-prefix="_Imago_Lite"
+        />
       </template>
 
       <template #content>

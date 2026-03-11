@@ -36,46 +36,38 @@ export function useFileHelpers() {
   }
 
   /**
-   * 基于 MIME 类型获取新的文件名
+   * 基于 MIME 类型获取新的文件名，并可选注入后缀
    */
-  const getNewFileName = (originalName: string, mimeType: string) => {
+  const getNewFileName = (originalName: string, mimeType: string, tag = '') => {
     const mimeMap: Record<string, string> = {
       'image/jpeg': '.jpg',
       'image/png': '.png',
       'image/webp': '.webp',
       'image/avif': '.avif',
-      'image/heif': '.heif',
-      'image/heic': '.heic',
       'image/jxl': '.jxl',
       'image/webp2': '.wp2',
-      'image/jpeg-li': '.jpg',
-      'image/gif': '.gif',
-      'image/svg+xml': '.svg'
+      'image/jpeg-li': '.jpg'
     }
 
-    const newExt = mimeMap[mimeType]
-    if (newExt) {
-      const lastDot = originalName.lastIndexOf('.')
-      if (lastDot !== -1) {
-        return originalName.substring(0, lastDot) + newExt
-      }
-      return originalName + newExt
-    }
-    return originalName
+    const newExt = mimeMap[mimeType] || '.jpg'
+    const lastDot = originalName.lastIndexOf('.')
+    const baseName = lastDot !== -1 ? originalName.substring(0, lastDot) : originalName
+
+    // 如果 baseName 已经包含了该 tag，则不再重复添加
+    const finalTag = baseName.includes(tag) ? '' : tag
+    return `${baseName}${finalTag}${newExt}`
   }
 
   /**
    * 下载已处理的文件
    */
-  const downloadImage = (blob: Blob, originalFileName: string, prefix = 'processed_') => {
+  const downloadImage = (blob: Blob, originalFileName: string, tag = '_Imago_Processed') => {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
 
-    // 动态判断最终的扩展名
-    const finalName = getNewFileName(originalFileName, blob.type)
-
-    a.download = `${prefix}${finalName}`
+    const finalName = getNewFileName(originalFileName, blob.type, tag)
+    a.download = finalName
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -83,7 +75,7 @@ export function useFileHelpers() {
   /**
    * 打包下载所有已处理图片为 ZIP
    */
-  const downloadAllAsZip = async (prefix = 'Processed') => {
+  const downloadAllAsZip = async (tag = '_Imago_Processed') => {
     const doneImages = store.images.filter((img) => img.status === 'done' && img.processedBlob)
     if (doneImages.length === 0) return
 
@@ -92,25 +84,18 @@ export function useFileHelpers() {
       const zip = new JSZip()
 
       doneImages.forEach((img) => {
-        // 使用压缩后得到的真正 MIME 生成带正确扩展名的文件名
-        const finalName = getNewFileName(img.file.name, img.processedBlob!.type)
-        zip.file(`processed_${finalName}`, img.processedBlob!)
+        const finalName = getNewFileName(img.file.name, img.processedBlob!.type, tag)
+        zip.file(finalName, img.processedBlob!)
       })
 
       const content = await zip.generateAsync({ type: 'blob' })
       const url = URL.createObjectURL(content)
 
-      // 生成格式化时间戳: YYYYMMDD_HHMMSS
       const now = new Date()
       const timestamp =
-        now
-          .toISOString()
-          .replace(/-/g, '')
-          .replace(/:/g, '')
-          .replace(/T/g, '')
-          .split('.')[0]
-          ?.slice(0, 14) || 'date'
-      const fileName = `Imago_${prefix}_${timestamp}.zip`
+        now.toISOString().replace(/[-:T]/g, '').split('.')[0]?.slice(0, 14) || 'date'
+      // 压缩包本身保留 Imago 前缀，方便识别来源
+      const fileName = `Imago_Archive_${timestamp}.zip`
 
       const a = document.createElement('a')
       a.href = url

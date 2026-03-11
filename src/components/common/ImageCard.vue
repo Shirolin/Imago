@@ -77,20 +77,27 @@ const leaveMagnifier = () => {
 const magnifierStyle = computed<CSSProperties>(() => ({
   left: `${mousePos.value.x}%`,
   top: `${mousePos.value.y}%`,
-  willChange: 'left, top' // 提示浏览器优化
+  willChange: 'left, top'
 }))
 
 const innerImageStyle = computed<CSSProperties>(() => ({
   transform: `scale(2.5)`,
   transformOrigin: `${mousePos.value.x}% ${mousePos.value.y}%`
 }))
+
+const isDirtyDone = computed(() => props.image.isDirty && props.image.status === 'done')
 </script>
 
 <template>
   <div
     class="relative bg-card rounded-2xl overflow-hidden border border-border/60 transition-all duration-500 cursor-pointer flex flex-col group hover:shadow-2xl hover:shadow-black/10 hover:border-primary/30 shadow-inner-glow @container outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     :class="[
-      isSelected ? 'ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/[0.03]' : ''
+      isSelected
+        ? 'ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/[0.03]'
+        : '',
+      isDirtyDone
+        ? 'animate-dirty-pulse border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
+        : ''
     ]"
     tabindex="0"
     @click="emit('toggle', image.id)"
@@ -134,9 +141,20 @@ const innerImageStyle = computed<CSSProperties>(() => ({
       <img
         :src="image.preview"
         alt="Preview"
-        class="w-full h-full object-contain transition-transform duration-700"
-        :class="{ 'group-hover:scale-105': !showMagnifier }"
+        class="w-full h-full object-contain transition-all duration-700"
+        :class="{
+          'group-hover:scale-105': !showMagnifier && !isDirtyDone,
+          'opacity-40 grayscale-[0.5] blur-[1px] scale-95': isDirtyDone
+        }"
       />
+
+      <!-- 脏状态覆盖层 (斜纹滚动) -->
+      <div
+        v-if="isDirtyDone"
+        class="absolute inset-0 z-10 pointer-events-none overflow-hidden opacity-30"
+      >
+        <div class="absolute inset-[-100%] bg-stripe-pattern animate-stripe-scroll"></div>
+      </div>
 
       <!-- 智能倍镜组件 -->
       <div
@@ -148,51 +166,31 @@ const innerImageStyle = computed<CSSProperties>(() => ({
           class="absolute w-32 h-32 md:w-48 md:h-48 -ml-16 -mt-16 md:-ml-24 md:-mt-24 rounded-full border-2 border-primary shadow-[0_0_30px_rgba(var(--primary-rgb),0.5)] overflow-hidden bg-black flex items-center justify-center"
           :style="magnifierStyle"
         >
-          <!-- 背景：原始图 (左侧) -->
           <img
             :src="originalHDUrl"
             class="absolute inset-0 w-full h-full object-contain"
             :style="innerImageStyle"
           />
-
-          <!-- 前景：处理后的图 (右侧) -->
           <div
             class="absolute inset-0 w-full h-full"
-            :style="
-              {
-                clipPath: `inset(0 0 0 50%)`,
-                ...innerImageStyle
-              } as CSSProperties
-            "
+            :style="{ clipPath: `inset(0 0 0 50%)`, ...innerImageStyle } as CSSProperties"
           >
             <img :src="processedUrl" class="w-full h-full object-contain" />
           </div>
-
-          <!-- 分割线 -->
           <div
             class="absolute inset-y-0 left-1/2 w-0.5 bg-primary/80 z-10 shadow-[0_0_8px_rgba(var(--primary-rgb),1)]"
           ></div>
-
-          <!-- 增强标签标识 -->
           <div
             class="absolute inset-0 flex items-center justify-between px-2 text-[10px] pointer-events-none z-20"
           >
-            <div
-              class="flex flex-col items-center gap-1 opacity-80 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+            <span
+              class="bg-black/60 px-1.5 py-0.5 rounded text-white font-black border border-white/20"
+              >BEFORE</span
             >
-              <span
-                class="bg-black/60 px-1.5 py-0.5 rounded text-white font-black border border-white/20"
-                >BEFORE</span
-              >
-            </div>
-            <div
-              class="flex flex-col items-center gap-1 opacity-80 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+            <span
+              class="bg-primary/80 px-1.5 py-0.5 rounded text-white font-black border border-white/20"
+              >AFTER</span
             >
-              <span
-                class="bg-primary/80 px-1.5 py-0.5 rounded text-white font-black border border-white/20"
-                >AFTER</span
-              >
-            </div>
           </div>
         </div>
       </div>
@@ -238,8 +236,8 @@ const innerImageStyle = computed<CSSProperties>(() => ({
           :class="{
             'text-primary border-primary/20 bg-primary/[0.03]':
               image.status === 'done' && !image.isDirty,
-            'text-amber-500 border-amber-500/20 bg-amber-500/[0.03]':
-              image.status === 'done' && image.isDirty,
+            'text-amber-500 border-amber-500/20 bg-amber-500/[0.03] shadow-[0_0_8px_rgba(245,158,11,0.1)]':
+              isDirtyDone,
             'text-blue-500 border-blue-500/20 bg-blue-500/[0.03]': image.status === 'processing',
             'text-destructive border-destructive/20 bg-destructive/[0.03]':
               image.status === 'error',
@@ -271,27 +269,22 @@ const innerImageStyle = computed<CSSProperties>(() => ({
             @click.stop="store.resetImage(image.id)"
             class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-secondary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
             title="恢复原图"
-            aria-label="恢复图片到初始状态"
           >
             <RotateCcw :size="16" />
           </button>
-
           <button
             v-if="image.status === 'done'"
             @click.stop="emit('compare', image.id)"
             class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-secondary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
             title="对比画质细节"
-            aria-label="打开大图对比弹窗"
           >
             <Columns2 :size="16" />
           </button>
-
           <button
             v-if="image.status === 'done'"
             @click.stop="emit('download', image.id)"
             class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-primary text-muted-foreground hover:text-primary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
             title="保存处理后的图片"
-            aria-label="下载当前压缩后的图片"
           >
             <Download :size="16" />
           </button>
@@ -300,3 +293,57 @@ const innerImageStyle = computed<CSSProperties>(() => ({
     </div>
   </div>
 </template>
+
+<style scoped>
+.shadow-inner-glow {
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.02);
+}
+
+/* 脏状态边框呼吸动画 */
+@keyframes dirty-pulse {
+  0%,
+  100% {
+    border-color: rgba(245, 158, 11, 0.3);
+    box-shadow: 0 0 5px rgba(245, 158, 11, 0.05);
+  }
+  50% {
+    border-color: rgba(245, 158, 11, 0.6);
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+  }
+}
+
+.animate-dirty-pulse {
+  animation: dirty-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* 斜纹背景与滚动动画 */
+.bg-stripe-pattern {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 20px,
+    rgba(245, 158, 11, 0.08) 20px,
+    rgba(245, 158, 11, 0.08) 40px
+  );
+}
+
+@keyframes stripe-scroll {
+  from {
+    transform: translateX(0) translateY(0);
+  }
+  to {
+    transform: translateX(40px) translateY(40px);
+  }
+}
+
+.animate-stripe-scroll {
+  animation: stripe-scroll 3s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-dirty-pulse,
+  .animate-stripe-scroll {
+    animation: none !important;
+  }
+}
+</style>
