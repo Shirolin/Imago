@@ -92,8 +92,15 @@ export function useFileHelpers() {
       const url = URL.createObjectURL(content)
 
       const now = new Date()
+      // 避免使用容易被 esbuild 误认为 CSS 语法的正则 [ - : T ]
       const timestamp =
-        now.toISOString().replace(/[-:T]/g, '').split('.')[0]?.slice(0, 14) || 'date'
+        now
+          .toISOString()
+          .replace(/-/g, '')
+          .replace(/:/g, '')
+          .replace(/T/g, '')
+          .split('.')[0]
+          ?.slice(0, 14) || 'date'
       // 压缩包本身保留 Imago 前缀，方便识别来源
       const fileName = `Imago_Archive_${timestamp}.zip`
 
