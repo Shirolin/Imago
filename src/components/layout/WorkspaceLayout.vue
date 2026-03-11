@@ -29,8 +29,8 @@ withDefaults(defineProps<Props>(), {
         <header
           class="bg-card/80 backdrop-blur-md border-b border-border shrink-0 relative z-20 overflow-x-auto overflow-y-hidden no-scrollbar h-14"
         >
-          <div class="h-full flex items-center px-4 md:px-6">
-            <div class="flex items-center gap-4 md:gap-6">
+          <div class="h-full flex items-center px-4 md:px-6 min-w-max">
+            <div class="flex items-center gap-4 md:gap-6 shrink-0">
               <slot name="header-left"></slot>
             </div>
 
