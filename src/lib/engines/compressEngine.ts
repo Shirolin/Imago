@@ -1,6 +1,7 @@
 import imageCompression from 'browser-image-compression'
 import type { ImageProcessor } from './types'
 import { isFormatSupported } from '../utils/formatSupport'
+import { injectMetadata } from '../utils/metadata'
 
 export interface CompressionOptions {
   quality: number
@@ -19,6 +20,7 @@ export interface CompressionOptions {
   colors?: number // 针对 PNG 的颜色数量量化
   effort?: number // 压缩/优化强度 (1-9)
   keepOriginalIfLarger?: boolean // 如果变大是否保留原图
+  preserveExif?: boolean // 是否保留原始元数据 (EXIF, GPS 等)
 }
 
 export const compressEngine: ImageProcessor<CompressionOptions> = async (file, options) => {
@@ -44,22 +46,28 @@ export const compressEngine: ImageProcessor<CompressionOptions> = async (file, o
   }
 
   const compressedFile = await imageCompression(file, compressionOptions)
+  let outputBuffer = await compressedFile.arrayBuffer()
+
+  // 如果需要，缝合元数据
+  if (options.preserveExif && file instanceof File) {
+    outputBuffer = await injectMetadata(file, outputBuffer, options.format || file.type)
+  }
+
+  const finalBlob = new Blob([outputBuffer], { type: compressedFile.type })
 
   // 2. 后置校验：检查转换后的核心类型是否符合预期 (防止静默回退)
   if (options.format && options.format !== 'image/jpeg-li') {
     const targetFormatStrict = options.format
     // jpeg-li 比较特殊，它的输出 MIME 仍然是 image/jpeg
-    if (compressedFile.type !== targetFormatStrict) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore - TS 无法在异步上下文中识别 targetFormatStrict 的窄化
-      const formatName = targetFormatStrict.split('/')[1].toUpperCase()
+    if (finalBlob.type !== targetFormatStrict) {
+      const formatName = targetFormatStrict.split('/')[1]?.toUpperCase() || 'UNKNOWN'
       throw new Error(`转换失败：浏览器拒绝生成 ${formatName} 格式，已自动回退`)
     }
   }
 
   // 决定是否保留原图
   const shouldKeepOriginal = options.keepOriginalIfLarger !== false // 默认 true
-  if (shouldKeepOriginal && compressedFile.size >= file.size) {
+  if (shouldKeepOriginal && finalBlob.size >= file.size) {
     return {
       blob: file,
       size: file.size
@@ -67,7 +75,7 @@ export const compressEngine: ImageProcessor<CompressionOptions> = async (file, o
   }
 
   return {
-    blob: compressedFile,
-    size: compressedFile.size
+    blob: finalBlob,
+    size: finalBlob.size
   }
 }

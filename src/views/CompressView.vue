@@ -52,6 +52,7 @@ const outputFormat = ref<
 >('original')
 const showAdvanced = ref(false)
 const keepOriginalIfLarger = ref(true)
+const preserveExif = ref(false)
 const maxWidth = ref<number | undefined>(undefined)
 const maxHeight = ref<number | undefined>(undefined)
 
@@ -102,7 +103,8 @@ watch(
     outputFormat,
     maxWidth,
     maxHeight,
-    keepOriginalIfLarger
+    keepOriginalIfLarger,
+    preserveExif
   ],
   () => {
     if (store.doneCount > 0) {
@@ -180,7 +182,8 @@ const handleProcess = () => {
     format: outputFormat.value === 'original' ? undefined : outputFormat.value,
     colors: outputFormat.value === 'image/png' ? pngColors.value : undefined,
     effort: outputFormat.value === 'image/png' ? pngEffort.value : undefined,
-    keepOriginalIfLarger: keepOriginalIfLarger.value
+    keepOriginalIfLarger: keepOriginalIfLarger.value,
+    preserveExif: preserveExif.value
   }
 
   if (store.selectedCount > 0) {
@@ -492,6 +495,14 @@ const buttonText = computed(() => {
                 </div>
 
                 <AppCheckbox v-model="keepOriginalIfLarger" label="体积变大时保留原图" />
+
+                <AppCheckbox v-model="preserveExif" label="保留图片元数据 (EXIF)" />
+                <p
+                  v-if="preserveExif"
+                  class="text-[0.6rem] text-muted-foreground/60 leading-relaxed pl-7 -mt-1 italic"
+                >
+                  * 目前主要支持 JPEG 格式的元数据无损缝合，WebP/AVIF 等次世代格式暂不支持。
+                </p>
 
                 <AppCheckbox
                   :model-value="store.showMagnifier"

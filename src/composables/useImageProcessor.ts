@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { useImageStore } from '../stores/imageStore'
+import { useImageStore, type ImageItem } from '../stores/imageStore'
 import type { ImageProcessor, MultiImageProcessor } from '../lib/engines/types'
 
 export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImageProcessor<T>) {
@@ -60,30 +60,39 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
     }
   }
 
+  const processQueue = async (items: ImageItem[], options: T) => {
+    const CONCURRENCY_LIMIT = 3
+    let index = 0
+    const results: Promise<void>[] = []
+
+    const worker = async () => {
+      while (index < items.length) {
+        const item = items[index++]
+        if (item) {
+          await processSingle(item.id, options)
+        }
+      }
+    }
+
+    // 启动初始并发进程
+    for (let i = 0; i < Math.min(CONCURRENCY_LIMIT, items.length); i++) {
+      results.push(worker())
+    }
+
+    await Promise.all(results)
+  }
+
   const processAll = async (options: T) => {
     isProcessing.value = true
     const pendingImages = store.images.filter((img) => img.status !== 'done' || img.isDirty)
-
-    // 简单的并发控制：每次最多处理 3 张
-    const CONCURRENCY_LIMIT = 3
-    for (let i = 0; i < pendingImages.length; i += CONCURRENCY_LIMIT) {
-      const chunk = pendingImages.slice(i, i + CONCURRENCY_LIMIT)
-      await Promise.all(chunk.map((img) => processSingle(img.id, options)))
-    }
-
+    await processQueue(pendingImages, options)
     isProcessing.value = false
   }
 
   const processSelected = async (options: T) => {
     isProcessing.value = true
     const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
-
-    const CONCURRENCY_LIMIT = 3
-    for (let i = 0; i < selectedImages.length; i += CONCURRENCY_LIMIT) {
-      const chunk = selectedImages.slice(i, i + CONCURRENCY_LIMIT)
-      await Promise.all(chunk.map((img) => processSingle(img.id, options)))
-    }
-
+    await processQueue(selectedImages, options)
     isProcessing.value = false
   }
 
