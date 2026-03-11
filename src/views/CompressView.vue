@@ -47,7 +47,6 @@ const outputFormat = ref<
   | 'image/png'
   | 'image/avif'
   | 'image/jxl'
-  | 'image/heif'
   | 'image/webp2'
   | 'image/jpeg-li'
 >('original')
@@ -63,7 +62,6 @@ const recommendedQualities: Record<string, number> = {
   'image/webp': 0.75, // 相对平衡
   'image/avif': 0.55, // Wasm 加持下，极低画质参数依然有惊人的听觉保真度
   'image/jxl': 0.7, // 0.7 是兼顾解码速度与超高画质的绝佳甜点区
-  'image/heif': 0.6,
   'image/webp2': 0.65
 }
 
@@ -131,7 +129,6 @@ const formatOptions = computed(() => {
     { label: 'AVIF (最先进格式，极致压缩)', value: 'image/avif' },
     { label: 'PNG (无损压缩，支持透明)', value: 'image/png' },
     { label: 'JPEG XL (次世代全能标准)', value: 'image/jxl' },
-    { label: 'HEIF/HEIC (高效率，苹果标准)', value: 'image/heif' },
     { label: 'WebP2 (Google 实验性后继者)', value: 'image/webp2' }
   ]
 
