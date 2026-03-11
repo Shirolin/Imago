@@ -23,6 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 .gemini/
+.agent/
 temp_impeccable/
 temp_impeccable
 /temp_impeccable/

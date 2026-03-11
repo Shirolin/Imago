@@ -1,11 +1,11 @@
-import type { ImageProcessor, ProcessResult } from './types'
+import type { ImageProcessor } from './types'
 
 export interface SplitOptions {
   mode: 'grid' | 'tiles'
-  rows?: number
-  cols?: number
-  tileWidth?: number
-  tileHeight?: number
+  rows: number
+  cols: number
+  tileWidth: number
+  tileHeight: number
 }
 
 export const splitEngine: ImageProcessor<SplitOptions> = async (file, options) => {

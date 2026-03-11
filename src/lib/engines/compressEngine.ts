@@ -1,5 +1,5 @@
 import imageCompression from 'browser-image-compression'
-import type { ImageProcessor, ProcessResult } from './types'
+import type { ImageProcessor } from './types'
 
 export interface CompressionOptions {
   quality: number

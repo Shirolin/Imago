@@ -8,15 +8,15 @@ export interface ProcessResult {
 
 export interface ProcessingOptions {
   signal?: AbortSignal
-  [key: string]: any
+  [key: string]: unknown
 }
 
-export type ImageProcessor<T = any> = (
+export type ImageProcessor<T = unknown> = (
   file: File,
   options: T & ProcessingOptions
 ) => Promise<ProcessResult>
 
-export type MultiImageProcessor<T = any> = (
+export type MultiImageProcessor<T = unknown> = (
   files: File[],
   options: T & ProcessingOptions
 ) => Promise<ProcessResult>

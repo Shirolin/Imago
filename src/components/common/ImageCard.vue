@@ -1,14 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted, watch } from 'vue'
-import {
-  Download,
-  X,
-  Loader2,
-  CheckCircle2,
-  Square,
-  CheckSquare,
-  Columns2
-} from 'lucide-vue-next'
+import { Download, X, Loader2, CheckCircle2, Square, CheckSquare, Columns2 } from 'lucide-vue-next'
 import { useFileHelpers } from '../../composables/useFileHelpers'
 import { useImageStore } from '../../stores/imageStore'
 import type { ImageItem } from '../../stores/imageStore'
@@ -52,10 +44,10 @@ onUnmounted(() => {
 
 const handleMouseMove = (e: MouseEvent) => {
   if (!showMagnifier.value || !imageRef.value) return
-  
+
   // 使用 RAF 确保每一帧同步渲染，解决“不跟手”问题
   if (rafId.value) cancelAnimationFrame(rafId.value)
-  
+
   rafId.value = requestAnimationFrame(() => {
     const rect = imageRef.value!.getBoundingClientRect()
     const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100))
@@ -79,19 +71,20 @@ const magnifierStyle = computed(() => ({
 }))
 
 const innerImageStyle = computed(() => ({
-  transform: `scale(2.5)`, 
-  transformOrigin: `${mousePos.value.x}% ${mousePos.value.y}%`,
-  imageRendering: 'auto'
+  transform: `scale(2.5)`,
+  transformOrigin: `${mousePos.value.x}% ${mousePos.value.y}%`
 }))
 </script>
 
 <template>
   <div
-    class="relative bg-card rounded-2xl overflow-hidden border border-border/60 transition-all duration-500 cursor-pointer flex flex-col group hover:shadow-2xl hover:shadow-black/10 hover:border-primary/30 shadow-inner-glow @container"
+    class="relative bg-card rounded-2xl overflow-hidden border border-border/60 transition-all duration-500 cursor-pointer flex flex-col group hover:shadow-2xl hover:shadow-black/10 hover:border-primary/30 shadow-inner-glow @container outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     :class="[
       isSelected ? 'ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/[0.03]' : ''
     ]"
+    tabindex="0"
     @click="emit('toggle', image.id)"
+    @keydown.enter.space.prevent="emit('toggle', image.id)"
   >
     <!-- 图片展示区 -->
     <div
@@ -121,7 +114,8 @@ const innerImageStyle = computed(() => ({
       <!-- 【右上角】：删除按钮 -->
       <button
         @click.stop="emit('remove', image.id)"
-        class="absolute top-3 right-3 z-30 bg-black/20 hover:bg-destructive text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-white/10"
+        class="absolute top-3 right-3 z-30 bg-black/20 hover:bg-destructive text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 group-focus-within/image:opacity-100 focus:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-white/10 outline-none focus-visible:ring-2 focus-visible:ring-white"
+        aria-label="从列表移除图片"
       >
         <X :size="14" />
       </button>
@@ -150,11 +144,11 @@ const innerImageStyle = computed(() => ({
             class="absolute inset-0 w-full h-full object-contain"
             :style="innerImageStyle"
           />
-          
+
           <!-- 前景：处理后的图 (右侧) -->
-          <div 
+          <div
             class="absolute inset-0 w-full h-full"
-            :style="{ 
+            :style="{
               clipPath: `inset(0 0 0 50%)`,
               ...innerImageStyle
             }"
@@ -163,16 +157,30 @@ const innerImageStyle = computed(() => ({
           </div>
 
           <!-- 分割线 -->
-          <div class="absolute inset-y-0 left-1/2 w-0.5 bg-primary/80 z-10 shadow-[0_0_8px_rgba(var(--primary-rgb),1)]"></div>
-          
+          <div
+            class="absolute inset-y-0 left-1/2 w-0.5 bg-primary/80 z-10 shadow-[0_0_8px_rgba(var(--primary-rgb),1)]"
+          ></div>
+
           <!-- 增强标签标识 -->
-          <div class="absolute inset-0 flex items-center justify-between px-2 text-[10px] pointer-events-none z-20">
-             <div class="flex flex-col items-center gap-1 opacity-80 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                <span class="bg-black/60 px-1.5 py-0.5 rounded text-white font-black border border-white/20">BEFORE</span>
-             </div>
-             <div class="flex flex-col items-center gap-1 opacity-80 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                <span class="bg-primary/80 px-1.5 py-0.5 rounded text-white font-black border border-white/20">AFTER</span>
-             </div>
+          <div
+            class="absolute inset-0 flex items-center justify-between px-2 text-[10px] pointer-events-none z-20"
+          >
+            <div
+              class="flex flex-col items-center gap-1 opacity-80 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+            >
+              <span
+                class="bg-black/60 px-1.5 py-0.5 rounded text-white font-black border border-white/20"
+                >BEFORE</span
+              >
+            </div>
+            <div
+              class="flex flex-col items-center gap-1 opacity-80 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+            >
+              <span
+                class="bg-primary/80 px-1.5 py-0.5 rounded text-white font-black border border-white/20"
+                >AFTER</span
+              >
+            </div>
           </div>
         </div>
       </div>

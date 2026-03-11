@@ -1,20 +1,22 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { ChevronDown, Check } from 'lucide-vue-next'
 
-interface Option<T = any> {
+interface Option<V> {
   label: string
-  value: T
+  value: V
 }
 
-interface Props<T = any> {
-  modelValue: T
-  options: Option<T>[]
+interface Props<V> {
+  modelValue: V
+  options: Option<V>[]
   placeholder?: string
 }
 
-const props = defineProps<Props>()
-const emit = defineEmits(['update:modelValue'])
+const props = defineProps<Props<T>>()
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: T): void
+}>()
 
 const isOpen = ref(false)
 const containerRef = ref<HTMLElement | null>(null)
@@ -23,7 +25,7 @@ const toggle = () => {
   isOpen.value = !isOpen.value
 }
 
-const select = (value: any) => {
+const select = (value: T) => {
   emit('update:modelValue', value)
   isOpen.value = false
 }

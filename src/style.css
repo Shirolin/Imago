@@ -4,48 +4,64 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --background: 173 20% 98%;
+    --foreground: 173 10% 4%;
+    --card: 173 20% 99%;
+    --card-foreground: 173 10% 4%;
+    --popover: 173 20% 99%;
+    --popover-foreground: 173 10% 4%;
     --primary: 173 80% 40%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --primary-foreground: 173 5% 98%;
+    --secondary: 173 15% 92%;
+    --secondary-foreground: 173 10% 4%;
+    --muted: 173 10% 95%;
+    --muted-foreground: 173 5% 45%;
     --accent: 173 80% 40%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 84.2% 60.2%;
+    --accent-foreground: 173 5% 98%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
+    --border: 173 20% 50% / 0.2;
+    --input: 173 20% 50% / 0.2;
     --ring: 173 80% 40%;
     --radius: 0.75rem;
+
+    /* 语义化颜色 */
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 38 92% 10%;
+    --info: 210 100% 50%;
+    --info-foreground: 0 0% 100%;
   }
 
   [data-theme='dark'] {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --background: 173 10% 4%;
+    --foreground: 173 5% 98%;
+    --card: 173 15% 8%;
+    --card-foreground: 173 5% 98%;
+    --popover: 173 15% 7%;
+    --popover-foreground: 173 5% 98%;
     --primary: 173 80% 40%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --primary-foreground: 173 5% 98%;
+    --secondary: 173 15% 15%;
+    --secondary-foreground: 173 5% 98%;
+    --muted: 173 10% 12%;
+    --muted-foreground: 173 5% 75%;
     --accent: 173 80% 40%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --accent-foreground: 173 5% 98%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
+    --border: 173 20% 50% / 0.2;
+    --input: 173 20% 50% / 0.2;
     --ring: 173 80% 40%;
+
+    /* 语义化颜色 (深色模式微调，如果需要) */
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 38 92% 10%;
+    --info: 210 100% 50%;
+    --info-foreground: 0 0% 100%;
   }
 
   /* 核心按钮系统变量 (Standardization) */

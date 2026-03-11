@@ -1,4 +1,4 @@
-import type { ImageProcessor, ProcessResult } from './types'
+import type { ImageProcessor } from './types'
 
 export interface CropOptions {
   x?: number
@@ -32,8 +32,6 @@ export const cropEngine: ImageProcessor<CropOptions> = async (file, options) => 
       const drawHeight = isVertical ? img.width : img.height
 
       // 默认全图裁剪（如果未提供参数）
-      const cropX = options.x ?? 0
-      const cropY = options.y ?? 0
       const cropW = options.width ?? drawWidth
       const cropH = options.height ?? drawHeight
 

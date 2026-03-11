@@ -24,8 +24,7 @@ import {
   FileType,
   ChevronDown,
   ChevronUp,
-  Palette,
-  Check
+  Palette
 } from 'lucide-vue-next'
 import { compressEngine } from '../lib/engines/compressEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
@@ -128,7 +127,7 @@ const handleProcess = () => {
     maxSizeMB: compressionMode.value === 'target' ? targetSizeKB.value / 1024 : undefined,
     maxWidth: maxWidth.value,
     maxHeight: maxHeight.value,
-    format: outputFormat.value === 'original' ? undefined : (outputFormat.value as any),
+    format: outputFormat.value === 'original' ? undefined : outputFormat.value,
     colors: outputFormat.value === 'image/png' ? pngColors.value : undefined,
     effort: outputFormat.value === 'image/png' ? pngEffort.value : undefined,
     keepOriginalIfLarger: keepOriginalIfLarger.value
@@ -172,7 +171,6 @@ const buttonText = computed(() => {
           :key="img.id"
           :image="img"
           :is-selected="store.selectedIds.has(img.id)"
-          @toggle="store.toggleSelection"
           @remove="store.removeImage"
           @download="handleDownload"
           @compare="handleCompare"
@@ -180,19 +178,20 @@ const buttonText = computed(() => {
           <template #overlay="{ image }">
             <div
               v-if="image.status === 'done'"
-              class="px-2 py-1 rounded-lg text-[0.65rem] font-black flex items-center gap-1 shadow-xl backdrop-blur-md border border-white/10 animate-in fade-in zoom-in-95 duration-300"
+              class="px-2 py-0.5 rounded-md text-[0.6rem] font-black flex items-center shadow-lg bg-background/95 border border-border transition-all duration-300 group-hover:border-primary/40"
               :class="
                 image.processedSize === image.originalSize
-                  ? 'bg-muted/80 text-muted-foreground'
-                  : 'bg-primary text-primary-foreground'
+                  ? 'text-muted-foreground'
+                  : 'text-primary'
               "
             >
               <template v-if="image.processedSize === image.originalSize">
                 <span>已跳过</span>
               </template>
               <template v-else>
-                <Zap :size="10" class="fill-current" />
-                {{ Math.round((1 - image.processedSize! / image.originalSize) * 100) }}%
+                <span
+                  >-{{ Math.round((1 - image.processedSize! / image.originalSize) * 100) }}%</span
+                >
               </template>
             </div>
           </template>
@@ -229,15 +228,15 @@ const buttonText = computed(() => {
       </template>
 
       <template #sidebar>
-        <div class="flex flex-col h-full bg-card/40 backdrop-blur-sm border-l border-border/50">
-          <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-9">
+        <div class="flex flex-col h-full bg-card/60 backdrop-blur-xl border-l border-border/50">
+          <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-7">
             <!-- 1. 核心策略选择 -->
             <section class="space-y-4">
               <div class="flex items-center justify-between px-0.5">
                 <AppSectionHeader title="压缩策略" :icon="Settings2" />
                 <span
-                  class="text-[0.6rem] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase tracking-widest"
-                  >Smart</span
+                  class="text-[0.6rem] font-bold text-muted-foreground/60 border border-border px-1.5 py-0.5 rounded uppercase tracking-tighter"
+                  >Smart Engine</span
                 >
               </div>
               <AppSegmentedControl v-model="compressionMode" :options="modeOptions" />
@@ -245,7 +244,7 @@ const buttonText = computed(() => {
 
             <!-- 2. 参数调节区 (动态切换) -->
             <section class="relative">
-              <div class="bg-background/40 rounded-2xl p-5 border border-border/40 shadow-soft">
+              <div class="bg-muted/10 rounded-xl p-5 border border-border/60">
                 <div v-if="compressionMode === 'quality'" class="space-y-7">
                   <!-- PNG 特殊处理 -->
                   <template v-if="outputFormat === 'image/png'">
@@ -414,6 +413,8 @@ const buttonText = computed(() => {
                       placeholder="Width"
                       suffix="W"
                     />
+                  </div>
+                  <div class="flex flex-col gap-1.5">
                     <AppInput
                       v-model.number="maxHeight"
                       type="number"
@@ -423,10 +424,7 @@ const buttonText = computed(() => {
                   </div>
                 </div>
 
-                <AppCheckbox
-                  v-model="keepOriginalIfLarger"
-                  label="体积变大时保留原图"
-                />
+                <AppCheckbox v-model="keepOriginalIfLarger" label="体积变大时保留原图" />
 
                 <AppCheckbox
                   :model-value="store.showMagnifier"

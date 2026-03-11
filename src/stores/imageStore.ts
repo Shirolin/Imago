@@ -19,7 +19,7 @@ export interface ImageItem {
 export const useImageStore = defineStore('image', () => {
   const images = ref<ImageItem[]>([])
   const selectedIds = ref<Set<string>>(new Set())
-  
+
   // 智能倍镜设置
   const showMagnifier = ref(localStorage.getItem('imago-show-magnifier') !== 'false')
 

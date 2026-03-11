@@ -26,14 +26,15 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
         abortController: undefined
       })
       return result
-    } catch (error: any) {
-      if (error.name === 'AbortError' || error.message?.includes('abort')) {
+    } catch (error) {
+      const err = error as Error
+      if (err.name === 'AbortError' || err.message?.includes('abort')) {
         return
       }
       console.error('Processing failed for image:', id, error)
       store.updateImage(id, {
         status: 'error',
-        error: error.message || '处理失败',
+        error: err.message || '处理失败',
         abortController: undefined
       })
     }
@@ -51,7 +52,7 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
       })
       isProcessing.value = false
       return result
-    } catch (error: any) {
+    } catch (error) {
       isProcessing.value = false
       console.error('Combine failed:', error)
       throw error

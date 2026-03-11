@@ -1,4 +1,4 @@
-import type { MultiImageProcessor, ProcessResult } from './types'
+import type { MultiImageProcessor } from './types'
 
 export interface CombineOptions {
   direction: 'vertical' | 'horizontal' | 'grid'

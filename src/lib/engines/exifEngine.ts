@@ -1,5 +1,5 @@
 import exifr from 'exifr'
-import type { ImageProcessor, ProcessResult } from './types'
+import type { ImageProcessor } from './types'
 
 export interface ExifData {
   make?: string
@@ -51,7 +51,7 @@ export const readExif = async (file: File): Promise<ExifData | null> => {
  * 清除 EXIF 信息的引擎
  * 原理：通过 Canvas 重新绘制图片，Canvas 不会保留原始图片的元数据。
  */
-export const clearExifEngine: ImageProcessor<any> = async (file) => {
+export const clearExifEngine: ImageProcessor<unknown> = async (file, _options) => {
   return new Promise((resolve, reject) => {
     const img = new Image()
     const url = URL.createObjectURL(file)

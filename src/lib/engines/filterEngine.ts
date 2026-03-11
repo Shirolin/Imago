@@ -1,4 +1,4 @@
-import type { ImageProcessor, ProcessResult } from './types'
+import type { ImageProcessor } from './types'
 
 export interface FilterOptions {
   brightness: number

@@ -24,51 +24,50 @@ export default {
         sans: ['Inter', 'Noto Sans SC', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', '"Noto Sans"', 'sans-serif', '"Apple Color Emoji"', '"Segoe UI Emoji"', '"Segoe UI Symbol"', '"Noto Color Emoji"'],
       },
       colors: {
-        border: "hsla(173, 20%, 50%, 0.2)",
-        input: "hsla(173, 20%, 50%, 0.2)",
-        ring: "hsl(173, 80%, 40%)",
-        // 品牌化中性色：为背景注入极微量的绿色偏移 (173色相)
-        background: "hsl(173, 10%, 4%)", 
-        foreground: "hsl(173, 5%, 98%)",
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "hsl(173, 80%, 40%)",
-          foreground: "hsl(173, 5%, 98%)",
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
-          DEFAULT: "hsl(173, 15%, 15%)",
-          foreground: "hsl(173, 5%, 98%)",
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
         },
         destructive: {
-          DEFAULT: "hsl(0, 84%, 60%)",
-          foreground: "hsl(0, 0%, 98%)",
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
         },
         muted: {
-          DEFAULT: "hsl(173, 10%, 12%)",
-          foreground: "hsl(173, 5%, 75%)",
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "hsl(173, 80%, 40%)",
-          foreground: "hsl(173, 5%, 98%)",
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
         },
         popover: {
-          DEFAULT: "hsl(173, 15%, 7%)",
-          foreground: "hsl(173, 5%, 98%)",
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
         },
         card: {
-          DEFAULT: "hsl(173, 15%, 8%)",
-          foreground: "hsl(173, 5%, 98%)",
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
         },
         success: {
-          DEFAULT: "hsl(142, 70%, 45%)",
-          foreground: "white",
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
         },
         warning: {
-          DEFAULT: "hsl(38, 92%, 50%)",
-          foreground: "hsl(38, 92%, 10%)",
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
         },
         info: {
-          DEFAULT: "hsl(210, 100%, 50%)",
-          foreground: "white",
+          DEFAULT: "hsl(var(--info))",
+          foreground: "hsl(var(--info-foreground))",
         }
       },
       borderRadius: {

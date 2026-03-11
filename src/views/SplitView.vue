@@ -22,7 +22,7 @@ const cols = ref(3)
 const tileWidth = ref(1080)
 const tileHeight = ref(1080)
 
-const { isProcessing, processSelected } = useImageProcessor(splitEngine)
+const { isProcessing } = useImageProcessor(splitEngine)
 
 const splitModes = [
   { label: '网格', value: 'grid' },
