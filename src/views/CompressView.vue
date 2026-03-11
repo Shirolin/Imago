@@ -58,13 +58,13 @@ const maxHeight = ref<number | undefined>(undefined)
 
 // 格式推荐质量映射
 const recommendedQualities: Record<string, number> = {
-  'image/jpeg-li': 0.8,
-  'image/jpeg': 0.8,
-  'image/webp': 0.75,
-  'image/avif': 0.65,
+  'image/jpeg-li': 0.75, // 同样画质下比传统 JPEG 体积小 30%
+  'image/jpeg': 0.8, // 传统推荐
+  'image/webp': 0.75, // 相对平衡
+  'image/avif': 0.55, // Wasm 加持下，极低画质参数依然有惊人的听觉保真度
+  'image/jxl': 0.7, // 0.7 是兼顾解码速度与超高画质的绝佳甜点区
   'image/heif': 0.6,
-  'image/jxl': 0.85,
-  'image/webp2': 0.7
+  'image/webp2': 0.65
 }
 
 // 对比预览状态
@@ -416,8 +416,8 @@ const buttonText = computed(() => {
                       抱歉，当前双引擎混合架构尚不支持导出为
                       <span class="font-black underline decoration-destructive/30 uppercase">{{
                         outputFormat.split('/')[1]
-                      }}</span
-                      > 格式。建议使用 WebP 或者是 JPEG 以获得最佳的兼容性。
+                      }}</span>
+                      格式。建议使用 WebP 或者是 JPEG 以获得最佳的兼容性。
                     </span>
                   </AppTip>
                 </div>
