@@ -106,7 +106,7 @@ onUnmounted(() => {
     <!-- 全局拖拽覆盖层 (Delight Overlay) -->
     <Teleport to="body">
       <Transition
-        enter-active-class="transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+        enter-active-class="transition duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]"
         enter-from-class="opacity-0 scale-95"
         enter-to-class="opacity-100 scale-100"
         leave-active-class="transition duration-200 ease-in"
@@ -159,12 +159,12 @@ onUnmounted(() => {
           <Upload class="w-1/2 h-1/2 transition-transform duration-500 group-hover:scale-110" />
         </div>
         <div
-          class="absolute bottom-2 left-0 w-[35%] h-[45%] rounded-[22%] bg-muted/80 border-2 border-border text-muted-foreground/60 z-0 -rotate-12 flex items-center justify-center transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:border-primary/40 group-hover:text-primary group-hover:-translate-x-6 group-hover:translate-y-2 group-hover:-rotate-[25deg] shadow-sm"
+          class="absolute bottom-2 left-0 w-[35%] h-[45%] rounded-[22%] bg-muted/80 border-2 border-border text-muted-foreground/60 z-0 -rotate-12 flex items-center justify-center transition-all duration-700 [transition-timing-function:cubic-bezier(0.34,1.56,0.64,1)] group-hover:border-primary/40 group-hover:text-primary group-hover:-translate-x-6 group-hover:translate-y-2 group-hover:-rotate-[25deg] shadow-sm"
         >
           <ImageIcon class="w-1/2 h-1/2" />
         </div>
         <div
-          class="absolute top-2 right-0 w-[35%] h-[45%] rounded-[22%] bg-muted/80 border-2 border-border text-muted-foreground/60 z-0 rotate-12 flex items-center justify-center transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:border-primary/40 group-hover:text-primary group-hover:translate-x-6 group-hover:-translate-y-2 group-hover:rotate-[25deg] shadow-sm"
+          class="absolute top-2 right-0 w-[35%] h-[45%] rounded-[22%] bg-muted/80 border-2 border-border text-muted-foreground/60 z-0 rotate-12 flex items-center justify-center transition-all duration-700 [transition-timing-function:cubic-bezier(0.34,1.56,0.64,1)] group-hover:border-primary/40 group-hover:text-primary group-hover:translate-x-6 group-hover:-translate-y-2 group-hover:rotate-[25deg] shadow-sm"
         >
           <FileImage class="w-1/2 h-1/2" />
         </div>

@@ -66,7 +66,7 @@ withDefaults(defineProps<Props>(), {
       <!-- 右侧控制面板 (Inspector) - 独立控制 -->
       <aside
         v-if="showSidebar"
-        class="bg-card border-t md:border-t-0 md:border-l border-border flex flex-col shrink-0 relative z-10 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden shadow-2xl md:shadow-none"
+        class="bg-card border-t md:border-t-0 md:border-l border-border flex flex-col shrink-0 relative z-10 transition-all duration-300 ease-in-out overflow-hidden shadow-2xl md:shadow-none"
         :class="[
           'w-full max-h-[50vh] md:max-h-none',
           layoutStore.isInspectorCollapsed
