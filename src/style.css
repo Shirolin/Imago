@@ -20,8 +20,8 @@
     --accent-foreground: 173 5% 98%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 173 20% 50% / 0.2;
-    --input: 173 20% 50% / 0.2;
+    --border: 173 15% 88%;
+    --input: 173 15% 88%;
     --ring: 173 80% 40%;
     --radius: 0.75rem;
 
@@ -51,8 +51,8 @@
     --accent-foreground: 173 5% 98%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 173 20% 50% / 0.2;
-    --input: 173 20% 50% / 0.2;
+    --border: 173 10% 18%;
+    --input: 173 10% 18%;
     --ring: 173 80% 40%;
 
     /* 语义化颜色 (深色模式微调，如果需要) */
