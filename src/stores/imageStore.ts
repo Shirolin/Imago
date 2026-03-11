@@ -14,6 +14,7 @@ export interface ImageItem {
   processedBlob?: Blob
   error?: string
   abortController?: AbortController
+  isDirty?: boolean
 }
 
 export const useImageStore = defineStore('image', () => {
@@ -45,6 +46,35 @@ export const useImageStore = defineStore('image', () => {
     if (processingCount.value === 0 && doneCount.value === totalCount.value) return 100
     return Math.round((doneCount.value / totalCount.value) * 100)
   })
+
+  // 脏数据管理
+  const markAllAsDirty = () => {
+    images.value.forEach((img) => {
+      if (img.status === 'done') {
+        img.isDirty = true
+      }
+    })
+  }
+
+  const resetImage = (id: string) => {
+    const img = images.value.find((i) => i.id === id)
+    if (img) {
+      if (img.abortController) {
+        img.abortController.abort()
+      }
+      img.status = 'idle'
+      img.processedBlob = undefined
+      img.processedSize = undefined
+      img.error = undefined
+      img.isDirty = false
+    }
+  }
+
+  const resetAll = () => {
+    images.value.forEach((img) => {
+      resetImage(img.id)
+    })
+  }
 
   const addImages = async (files: File[]) => {
     const existingKeys = new Set(
@@ -168,6 +198,9 @@ export const useImageStore = defineStore('image', () => {
     toggleAll,
     updateImage,
     showMagnifier,
-    setShowMagnifier
+    setShowMagnifier,
+    markAllAsDirty,
+    resetImage,
+    resetAll
   }
 })

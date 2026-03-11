@@ -23,7 +23,8 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
         status: 'done',
         processedSize: result.size,
         processedBlob: result.blob || (result.blobs ? result.blobs[0] : undefined),
-        abortController: undefined
+        abortController: undefined,
+        isDirty: false
       })
       return result
     } catch (error) {
@@ -61,7 +62,7 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
 
   const processAll = async (options: T) => {
     isProcessing.value = true
-    const pendingImages = store.images.filter((img) => img.status !== 'done')
+    const pendingImages = store.images.filter((img) => img.status !== 'done' || img.isDirty)
 
     // 简单的并发控制：每次最多处理 3 张
     const CONCURRENCY_LIMIT = 3

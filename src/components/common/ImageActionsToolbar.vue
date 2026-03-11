@@ -4,7 +4,7 @@ import { useImageStore } from '../../stores/imageStore'
 import { useFileHelpers } from '../../composables/useFileHelpers'
 import AppButton from './AppButton.vue'
 import AppModal from './AppModal.vue'
-import { Plus, Trash2, X, AlertTriangle, Download } from 'lucide-vue-next'
+import { Plus, Trash2, X, AlertTriangle, Download, RotateCcw } from 'lucide-vue-next'
 import { useBreakpoints } from '../../composables/useBreakpoints'
 
 interface Props {
@@ -104,8 +104,21 @@ const handleConfirmDelete = () => {
       <span v-if="isPC" class="ml-2">清空全部</span>
     </AppButton>
 
+    <!-- 5. 恢复全部按钮 (带交错延迟) -->
+    <AppButton
+      v-if="store.doneCount > 0"
+      variant="secondary"
+      size="md"
+      :disabled="isProcessing"
+      @click="store.resetAll"
+      class="!px-3 md:!px-4 !h-9 md:!h-10 animate-in fade-in slide-in-from-right-4 duration-500 delay-200 fill-mode-both"
+    >
+      <template #icon><RotateCcw :size="16" /></template>
+      <span v-if="isPC" class="ml-2">恢复原图</span>
+    </AppButton>
+
     <!-- 允许插入额外的操作 -->
-    <div class="animate-in fade-in slide-in-from-right-4 duration-500 delay-200 fill-mode-both">
+    <div class="animate-in fade-in slide-in-from-right-4 duration-500 delay-250 fill-mode-both">
       <slot name="extra"></slot>
     </div>
 

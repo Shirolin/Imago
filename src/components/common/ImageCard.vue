@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted, watch } from 'vue'
 import type { CSSProperties } from 'vue'
-import { Download, X, Loader2, CheckCircle2, Square, CheckSquare, Columns2 } from 'lucide-vue-next'
+import { Download, X, Loader2, CheckCircle2, Square, CheckSquare, Columns2, RotateCcw } from 'lucide-vue-next'
 import { useFileHelpers } from '../../composables/useFileHelpers'
 import { useImageStore } from '../../stores/imageStore'
 import type { ImageItem } from '../../stores/imageStore'
@@ -227,7 +227,8 @@ const innerImageStyle = computed<CSSProperties>(() => ({
         <div
           class="flex items-center gap-1.5 px-2.5 h-6 rounded-md font-black text-[0.65rem] border transition-all duration-300 uppercase tracking-widest"
           :class="{
-            'text-primary border-primary/20 bg-primary/[0.03]': image.status === 'done',
+            'text-primary border-primary/20 bg-primary/[0.03]': image.status === 'done' && !image.isDirty,
+            'text-amber-500 border-amber-500/20 bg-amber-500/[0.03]': image.status === 'done' && image.isDirty,
             'text-blue-500 border-blue-500/20 bg-blue-500/[0.03]': image.status === 'processing',
             'text-destructive border-destructive/20 bg-destructive/[0.03]':
               image.status === 'error',
@@ -243,11 +244,21 @@ const innerImageStyle = computed<CSSProperties>(() => ({
             ></div>
           </div>
           <span class="mt-0.5">{{
-            image.status === 'done' ? 'Ready' : image.status === 'processing' ? 'Wait' : 'Idle'
+            image.status === 'done' ? (image.isDirty ? '待更新' : 'Ready') : image.status === 'processing' ? 'Wait' : 'Idle'
           }}</span>
         </div>
 
         <div class="flex items-center gap-1">
+          <button
+            v-if="image.status === 'done' || image.status === 'error'"
+            @click.stop="store.resetImage(image.id)"
+            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-secondary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            title="恢复原图"
+            aria-label="恢复图片到初始状态"
+          >
+            <RotateCcw :size="16" />
+          </button>
+
           <button
             v-if="image.status === 'done'"
             @click.stop="emit('compare', image.id)"

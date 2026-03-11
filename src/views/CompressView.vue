@@ -91,6 +91,26 @@ watch(outputFormat, (newFormat) => {
   }
 })
 
+// 监听核心参数变化，标记脏状态
+watch(
+  [
+    compressionMode,
+    compressionQuality,
+    pngColors,
+    pngEffort,
+    targetSizeKB,
+    outputFormat,
+    maxWidth,
+    maxHeight,
+    keepOriginalIfLarger
+  ],
+  () => {
+    if (store.doneCount > 0) {
+      store.markAllAsDirty()
+    }
+  }
+)
+
 // 对比逻辑
 const handleCompare = (id: string) => {
   const img = store.images.find((i) => i.id === id)
@@ -179,6 +199,7 @@ const handleDownload = (id: string) => {
 
 const buttonText = computed(() => {
   if (isProcessing.value) return '正在处理...'
+  if (store.images.some((img) => img.isDirty)) return '重新应用新参数'
   if (store.selectedCount > 0) return `转换选中的 ${store.selectedCount} 张`
   return '开始压缩转换'
 })
