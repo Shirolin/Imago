@@ -1,5 +1,6 @@
 import imageCompression from 'browser-image-compression'
 import type { ImageProcessor } from './types'
+import { isFormatSupported } from '../utils/formatSupport'
 
 export interface CompressionOptions {
   quality: number
@@ -21,6 +22,17 @@ export interface CompressionOptions {
 }
 
 export const compressEngine: ImageProcessor<CompressionOptions> = async (file, options) => {
+  // 1. 前置校验：浏览器是否支持该格式的写出
+  if (options.format) {
+    const targetFormatOrNull = options.format
+    const supported = await isFormatSupported(targetFormatOrNull)
+    if (!supported) {
+      // @ts-ignore - TS 无法在异步上下文中识别 targetFormatOrNull 的窄化
+      const formatName = targetFormatOrNull.split('/')[1].toUpperCase()
+      throw new Error(`浏览器目前不支持导出为 ${formatName} 格式`)
+    }
+  }
+
   const compressionOptions = {
     maxSizeMB: options.maxSizeMB || 10,
     maxWidthOrHeight: options.maxWidth || options.maxHeight || 4096,
@@ -31,6 +43,17 @@ export const compressEngine: ImageProcessor<CompressionOptions> = async (file, o
   }
 
   const compressedFile = await imageCompression(file, compressionOptions)
+
+  // 2. 后置校验：检查转换后的核心类型是否符合预期 (防止静默回退)
+  if (options.format && options.format !== 'image/jpeg-li') {
+    const targetFormatStrict = options.format
+    // jpeg-li 比较特殊，它的输出 MIME 仍然是 image/jpeg
+    if (compressedFile.type !== targetFormatStrict) {
+      // @ts-ignore - TS 无法在异步上下文中识别 targetFormatStrict 的窄化
+      const formatName = targetFormatStrict.split('/')[1].toUpperCase()
+      throw new Error(`转换失败：浏览器拒绝生成 ${formatName} 格式，已自动回退`)
+    }
+  }
 
   // 决定是否保留原图
   const shouldKeepOriginal = options.keepOriginalIfLarger !== false // 默认 true

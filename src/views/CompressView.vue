@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useImageStore } from '../stores/imageStore'
 import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
@@ -27,6 +27,7 @@ import {
   Palette
 } from 'lucide-vue-next'
 import { compressEngine } from '../lib/engines/compressEngine'
+import { getSupportedFormats } from '../lib/utils/formatSupport'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import type { ImageItem } from '../stores/imageStore'
 
@@ -71,6 +72,16 @@ const showCompareModal = ref(false)
 const comparingImage = ref<ImageItem | null>(null)
 const processedPreviewUrl = ref<string | null>(null)
 
+// 浏览器支持性探测
+const supportedFormats = ref<Record<string, boolean>>({})
+
+onMounted(async () => {
+  const mimes = formatOptions.value
+    .map((o: any) => o.value)
+    .filter((v: any) => v !== 'original') as string[]
+  supportedFormats.value = await getSupportedFormats(mimes)
+})
+
 const { isProcessing, processAll, processSelected } = useImageProcessor(compressEngine)
 
 // 监听格式变化，自动设置推荐质量
@@ -110,16 +121,28 @@ const modeOptions = [
   { label: '指定体积', value: 'target', icon: Zap }
 ]
 
-const formatOptions = [
-  { label: '保留原格式', value: 'original' },
-  { label: 'JPEG (Google 增强，最佳兼容)', value: 'image/jpeg-li' },
-  { label: 'WebP (全能标准，极高压缩率)', value: 'image/webp' },
-  { label: 'AVIF (最先进格式，极致压缩)', value: 'image/avif' },
-  { label: 'PNG (无损压缩，支持透明)', value: 'image/png' },
-  { label: 'JPEG XL (次世代全能标准)', value: 'image/jxl' },
-  { label: 'HEIF/HEIC (高效率，苹果标准)', value: 'image/heif' },
-  { label: 'WebP2 (Google 实验性后继者)', value: 'image/webp2' }
-]
+const formatOptions = computed(() => {
+  const base = [
+    { label: '保留原格式', value: 'original' },
+    { label: 'JPEG (Google 增强，最佳兼容)', value: 'image/jpeg-li' },
+    { label: 'WebP (全能标准，极高压缩率)', value: 'image/webp' },
+    { label: 'AVIF (最先进格式，极致压缩)', value: 'image/avif' },
+    { label: 'PNG (无损压缩，支持透明)', value: 'image/png' },
+    { label: 'JPEG XL (次世代全能标准)', value: 'image/jxl' },
+    { label: 'HEIF/HEIC (高效率，苹果标准)', value: 'image/heif' },
+    { label: 'WebP2 (Google 实验性后继者)', value: 'image/webp2' }
+  ]
+
+  return base.map((opt: any) => {
+    if (opt.value === 'original' || opt.value === 'image/jpeg-li') return opt
+    const isSupported = supportedFormats.value[opt.value]
+    return {
+      ...opt,
+      label: isSupported === false ? `${opt.label} (浏览器不支持)` : opt.label,
+      disabled: isSupported === false
+    }
+  })
+})
 
 const handleProcess = () => {
   const options = {
@@ -361,13 +384,26 @@ const buttonText = computed(() => {
               <div class="space-y-3">
                 <AppSelect v-model="outputFormat" :options="formatOptions" />
                 <div v-if="outputFormat !== 'original'" class="px-1">
-                  <AppTip variant="info" class="bg-primary/[0.03] border-primary/10 py-2">
+                  <AppTip
+                    v-if="supportedFormats[outputFormat] !== false"
+                    variant="info"
+                    class="bg-primary/[0.03] border-primary/10 py-2"
+                  >
                     <span class="text-[0.65rem] font-medium leading-tight">
                       已切换至
                       <span class="font-black underline decoration-primary/30">{{
                         formatOptions.find((o) => o.value === outputFormat)?.label.split(' ')[0]
                       }}</span
                       >。系统已为您自动适配该格式的最佳压缩算法。
+                    </span>
+                  </AppTip>
+                  <AppTip v-else variant="error" class="bg-destructive/5 border-destructive/20 py-2">
+                    <span class="text-[0.65rem] font-medium leading-tight text-destructive">
+                      抱歉，您的浏览器目前不支持导出为
+                      <span class="font-black underline decoration-destructive/30 uppercase">{{
+                        outputFormat.split('/')[1]
+                      }}</span
+                      >。建议使用 WebP 或 JPEG 以获得更好的兼容性。
                     </span>
                   </AppTip>
                 </div>
