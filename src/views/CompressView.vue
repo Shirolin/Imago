@@ -395,7 +395,7 @@ const buttonText = computed(() => {
                 <AppSelect v-model="outputFormat" :options="formatOptions" />
                 <div v-if="outputFormat !== 'original'" class="px-1">
                   <AppTip
-                    v-if="supportedFormats[outputFormat] !== false"
+                    v-if="!formatOptions.find((o) => o.value === outputFormat)?.disabled"
                     variant="info"
                     class="bg-primary/[0.03] border-primary/10 py-2"
                   >
@@ -413,11 +413,11 @@ const buttonText = computed(() => {
                     class="bg-destructive/5 border-destructive/20 py-2"
                   >
                     <span class="text-[0.65rem] font-medium leading-tight text-destructive">
-                      抱歉，您的浏览器目前不支持导出为
+                      抱歉，当前双引擎混合架构尚不支持导出为
                       <span class="font-black underline decoration-destructive/30 uppercase">{{
                         outputFormat.split('/')[1]
                       }}</span
-                      >。建议使用 WebP 或 JPEG 以获得更好的兼容性。
+                      > 格式。建议使用 WebP 或者是 JPEG 以获得最佳的兼容性。
                     </span>
                   </AppTip>
                 </div>
