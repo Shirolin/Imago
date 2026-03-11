@@ -12,7 +12,7 @@ export async function isFormatSupported(mimeType: string): Promise<boolean> {
     const canvas = document.createElement('canvas')
     canvas.width = 1
     canvas.height = 1
-    
+
     // 尝试将 canvas 转换为目标格式的 Blob
     // 这是检测浏览器编码支持最可靠的方法
     const dataUrl = canvas.toDataURL(targetMime)

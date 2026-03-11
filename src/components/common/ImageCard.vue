@@ -149,10 +149,12 @@ const innerImageStyle = computed<CSSProperties>(() => ({
           <!-- 前景：处理后的图 (右侧) -->
           <div
             class="absolute inset-0 w-full h-full"
-            :style="({
-              clipPath: `inset(0 0 0 50%)`,
-              ...innerImageStyle
-            } as CSSProperties)"
+            :style="
+              {
+                clipPath: `inset(0 0 0 50%)`,
+                ...innerImageStyle
+              } as CSSProperties
+            "
           >
             <img :src="processedUrl" class="w-full h-full object-contain" />
           </div>

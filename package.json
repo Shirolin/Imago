@@ -19,6 +19,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@jsquash/avif": "^2.1.1",
+    "@jsquash/jpeg": "^1.6.0",
+    "@jsquash/jxl": "^1.3.0",
+    "@jsquash/png": "^3.1.1",
+    "@jsquash/webp": "^1.5.0",
     "@vueuse/core": "^14.2.1",
     "browser-image-compression": "^2.0.2",
     "class-variance-authority": "^0.7.1",

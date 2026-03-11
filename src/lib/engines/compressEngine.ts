@@ -27,6 +27,7 @@ export const compressEngine: ImageProcessor<CompressionOptions> = async (file, o
     const targetFormatOrNull = options.format
     const supported = await isFormatSupported(targetFormatOrNull)
     if (!supported) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore - TS 无法在异步上下文中识别 targetFormatOrNull 的窄化
       const formatName = targetFormatOrNull.split('/')[1].toUpperCase()
       throw new Error(`浏览器目前不支持导出为 ${formatName} 格式`)
@@ -49,6 +50,7 @@ export const compressEngine: ImageProcessor<CompressionOptions> = async (file, o
     const targetFormatStrict = options.format
     // jpeg-li 比较特殊，它的输出 MIME 仍然是 image/jpeg
     if (compressedFile.type !== targetFormatStrict) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore - TS 无法在异步上下文中识别 targetFormatStrict 的窄化
       const formatName = targetFormatStrict.split('/')[1].toUpperCase()
       throw new Error(`转换失败：浏览器拒绝生成 ${formatName} 格式，已自动回退`)

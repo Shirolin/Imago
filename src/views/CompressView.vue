@@ -26,7 +26,7 @@ import {
   ChevronUp,
   Palette
 } from 'lucide-vue-next'
-import { compressEngine } from '../lib/engines/compressEngine'
+import { dualEngine } from '../lib/engines'
 import { getSupportedFormats } from '../lib/utils/formatSupport'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import type { ImageItem } from '../stores/imageStore'
@@ -77,12 +77,14 @@ const supportedFormats = ref<Record<string, boolean>>({})
 
 onMounted(async () => {
   const mimes = formatOptions.value
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((o: any) => o.value)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .filter((v: any) => v !== 'original') as string[]
   supportedFormats.value = await getSupportedFormats(mimes)
 })
 
-const { isProcessing, processAll, processSelected } = useImageProcessor(compressEngine)
+const { isProcessing, processAll, processSelected } = useImageProcessor(dualEngine)
 
 // 监听格式变化，自动设置推荐质量
 watch(outputFormat, (newFormat) => {
@@ -133,12 +135,20 @@ const formatOptions = computed(() => {
     { label: 'WebP2 (Google 实验性后继者)', value: 'image/webp2' }
   ]
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return base.map((opt: any) => {
     if (opt.value === 'original' || opt.value === 'image/jpeg-li') return opt
-    const isSupported = supportedFormats.value[opt.value]
+    const isWasmSupported = [
+      'image/avif',
+      'image/jxl',
+      'image/webp',
+      'image/jpeg',
+      'image/png'
+    ].includes(opt.value)
+    const isSupported = isWasmSupported || supportedFormats.value[opt.value]
     return {
       ...opt,
-      label: isSupported === false ? `${opt.label} (浏览器不支持)` : opt.label,
+      label: isSupported === false ? `${opt.label} (暂不支持)` : opt.label,
       disabled: isSupported === false
     }
   })
@@ -397,7 +407,11 @@ const buttonText = computed(() => {
                       >。系统已为您自动适配该格式的最佳压缩算法。
                     </span>
                   </AppTip>
-                  <AppTip v-else variant="error" class="bg-destructive/5 border-destructive/20 py-2">
+                  <AppTip
+                    v-else
+                    variant="error"
+                    class="bg-destructive/5 border-destructive/20 py-2"
+                  >
                     <span class="text-[0.65rem] font-medium leading-tight text-destructive">
                       抱歉，您的浏览器目前不支持导出为
                       <span class="font-black underline decoration-destructive/30 uppercase">{{
@@ -457,7 +471,6 @@ const buttonText = computed(() => {
                       suffix="H"
                     />
                   </div>
-
                 </div>
 
                 <AppCheckbox v-model="keepOriginalIfLarger" label="体积变大时保留原图" />

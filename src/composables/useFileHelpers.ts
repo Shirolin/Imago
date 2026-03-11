@@ -71,10 +71,10 @@ export function useFileHelpers() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    
+
     // 动态判断最终的扩展名
     const finalName = getNewFileName(originalFileName, blob.type)
-    
+
     a.download = `${prefix}${finalName}`
     a.click()
     URL.revokeObjectURL(url)

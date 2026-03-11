@@ -12,6 +12,9 @@ export default defineConfig({
       plugins: [tailwindcss(), autoprefixer()],
     },
   },
+  worker: {
+    format: 'es',
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
