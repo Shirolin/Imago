@@ -73,11 +73,18 @@ export function useFileHelpers() {
   }
 
   /**
-   * 打包下载所有已处理图片为 ZIP
+   * 打包下载所有已处理图片为 ZIP，若只有一张则直接下载
    */
   const downloadAllAsZip = async (tag = '_Imago_Processed') => {
     const doneImages = store.images.filter((img) => img.status === 'done' && img.processedBlob)
     if (doneImages.length === 0) return
+
+    // 如果只有一张图片，直接下载单张，不打 ZIP 包
+    if (doneImages.length === 1) {
+      const img = doneImages[0]!
+      downloadImage(img.processedBlob!, img.file.name, tag)
+      return
+    }
 
     isDownloadingAll.value = true
     try {

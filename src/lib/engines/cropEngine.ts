@@ -13,6 +13,8 @@ export interface CropOptions {
   quality?: number
   format?: string
   preserveExif?: boolean
+  // 导出边框修剪（像素），独立于裁剪框预览，用于精确去除白边
+  trimPx?: { top?: number; bottom?: number; left?: number; right?: number }
 }
 
 export const cropEngine: ImageProcessor<CropOptions> = async (file, options) => {
@@ -61,11 +63,25 @@ export const cropEngine: ImageProcessor<CropOptions> = async (file, options) => 
         cropH = (cropH / 100) * rotatedHeight
       }
 
-      // 确保裁剪区域不超出旋转后的边界
-      cropX = Math.max(0, Math.min(cropX, rotatedWidth))
-      cropY = Math.max(0, Math.min(cropY, rotatedHeight))
-      cropW = Math.max(1, Math.min(cropW, rotatedWidth - cropX))
-      cropH = Math.max(1, Math.min(cropH, rotatedHeight - cropY))
+      // 起点用 ceil 确保不包含起点前的背景像素；
+      // 终点用 floor(起点+宽度) 确保不超出内容边界（Math.round 在缩放图像时可能多包含 1 行白色背景）
+      const finalX = Math.ceil(cropX)
+      const finalY = Math.ceil(cropY)
+      const finalW = Math.max(1, Math.floor(cropX + cropW) - finalX)
+      const finalH = Math.max(1, Math.floor(cropY + cropH) - finalY)
+
+      // 应用边框修剪（用户手动指定的像素内缩）
+      const trim = options.trimPx ?? {}
+      const tT = Math.max(0, trim.top ?? 0)
+      const tB = Math.max(0, trim.bottom ?? 0)
+      const tL = Math.max(0, trim.left ?? 0)
+      const tR = Math.max(0, trim.right ?? 0)
+
+      // 确保裁剪区域不超出旋转后的边界，同时应用修剪
+      const safeX = Math.max(0, Math.min(finalX + tL, rotatedWidth - 1))
+      const safeY = Math.max(0, Math.min(finalY + tT, rotatedHeight - 1))
+      const safeW = Math.max(1, Math.min(finalW - tL - tR, rotatedWidth - safeX))
+      const safeH = Math.max(1, Math.min(finalH - tT - tB, rotatedHeight - safeY))
 
       // 现在在已变换的图像上进行裁剪
       const finalCanvas = document.createElement('canvas')
@@ -75,23 +91,48 @@ export const cropEngine: ImageProcessor<CropOptions> = async (file, options) => 
         return
       }
 
-      finalCanvas.width = Math.round(cropW)
-      finalCanvas.height = Math.round(cropH)
+      finalCanvas.width = safeW
+      finalCanvas.height = safeH
 
       // 从工作画布中截取目标区域
       finalCtx.imageSmoothingEnabled = true
       finalCtx.imageSmoothingQuality = 'high'
       finalCtx.drawImage(
         workCanvas,
-        cropX,
-        cropY,
-        cropW,
-        cropH,
+        safeX,
+        safeY,
+        safeW,
+        safeH,
         0,
         0,
         finalCanvas.width,
         finalCanvas.height
       )
+
+      // 边缘像素清理：四边各 3 行/列，alpha < 128 设为全透明
+      // 与 CropBox isBg 阈值保持一致，消灭导出时半透明边缘在白底上显现的白边
+      try {
+        const edgeData = finalCtx.getImageData(0, 0, safeW, safeH)
+        const d = edgeData.data
+        const scanDepth = 3
+        for (let pass = 0; pass < scanDepth; pass++) {
+          for (const row of [pass, safeH - 1 - pass]) {
+            for (let x = 0; x < safeW; x++) {
+              const i = (row * safeW + x) * 4
+              if ((d[i + 3] ?? 0) < 128) d[i + 3] = 0
+            }
+          }
+          for (const col of [pass, safeW - 1 - pass]) {
+            for (let y = 0; y < safeH; y++) {
+              const i = (y * safeW + col) * 4
+              if ((d[i + 3] ?? 0) < 128) d[i + 3] = 0
+            }
+          }
+        }
+        finalCtx.putImageData(edgeData, 0, 0)
+      } catch {
+        // 跨域或安全限制下跳过清理
+      }
 
       const targetFormat = options.format || file.type
       const targetQuality = options.quality ?? 0.9

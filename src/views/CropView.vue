@@ -36,13 +36,15 @@ const rotation = ref(0)
 const flipH = ref(false)
 const flipV = ref(false)
 const currentRatio = ref<number | undefined>(undefined) // undefined for free
-const outputQuality = ref(0.85)
+const outputQuality = ref(0.92)
 const outputFormat = ref<string>('original')
 const preserveExif = ref(false)
 
 // 当前裁剪坐标 (从 CropBox 组件传回)
 const internalCrop = ref({ x: 10, y: 10, w: 80, h: 80 })
 const gridMode = ref<'none' | 'thirds' | 'golden' | 'cross'>('thirds')
+// 导出边框修剪（像素），独立于预览，用于手动去除白边
+const trimPx = ref({ top: 0, bottom: 0, left: 0, right: 0 })
 
 // 历史记录状态
 interface CropState {
@@ -64,6 +66,12 @@ const handleReset = () => {
   flipV.value = false
   currentRatio.value = undefined
   internalCrop.value = { x: 10, y: 10, w: 80, h: 80 }
+  trimPx.value = { top: 0, bottom: 0, left: 0, right: 0 }
+}
+
+const handleFit = () => {
+  currentRatio.value = undefined
+  internalCrop.value = { x: 0, y: 0, w: 100, h: 100 }
 }
 
 const applyState = (state: CropState) => {
@@ -143,7 +151,13 @@ const handleApply = async () => {
     flipV: flipV.value,
     quality: Math.max(0.1, Math.min(1.0, outputQuality.value)),
     format: outputFormat.value === 'original' ? undefined : outputFormat.value,
-    preserveExif: preserveExif.value
+    preserveExif: preserveExif.value,
+    trimPx: {
+      top: trimPx.value.top,
+      bottom: trimPx.value.bottom,
+      left: trimPx.value.left,
+      right: trimPx.value.right
+    }
   }
 
   if (store.selectedCount > 0) {
@@ -280,7 +294,7 @@ watch(
           >
             <div
               v-if="selectedImage"
-              class="relative w-full h-full transition-transform duration-500 will-change-transform flex items-center justify-center min-h-0 min-w-0"
+              class="absolute inset-0 transition-transform duration-500 will-change-transform flex items-center justify-center"
               :style="{
                 transform: `rotate(${rotation}deg) scale(${flipH ? -1 : 1}, ${flipV ? -1 : 1})`
               }"
@@ -378,20 +392,28 @@ watch(
             <section class="space-y-4">
               <div class="flex items-center justify-between">
                 <AppSectionHeader title="裁剪区域" :icon="Maximize2" />
-                <div class="flex gap-1 bg-muted/20 p-1 rounded-lg border border-border/40">
+                <div class="flex items-center gap-2">
                   <button
-                    v-for="mode in ['thirds', 'golden', 'none']"
-                    :key="mode"
-                    @click="gridMode = mode as any"
-                    class="px-2 py-1 rounded text-[0.5rem] font-bold transition-all"
-                    :class="
-                      gridMode === mode
-                        ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
-                    "
+                    @click="handleFit"
+                    class="px-2 py-1 rounded text-[0.55rem] font-bold text-primary hover:bg-primary/10 transition-colors"
                   >
-                    {{ mode === 'thirds' ? '九宫' : mode === 'golden' ? '黄金' : '无' }}
+                    铺满
                   </button>
+                  <div class="flex gap-1 bg-muted/20 p-1 rounded-lg border border-border/40">
+                    <button
+                      v-for="mode in ['thirds', 'golden', 'none']"
+                      :key="mode"
+                      @click="gridMode = mode as any"
+                      class="px-2 py-1 rounded text-[0.5rem] font-bold transition-all"
+                      :class="
+                        gridMode === mode
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : 'text-muted-foreground hover:text-foreground'
+                      "
+                    >
+                      {{ mode === 'thirds' ? '九宫' : mode === 'golden' ? '黄金' : '无' }}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -526,6 +548,50 @@ watch(
                     :step="0.05"
                     unit=""
                   />
+                </div>
+
+                <!-- 边框修剪 -->
+                <div class="space-y-2 pt-2 border-t border-border/30">
+                  <div class="flex items-center justify-between px-0.5">
+                    <span
+                      class="text-[0.6rem] font-bold text-muted-foreground uppercase tracking-wider"
+                      >边框修剪 (px)</span
+                    >
+                    <button
+                      v-if="trimPx.top || trimPx.bottom || trimPx.left || trimPx.right"
+                      @click="trimPx = { top: 0, bottom: 0, left: 0, right: 0 }"
+                      class="text-[0.5rem] text-muted-foreground/50 hover:text-destructive transition-colors"
+                    >
+                      重置
+                    </button>
+                  </div>
+                  <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                    <div
+                      v-for="edge in [
+                        ['top', '上 (px)'],
+                        ['bottom', '下 (px)'],
+                        ['left', '左 (px)'],
+                        ['right', '右 (px)']
+                      ] as const"
+                      :key="edge[0]"
+                      class="space-y-1"
+                    >
+                      <span
+                        class="text-[0.55rem] font-bold text-muted-foreground/60 uppercase tracking-wider px-1"
+                        >{{ edge[1] }}</span
+                      >
+                      <AppInput
+                        v-model.number="trimPx[edge[0]]"
+                        type="number"
+                        :min="0"
+                        :max="20"
+                        class="h-9 text-[0.7rem]"
+                      />
+                    </div>
+                  </div>
+                  <p class="text-[0.52rem] text-muted-foreground/40 px-0.5">
+                    仅影响导出，不改变预览框位置
+                  </p>
                 </div>
               </div>
             </section>
