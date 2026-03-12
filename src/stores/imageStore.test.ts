@@ -10,11 +10,9 @@ describe('Image Store', () => {
     vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
 
     // 模拟 Image 类以防止在 jsdom 中加载超时
-    // @ts-ignore
+    // @ts-expect-error: Mocking Image for JSDOM
     global.Image = class {
-      // @ts-ignore
       set src(value: string) {
-        // @ts-ignore
         setTimeout(() => this.onload(), 0)
       }
       onload = () => {}

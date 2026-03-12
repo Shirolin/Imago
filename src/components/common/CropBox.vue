@@ -156,12 +156,15 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div ref="containerRef" class="relative select-none touch-none group">
+  <div
+    ref="containerRef"
+    class="relative w-full h-full flex items-center justify-center select-none touch-none group"
+  >
     <img
       ref="imgRef"
       :src="imageUrl"
       alt="Crop source"
-      class="max-w-full max-h-full block pointer-events-none shadow-2xl rounded-sm"
+      class="max-w-full max-h-full w-auto h-auto block pointer-events-none shadow-2xl rounded-sm"
       @load="emitChange"
     />
 

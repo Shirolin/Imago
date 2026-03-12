@@ -26,7 +26,7 @@ withDefaults(defineProps<Props>(), {
     </div>
 
     <!-- 工作区 -->
-    <div v-else class="flex-1 flex flex-col md:flex-row overflow-hidden h-full relative">
+    <div v-else class="flex-1 flex flex-col md:flex-row overflow-hidden relative min-h-0">
       <div class="flex-1 flex flex-col min-w-0 min-h-[40vh] md:min-h-0 relative">
         <header
           class="bg-card/80 backdrop-blur-md border-b border-border shrink-0 relative z-20 overflow-x-auto overflow-y-hidden no-scrollbar h-14"
@@ -57,7 +57,9 @@ withDefaults(defineProps<Props>(), {
         <div
           class="flex-1 bg-background/50 custom-scrollbar overscroll-contain"
           :class="[
-            noScroll ? 'overflow-hidden flex flex-col h-full' : 'overflow-y-auto px-6 py-6 md:px-10 md:py-10'
+            noScroll
+              ? 'overflow-hidden flex flex-col min-h-0'
+              : 'overflow-y-auto px-6 py-6 md:px-10 md:py-10'
           ]"
         >
           <div

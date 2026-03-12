@@ -248,7 +248,7 @@ watch(
       </template>
 
       <template #content>
-        <div class="h-full flex flex-col p-4 md:p-6 lg:p-8 overflow-hidden min-h-0">
+        <div class="flex-1 flex flex-col p-4 md:p-6 lg:p-8 overflow-hidden min-h-0">
           <!-- 裁剪主区域 - 加固：使用 flex-1 配合 overflow-hidden 确保不撑破布局 -->
           <div
             class="flex-1 bg-background/40 backdrop-blur-sm rounded-[2rem] border border-border/50 flex items-center justify-center relative overflow-hidden shadow-2xl min-h-0"
@@ -264,7 +264,7 @@ watch(
             <!-- 加固：max-w/h 使用百分比 + 视口单位，确保长图在任何屏幕下都有操作空间 -->
             <div
               v-if="selectedImage"
-              class="relative max-w-[95%] max-h-[95%] transition-transform duration-500 will-change-transform flex items-center justify-center"
+              class="relative w-full h-full transition-transform duration-500 will-change-transform flex items-center justify-center min-h-0 min-w-0"
               :style="{
                 transform: `rotate(${rotation}deg) scale(${flipH ? -1 : 1}, ${flipV ? -1 : 1})`
               }"
