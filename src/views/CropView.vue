@@ -21,14 +21,15 @@ import {
   Scissors,
   FileType,
   Maximize2,
-  Undo2
+  Undo2,
+  RefreshCcw
 } from 'lucide-vue-next'
 import { cropEngine } from '../lib/engines/cropEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 
 const store = useImageStore()
 
-// 状态
+// --- 状态 (Refs) ---
 const selectedImageId = ref<string | null>(store.images[0]?.id || null)
 const rotation = ref(0)
 const flipH = ref(false)
@@ -41,21 +42,34 @@ const preserveExif = ref(false)
 // 当前裁剪坐标 (从 CropBox 组件传回)
 const cropCoords = ref({ x: 0, y: 0, width: 0, height: 0, usePercentage: true })
 
-// --- 撤销/重做逻辑 (Undo/Redo) ---
+// 历史记录状态
 interface CropState {
   rotation: number
   flipH: boolean
   flipV: boolean
-  cropCoords: typeof cropCoords.value
+  cropCoords: { x: number; y: number; width: number; height: number; usePercentage: boolean }
 }
-
 const history = ref<CropState[]>([])
 const historyIndex = ref(-1)
 
-const canUndo = computed(() => historyIndex.value > 0)
-const canRedo = computed(() => historyIndex.value < history.value.length - 1)
+const { isProcessing, processSelected, processSingle } = useImageProcessor(cropEngine)
 
-// 保存当前状态到历史栈
+// --- 业务函数 (Functions) ---
+
+const handleReset = () => {
+  rotation.value = 0
+  flipH.value = false
+  flipV.value = false
+  currentRatio.value = undefined
+}
+
+const applyState = (state: CropState) => {
+  rotation.value = state.rotation
+  flipH.value = state.flipH
+  flipV.value = state.flipV
+  cropCoords.value = { ...state.cropCoords }
+}
+
 const saveState = () => {
   const newState: CropState = {
     rotation: rotation.value,
@@ -73,79 +87,29 @@ const saveState = () => {
   history.value.push(newState)
 
   // 限制栈大小为 20
-  if (history.value.length > 20) history.value.shift()
-  else historyIndex.value++
+  if (history.value.length > 20) {
+    history.value.shift()
+  } else {
+    historyIndex.value++
+  }
 }
 
 const handleUndo = () => {
-  if (!canUndo.value) return
-  historyIndex.value--
-  const state = history.value[historyIndex.value]
-  if (state) applyState(state)
+  if (historyIndex.value > 0) {
+    historyIndex.value--
+    const state = history.value[historyIndex.value]
+    if (state) applyState(state)
+  }
 }
 
 const handleRedo = () => {
-  if (!canRedo.value) return
-  historyIndex.value++
-  const state = history.value[historyIndex.value]
-  if (state) applyState(state)
+  if (historyIndex.value < history.value.length - 1) {
+    historyIndex.value++
+    const state = history.value[historyIndex.value]
+    if (state) applyState(state)
+  }
 }
 
-const applyState = (state: CropState) => {
-  rotation.value = state.rotation
-  flipH.value = state.flipH
-  flipV.value = state.flipV
-  cropCoords.value = { ...state.cropCoords }
-}
-
-// 监听重要参数变化并记录（防抖处理防止频繁记录）
-let saveTimer: ReturnType<typeof setTimeout> | null = null
-watch(
-  [rotation, flipH, flipV, cropCoords],
-  () => {
-    if (saveTimer) clearTimeout(saveTimer)
-    saveTimer = setTimeout(saveState, 500)
-  },
-  { deep: true }
-)
-
-// 初始化第一个状态
-watch(
-  selectedImageId,
-  () => {
-    history.value = []
-    historyIndex.value = -1
-    handleReset()
-    // 延迟记录初始状态
-    setTimeout(saveState, 100)
-  },
-  { immediate: true }
-)
-
-const selectedImage = computed(() => {
-  return store.images.find((img) => img.id === selectedImageId.value) || store.images[0]
-})
-
-const { isProcessing, processSelected, processSingle } = useImageProcessor(cropEngine)
-
-// 选项
-const aspectRatios = [
-  { label: '自由', value: 0 },
-  { label: '1:1', value: 1 },
-  { label: '4:3', value: 4 / 3 },
-  { label: '16:9', value: 16 / 9 },
-  { label: '9:16', value: 9 / 16 },
-  { label: '2:3', value: 2 / 3 }
-]
-
-const formatOptions = [
-  { label: '保留原格式', value: 'original' },
-  { label: 'JPEG', value: 'image/jpeg' },
-  { label: 'PNG', value: 'image/png' },
-  { label: 'WebP', value: 'image/webp' }
-]
-
-// 变换逻辑
 const handleRotate = () => {
   rotation.value = (rotation.value + 90) % 360
 }
@@ -156,13 +120,6 @@ const handleFlipH = () => {
 
 const handleFlipV = () => {
   flipV.value = !flipV.value
-}
-
-const handleReset = () => {
-  rotation.value = 0
-  flipH.value = false
-  flipV.value = false
-  currentRatio.value = undefined
 }
 
 const handleCropChange = (coords: {
@@ -191,7 +148,6 @@ const handleApply = async () => {
     rotation: rotation.value,
     flipH: flipH.value,
     flipV: flipV.value,
-    // 边界加固：确保质量在 0.1 - 1.0 之间
     quality: Math.max(0.1, Math.min(1.0, outputQuality.value)),
     format: outputFormat.value === 'original' ? undefined : outputFormat.value,
     preserveExif: preserveExif.value
@@ -203,6 +159,53 @@ const handleApply = async () => {
     await processSingle(selectedImage.value.id, options)
   }
 }
+
+// --- 计算属性 (Computed) ---
+
+const canUndo = computed(() => historyIndex.value > 0)
+const canRedo = computed(() => historyIndex.value < history.value.length - 1)
+
+const selectedImage = computed(() => {
+  return store.images.find((img) => img.id === selectedImageId.value) || store.images[0]
+})
+
+const aspectRatios = [
+  { label: '自由', value: 0 },
+  { label: '1:1', value: 1 },
+  { label: '4:3', value: 4 / 3 },
+  { label: '16:9', value: 16 / 9 },
+  { label: '9:16', value: 9 / 16 },
+  { label: '2:3', value: 2 / 3 }
+]
+
+const formatOptions = [
+  { label: '保留原格式', value: 'original' },
+  { label: 'JPEG', value: 'image/jpeg' },
+  { label: 'PNG', value: 'image/png' },
+  { label: 'WebP', value: 'image/webp' }
+]
+
+const buttonText = computed(() => {
+  if (isProcessing.value) return '正在批量处理...'
+  if (store.selectedCount > 0) return `裁剪选中的 ${store.selectedCount} 张图片`
+  if (store.images.length > 1) return `应用此裁剪到所有图片 (${store.images.length})`
+  return '应用裁剪并保存'
+})
+
+// --- 副作用与监听 (Watchers) ---
+
+// 初始化/切换图片
+watch(
+  selectedImageId,
+  () => {
+    history.value = []
+    historyIndex.value = -1
+    handleReset()
+    // 延迟记录初始状态
+    setTimeout(saveState, 100)
+  },
+  { immediate: true }
+)
 
 // 自动切换到第一张图
 watch(
@@ -217,17 +220,21 @@ watch(
   { immediate: true }
 )
 
-const buttonText = computed(() => {
-  if (isProcessing.value) return '正在批量处理...'
-  if (store.selectedCount > 0) return `裁剪选中的 ${store.selectedCount} 张图片`
-  if (store.images.length > 1) return `应用此裁剪到所有图片 (${store.images.length})`
-  return '应用裁剪并保存'
-})
+// 监听重要参数变化并记录（防抖处理防止频繁记录）
+let saveTimer: ReturnType<typeof setTimeout> | null = null
+watch(
+  [rotation, flipH, flipV, cropCoords],
+  () => {
+    if (saveTimer) clearTimeout(saveTimer)
+    saveTimer = setTimeout(saveState, 500)
+  },
+  { deep: true }
+)
 </script>
 
 <template>
   <div class="h-full flex flex-col">
-    <WorkspaceLayout show-sidebar>
+    <WorkspaceLayout show-sidebar no-scroll>
       <template #header-left>
         <ImageSelectionStatus />
       </template>
@@ -241,7 +248,7 @@ const buttonText = computed(() => {
       </template>
 
       <template #content>
-        <div class="col-span-full h-full flex flex-col p-4 md:p-6 lg:p-8 overflow-hidden">
+        <div class="h-full flex flex-col p-4 md:p-6 lg:p-8 overflow-hidden min-h-0">
           <!-- 裁剪主区域 - 加固：使用 flex-1 配合 overflow-hidden 确保不撑破布局 -->
           <div
             class="flex-1 bg-background/40 backdrop-blur-sm rounded-[2rem] border border-border/50 flex items-center justify-center relative overflow-hidden shadow-2xl min-h-0"

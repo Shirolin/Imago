@@ -9,10 +9,12 @@ const layoutStore = useLayoutStore()
 
 interface Props {
   showSidebar?: boolean
+  noScroll?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
-  showSidebar: false
+  showSidebar: false,
+  noScroll: false
 })
 </script>
 
@@ -53,13 +55,18 @@ withDefaults(defineProps<Props>(), {
         </header>
 
         <div
-          class="flex-1 overflow-y-auto px-6 py-6 md:px-10 md:py-10 bg-background/50 custom-scrollbar overscroll-contain"
+          class="flex-1 bg-background/50 custom-scrollbar overscroll-contain"
+          :class="[
+            noScroll ? 'overflow-hidden flex flex-col h-full' : 'overflow-y-auto px-6 py-6 md:px-10 md:py-10'
+          ]"
         >
           <div
+            v-if="!noScroll"
             class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6 md:gap-10"
           >
             <slot name="content"></slot>
           </div>
+          <slot v-else name="content"></slot>
         </div>
       </div>
 
