@@ -67,7 +67,13 @@ const activeCropPointPercent = computed(() => {
 
 const magnifierBgPos = computed(() => {
   const p = activeCropPointPercent.value
-  return `${(p.x * 4 - 50) / 3}% ${(p.y * 4 - 50) / 3}%`
+  const zoom = 2 // 统一使用 2 倍放大
+  const zw = imgRenderedRect.value.width * zoom
+  const zh = imgRenderedRect.value.height * zoom
+  const size = 144 // w-36 = 144px
+  const x = -(p.x / 100) * zw + size / 2
+  const y = -(p.y / 100) * zh + size / 2
+  return `${x}px ${y}px`
 })
 
 const showMagnifier = computed(() => isDragging.value && dragMode.value !== 'move')
@@ -165,34 +171,11 @@ let startX = 0,
   rafId: number | null = null
 
 const updateCrop = (n: typeof internalCrop.value) => {
-  // 保持高精度 (4位小数)，消除微小裂缝
+  // 核心稳定性修复：在这里只做最终的赋值和 Emit，所有的逻辑都在 handleMove 里处理完
   n.x = Number(n.x.toFixed(4))
   n.y = Number(n.y.toFixed(4))
   n.w = Number(n.w.toFixed(4))
   n.h = Number(n.h.toFixed(4))
-  const min = 0.5
-  n.w = Math.max(min, Math.min(n.w, 100))
-  n.h = Math.max(min, Math.min(n.h, 100))
-  if (n.x + n.w > 100) {
-    if (dragMode.value === 'move') n.x = 100 - n.w
-    else n.w = 100 - n.x
-  }
-  if (n.y + n.h > 100) {
-    if (dragMode.value === 'move') n.y = 100 - n.h
-    else n.h = 100 - n.y
-  }
-  n.x = Math.max(0, n.x)
-  n.y = Math.max(0, n.y)
-  if (props.aspectRatio) {
-    const r = n.w / n.h
-    if (Math.abs(r - props.aspectRatio) > 0.0001) {
-      n.h = n.w / props.aspectRatio
-      if (n.y + n.h > 100) {
-        n.h = 100 - n.y
-        n.w = n.h * props.aspectRatio
-      }
-    }
-  }
   internalCrop.value = { ...n }
   emit('update:modelValue', { ...n })
   emit('change', { ...n, usePercentage: true })
@@ -222,8 +205,6 @@ const handleImageLoad = () => {
   ctx.drawImage(img, 0, 0, w, h)
   try {
     const data = ctx.getImageData(0, 0, w, h).data
-
-    // 全边框中位数采样背景色（比4角平均更鲁棒：角落有彩色内容时不受干扰）
     const rs: number[] = [],
       gs: number[] = [],
       bs: number[] = [],
@@ -254,9 +235,6 @@ const handleImageLoad = () => {
       return arr[Math.floor(arr.length / 2)] ?? 0
     }
     const bg = { r: med(rs), g: med(gs), b: med(bs), a: med(as) }
-
-    // 透明底图 (bg.a < 64)：alpha < 128 视为背景（只有不透明度 ≥50% 才算内容，完整排除抗锯齿过渡像素）
-    // 不透明底图 (白色等)：颜色距离阈值 40（准确匹配全边框中位数得到的背景色）
     const isTransparentBg = bg.a < 64
     const isBg = (r: number, g: number, b: number, a: number) =>
       isTransparentBg
@@ -280,29 +258,20 @@ const handleImageLoad = () => {
           hasC = true
         }
       }
-
     if (hasC && maxX - minX > 2) {
-      // 边缘行修剪：逐行检测是否有"真实内容像素"（不透明 a>10 且非近白 min(RGB)<200）
-      // 只要该行 minX..maxX 范围内有任意一个这样的像素，就停止修剪
       const hasRealContent_y = (y: number): boolean => {
         for (let x = minX; x <= maxX; x++) {
           const i = (y * w + x) * 4
-          if ((data[i + 3] ?? 0) < 10) continue // 透明，跳过
-          const r = data[i] ?? 0,
-            g = data[i + 1] ?? 0,
-            b = data[i + 2] ?? 0
-          if (Math.min(r, g, b) < 200) return true // 明显深色/彩色 = 真实内容
+          if ((data[i + 3] ?? 0) < 10) continue
+          if (Math.min(data[i] ?? 0, data[i + 1] ?? 0, data[i + 2] ?? 0) < 200) return true
         }
-        return false // 整行都是白色或透明 = 背景
+        return false
       }
       const hasRealContent_x = (x: number): boolean => {
         for (let y = minY; y <= maxY; y++) {
           const i = (y * w + x) * 4
           if ((data[i + 3] ?? 0) < 10) continue
-          const r = data[i] ?? 0,
-            g = data[i + 1] ?? 0,
-            b = data[i + 2] ?? 0
-          if (Math.min(r, g, b) < 200) return true
+          if (Math.min(data[i] ?? 0, data[i + 1] ?? 0, data[i + 2] ?? 0) < 200) return true
         }
         return false
       }
@@ -310,7 +279,6 @@ const handleImageLoad = () => {
       while (minY < maxY && !hasRealContent_y(minY)) minY++
       while (maxX > minX && !hasRealContent_x(maxX)) maxX--
       while (minX < maxX && !hasRealContent_x(minX)) minX++
-
       contentBounds.value = {
         x: (minX / w) * 100,
         y: (minY / h) * 100,
@@ -356,43 +324,66 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
     const dy =
       (y / imgRenderedRect.value.height) * 100 -
       ((startY - rect.top - imgRenderedRect.value.top) / imgRenderedRect.value.height) * 100
+
     const n = { ...startCrop }
     let sH = false,
       sV = false
-    // 提升触发率：磁吸半径扩大至 2.5%
     const snap = (val: number, target: number) =>
       !alt && contentBounds.value && Math.abs(val - target) < 2.5 ? target : val
+
     if (dragMode.value === 'move') {
-      n.x = startCrop.x + dx
-      n.y = startCrop.y + dy
+      n.x = Math.max(0, Math.min(100 - n.w, startCrop.x + dx))
+      n.y = Math.max(0, Math.min(100 - n.h, startCrop.y + dy))
     } else {
-      if (dragMode.value?.includes('n')) {
+      const mode = dragMode.value!
+      // 1. 独立计算基础变更 (不考虑比例)
+      if (mode.includes('n')) {
         const ny = snap(startCrop.y + dy, contentBounds.value?.y ?? -999)
-        n.y = Math.min(ny, startCrop.y + startCrop.h - 0.5)
+        n.y = Math.max(0, Math.min(ny, startCrop.y + startCrop.h - 0.5))
         n.h = startCrop.h - (n.y - startCrop.y)
         if (ny === contentBounds.value?.y) sV = true
       }
-      if (dragMode.value?.includes('s')) {
+      if (mode.includes('s')) {
         const nb = snap(
           startCrop.y + startCrop.h + dy,
           (contentBounds.value?.y ?? 0) + (contentBounds.value?.h ?? 0)
         )
-        n.h = Math.max(0.5, nb - n.y)
+        n.h = Math.max(0.5, Math.min(100 - n.y, nb - n.y))
         if (nb === (contentBounds.value?.y ?? 0) + (contentBounds.value?.h ?? 0)) sV = true
       }
-      if (dragMode.value?.includes('w')) {
+      if (mode.includes('w')) {
         const nx = snap(startCrop.x + dx, contentBounds.value?.x ?? -999)
-        n.x = Math.min(nx, startCrop.x + startCrop.w - 0.5)
+        n.x = Math.max(0, Math.min(nx, startCrop.x + startCrop.w - 0.5))
         n.w = startCrop.w - (n.x - startCrop.x)
         if (nx === contentBounds.value?.x) sH = true
       }
-      if (dragMode.value?.includes('e')) {
+      if (mode.includes('e')) {
         const nr = snap(
           startCrop.x + startCrop.w + dx,
           (contentBounds.value?.x ?? 0) + (contentBounds.value?.w ?? 0)
         )
-        n.w = Math.max(0.5, nr - n.x)
+        n.w = Math.max(0.5, Math.min(100 - n.x, nr - n.x))
         if (nr === (contentBounds.value?.x ?? 0) + (contentBounds.value?.w ?? 0)) sH = true
+      }
+
+      // 2. 比例修正逻辑 (核心修复：根据拖拽柄智能选择 master)
+      if (props.aspectRatio) {
+        const ar = props.aspectRatio
+        const isHeightMaster = mode === 'n' || mode === 's'
+        if (isHeightMaster) {
+          n.w = n.h * ar
+          if (n.x + n.w > 100) {
+            n.w = 100 - n.x
+            n.h = n.w / ar
+          }
+        } else {
+          // 默认以宽度为准（适合左右拖动和角点拖动）
+          n.h = n.w / ar
+          if (n.y + n.h > 100) {
+            n.h = 100 - n.y
+            n.w = n.h * ar
+          }
+        }
       }
     }
     isSnapping.value = sH || sV
@@ -457,6 +448,7 @@ onUnmounted(() => {
         >
           <div v-for="i in 9" :key="i" class="border-[0.5px] border-white/50"></div>
         </div>
+        <!-- 角点 handles -->
         <div
           v-for="pos in ['nw', 'ne', 'sw', 'se']"
           :key="pos"
@@ -474,6 +466,7 @@ onUnmounted(() => {
             class="m-auto w-3 h-3 bg-white border-2 border-primary rounded-sm shadow-xl transition-all group-hover/handle:scale-125 group-active/handle:scale-90"
           ></div>
         </div>
+        <!-- 边中点 handles -->
         <div
           v-for="pos in ['n', 's', 'w', 'e']"
           :key="pos"
@@ -486,8 +479,8 @@ onUnmounted(() => {
             transform: 'translate(-50%, -50%)',
             cursor: `${pos}-resize`
           }"
-          @mousedown.stop="handleStart($event, pos as 'nw' | 'ne' | 'sw' | 'se')"
-          @touchstart.stop="handleStart($event, pos as 'nw' | 'ne' | 'sw' | 'se')"
+          @mousedown.stop="handleStart($event, pos as any)"
+          @touchstart.stop="handleStart($event, pos as any)"
         >
           <div
             :class="['n', 's'].includes(pos) ? 'w-5 h-1.5' : 'w-1.5 h-5'"
@@ -495,9 +488,10 @@ onUnmounted(() => {
           ></div>
         </div>
       </div>
+      <!-- 放大镜 -->
       <div
         v-if="showMagnifier"
-        class="absolute z-50 w-36 h-32 rounded-3xl border-[3px] border-white shadow-2xl pointer-events-none overflow-hidden bg-black flex flex-col"
+        class="absolute z-50 w-36 h-36 rounded-full border-[3px] border-white shadow-2xl pointer-events-none overflow-hidden bg-black flex flex-col"
         :style="{
           left: mouseRawPos.x + 'px',
           top: mouseRawPos.y + 'px',
@@ -510,7 +504,7 @@ onUnmounted(() => {
             :style="{
               backgroundImage: `url(${imageUrl})`,
               backgroundPosition: magnifierBgPos,
-              backgroundSize: '400% 400%',
+              backgroundSize: `${imgRenderedRect.width * 2}px ${imgRenderedRect.height * 2}px`,
               backgroundRepeat: 'no-repeat'
             }"
           ></div>
@@ -530,6 +524,7 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
+    <!-- 状态栏 -->
     <div
       class="absolute bottom-8 left-1/2 -translate-x-1/2 pointer-events-none flex items-center gap-4 transition-all duration-300 z-40"
       :class="{ 'opacity-100 translate-y-0': isDragging, 'opacity-0 translate-y-4': !isDragging }"
