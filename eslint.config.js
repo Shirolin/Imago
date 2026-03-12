@@ -1,8 +1,8 @@
-import eslint from '@eslint/js';
-import tsESLint from 'typescript-eslint';
-import vuePlugin from 'eslint-plugin-vue';
-import prettierConfig from 'eslint-config-prettier';
-import globals from 'globals';
+import eslint from '@eslint/js'
+import tsESLint from 'typescript-eslint'
+import vuePlugin from 'eslint-plugin-vue'
+import prettierConfig from 'eslint-config-prettier'
+import globals from 'globals'
 
 export default tsESLint.config(
   eslint.configs.recommended,
@@ -12,20 +12,20 @@ export default tsESLint.config(
     languageOptions: {
       globals: {
         ...globals.browser,
-        ...globals.node,
+        ...globals.node
       },
       parserOptions: {
-        parser: tsESLint.parser,
-      },
-    },
+        parser: tsESLint.parser
+      }
+    }
   },
   {
     files: ['*.vue', '**/*.vue'],
     languageOptions: {
       parserOptions: {
-        parser: tsESLint.parser,
-      },
-    },
+        parser: tsESLint.parser
+      }
+    }
   },
   prettierConfig,
   {
@@ -35,9 +35,9 @@ export default tsESLint.config(
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       'no-undef': 'error'
-    },
+    }
   },
   {
-    ignores: ['dist/**', 'node_modules/**', 'public/**', 'temp_impeccable/**'],
+    ignores: ['dist/**', 'node_modules/**', 'public/**', 'temp_impeccable/**']
   }
-);
+)

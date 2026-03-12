@@ -28,18 +28,19 @@
 
 ## 🚀 Key Highlights
 
-| Module | Description | Demo |
-| :--- | :--- | :--- |
+| Module                | Description                                                                                    | Demo                  |
+| :-------------------- | :--------------------------------------------------------------------------------------------- | :-------------------- |
 | **Smart Compression** | Supports JPG/PNG/WebP formats. Drastically reduces file size while maintaining visual quality. | [🎬 Demo Placeholder] |
-| **EXIF Management** | Strip or view image metadata (GPS, device info, etc.) to protect your social privacy. | [🎬 Demo Placeholder] |
-| **Batch Processing** | Multi-image import, unified configuration, and one-click export for maximum efficiency. | [🎬 Demo Placeholder] |
-| **Instant Preview** | GPU-accelerated real-time previews to see visual effects instantly. | [🎬 Demo Placeholder] |
+| **EXIF Management**   | Strip or view image metadata (GPS, device info, etc.) to protect your social privacy.          | [🎬 Demo Placeholder] |
+| **Batch Processing**  | Multi-image import, unified configuration, and one-click export for maximum efficiency.        | [🎬 Demo Placeholder] |
+| **Instant Preview**   | GPU-accelerated real-time previews to see visual effects instantly.                            | [🎬 Demo Placeholder] |
 
 ---
 
 ## 🛠️ Features
 
 ### 📦 Core Toolkit
+
 - **Local Compression**: Multi-threaded high-performance compression using `browser-image-compression`.
 - **EXIF Stripping**: Deep analysis and cleaning of sensitive image metadata powered by `exifr`.
 - **Crop & Scale**: Custom aspect ratio cropping and smart scaling by width, height, or percentage.
@@ -47,6 +48,7 @@
 - **Task Management**: Fine-grained control with task interruption support (AbortController).
 
 ### 🎨 Interaction & UX
+
 - **Drag-and-Drop**: Supports global dragging, folder uploads, and clipboard pasting (Ctrl+V).
 - **Dark Mode**: Modern UI design language with full system theme adaptation.
 - **Responsive Design**: Optimized for both mobile and desktop environments.
@@ -56,6 +58,7 @@
 ## ⚙️ Development & Build
 
 ### Tech Stack
+
 - **Framework**: Vue 3 (Composition API)
 - **Build Tool**: Vite
 - **State Management**: Pinia
@@ -64,18 +67,22 @@
 - **Testing**: Vitest + Vue Test Utils
 
 ### Quick Start
+
 1. **Clone the Repo**
+
    ```bash
    git clone https://github.com/Shirolin/Imago.git
    cd Imago
    ```
 
 2. **Install Dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Start Dev Server**
+
    ```bash
    npm run dev
    ```
@@ -100,13 +107,17 @@ We ensure stability through a rigorous testing process:
 ## 🤝 Contribution & Support
 
 ### Welcome Contributions
+
 If you have any suggestions for improvement or find any bugs, feel free to:
+
 - [Submit an Issue](https://github.com/Shirolin/Imago/issues) to report bugs or suggest new features.
 - Submit a [Pull Request](https://github.com/Shirolin/Imago/pulls) to contribute code.
 - Join the discussion and share your experience.
 
 ### Support the Project
+
 If you find **Imago** helpful, please consider:
+
 - Giving the project a **Star** ⭐ as encouragement.
 - Sharing it with more friends who need image processing.
 - If you find this project very valuable, you can also [Buy Me a Coffee](https://www.buymeacoffee.com/shirolin).
@@ -114,6 +125,7 @@ If you find **Imago** helpful, please consider:
 ---
 
 ## 📄 License
+
 This project is licensed under the [GNU General Public License v3.0](LICENSE).
 
 [Shirolin](https://github.com/Shirolin) © 2026

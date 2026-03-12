@@ -11,8 +11,8 @@ export default mergeConfig(
       exclude: ['node_modules', 'dist', '.idea', '.git', '.cache'],
       coverage: {
         provider: 'v8',
-        reporter: ['text', 'json', 'html'],
-      },
-    },
+        reporter: ['text', 'json', 'html']
+      }
+    }
   })
 )

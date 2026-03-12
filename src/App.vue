@@ -418,16 +418,18 @@ const menuGroups = [
       <div class="flex-1 overflow-hidden relative">
         <router-view v-slot="{ Component, route }">
           <transition name="page-fade" mode="out-in">
-            <suspense :timeout="0">
-              <template #default>
-                <component :is="Component" :key="route.fullPath" />
-              </template>
-              <template #fallback>
-                <div class="h-full w-full flex items-center justify-center">
-                  <Loader2 class="animate-spin text-primary/10" :size="32" />
-                </div>
-              </template>
-            </suspense>
+            <div v-if="Component" :key="route.fullPath" class="h-full w-full">
+              <suspense :timeout="0">
+                <template #default>
+                  <component :is="Component" />
+                </template>
+                <template #fallback>
+                  <div class="h-full w-full flex items-center justify-center">
+                    <Loader2 class="animate-spin text-primary/10" :size="32" />
+                  </div>
+                </template>
+              </suspense>
+            </div>
           </transition>
         </router-view>
       </div>

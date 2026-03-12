@@ -6,6 +6,7 @@ import AppButton from '../components/common/AppButton.vue'
 import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSlider from '../components/common/AppSlider.vue'
 import AppSelect from '../components/common/AppSelect.vue'
+import AppInput from '../components/common/AppInput.vue'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import CropBox from '../components/common/CropBox.vue'
@@ -13,7 +14,6 @@ import {
   RotateCw,
   FlipHorizontal,
   FlipVertical,
-  Check,
   X,
   Square,
   CheckSquare,
@@ -22,7 +22,8 @@ import {
   FileType,
   Maximize2,
   Undo2,
-  RefreshCcw
+  RefreshCcw,
+  Info
 } from 'lucide-vue-next'
 import { cropEngine } from '../lib/engines/cropEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
@@ -40,14 +41,15 @@ const outputFormat = ref<string>('original')
 const preserveExif = ref(false)
 
 // 当前裁剪坐标 (从 CropBox 组件传回)
-const cropCoords = ref({ x: 0, y: 0, width: 0, height: 0, usePercentage: true })
+const internalCrop = ref({ x: 10, y: 10, w: 80, h: 80 })
+const gridMode = ref<'none' | 'thirds' | 'golden' | 'cross'>('thirds')
 
 // 历史记录状态
 interface CropState {
   rotation: number
   flipH: boolean
   flipV: boolean
-  cropCoords: { x: number; y: number; width: number; height: number; usePercentage: boolean }
+  internalCrop: { x: number; y: number; w: number; h: number }
 }
 const history = ref<CropState[]>([])
 const historyIndex = ref(-1)
@@ -61,13 +63,14 @@ const handleReset = () => {
   flipH.value = false
   flipV.value = false
   currentRatio.value = undefined
+  internalCrop.value = { x: 10, y: 10, w: 80, h: 80 }
 }
 
 const applyState = (state: CropState) => {
   rotation.value = state.rotation
   flipH.value = state.flipH
   flipV.value = state.flipV
-  cropCoords.value = { ...state.cropCoords }
+  internalCrop.value = { ...state.internalCrop }
 }
 
 const saveState = () => {
@@ -75,18 +78,15 @@ const saveState = () => {
     rotation: rotation.value,
     flipH: flipH.value,
     flipV: flipV.value,
-    cropCoords: { ...cropCoords.value }
+    internalCrop: { ...internalCrop.value }
   }
 
-  // 如果新状态与当前指向的状态一致，则不记录
   const currentState = history.value[historyIndex.value]
   if (currentState && JSON.stringify(currentState) === JSON.stringify(newState)) return
 
-  // 丢弃指针之后的“未来”状态
   history.value = history.value.slice(0, historyIndex.value + 1)
   history.value.push(newState)
 
-  // 限制栈大小为 20
   if (history.value.length > 20) {
     history.value.shift()
   } else {
@@ -122,20 +122,9 @@ const handleFlipV = () => {
   flipV.value = !flipV.value
 }
 
-const handleCropChange = (coords: {
-  x: number
-  y: number
-  width: number
-  height: number
-  usePercentage: boolean
-}) => {
-  cropCoords.value = coords
-}
-
 const handleApply = async () => {
   if (!selectedImage.value || isProcessing.value) return
 
-  // 加固：对大批量处理增加确认
   if (
     store.selectedCount > 5 &&
     !confirm(`确定要同时裁剪选中的 ${store.selectedCount} 张图片吗？`)
@@ -144,7 +133,11 @@ const handleApply = async () => {
   }
 
   const options = {
-    ...cropCoords.value,
+    x: internalCrop.value.x,
+    y: internalCrop.value.y,
+    width: internalCrop.value.w,
+    height: internalCrop.value.h,
+    usePercentage: true,
     rotation: rotation.value,
     flipH: flipH.value,
     flipV: flipV.value,
@@ -162,20 +155,43 @@ const handleApply = async () => {
 
 // --- 计算属性 (Computed) ---
 
-const canUndo = computed(() => historyIndex.value > 0)
-const canRedo = computed(() => historyIndex.value < history.value.length - 1)
-
 const selectedImage = computed(() => {
   return store.images.find((img) => img.id === selectedImageId.value) || store.images[0]
 })
 
+const pixelValues = computed(() => {
+  if (!selectedImage.value) return { x: 0, y: 0, w: 0, h: 0 }
+  const { width = 0, height = 0 } = selectedImage.value
+  return {
+    x: Math.round((internalCrop.value.x / 100) * width),
+    y: Math.round((internalCrop.value.y / 100) * height),
+    w: Math.round((internalCrop.value.w / 100) * width),
+    h: Math.round((internalCrop.value.h / 100) * height)
+  }
+})
+
+const estimatedSize = computed(() => {
+  if (!selectedImage.value) return null
+  const { originalSize } = selectedImage.value
+  const areaRatio = (internalCrop.value.w * internalCrop.value.h) / 10000
+  const qualityFactor = outputFormat.value === 'image/png' ? 1 : outputQuality.value
+  const formatFactor = outputFormat.value === 'image/webp' ? 0.7 : 1
+
+  const estimated = originalSize * areaRatio * qualityFactor * formatFactor
+  if (estimated > 1024 * 1024) return (estimated / (1024 * 1024)).toFixed(2) + ' MB'
+  return (estimated / 1024).toFixed(0) + ' KB'
+})
+
+const canUndo = computed(() => historyIndex.value > 0)
+const canRedo = computed(() => historyIndex.value < history.value.length - 1)
+
 const aspectRatios = [
-  { label: '自由', value: 0 },
-  { label: '1:1', value: 1 },
-  { label: '4:3', value: 4 / 3 },
-  { label: '16:9', value: 16 / 9 },
-  { label: '9:16', value: 9 / 16 },
-  { label: '2:3', value: 2 / 3 }
+  { label: '自由', value: 0, icon: 'M4 4h16v16H4z' },
+  { label: '1:1', value: 1, icon: 'M6 6h12v12H6z' },
+  { label: '4:3', value: 4 / 3, icon: 'M5 6h14v12H5z' },
+  { label: '16:9', value: 16 / 9, icon: 'M3 7h18v10H3z' },
+  { label: '9:16', value: 9 / 16, icon: 'M7 3h10v18H7z' },
+  { label: '2:3', value: 2 / 3, icon: 'M6 4h12v16H6z' }
 ]
 
 const formatOptions = [
@@ -194,20 +210,17 @@ const buttonText = computed(() => {
 
 // --- 副作用与监听 (Watchers) ---
 
-// 初始化/切换图片
 watch(
   selectedImageId,
   () => {
     history.value = []
     historyIndex.value = -1
     handleReset()
-    // 延迟记录初始状态
     setTimeout(saveState, 100)
   },
   { immediate: true }
 )
 
-// 自动切换到第一张图
 watch(
   () => store.images.length,
   (newLen) => {
@@ -220,10 +233,9 @@ watch(
   { immediate: true }
 )
 
-// 监听重要参数变化并记录（防抖处理防止频繁记录）
 let saveTimer: ReturnType<typeof setTimeout> | null = null
 watch(
-  [rotation, flipH, flipV, cropCoords],
+  [rotation, flipH, flipV, internalCrop],
   () => {
     if (saveTimer) clearTimeout(saveTimer)
     saveTimer = setTimeout(saveState, 500)
@@ -249,19 +261,23 @@ watch(
 
       <template #content>
         <div class="flex-1 flex flex-col p-4 md:p-6 lg:p-8 overflow-hidden min-h-0">
-          <!-- 裁剪主区域 - 加固：使用 flex-1 配合 overflow-hidden 确保不撑破布局 -->
+          <!-- 裁剪主区域 - Distill: 优化圆角，使其更符合专业编辑器场景 -->
           <div
-            class="flex-1 bg-background/40 backdrop-blur-sm rounded-[2rem] border border-border/50 flex items-center justify-center relative overflow-hidden shadow-2xl min-h-0"
+            class="flex-1 bg-muted/10 backdrop-blur-sm rounded-xl border border-border/40 flex items-center justify-center relative overflow-hidden min-h-0"
             style="
-              background-image: radial-gradient(
-                circle at 2px 2px,
-                hsl(var(--border) / 0.3) 1px,
-                transparent 0
-              );
-              background-size: 32px 32px;
+              background-image:
+                linear-gradient(45deg, hsl(var(--border) / 0.1) 25%, transparent 25%),
+                linear-gradient(-45deg, hsl(var(--border) / 0.1) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, hsl(var(--border) / 0.1) 75%),
+                linear-gradient(-45deg, transparent 75%, hsl(var(--border) / 0.1) 75%);
+              background-size: 16px 16px;
+              background-position:
+                0 0,
+                0 8px,
+                8px -8px,
+                -8px 0px;
             "
           >
-            <!-- 加固：max-w/h 使用百分比 + 视口单位，确保长图在任何屏幕下都有操作空间 -->
             <div
               v-if="selectedImage"
               class="relative w-full h-full transition-transform duration-500 will-change-transform flex items-center justify-center min-h-0 min-w-0"
@@ -270,54 +286,121 @@ watch(
               }"
             >
               <CropBox
+                v-model="internalCrop"
                 :image-url="selectedImage.preview"
                 :aspect-ratio="currentRatio"
-                @change="handleCropChange"
+                :grid-mode="gridMode"
               />
             </div>
 
             <div v-else class="flex flex-col items-center gap-4 text-muted-foreground/40">
               <Scissors :size="64" stroke-width="1" />
-              <p class="text-sm font-bold uppercase tracking-widest">请选择图片开始裁剪</p>
+              <p class="text-xs font-bold uppercase tracking-widest">请选择图片开始裁剪</p>
             </div>
           </div>
 
-          <!-- 底部快速操作 (移动端友好) -->
-          <div class="mt-6 flex items-center justify-center gap-4 md:hidden">
-            <button
-              @click="handleRotate"
-              class="p-4 bg-card border border-border rounded-2xl active:scale-95 transition-all"
-            >
-              <RotateCw :size="20" />
-            </button>
-            <button
-              @click="handleFlipH"
-              class="p-4 bg-card border border-border rounded-2xl active:scale-95 transition-all"
-            >
-              <FlipHorizontal :size="20" />
-            </button>
-            <button
-              @click="handleApply"
-              class="flex-1 h-14 bg-primary text-primary-foreground font-bold rounded-2xl active:scale-95 transition-all"
-            >
-              确认裁剪
-            </button>
+          <!-- 批量处理同步提示 - Clarify -->
+          <div
+            v-if="store.selectedCount > 1"
+            class="mt-4 px-6 py-3 bg-primary/5 border border-primary/20 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2"
+          >
+            <Info :size="16" class="text-primary" />
+            <p class="text-[0.7rem] font-medium text-primary/80">
+              当前模式：裁剪区域将同步应用至所有选中的
+              <span class="font-bold underline">{{ store.selectedCount }}</span> 张图片。
+            </p>
           </div>
         </div>
       </template>
 
       <template #sidebar>
-        <div class="flex flex-col h-full bg-card/60 backdrop-blur-xl border-l border-border/50">
-          <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
-            <!-- 1. 裁剪比例 -->
+        <div class="flex flex-col h-full bg-card/40 backdrop-blur-lg border-l border-border/50">
+          <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-10">
+            <!-- 1. 变换与历史 -->
             <section class="space-y-4">
-              <AppSectionHeader title="纵横比" :icon="Maximize2" />
+              <AppSectionHeader title="变换与历史" :icon="RotateCw" />
+              <div class="bg-muted/10 p-4 rounded-2xl border border-border/40 space-y-4">
+                <div class="grid grid-cols-4 gap-2">
+                  <button
+                    @click="handleRotate"
+                    class="aspect-square flex flex-col items-center justify-center gap-1.5 rounded-xl bg-background border border-border hover:border-primary hover:text-primary transition-all active:scale-90"
+                  >
+                    <RotateCw :size="18" />
+                    <span class="text-[0.5rem] font-bold opacity-60">旋转</span>
+                  </button>
+                  <button
+                    @click="handleFlipH"
+                    :class="{ 'bg-primary/10 border-primary text-primary': flipH }"
+                    class="aspect-square flex flex-col items-center justify-center gap-1.5 rounded-xl bg-background border border-border hover:border-primary transition-all active:scale-90"
+                  >
+                    <FlipHorizontal :size="18" />
+                    <span class="text-[0.5rem] font-bold opacity-60">水平</span>
+                  </button>
+                  <button
+                    @click="handleFlipV"
+                    :class="{ 'bg-primary/10 border-primary text-primary': flipV }"
+                    class="aspect-square flex flex-col items-center justify-center gap-1.5 rounded-xl bg-background border border-border hover:border-primary transition-all active:scale-90"
+                  >
+                    <FlipVertical :size="18" />
+                    <span class="text-[0.5rem] font-bold opacity-60">垂直</span>
+                  </button>
+                  <button
+                    @click="handleReset"
+                    class="aspect-square flex flex-col items-center justify-center gap-1.5 rounded-xl bg-background border border-border hover:text-destructive hover:border-destructive transition-all active:scale-90"
+                  >
+                    <RefreshCcw :size="18" />
+                    <span class="text-[0.5rem] font-bold opacity-60">重置</span>
+                  </button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 pt-2 border-t border-border/30">
+                  <button
+                    @click="handleUndo"
+                    :disabled="!canUndo"
+                    class="h-9 flex items-center justify-center gap-2 rounded-xl bg-background border border-border hover:border-primary transition-all active:scale-95 disabled:opacity-30 disabled:grayscale"
+                  >
+                    <Undo2 :size="14" />
+                    <span class="text-[0.6rem] font-bold">撤销</span>
+                  </button>
+                  <button
+                    @click="handleRedo"
+                    :disabled="!canRedo"
+                    class="h-9 flex items-center justify-center gap-2 rounded-xl bg-background border border-border hover:border-primary transition-all active:scale-95 disabled:opacity-30 disabled:grayscale"
+                  >
+                    <RefreshCcw :size="14" class="scale-x-[-1]" />
+                    <span class="text-[0.6rem] font-bold">重做</span>
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <!-- 2. 裁剪比例与精确控制 -->
+            <section class="space-y-4">
+              <div class="flex items-center justify-between">
+                <AppSectionHeader title="裁剪区域" :icon="Maximize2" />
+                <div class="flex gap-1 bg-muted/20 p-1 rounded-lg border border-border/40">
+                  <button
+                    v-for="mode in ['thirds', 'golden', 'none']"
+                    :key="mode"
+                    @click="gridMode = mode as any"
+                    class="px-2 py-1 rounded text-[0.5rem] font-bold transition-all"
+                    :class="
+                      gridMode === mode
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    "
+                  >
+                    {{ mode === 'thirds' ? '九宫' : mode === 'golden' ? '黄金' : '无' }}
+                  </button>
+                </div>
+              </div>
+
               <div class="grid grid-cols-3 gap-2">
                 <button
                   v-for="ratio in aspectRatios"
                   :key="ratio.label"
                   @click="currentRatio = ratio.value || undefined"
-                  class="py-2.5 rounded-xl border text-[0.65rem] font-bold transition-all active:scale-95"
+                  class="group flex flex-col items-center gap-2 py-3 rounded-xl border text-[0.6rem] font-bold transition-all active:scale-95 relative"
                   :class="
                     currentRatio === ratio.value ||
                     (ratio.value === 0 && currentRatio === undefined)
@@ -325,139 +408,173 @@ watch(
                       : 'bg-background border-border text-foreground hover:border-primary/40'
                   "
                 >
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="w-5 h-5 mb-0.5 opacity-40 group-hover:opacity-100 transition-opacity"
+                    :class="
+                      currentRatio === ratio.value ||
+                      (ratio.value === 0 && currentRatio === undefined)
+                        ? 'fill-current'
+                        : 'fill-muted-foreground'
+                    "
+                  >
+                    <path :d="ratio.icon" />
+                  </svg>
                   {{ ratio.label }}
                 </button>
               </div>
-            </section>
 
-            <!-- 2. 变换控制 -->
-            <section class="space-y-4">
-              <AppSectionHeader title="变换与历史" :icon="RotateCw" />
-              <div class="grid grid-cols-4 gap-2">
-                <button
-                  @click="handleRotate"
-                  class="aspect-square flex items-center justify-center rounded-xl bg-background border border-border hover:border-primary hover:text-primary transition-all active:scale-90"
-                  title="旋转 90°"
-                >
-                  <RotateCw :size="18" />
-                </button>
-                <button
-                  @click="handleFlipH"
-                  :class="{ 'bg-primary/10 border-primary text-primary': flipH }"
-                  class="aspect-square flex items-center justify-center rounded-xl bg-background border border-border hover:border-primary transition-all active:scale-90"
-                  title="水平翻转"
-                >
-                  <FlipHorizontal :size="18" />
-                </button>
-
-                <!-- 历史控制 -->
-                <button
-                  @click="handleUndo"
-                  :disabled="!canUndo"
-                  class="aspect-square flex items-center justify-center rounded-xl bg-background border border-border hover:border-primary transition-all active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed"
-                  title="撤销 (Ctrl+Z)"
-                >
-                  <Undo2 :size="18" />
-                </button>
-                <button
-                  @click="handleRedo"
-                  :disabled="!canRedo"
-                  class="aspect-square flex items-center justify-center rounded-xl bg-background border border-border hover:border-primary transition-all active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed"
-                  title="重做 (Ctrl+Y)"
-                >
-                  <RefreshCcw :size="18" />
-                </button>
-              </div>
-              <div class="grid grid-cols-2 gap-2 mt-2">
-                <button
-                  @click="handleFlipV"
-                  :class="{ 'bg-primary/10 border-primary text-primary': flipV }"
-                  class="h-10 flex items-center justify-center gap-2 rounded-xl bg-background border border-border hover:border-primary transition-all active:scale-95"
-                >
-                  <FlipVertical :size="16" />
-                  <span class="text-[0.65rem] font-bold">垂直翻转</span>
-                </button>
-                <button
-                  @click="handleReset"
-                  class="h-10 flex items-center justify-center gap-2 rounded-xl bg-background border border-border hover:text-destructive hover:border-destructive transition-all active:scale-95"
-                >
-                  <Undo2 :size="16" class="rotate-45" />
-                  <span class="text-[0.65rem] font-bold">重置全图</span>
-                </button>
+              <!-- 精确数值输入 - Clarify: 增加像素显示 -->
+              <div class="grid grid-cols-2 gap-x-4 gap-y-4 pt-4 border-t border-border/30">
+                <div class="space-y-1.5">
+                  <div class="flex items-center justify-between px-1">
+                    <span
+                      class="text-[0.6rem] font-bold text-muted-foreground uppercase tracking-wider"
+                      >X (%)</span
+                    >
+                    <span class="text-[0.55rem] font-mono text-muted-foreground/60"
+                      >{{ pixelValues.x }}px</span
+                    >
+                  </div>
+                  <AppInput
+                    v-model.number="internalCrop.x"
+                    type="number"
+                    :min="0"
+                    :max="95"
+                    class="h-9 text-[0.7rem]"
+                  />
+                </div>
+                <div class="space-y-1.5">
+                  <div class="flex items-center justify-between px-1">
+                    <span
+                      class="text-[0.6rem] font-bold text-muted-foreground uppercase tracking-wider"
+                      >Y (%)</span
+                    >
+                    <span class="text-[0.55rem] font-mono text-muted-foreground/60"
+                      >{{ pixelValues.y }}px</span
+                    >
+                  </div>
+                  <AppInput
+                    v-model.number="internalCrop.y"
+                    type="number"
+                    :min="0"
+                    :max="95"
+                    class="h-9 text-[0.7rem]"
+                  />
+                </div>
+                <div class="space-y-1.5">
+                  <div class="flex items-center justify-between px-1">
+                    <span
+                      class="text-[0.6rem] font-bold text-muted-foreground uppercase tracking-wider"
+                      >Width (%)</span
+                    >
+                    <span class="text-[0.55rem] font-mono text-primary font-bold"
+                      >{{ pixelValues.w }}px</span
+                    >
+                  </div>
+                  <AppInput
+                    v-model.number="internalCrop.w"
+                    type="number"
+                    :min="5"
+                    :max="100"
+                    class="h-9 text-[0.7rem]"
+                  />
+                </div>
+                <div class="space-y-1.5">
+                  <div class="flex items-center justify-between px-1">
+                    <span
+                      class="text-[0.6rem] font-bold text-muted-foreground uppercase tracking-wider"
+                      >Height (%)</span
+                    >
+                    <span class="text-[0.55rem] font-mono text-primary font-bold"
+                      >{{ pixelValues.h }}px</span
+                    >
+                  </div>
+                  <AppInput
+                    v-model.number="internalCrop.h"
+                    type="number"
+                    :min="5"
+                    :max="100"
+                    class="h-9 text-[0.7rem]"
+                  />
+                </div>
               </div>
             </section>
 
             <!-- 3. 输出设置 -->
             <section class="space-y-4">
-              <AppSectionHeader title="导出设置" :icon="FileType" />
-              <div class="space-y-4 bg-muted/20 p-4 rounded-2xl border border-border/40">
+              <div class="flex items-center justify-between">
+                <AppSectionHeader title="导出设置" :icon="FileType" />
+                <div
+                  v-if="estimatedSize"
+                  class="px-2 py-1 bg-primary/10 border border-primary/20 rounded-lg text-[0.55rem] font-mono text-primary font-bold"
+                >
+                  ~ {{ estimatedSize }}
+                </div>
+              </div>
+              <div class="space-y-5 bg-muted/10 p-5 rounded-2xl border border-border/40">
                 <AppSelect v-model="outputFormat" :options="formatOptions" />
-                <AppSlider
+                <div
                   v-if="outputFormat !== 'image/png' && outputFormat !== 'original'"
-                  v-model="outputQuality"
-                  label="画质"
-                  :min="0.1"
-                  :max="1.0"
-                  :step="0.05"
-                  unit=""
-                />
+                  class="space-y-3"
+                >
+                  <AppSlider
+                    v-model="outputQuality"
+                    label="画质"
+                    :min="0.1"
+                    :max="1.0"
+                    :step="0.05"
+                    unit=""
+                  />
+                </div>
               </div>
             </section>
 
             <!-- 4. 待处理队列 -->
-            <section class="space-y-4">
-              <AppSectionHeader title="待处理队列" :icon="ListOrdered" />
-              <div class="space-y-2">
+            <section class="space-y-4 pb-4">
+              <AppSectionHeader title="队列" :icon="ListOrdered" />
+              <div class="space-y-2 max-h-[260px] overflow-y-auto pr-1 custom-scrollbar">
                 <div
                   v-for="img in store.images"
                   :key="img.id"
-                  class="flex items-center gap-3 p-2.5 rounded-xl cursor-pointer border-2 transition-all group relative"
+                  class="flex items-center gap-3 p-2 rounded-xl cursor-pointer border transition-all group"
                   :class="
                     selectedImageId === img.id
-                      ? 'bg-primary/5 border-primary shadow-inner'
-                      : 'border-transparent bg-background/40 hover:bg-muted/50'
+                      ? 'bg-primary/5 border-primary/40'
+                      : 'border-transparent bg-muted/20 hover:bg-muted/40'
                   "
                   @click="selectedImageId = img.id"
                 >
-                  <!-- 多选框触发区 -->
                   <div
                     class="flex shrink-0 transition-colors"
                     @click.stop="store.toggleSelection(img.id)"
                   >
                     <CheckSquare
                       v-if="store.selectedIds.has(img.id)"
-                      :size="18"
-                      class="text-primary drop-shadow-[0_0_8px_rgba(var(--primary-rgb),0.4)]"
+                      :size="16"
+                      class="text-primary"
                     />
                     <Square
                       v-else
-                      :size="18"
-                      class="text-muted-foreground/40 group-hover:text-muted-foreground"
+                      :size="16"
+                      class="text-muted-foreground/30 group-hover:text-muted-foreground/60"
                     />
                   </div>
 
-                  <div
-                    class="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-border/50 group-hover:scale-105 transition-transform"
-                  >
+                  <div class="w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-border/30">
                     <img :src="img.preview" class="w-full h-full object-cover" />
                   </div>
                   <div class="flex-1 min-w-0">
-                    <p class="text-[0.7rem] font-bold text-foreground truncate">
+                    <p class="text-[0.65rem] font-bold text-foreground truncate">
                       {{ img.file.name }}
                     </p>
-                    <p class="text-[0.6rem] text-muted-foreground font-mono mt-0.5">
+                    <p class="text-[0.55rem] text-muted-foreground font-mono mt-0.5 opacity-60">
                       {{ img.width }}x{{ img.height }}
                     </p>
                   </div>
-                  <div
-                    v-if="img.status === 'done'"
-                    class="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center"
-                  >
-                    <Check :size="12" class="text-primary" />
-                  </div>
                   <button
                     @click.stop="store.removeImage(img.id)"
-                    class="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-destructive/10 hover:text-destructive rounded-lg transition-all"
+                    class="opacity-0 group-hover:opacity-100 p-1 hover:text-destructive transition-all"
                   >
                     <X :size="14" />
                   </button>
@@ -467,18 +584,16 @@ watch(
           </div>
 
           <!-- 底部执行 -->
-          <div
-            class="p-6 bg-gradient-to-t from-card via-card to-transparent pt-12 mt-auto border-t border-border/40 shrink-0"
-          >
+          <div class="p-6 mt-auto border-t border-border/30 shrink-0">
             <AppButton
               size="lg"
               variant="cta"
-              class="w-full h-14 rounded-2xl shadow-xl shadow-primary/20"
+              class="w-full h-12 rounded-xl shadow-lg shadow-primary/10"
               :loading="isProcessing"
               :disabled="!selectedImage"
               @click="handleApply"
             >
-              <template #icon><Scissors v-if="!isProcessing" :size="18" class="mr-2" /></template>
+              <template #icon><Scissors v-if="!isProcessing" :size="16" class="mr-2" /></template>
               {{ buttonText }}
             </AppButton>
           </div>
@@ -496,11 +611,7 @@ watch(
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
+  background: hsl(var(--border) / 0.5);
   border-radius: 10px;
-}
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
 }
 </style>

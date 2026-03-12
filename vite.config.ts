@@ -9,24 +9,18 @@ export default defineConfig({
   plugins: [vue()],
   css: {
     postcss: {
-      plugins: [tailwindcss(), autoprefixer()],
-    },
+      plugins: [tailwindcss(), autoprefixer()]
+    }
   },
   optimizeDeps: {
-    exclude: [
-      '@jsquash/avif',
-      '@jsquash/jpeg',
-      '@jsquash/jxl',
-      '@jsquash/png',
-      '@jsquash/webp',
-    ],
+    exclude: ['@jsquash/avif', '@jsquash/jpeg', '@jsquash/jxl', '@jsquash/png', '@jsquash/webp']
   },
   worker: {
-    format: 'es',
+    format: 'es'
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
+      '@': path.resolve(__dirname, './src')
+    }
+  }
 })
