@@ -13,33 +13,50 @@ export interface ExifData {
   latitude?: number
   longitude?: number
   metaCount: number
+  all?: Record<string, string | number | boolean>
 }
 
 export const readExif = async (file: File): Promise<ExifData | null> => {
   try {
-    const rawData = await exifr.parse(file, {
+    const rawData = (await exifr.parse(file, {
       tiff: true,
       exif: true,
       gps: true,
-      jfif: true
-    })
+      jfif: true,
+      iptc: true,
+      xmp: true
+    })) as any // 使用 any 承接库返回的复杂对象
 
     if (!rawData) return { metaCount: 0 }
+
+    // 过滤并存储基础类型用于全量展示
+    const filteredRaw: Record<string, string | number | boolean> = {}
+    Object.entries(rawData).forEach(([key, value]) => {
+      if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+        filteredRaw[key] = value
+      } else if (value instanceof Date) {
+        filteredRaw[key] = value.toLocaleString()
+      }
+    })
 
     const metaCount = Object.keys(rawData).length
 
     return {
-      make: rawData.Make,
-      model: rawData.Model,
-      software: rawData.Software,
+      make: typeof rawData.Make === 'string' ? rawData.Make : undefined,
+      model: typeof rawData.Model === 'string' ? rawData.Model : undefined,
+      software: typeof rawData.Software === 'string' ? rawData.Software : undefined,
       dateTime: rawData.DateTimeOriginal?.toLocaleString() || rawData.CreateDate?.toLocaleString(),
-      exposureTime: rawData.ExposureTime ? `1/${Math.round(1 / rawData.ExposureTime)}s` : undefined,
-      fNumber: rawData.FNumber ? `f/${rawData.FNumber}` : undefined,
-      iso: rawData.ISO,
-      focalLength: rawData.FocalLength ? `${rawData.FocalLength}mm` : undefined,
-      latitude: rawData.latitude,
-      longitude: rawData.longitude,
-      metaCount
+      exposureTime:
+        typeof rawData.ExposureTime === 'number'
+          ? `1/${Math.round(1 / rawData.ExposureTime)}s`
+          : undefined,
+      fNumber: typeof rawData.FNumber === 'number' ? `f/${rawData.FNumber}` : undefined,
+      iso: typeof rawData.ISO === 'number' ? rawData.ISO : undefined,
+      focalLength: typeof rawData.FocalLength === 'number' ? `${rawData.FocalLength}mm` : undefined,
+      latitude: typeof rawData.latitude === 'number' ? rawData.latitude : undefined,
+      longitude: typeof rawData.longitude === 'number' ? rawData.longitude : undefined,
+      metaCount,
+      all: filteredRaw
     }
   } catch (error) {
     console.error('Failed to read EXIF:', error)
