@@ -1,80 +1,134 @@
-import type { ImageProcessor } from './types'
+import type { ImageProcessor, ProcessResult } from './types'
 
 export interface SplitOptions {
-  mode: 'grid' | 'tiles'
   rows: number
   cols: number
-  tileWidth: number
-  tileHeight: number
+  mode: 'grid' | 'custom'
+  centerMode?: 'none' | 'center' | 'square'
+  shave?: number
+  format?: string
+  quality?: number
 }
 
+/**
+ * 智能切图引擎 (Web Canvas 版)
+ */
 export const splitEngine: ImageProcessor<SplitOptions> = async (file, options) => {
-  return new Promise((resolve, reject) => {
+  return new Promise<ProcessResult>((resolve, reject) => {
     const img = new Image()
     const url = URL.createObjectURL(file)
 
     img.onload = async () => {
       URL.revokeObjectURL(url)
+      const results: Blob[] = []
+      const {
+        rows,
+        cols,
+        centerMode = 'none',
+        shave = 0,
+        format = file.type,
+        quality = 0.9
+      } = options
 
-      const splitParams: Array<{ x: number; y: number; w: number; h: number }> = []
+      const tileWidth = img.width / cols
+      const tileHeight = img.height / rows
 
-      if (options.mode === 'grid') {
-        const rows = options.rows || 1
-        const cols = options.cols || 1
-        const w = img.width / cols
-        const h = img.height / rows
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const canvas = document.createElement('canvas')
+          const ctx = canvas.getContext('2d')
+          if (!ctx) continue
 
-        for (let r = 0; r < rows; r++) {
-          for (let c = 0; c < cols; c++) {
-            splitParams.push({ x: c * w, y: r * h, w, h })
+          const sourceX = c * tileWidth + shave
+          const sourceY = r * tileHeight + shave
+          const sourceW = tileWidth - shave * 2
+          const sourceH = tileHeight - shave * 2
+
+          if (sourceW <= 0 || sourceH <= 0) continue
+
+          if (centerMode !== 'none') {
+            const tempCanvas = document.createElement('canvas')
+            tempCanvas.width = sourceW
+            tempCanvas.height = sourceH
+            const tempCtx = tempCanvas.getContext('2d')
+            if (tempCtx) {
+              tempCtx.drawImage(img, sourceX, sourceY, sourceW, sourceH, 0, 0, sourceW, sourceH)
+              const bgPixel = tempCtx.getImageData(0, 0, 1, 1).data
+              const bounds = getContentBounds(tempCtx, bgPixel)
+
+              if (bounds && bgPixel) {
+                let finalW = sourceW
+                let finalH = sourceH
+                if (centerMode === 'square') {
+                  finalW = finalH = Math.max(sourceW, sourceH)
+                }
+                canvas.width = finalW
+                canvas.height = finalH
+                ctx.fillStyle = `rgba(${bgPixel[0]}, ${bgPixel[1]}, ${bgPixel[2]}, ${bgPixel[3]! / 255})`
+                ctx.fillRect(0, 0, finalW, finalH)
+                const destX = (finalW - bounds.width) / 2
+                const destY = (finalH - bounds.height) / 2
+                ctx.drawImage(
+                  tempCanvas,
+                  bounds.x,
+                  bounds.y,
+                  bounds.width,
+                  bounds.height,
+                  destX,
+                  destY,
+                  bounds.width,
+                  bounds.height
+                )
+              } else {
+                canvas.width = sourceW
+                canvas.height = sourceH
+                ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, 0, 0, sourceW, sourceH)
+              }
+            }
+          } else {
+            canvas.width = sourceW
+            canvas.height = sourceH
+            ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, 0, 0, sourceW, sourceH)
           }
-        }
-      } else {
-        const tw = options.tileWidth || img.width
-        const th = options.tileHeight || img.height
-        const cols = Math.ceil(img.width / tw)
-        const rows = Math.ceil(img.height / th)
 
-        for (let r = 0; r < rows; r++) {
-          for (let c = 0; c < cols; c++) {
-            splitParams.push({
-              x: c * tw,
-              y: r * th,
-              w: Math.min(tw, img.width - c * tw),
-              h: Math.min(th, img.height - r * th)
-            })
-          }
+          const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, format, quality))
+          if (blob) results.push(blob)
         }
       }
-
-      const blobs: Blob[] = []
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
-      if (!ctx) throw new Error('Failed to get canvas context')
-
-      for (const p of splitParams) {
-        canvas.width = p.w
-        canvas.height = p.h
-        ctx.clearRect(0, 0, canvas.width, canvas.height)
-        ctx.drawImage(img, p.x, p.y, p.w, p.h, 0, 0, p.w, p.h)
-
-        const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, file.type))
-        if (blob) blobs.push(blob)
-      }
-
-      resolve({
-        blobs,
-        size: blobs.reduce((sum, b) => sum + b.size, 0),
-        width: img.width,
-        height: img.height
-      })
+      resolve(results as any) // 强制适配 ProcessResult 联合类型
     }
 
     img.onerror = () => {
       URL.revokeObjectURL(url)
-      reject(new Error('Failed to load image'))
+      reject(new Error('图片加载失败'))
     }
-
     img.src = url
   })
+}
+
+function getContentBounds(ctx: CanvasRenderingContext2D, bgPixel: Uint8ClampedArray) {
+  const { width, height } = ctx.canvas
+  const imageData = ctx.getImageData(0, 0, width, height)
+  const data = imageData.data
+  let minX = width,
+    minY = height,
+    maxX = 0,
+    maxY = 0
+  const threshold = 30
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4
+      const rDiff = Math.abs((data[i] ?? 0) - (bgPixel[0] ?? 0))
+      const gDiff = Math.abs((data[i + 1] ?? 0) - (bgPixel[1] ?? 0))
+      const bDiff = Math.abs((data[i + 2] ?? 0) - (bgPixel[2] ?? 0))
+      if (rDiff > threshold || gDiff > threshold || bDiff > threshold) {
+        if (x < minX) minX = x
+        if (x > maxX) maxX = x
+        if (y < minY) minY = y
+        if (y > maxY) maxY = y
+      }
+    }
+  }
+  if (maxX < minX || maxY < minY) return null
+  return { x: minX, y: minY, width: maxX - minX + 1, height: maxY - minY + 1 }
 }
