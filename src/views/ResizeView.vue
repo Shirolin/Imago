@@ -99,6 +99,11 @@ const processedPreviewUrl = ref<string | null>(null)
 
 const { isProcessing, processAll, processSelected } = useImageProcessor(resizeEngine)
 
+// 排序逻辑：最新上传的在前
+const displayImages = computed(() => {
+  return [...store.images].reverse()
+})
+
 // 选项配置
 const modeOptions = [
   { label: '百分比', value: 'percentage', icon: Percent },
@@ -117,7 +122,7 @@ const presets = [
   { label: '4K', w: 3840, h: 2160, icon: Monitor },
   { label: '1080P', w: 1920, h: 1080, icon: Monitor },
   { label: '720P', w: 1280, h: 720, icon: Monitor },
-  { label: 'WeChat/IG', w: 1080, h: 1920, icon: Smartphone }
+  { label: '微信/社交媒体', w: 1080, h: 1920, icon: Smartphone }
 ]
 
 const applyPreset = (p: { w: number; h: number }) => {
@@ -210,8 +215,8 @@ const buttonText = computed(() => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col">
-    <WorkspaceLayout show-sidebar>
+  <div class="h-full flex flex-col overflow-hidden">
+    <WorkspaceLayout show-sidebar no-scroll>
       <template #header-left>
         <ImageSelectionStatus />
       </template>
@@ -225,55 +230,62 @@ const buttonText = computed(() => {
       </template>
 
       <template #content>
-        <ImageCard
-          v-for="img in store.images"
-          :key="img.id"
-          :image="img"
-          :is-selected="store.selectedIds.has(img.id)"
-          @toggle="store.toggleSelection"
-          @remove="store.removeImage"
-          @download="handleDownload"
-          @compare="handleCompare"
-        >
-          <template #meta="{ image }">
-            <div
-              class="flex items-center gap-3 bg-background p-3 rounded-2xl mt-1.5 border border-border transition-all duration-300 group-hover:border-primary/20"
+        <!-- 核心图片网格展示区 (独立滚动) -->
+        <div class="h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-6">
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6"
+          >
+            <ImageCard
+              v-for="img in displayImages"
+              :key="img.id"
+              :image="img"
+              :is-selected="store.selectedIds.has(img.id)"
+              @toggle="store.toggleSelection"
+              @remove="store.removeImage"
+              @download="handleDownload"
+              @compare="handleCompare"
             >
-              <div class="flex-1 flex flex-col gap-0.5">
-                <span
-                  class="text-[0.6rem] font-extrabold uppercase text-muted-foreground tracking-widest mt-0.5 opacity-80"
-                  >原始</span
+              <template #meta="{ image }">
+                <div
+                  class="flex items-center gap-3 bg-muted/30 p-3 rounded-2xl mt-1.5 border border-border transition-all duration-300 group-hover:border-primary/20 shadow-inner"
                 >
-                <span class="text-[0.75rem] font-bold text-foreground">
-                  {{ image.width }}x{{ image.height }}
-                </span>
-              </div>
-              <div class="text-muted-foreground/60 flex shrink-0">
-                <ArrowRight :size="12" />
-              </div>
-              <div class="flex-1 flex flex-col gap-0.5">
-                <span
-                  class="text-[0.6rem] font-extrabold uppercase text-muted-foreground tracking-widest mt-0.5 opacity-80"
-                  >调整后</span
-                >
-                <span
-                  class="text-[0.75rem] font-bold transition-colors"
-                  :class="image.status === 'done' ? 'text-primary' : 'text-foreground'"
-                >
-                  {{
-                    image.status === 'done'
-                      ? `${image.processedWidth}x${image.processedHeight}`
-                      : '--'
-                  }}
-                </span>
-              </div>
-            </div>
-          </template>
-        </ImageCard>
+                  <div class="flex-1 flex flex-col gap-0.5">
+                    <span
+                      class="text-[0.6rem] font-black uppercase text-muted-foreground tracking-widest mt-0.5"
+                      >原始</span
+                    >
+                    <span class="text-[0.75rem] font-bold text-foreground"
+                      >{{ image.width }}x{{ image.height }}</span
+                    >
+                  </div>
+                  <div class="text-muted-foreground flex shrink-0"><ArrowRight :size="12" /></div>
+                  <div class="flex-1 flex flex-col gap-0.5">
+                    <span
+                      class="text-[0.6rem] font-black uppercase text-muted-foreground tracking-widest mt-0.5"
+                      >目标</span
+                    >
+                    <span
+                      class="text-[0.75rem] font-bold transition-colors"
+                      :class="image.status === 'done' ? 'text-primary' : 'text-foreground'"
+                    >
+                      {{
+                        image.status === 'done'
+                          ? `${image.processedWidth}x${image.processedHeight}`
+                          : '--'
+                      }}
+                    </span>
+                  </div>
+                </div>
+              </template>
+            </ImageCard>
+          </div>
+        </div>
       </template>
 
       <template #sidebar>
-        <div class="flex flex-col h-full bg-card/60 backdrop-blur-xl border-l border-border/50">
+        <div
+          class="flex flex-col h-full bg-card/40 backdrop-blur-xl border-l border-border/50 shadow-2xl"
+        >
           <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-7">
             <!-- 1. 调整模式 -->
             <section class="space-y-4">
@@ -283,7 +295,7 @@ const buttonText = computed(() => {
 
             <!-- 2. 参数调节 -->
             <section class="relative">
-              <div class="bg-muted/10 rounded-xl p-5 border border-border/60">
+              <div class="bg-muted/10 rounded-2xl p-5 border border-border/60 shadow-inner">
                 <div v-if="resizeMode === 'percentage'" class="space-y-6">
                   <AppSlider
                     v-model="percentage"
@@ -303,14 +315,14 @@ const buttonText = computed(() => {
                   <div class="flex justify-between items-center px-1">
                     <span
                       class="text-[0.55rem] font-black text-muted-foreground uppercase tracking-[0.2em]"
-                      >Smaller</span
+                      >缩小</span
                     >
                     <div
                       class="h-px flex-1 mx-4 bg-gradient-to-r from-transparent via-border/60 to-transparent"
                     ></div>
                     <span
                       class="text-[0.55rem] font-black text-muted-foreground uppercase tracking-[0.2em]"
-                      >Enlarge</span
+                      >放大</span
                     >
                   </div>
                 </div>
@@ -352,7 +364,6 @@ const buttonText = computed(() => {
                       </div>
                     </div>
                   </div>
-
                   <div class="flex items-center justify-between px-1">
                     <AppCheckbox v-model="maintainAspectRatio" label="锁定纵横比" />
                     <button
@@ -363,8 +374,6 @@ const buttonText = computed(() => {
                       <RotateCcw :size="14" />
                     </button>
                   </div>
-
-                  <!-- 预设选择器 -->
                   <div class="pt-2">
                     <label
                       class="text-[0.6rem] font-black text-muted-foreground uppercase tracking-widest mb-3 block opacity-70"
@@ -434,10 +443,11 @@ const buttonText = computed(() => {
             </section>
 
             <!-- 4. 进阶设置 -->
-            <section class="space-y-4">
+            <section class="space-y-4 pb-4">
               <button
                 @click="showAdvanced = !showAdvanced"
                 class="flex items-center justify-between w-full group transition-colors px-0.5"
+                :aria-expanded="showAdvanced"
               >
                 <AppSectionHeader
                   title="进阶设置"
@@ -447,7 +457,7 @@ const buttonText = computed(() => {
                 <div class="flex items-center gap-2">
                   <span
                     class="text-[0.6rem] font-bold text-muted-foreground/60 uppercase tracking-widest"
-                    >{{ showAdvanced ? 'Collapse' : 'Expand' }}</span
+                    >{{ showAdvanced ? '收起' : '展开' }}</span
                   >
                   <component
                     :is="showAdvanced ? ChevronUp : ChevronDown"
@@ -456,7 +466,6 @@ const buttonText = computed(() => {
                   />
                 </div>
               </button>
-
               <div
                 v-if="showAdvanced"
                 class="space-y-4 pt-1 animate-in fade-in slide-in-from-top-3 duration-300"
@@ -468,30 +477,29 @@ const buttonText = computed(() => {
                 >
                   * 仅支持 JPEG 格式之间的元数据保留。
                 </p>
-
-                <AppTip variant="info" class="text-[0.65rem] bg-primary/[0.03] border-primary/10">
-                  采用高质量插值算法，缩放后边缘依然锐利。
-                </AppTip>
+                <AppTip variant="info" class="text-[0.65rem] bg-primary/[0.03] border-primary/10"
+                  >采用高质量插值算法，缩放后边缘依然锐利。</AppTip
+                >
               </div>
             </section>
           </div>
 
-          <!-- 底部动作 -->
+          <!-- 底部动作 (固定在侧边栏底部) -->
           <div
             class="p-6 bg-gradient-to-t from-card via-card to-transparent pt-12 mt-auto border-t border-border/40 relative z-20 shrink-0"
           >
             <AppButton
               size="lg"
               variant="cta"
-              class="w-full h-14 rounded-2xl hover:-translate-y-0.5 transition-all duration-300 active:scale-95"
+              class="w-full h-14 rounded-2xl hover:-translate-y-0.5 transition-all duration-300 active:scale-95 shadow-xl shadow-primary/10"
               :loading="isProcessing"
               :disabled="!store.images.length || hasErrors"
               @click="handleProcess"
             >
-              <template #icon>
-                <Maximize2 v-if="!isProcessing" :size="20" class="mr-2.5 fill-current" />
-              </template>
-              <span class="tracking-tight text-base">{{ buttonText }}</span>
+              <template #icon
+                ><Maximize2 v-if="!isProcessing" :size="20" class="mr-2.5 fill-current"
+              /></template>
+              <span class="tracking-tight text-base font-bold">{{ buttonText }}</span>
             </AppButton>
           </div>
         </div>
@@ -502,7 +510,9 @@ const buttonText = computed(() => {
     <AppModal :show="showCompareModal" @close="closeCompare" @after-leave="handleModalLeave">
       <template #header>
         <div class="flex items-center gap-3">
-          <div class="p-2 bg-primary rounded-lg text-primary-foreground">
+          <div
+            class="p-2 bg-primary rounded-lg text-primary-foreground shadow-lg shadow-primary/20"
+          >
             <ImageIcon :size="20" />
           </div>
           <div v-if="comparingImage">
@@ -517,7 +527,6 @@ const buttonText = computed(() => {
           </div>
         </div>
       </template>
-
       <ImageCompare
         v-if="comparingImage && processedPreviewUrl"
         :original-url="comparingImage.preview"
