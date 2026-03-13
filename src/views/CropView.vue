@@ -296,7 +296,7 @@ watch(
 
       <template #content>
         <div class="flex-1 flex flex-col p-4 md:p-6 lg:p-8 overflow-hidden min-h-0">
-          <!-- 裁剪主区域 - Distill: 优化圆角，使其更符合专业编辑器场景 -->
+          <!-- 裁剪主区域 -->
           <div
             class="flex-1 bg-muted/10 backdrop-blur-sm rounded-xl border border-border/40 flex items-center justify-center relative overflow-hidden min-h-0"
             style="
@@ -359,52 +359,58 @@ watch(
                 <div class="grid grid-cols-4 gap-2">
                   <button
                     @click="handleRotate"
+                    aria-label="顺时针旋转90度"
                     class="aspect-square flex flex-col items-center justify-center gap-1.5 rounded-xl bg-background border border-border hover:border-primary hover:text-primary transition-all active:scale-90"
                   >
                     <RotateCw :size="18" />
-                    <span class="text-[0.5rem] font-bold opacity-60">旋转</span>
+                    <span class="text-[0.7rem] font-bold opacity-60">旋转</span>
                   </button>
                   <button
                     @click="handleFlipH"
+                    aria-label="水平翻转"
                     :class="{ 'bg-primary/10 border-primary text-primary': flipH }"
                     class="aspect-square flex flex-col items-center justify-center gap-1.5 rounded-xl bg-background border border-border hover:border-primary transition-all active:scale-90"
                   >
                     <FlipHorizontal :size="18" />
-                    <span class="text-[0.5rem] font-bold opacity-60">水平</span>
+                    <span class="text-[0.7rem] font-bold opacity-60">水平</span>
                   </button>
                   <button
                     @click="handleFlipV"
+                    aria-label="垂直翻转"
                     :class="{ 'bg-primary/10 border-primary text-primary': flipV }"
                     class="aspect-square flex flex-col items-center justify-center gap-1.5 rounded-xl bg-background border border-border hover:border-primary transition-all active:scale-90"
                   >
                     <FlipVertical :size="18" />
-                    <span class="text-[0.5rem] font-bold opacity-60">垂直</span>
+                    <span class="text-[0.7rem] font-bold opacity-60">垂直</span>
                   </button>
                   <button
                     @click="handleReset"
+                    aria-label="重置所有变换"
                     class="aspect-square flex flex-col items-center justify-center gap-1.5 rounded-xl bg-background border border-border hover:text-destructive hover:border-destructive transition-all active:scale-90"
                   >
                     <RefreshCcw :size="18" />
-                    <span class="text-[0.5rem] font-bold opacity-60">重置</span>
+                    <span class="text-[0.7rem] font-bold opacity-60">重置</span>
                   </button>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 pt-2 border-t border-border/30">
                   <button
                     @click="handleUndo"
+                    aria-label="撤销"
                     :disabled="!canUndo"
                     class="h-9 flex items-center justify-center gap-2 rounded-xl bg-background border border-border hover:border-primary transition-all active:scale-95 disabled:opacity-30 disabled:grayscale"
                   >
                     <Undo2 :size="14" />
-                    <span class="text-[0.6rem] font-bold">撤销</span>
+                    <span class="text-[0.7rem] font-bold">撤销</span>
                   </button>
                   <button
                     @click="handleRedo"
+                    aria-label="重回"
                     :disabled="!canRedo"
                     class="h-9 flex items-center justify-center gap-2 rounded-xl bg-background border border-border hover:border-primary transition-all active:scale-95 disabled:opacity-30 disabled:grayscale"
                   >
                     <RefreshCcw :size="14" class="scale-x-[-1]" />
-                    <span class="text-[0.6rem] font-bold">重做</span>
+                    <span class="text-[0.7rem] font-bold">重做</span>
                   </button>
                 </div>
               </div>
@@ -417,16 +423,16 @@ watch(
                 <div class="flex items-center gap-2">
                   <button
                     @click="handleFit"
-                    class="px-2 py-1 rounded text-[0.55rem] font-bold text-primary hover:bg-primary/10 transition-colors"
+                    class="px-2 py-1 rounded text-[0.7rem] font-bold text-primary hover:bg-primary/10 transition-colors"
                   >
                     铺满
                   </button>
                   <div class="flex gap-1 bg-muted/20 p-1 rounded-lg border border-border/40">
                     <button
-                      v-for="mode in ['thirds', 'golden', 'none']"
+                      v-for="mode in (['thirds', 'golden', 'none'] as const)"
                       :key="mode"
-                      @click="gridMode = mode as any"
-                      class="px-2 py-1 rounded text-[0.5rem] font-bold transition-all"
+                      @click="gridMode = mode"
+                      class="px-2 py-1 rounded text-[0.7rem] font-bold transition-all"
                       :class="
                         gridMode === mode
                           ? 'bg-primary text-primary-foreground shadow-sm'
@@ -444,7 +450,7 @@ watch(
                   v-for="ratio in aspectRatios"
                   :key="ratio.label"
                   @click="currentRatio = ratio.value || undefined"
-                  class="group flex flex-col items-center gap-2 py-3 rounded-xl border text-[0.6rem] font-bold transition-all active:scale-95 relative"
+                  class="group flex flex-col items-center gap-2 py-3 rounded-xl border text-[0.7rem] font-bold transition-all active:scale-95 relative"
                   :class="
                     currentRatio === ratio.value ||
                     (ratio.value === 0 && currentRatio === undefined)
@@ -468,16 +474,16 @@ watch(
                 </button>
               </div>
 
-              <!-- 扩图底色填充 - Optimized UI & Eyedropper -->
+              <!-- 扩图底色填充 -->
               <div class="space-y-4 pt-4 border-t border-border/30">
                 <div class="flex items-center justify-between px-1">
                   <span
-                    class="text-[0.6rem] font-bold text-muted-foreground uppercase tracking-wider"
+                    class="text-[0.7rem] font-bold text-muted-foreground uppercase tracking-wider"
                     >画布扩展填充</span
                   >
                   <span
                     v-if="fillColor !== 'transparent'"
-                    class="text-[0.5rem] font-mono text-muted-foreground/60"
+                    class="text-xs font-mono text-muted-foreground/60"
                     >{{ fillColor.toUpperCase() }}</span
                   >
                 </div>
@@ -496,21 +502,10 @@ watch(
                           : 'border-border/40 hover:border-primary/40'
                       "
                     >
-                      <div
-                        class="w-full h-full opacity-40"
-                        style="
-                          background-image: conic-gradient(
-                            hsl(var(--muted-foreground) / 0.2) 0 25%,
-                            transparent 0 50%,
-                            hsl(var(--muted-foreground) / 0.2) 0 75%,
-                            transparent 0
-                          );
-                          background-size: 8px 8px;
-                        "
-                      ></div>
+                      <div class="w-full h-full opacity-40 transparency-grid-small"></div>
                     </div>
                     <span
-                      class="text-[0.5rem] font-bold transition-colors"
+                      class="text-[0.7rem] font-bold transition-colors"
                       :class="
                         fillColor === 'transparent' ? 'text-primary' : 'text-muted-foreground'
                       "
@@ -522,24 +517,30 @@ watch(
 
                   <!-- 常用色 -->
                   <button
-                    v-for="color in ['#FFFFFF', '#000000']"
+                    v-for="color in ['white', 'black']"
                     :key="color"
-                    @click="fillColor = color"
+                    @click="fillColor = color === 'white' ? '#FFFFFF' : '#000000'"
                     class="group flex flex-col items-center gap-1.5 transition-all"
                   >
                     <div
                       class="w-8 h-8 rounded-xl border-2 transition-all shadow-sm"
-                      :style="{ backgroundColor: color }"
-                      :class="
-                        fillColor === color
+                      :class="[
+                        color === 'white' ? 'bg-white' : 'bg-black',
+                        (fillColor === '#FFFFFF' && color === 'white') ||
+                        (fillColor === '#000000' && color === 'black')
                           ? 'border-primary ring-4 ring-primary/10 scale-110'
                           : 'border-border/40 hover:border-primary/40'
-                      "
+                      ]"
                     ></div>
                     <span
-                      class="text-[0.5rem] font-bold transition-colors"
-                      :class="fillColor === color ? 'text-primary' : 'text-muted-foreground'"
-                      >{{ color === '#FFFFFF' ? '纯白' : '纯黑' }}</span
+                      class="text-[0.7rem] font-bold transition-colors"
+                      :class="
+                        (fillColor === '#FFFFFF' && color === 'white') ||
+                        (fillColor === '#000000' && color === 'black')
+                          ? 'text-primary'
+                          : 'text-muted-foreground'
+                      "
+                      >{{ color === 'white' ? '纯白' : '纯黑' }}</span
                     >
                   </button>
 
@@ -584,7 +585,7 @@ watch(
                         ></div>
                       </div>
                       <span
-                        class="text-[0.5rem] font-bold transition-colors"
+                        class="text-[0.7rem] font-bold transition-colors"
                         :class="
                           !['transparent', '#FFFFFF', '#000000'].includes(fillColor)
                             ? 'text-primary'
@@ -595,83 +596,91 @@ watch(
                     </label>
                   </div>
                 </div>
-                <p class="text-[0.5rem] text-muted-foreground/40 px-1 leading-tight">
+                <p class="text-[0.7rem] text-muted-foreground/40 px-1 leading-tight">
                   吸附模式已开启。拉动裁剪框超出边界将自动填充底色。
                 </p>
               </div>
 
-              <!-- 精确数值输入 - Clarify: 增加像素显示 -->
+              <!-- 精确数值输入 -->
               <div class="grid grid-cols-2 gap-x-4 gap-y-4 pt-4 border-t border-border/30">
                 <div class="space-y-1.5">
                   <div class="flex items-center justify-between px-1">
-                    <span
-                      class="text-[0.6rem] font-bold text-muted-foreground uppercase tracking-wider"
-                      >X (%)</span
+                    <label
+                      for="crop-x"
+                      class="text-[0.7rem] font-bold text-muted-foreground uppercase tracking-wider cursor-pointer"
+                      >X (%)</label
                     >
-                    <span class="text-[0.55rem] font-mono text-muted-foreground/60"
+                    <span class="text-xs font-mono text-muted-foreground/60"
                       >{{ pixelValues.x }}px</span
                     >
                   </div>
                   <AppInput
+                    id="crop-x"
                     v-model.number="internalCrop.x"
                     type="number"
                     :min="0"
                     :max="95"
-                    class="h-9 text-[0.7rem]"
+                    class="h-9 text-xs"
                   />
                 </div>
                 <div class="space-y-1.5">
                   <div class="flex items-center justify-between px-1">
-                    <span
-                      class="text-[0.6rem] font-bold text-muted-foreground uppercase tracking-wider"
-                      >Y (%)</span
+                    <label
+                      for="crop-y"
+                      class="text-[0.7rem] font-bold text-muted-foreground uppercase tracking-wider cursor-pointer"
+                      >Y (%)</label
                     >
-                    <span class="text-[0.55rem] font-mono text-muted-foreground/60"
+                    <span class="text-xs font-mono text-muted-foreground/60"
                       >{{ pixelValues.y }}px</span
                     >
                   </div>
                   <AppInput
+                    id="crop-y"
                     v-model.number="internalCrop.y"
                     type="number"
                     :min="0"
                     :max="95"
-                    class="h-9 text-[0.7rem]"
+                    class="h-9 text-xs"
                   />
                 </div>
                 <div class="space-y-1.5">
                   <div class="flex items-center justify-between px-1">
-                    <span
-                      class="text-[0.6rem] font-bold text-muted-foreground uppercase tracking-wider"
-                      >Width (%)</span
+                    <label
+                      for="crop-w"
+                      class="text-[0.7rem] font-bold text-muted-foreground uppercase tracking-wider cursor-pointer"
+                      >Width (%)</label
                     >
-                    <span class="text-[0.55rem] font-mono text-primary font-bold"
+                    <span class="text-xs font-mono text-primary font-bold"
                       >{{ pixelValues.w }}px</span
                     >
                   </div>
                   <AppInput
+                    id="crop-w"
                     v-model.number="internalCrop.w"
                     type="number"
                     :min="5"
                     :max="100"
-                    class="h-9 text-[0.7rem]"
+                    class="h-9 text-xs"
                   />
                 </div>
                 <div class="space-y-1.5">
                   <div class="flex items-center justify-between px-1">
-                    <span
-                      class="text-[0.6rem] font-bold text-muted-foreground uppercase tracking-wider"
-                      >Height (%)</span
+                    <label
+                      for="crop-h"
+                      class="text-[0.7rem] font-bold text-muted-foreground uppercase tracking-wider cursor-pointer"
+                      >Height (%)</label
                     >
-                    <span class="text-[0.55rem] font-mono text-primary font-bold"
+                    <span class="text-xs font-mono text-primary font-bold"
                       >{{ pixelValues.h }}px</span
                     >
                   </div>
                   <AppInput
+                    id="crop-h"
                     v-model.number="internalCrop.h"
                     type="number"
                     :min="5"
                     :max="100"
-                    class="h-9 text-[0.7rem]"
+                    class="h-9 text-xs"
                   />
                 </div>
               </div>
@@ -708,13 +717,13 @@ watch(
                 <div class="space-y-2 pt-2 border-t border-border/30">
                   <div class="flex items-center justify-between px-0.5">
                     <span
-                      class="text-[0.6rem] font-bold text-muted-foreground uppercase tracking-wider"
+                      class="text-[0.7rem] font-bold text-muted-foreground uppercase tracking-wider"
                       >边框修剪 (px)</span
                     >
                     <button
                       v-if="trimPx.top || trimPx.bottom || trimPx.left || trimPx.right"
                       @click="trimPx = { top: 0, bottom: 0, left: 0, right: 0 }"
-                      class="text-[0.5rem] text-muted-foreground/50 hover:text-destructive transition-colors"
+                      class="text-[0.7rem] text-muted-foreground/50 hover:text-destructive transition-colors"
                     >
                       重置
                     </button>
@@ -731,7 +740,7 @@ watch(
                       class="space-y-1"
                     >
                       <span
-                        class="text-[0.55rem] font-bold text-muted-foreground/60 uppercase tracking-wider px-1"
+                        class="text-[0.7rem] font-bold text-muted-foreground/60 uppercase tracking-wider px-1"
                         >{{ edge[1] }}</span
                       >
                       <AppInput
@@ -739,11 +748,11 @@ watch(
                         type="number"
                         :min="0"
                         :max="20"
-                        class="h-9 text-[0.7rem]"
+                        class="h-9 text-xs"
                       />
                     </div>
                   </div>
-                  <p class="text-[0.52rem] text-muted-foreground/40 px-0.5">
+                  <p class="text-[0.7rem] text-muted-foreground/40 px-0.5">
                     仅影响导出，不改变预览框位置
                   </p>
                 </div>
@@ -785,10 +794,10 @@ watch(
                     <img :src="img.preview" class="w-full h-full object-cover" />
                   </div>
                   <div class="flex-1 min-w-0">
-                    <p class="text-[0.65rem] font-bold text-foreground truncate">
+                    <p class="text-xs font-bold text-foreground truncate">
                       {{ img.file.name }}
                     </p>
-                    <p class="text-[0.55rem] text-muted-foreground font-mono mt-0.5 opacity-60">
+                    <p class="text-[0.7rem] text-muted-foreground font-mono mt-0.5 opacity-60">
                       {{ img.width }}x{{ img.height }}
                     </p>
                   </div>
@@ -833,5 +842,15 @@ watch(
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: hsl(var(--border) / 0.5);
   border-radius: 10px;
+}
+
+.transparency-grid-small {
+  background-image: conic-gradient(
+    hsl(var(--muted-foreground) / 0.2) 0 25%,
+    transparent 0 50%,
+    hsl(var(--muted-foreground) / 0.2) 0 75%,
+    transparent 0
+  );
+  background-size: 8px 8px;
 }
 </style>

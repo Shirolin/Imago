@@ -4,6 +4,7 @@ import type { Component } from 'vue'
 import { Plus, Minus } from 'lucide-vue-next'
 
 interface Props {
+  id?: string
   modelValue: string | number | undefined
   type?: 'text' | 'number'
   placeholder?: string
@@ -16,10 +17,13 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   type: 'text',
+  placeholder: '',
   step: 1
 })
 
 const emit = defineEmits(['update:modelValue'])
+
+const inputId = props.id || `input-${Math.random().toString(36).slice(2, 9)}`
 
 const value = computed({
   get: () => props.modelValue,
@@ -55,48 +59,49 @@ const handleDecrement = () => {
 
     <div class="relative flex-1">
       <input
+        :id="inputId"
         v-model="value"
         :type="type"
         :placeholder="placeholder"
         class="w-full h-10 bg-muted/20 border border-border/40 rounded-lg text-xs font-bold focus:border-primary focus:bg-background/80 outline-none transition-all tabular-nums placeholder:text-muted-foreground/40"
-        :class="[icon ? 'pl-9' : 'pl-3', type === 'number' ? 'pr-14' : suffix ? 'pr-8' : 'pr-3']"
+        :class="[icon ? 'pl-9' : 'pl-3', type === 'number' ? 'pr-20' : suffix ? 'pr-8' : 'pr-3']"
       />
 
-      <!-- 数字调节按钮 (Stepper) - 更加紧凑与透亮 -->
+      <!-- 数字调节按钮 (Stepper) -->
       <div
         v-if="type === 'number'"
-        class="absolute right-0.5 top-1/2 -translate-y-1/2 flex items-center h-8 opacity-0 group-hover/input:opacity-100 group-focus-within/input:opacity-100 transition-opacity p-0.5"
+        class="absolute right-0.5 top-1/2 -translate-y-1/2 flex items-center h-8 transition-opacity p-0.5"
       >
         <button
           @click.stop="handleDecrement"
           type="button"
-          class="w-5 h-7 flex items-center justify-center rounded-l-md hover:bg-primary/10 text-muted-foreground/60 hover:text-primary active:scale-90 transition-all outline-none focus-visible:ring-1 focus-visible:ring-primary"
+          class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-primary/10 text-muted-foreground/60 hover:text-primary active:scale-90 transition-all outline-none focus-visible:ring-1 focus-visible:ring-primary"
           aria-label="减少数值"
         >
-          <Minus :size="10" />
+          <Minus :size="14" />
         </button>
-        <div class="w-[1px] h-2 bg-border/20"></div>
+        <div class="w-[1px] h-3 bg-border/20 mx-0.5"></div>
         <button
           @click.stop="handleIncrement"
           type="button"
-          class="w-5 h-7 flex items-center justify-center rounded-r-md hover:bg-primary/10 text-muted-foreground/60 hover:text-primary active:scale-90 transition-all outline-none focus-visible:ring-1 focus-visible:ring-primary"
+          class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-primary/10 text-muted-foreground/60 hover:text-primary active:scale-90 transition-all outline-none focus-visible:ring-1 focus-visible:ring-primary"
           aria-label="增加数值"
         >
-          <Plus :size="10" />
+          <Plus :size="14" />
         </button>
       </div>
 
       <div
         v-if="suffix && type !== 'number'"
-        class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-muted-foreground/50 pointer-events-none uppercase group-focus-within/input:text-primary transition-colors"
+        class="absolute right-3 top-1/2 -translate-y-1/2 text-[0.7rem] font-black text-muted-foreground/50 pointer-events-none uppercase group-focus-within/input:text-primary transition-colors"
       >
         {{ suffix }}
       </div>
 
-      <!-- 数字输入框的后缀逻辑 - 紧贴 Stepper 提升空间利用率 -->
+      <!-- 数字输入框的后缀逻辑 -->
       <div
         v-if="suffix && type === 'number'"
-        class="absolute right-11 top-1/2 -translate-y-1/2 text-[8px] font-black text-muted-foreground/40 pointer-events-none uppercase transition-colors"
+        class="absolute right-20 top-1/2 -translate-y-1/2 text-[0.7rem] font-black text-muted-foreground/40 pointer-events-none uppercase transition-colors"
       >
         {{ suffix }}
       </div>

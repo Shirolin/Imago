@@ -435,9 +435,13 @@ const handleEnd = () => {
   window.removeEventListener('touchend', handleEnd)
 }
 
-onMounted(() => window.addEventListener('resize', updateRenderedRect))
+onMounted(() => {
+  if (imgRef.value?.complete) {
+    updateRenderedRect()
+  }
+})
+
 onUnmounted(() => {
-  window.removeEventListener('resize', updateRenderedRect)
   handleEnd()
 })
 </script>
@@ -570,9 +574,10 @@ onUnmounted(() => {
         <div
           class="h-6 bg-black/90 backdrop-blur-md flex items-center justify-center border-t border-white/10 px-2 shrink-0"
         >
-          <span class="text-[9px] text-white/80 font-mono font-bold tracking-tighter uppercase">{{
-            isSnapping ? 'Edge Snapped' : 'Precise Target'
-          }}</span>
+          <span
+            class="text-[0.7rem] text-white/80 font-mono font-bold tracking-tighter uppercase"
+            >{{ isSnapping ? 'Edge Snapped' : 'Precise Target' }}</span
+          >
         </div>
       </div>
     </div>
@@ -590,12 +595,12 @@ onUnmounted(() => {
           class="w-2 h-2 rounded-full"
           :class="isSnapping ? 'bg-primary animate-pulse' : 'bg-white/10'"
         ></div>
-        <span class="text-[11px] font-bold tracking-widest uppercase">{{
-          isSnapping ? '已吸附边缘 (按Alt取消)' : '移动到内容边缘自动吸附'
+        <span class="text-[0.7rem] font-bold tracking-widest uppercase">{{
+          isSnapping ? '已吸附边缘 (按Alt取消)' : '内容边缘自动吸附'
         }}</span>
       </div>
       <div
-        class="px-4 py-2 bg-black/80 backdrop-blur-xl rounded-full border border-white/10 text-[11px] text-white font-mono font-bold shadow-2xl"
+        class="px-4 py-2 bg-black/80 backdrop-blur-xl rounded-full border border-white/10 text-[0.7rem] text-white font-mono font-bold shadow-2xl"
       >
         {{ pixelSize.w }} × {{ pixelSize.h }}
       </div>
