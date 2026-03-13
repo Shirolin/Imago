@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { ref, onUnmounted, onMounted, watch, computed } from 'vue'
+import { ref, onUnmounted, onMounted, watch, computed, type CSSProperties } from 'vue'
 
 interface Props {
   aspectRatio?: number
   imageUrl: string
   modelValue?: { x: number; y: number; w: number; h: number }
   gridMode?: 'none' | 'thirds' | 'golden' | 'cross'
+  fillColor?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  gridMode: 'thirds'
+  gridMode: 'thirds',
+  fillColor: 'transparent'
 })
 const emit = defineEmits(['update:modelValue', 'change'])
 
@@ -28,7 +30,7 @@ const updateRenderedRect = () => {
   if (!imgRef.value || !containerRef.value) return
   const img = imgRef.value,
     container = containerRef.value
-  const padding = 64
+  const padding = 160 // 扩大 padding，给画布扩展留出物理拖拽空间
   const availableW = Math.max(container.offsetWidth - padding, 100)
   const availableH = Math.max(container.offsetHeight - padding, 100)
   const ir = img.naturalWidth / img.naturalHeight,
@@ -78,9 +80,9 @@ const magnifierBgPos = computed(() => {
 
 const showMagnifier = computed(() => isDragging.value && dragMode.value !== 'move')
 
-const magnifierCropLines = computed(() => {
+const magnifierCropLines = computed<CSSProperties | null>(() => {
   if (!dragMode.value || dragMode.value === 'move') return null
-  const style: any = {
+  const style: CSSProperties = {
     position: 'absolute',
     borderStyle: 'solid',
     borderColor: 'hsl(var(--primary))',
@@ -176,12 +178,16 @@ const updateCrop = (n: typeof internalCrop.value) => {
   n.y = Number(n.y.toFixed(4))
   n.w = Number(n.w.toFixed(4))
   n.h = Number(n.h.toFixed(4))
+  // 仅对宽高做最小限制，允许 x, y 为负数，允许 w, h 大于 100 以实现扩图
+  n.w = Math.max(0.1, n.w)
+  n.h = Math.max(0.1, n.h)
   internalCrop.value = { ...n }
   emit('update:modelValue', { ...n })
   emit('change', { ...n, usePercentage: true })
 }
 
 const handleImageLoad = () => {
+  // ... keeping handleImageLoad exactly as is ...
   updateRenderedRect()
   const img = imgRef.value
   if (!img) return
@@ -331,15 +337,25 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
     const snap = (val: number, target: number) =>
       !alt && contentBounds.value && Math.abs(val - target) < 2.5 ? target : val
 
+    // 计算物理画布相对于图片的百分比边界约束
+    const container = containerRef.value!
+    const img = imgRenderedRect.value
+    const bounds = {
+      minX: -(img.left / img.width) * 100,
+      minY: -(img.top / img.height) * 100,
+      maxX: ((container.offsetWidth - img.left) / img.width) * 100,
+      maxY: ((container.offsetHeight - img.top) / img.height) * 100
+    }
+
     if (dragMode.value === 'move') {
-      n.x = Math.max(0, Math.min(100 - n.w, startCrop.x + dx))
-      n.y = Math.max(0, Math.min(100 - n.h, startCrop.y + dy))
+      n.x = Math.max(bounds.minX, Math.min(bounds.maxX - n.w, startCrop.x + dx))
+      n.y = Math.max(bounds.minY, Math.min(bounds.maxY - n.h, startCrop.y + dy))
     } else {
       const mode = dragMode.value!
-      // 1. 独立计算基础变更 (不考虑比例)
+      // 解除 0-100 限制，但受限于物理画布边界
       if (mode.includes('n')) {
         const ny = snap(startCrop.y + dy, contentBounds.value?.y ?? -999)
-        n.y = Math.max(0, Math.min(ny, startCrop.y + startCrop.h - 0.5))
+        n.y = Math.max(bounds.minY, Math.min(ny, startCrop.y + startCrop.h - 0.5))
         n.h = startCrop.h - (n.y - startCrop.y)
         if (ny === contentBounds.value?.y) sV = true
       }
@@ -348,12 +364,12 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
           startCrop.y + startCrop.h + dy,
           (contentBounds.value?.y ?? 0) + (contentBounds.value?.h ?? 0)
         )
-        n.h = Math.max(0.5, Math.min(100 - n.y, nb - n.y))
+        n.h = Math.max(0.5, Math.min(bounds.maxY - n.y, nb - n.y))
         if (nb === (contentBounds.value?.y ?? 0) + (contentBounds.value?.h ?? 0)) sV = true
       }
       if (mode.includes('w')) {
         const nx = snap(startCrop.x + dx, contentBounds.value?.x ?? -999)
-        n.x = Math.max(0, Math.min(nx, startCrop.x + startCrop.w - 0.5))
+        n.x = Math.max(bounds.minX, Math.min(nx, startCrop.x + startCrop.w - 0.5))
         n.w = startCrop.w - (n.x - startCrop.x)
         if (nx === contentBounds.value?.x) sH = true
       }
@@ -362,25 +378,42 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
           startCrop.x + startCrop.w + dx,
           (contentBounds.value?.x ?? 0) + (contentBounds.value?.w ?? 0)
         )
-        n.w = Math.max(0.5, Math.min(100 - n.x, nr - n.x))
+        n.w = Math.max(0.5, Math.min(bounds.maxX - n.x, nr - n.x))
         if (nr === (contentBounds.value?.x ?? 0) + (contentBounds.value?.w ?? 0)) sH = true
       }
 
-      // 2. 比例修正逻辑 (核心修复：根据拖拽柄智能选择 master)
+      // 比例修正逻辑
       if (props.aspectRatio) {
         const ar = props.aspectRatio
         const isHeightMaster = mode === 'n' || mode === 's'
         if (isHeightMaster) {
           n.w = n.h * ar
-          if (n.x + n.w > 100) {
-            n.w = 100 - n.x
+          if (mode.includes('w') || mode.includes('nw') || mode.includes('sw')) {
+            n.x = startCrop.x + startCrop.w - n.w
+          }
+          // 二次检查比例缩放后是否越界
+          if (n.x < bounds.minX) {
+            n.x = bounds.minX
+            n.w = startCrop.x + startCrop.w - n.x
+            n.h = n.w / ar
+          }
+          if (n.x + n.w > bounds.maxX) {
+            n.w = bounds.maxX - n.x
             n.h = n.w / ar
           }
         } else {
-          // 默认以宽度为准（适合左右拖动和角点拖动）
           n.h = n.w / ar
-          if (n.y + n.h > 100) {
-            n.h = 100 - n.y
+          if (mode.includes('n') || mode.includes('nw') || mode.includes('ne')) {
+            n.y = startCrop.y + startCrop.h - n.h
+          }
+          // 二次检查比例缩放后是否越界
+          if (n.y < bounds.minY) {
+            n.y = bounds.minY
+            n.h = startCrop.y + startCrop.h - n.y
+            n.w = n.h * ar
+          }
+          if (n.y + n.h > bounds.maxY) {
+            n.h = bounds.maxY - n.y
             n.w = n.h * ar
           }
         }
@@ -392,6 +425,7 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
 }
 
 const handleEnd = () => {
+  // ... keep handleEnd ...
   isDragging.value = false
   isSnapping.value = false
   dragMode.value = null
@@ -421,7 +455,7 @@ onUnmounted(() => {
     />
     <div
       v-if="imgRenderedRect.width > 0"
-      class="absolute overflow-hidden"
+      class="absolute"
       :style="{
         left: imgRenderedRect.left + 'px',
         top: imgRenderedRect.top + 'px',
@@ -429,9 +463,27 @@ onUnmounted(() => {
         height: imgRenderedRect.height + 'px'
       }"
     >
-      <img :src="imageUrl" class="w-full h-full block rounded-sm shadow-sm pointer-events-none" />
+      <!-- 扩图底色预览层：置于底层 (z-0) -->
       <div
-        class="absolute border-2 border-primary shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] cursor-move"
+        class="absolute z-0"
+        :style="{
+          left: internalCrop.x + '%',
+          top: internalCrop.y + '%',
+          width: internalCrop.w + '%',
+          height: internalCrop.h + '%',
+          backgroundColor: fillColor === 'transparent' ? 'transparent' : fillColor
+        }"
+      ></div>
+
+      <!-- 原始图片：置于中层 (z-10) 确保不被底色覆盖 -->
+      <img
+        :src="imageUrl"
+        class="w-full h-full block rounded-sm shadow-sm pointer-events-none relative z-10"
+      />
+
+      <!-- 裁剪交互层：置于顶层 (z-20) -->
+      <div
+        class="absolute z-20 border-2 border-primary shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] cursor-move"
         :style="{
           left: internalCrop.x + '%',
           top: internalCrop.y + '%',

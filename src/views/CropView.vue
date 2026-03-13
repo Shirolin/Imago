@@ -45,6 +45,8 @@ const internalCrop = ref({ x: 10, y: 10, w: 80, h: 80 })
 const gridMode = ref<'none' | 'thirds' | 'golden' | 'cross'>('thirds')
 // 导出边框修剪（像素），独立于预览，用于手动去除白边
 const trimPx = ref({ top: 0, bottom: 0, left: 0, right: 0 })
+// 画布扩展填充色
+const fillColor = ref('transparent')
 
 // 历史记录状态
 interface CropState {
@@ -56,7 +58,24 @@ interface CropState {
 const history = ref<CropState[]>([])
 const historyIndex = ref(-1)
 
+interface EyeDropper {
+  open: (options?: { signal?: AbortSignal }) => Promise<{ sRGBHex: string }>
+}
+
+const isEyeDropperSupported = typeof globalThis !== 'undefined' && 'EyeDropper' in globalThis
+
 const { isProcessing, processSelected, processSingle } = useImageProcessor(cropEngine)
+
+const handleEyeDropper = async () => {
+  if (!isEyeDropperSupported) return
+  try {
+    const dropper = new (globalThis as any).EyeDropper() as EyeDropper
+    const result = await dropper.open()
+    fillColor.value = result.sRGBHex
+  } catch {
+    // 用户取消吸色或 API 调用失败
+  }
+}
 
 // --- 业务函数 (Functions) ---
 
@@ -67,6 +86,7 @@ const handleReset = () => {
   currentRatio.value = undefined
   internalCrop.value = { x: 10, y: 10, w: 80, h: 80 }
   trimPx.value = { top: 0, bottom: 0, left: 0, right: 0 }
+  fillColor.value = 'transparent'
 }
 
 const handleFit = () => {
@@ -157,7 +177,8 @@ const handleApply = async () => {
       bottom: trimPx.value.bottom,
       left: trimPx.value.left,
       right: trimPx.value.right
-    }
+    },
+    fillColor: fillColor.value
   }
 
   if (store.selectedCount > 0) {
@@ -304,6 +325,7 @@ watch(
                 :image-url="selectedImage.preview"
                 :aspect-ratio="currentRatio"
                 :grid-mode="gridMode"
+                :fill-color="fillColor"
               />
             </div>
 
@@ -444,6 +466,138 @@ watch(
                   </svg>
                   {{ ratio.label }}
                 </button>
+              </div>
+
+              <!-- 扩图底色填充 - Optimized UI & Eyedropper -->
+              <div class="space-y-4 pt-4 border-t border-border/30">
+                <div class="flex items-center justify-between px-1">
+                  <span
+                    class="text-[0.6rem] font-bold text-muted-foreground uppercase tracking-wider"
+                    >画布扩展填充</span
+                  >
+                  <span
+                    v-if="fillColor !== 'transparent'"
+                    class="text-[0.5rem] font-mono text-muted-foreground/60"
+                    >{{ fillColor.toUpperCase() }}</span
+                  >
+                </div>
+                <div class="flex items-center gap-3 px-1">
+                  <!-- 透明 -->
+                  <button
+                    @click="fillColor = 'transparent'"
+                    class="relative group flex flex-col items-center gap-1.5 transition-all"
+                    title="透明背景"
+                  >
+                    <div
+                      class="w-8 h-8 rounded-xl border-2 transition-all flex items-center justify-center overflow-hidden shadow-sm"
+                      :class="
+                        fillColor === 'transparent'
+                          ? 'border-primary ring-4 ring-primary/10 scale-110'
+                          : 'border-border/40 hover:border-primary/40'
+                      "
+                    >
+                      <div
+                        class="w-full h-full opacity-40"
+                        style="
+                          background-image: conic-gradient(
+                            hsl(var(--muted-foreground) / 0.2) 0 25%,
+                            transparent 0 50%,
+                            hsl(var(--muted-foreground) / 0.2) 0 75%,
+                            transparent 0
+                          );
+                          background-size: 8px 8px;
+                        "
+                      ></div>
+                    </div>
+                    <span
+                      class="text-[0.5rem] font-bold transition-colors"
+                      :class="
+                        fillColor === 'transparent' ? 'text-primary' : 'text-muted-foreground'
+                      "
+                      >透明</span
+                    >
+                  </button>
+
+                  <div class="w-[1px] h-6 bg-border/30 mx-1"></div>
+
+                  <!-- 常用色 -->
+                  <button
+                    v-for="color in ['#FFFFFF', '#000000']"
+                    :key="color"
+                    @click="fillColor = color"
+                    class="group flex flex-col items-center gap-1.5 transition-all"
+                  >
+                    <div
+                      class="w-8 h-8 rounded-xl border-2 transition-all shadow-sm"
+                      :style="{ backgroundColor: color }"
+                      :class="
+                        fillColor === color
+                          ? 'border-primary ring-4 ring-primary/10 scale-110'
+                          : 'border-border/40 hover:border-primary/40'
+                      "
+                    ></div>
+                    <span
+                      class="text-[0.5rem] font-bold transition-colors"
+                      :class="fillColor === color ? 'text-primary' : 'text-muted-foreground'"
+                      >{{ color === '#FFFFFF' ? '纯白' : '纯黑' }}</span
+                    >
+                  </button>
+
+                  <!-- 吸色与自定义 -->
+                  <div class="flex items-center gap-2 ml-auto">
+                    <!-- 原生吸色器 (EyeDropper) -->
+                    <button
+                      v-if="isEyeDropperSupported"
+                      @click="handleEyeDropper"
+                      class="w-8 h-8 rounded-xl border border-border/40 bg-background flex items-center justify-center hover:border-primary/40 hover:text-primary transition-all active:scale-90"
+                      title="从屏幕吸色"
+                    >
+                      <RefreshCcw :size="14" class="rotate-45" />
+                    </button>
+
+                    <!-- 自定义调色盘 -->
+                    <label class="group flex flex-col items-center gap-1.5 cursor-pointer relative">
+                      <input
+                        type="color"
+                        v-model="fillColor"
+                        class="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
+                      />
+                      <div
+                        class="w-8 h-8 rounded-xl border-2 transition-all shadow-sm overflow-hidden flex items-center justify-center bg-background"
+                        :class="
+                          !['transparent', '#FFFFFF', '#000000'].includes(fillColor)
+                            ? 'border-primary ring-4 ring-primary/10 scale-110'
+                            : 'border-border/40 hover:border-primary/40'
+                        "
+                      >
+                        <div
+                          v-if="['transparent', '#FFFFFF', '#000000'].includes(fillColor)"
+                          class="w-full h-full opacity-60"
+                          style="
+                            background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
+                          "
+                        ></div>
+                        <div
+                          v-else
+                          class="w-full h-full"
+                          :style="{ backgroundColor: fillColor }"
+                        ></div>
+                      </div>
+                      <span
+                        class="text-[0.5rem] font-bold transition-colors"
+                        :class="
+                          !['transparent', '#FFFFFF', '#000000'].includes(fillColor)
+                            ? 'text-primary'
+                            : 'text-muted-foreground'
+                        "
+                        >自定义</span
+                      >
+                    </label>
+                  </div>
+                </div>
+                <p class="text-[0.5rem] text-muted-foreground/40 px-1 leading-tight">
+                  吸附模式已开启。拉动裁剪框超出边界将自动填充底色。
+                </p>
               </div>
 
               <!-- 精确数值输入 - Clarify: 增加像素显示 -->

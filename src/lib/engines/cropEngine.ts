@@ -15,6 +15,7 @@ export interface CropOptions {
   preserveExif?: boolean
   // 导出边框修剪（像素），独立于裁剪框预览，用于精确去除白边
   trimPx?: { top?: number; bottom?: number; left?: number; right?: number }
+  fillColor?: string // 扩图时的填充色
 }
 
 export const cropEngine: ImageProcessor<CropOptions> = async (file, options) => {
@@ -63,12 +64,11 @@ export const cropEngine: ImageProcessor<CropOptions> = async (file, options) => 
         cropH = (cropH / 100) * rotatedHeight
       }
 
-      // 起点用 ceil 确保不包含起点前的背景像素；
-      // 终点用 floor(起点+宽度) 确保不超出内容边界（Math.round 在缩放图像时可能多包含 1 行白色背景）
-      const finalX = Math.ceil(cropX)
-      const finalY = Math.ceil(cropY)
-      const finalW = Math.max(1, Math.floor(cropX + cropW) - finalX)
-      const finalH = Math.max(1, Math.floor(cropY + cropH) - finalY)
+      // 起点用 ceil，终点用 floor 确保边缘抗锯齿像素向内紧致收缩
+      let finalX = Math.ceil(cropX)
+      let finalY = Math.ceil(cropY)
+      let finalW = Math.max(1, Math.floor(cropX + cropW) - finalX)
+      let finalH = Math.max(1, Math.floor(cropY + cropH) - finalY)
 
       // 应用边框修剪（用户手动指定的像素内缩）
       const trim = options.trimPx ?? {}
@@ -77,13 +77,12 @@ export const cropEngine: ImageProcessor<CropOptions> = async (file, options) => 
       const tL = Math.max(0, trim.left ?? 0)
       const tR = Math.max(0, trim.right ?? 0)
 
-      // 确保裁剪区域不超出旋转后的边界，同时应用修剪
-      const safeX = Math.max(0, Math.min(finalX + tL, rotatedWidth - 1))
-      const safeY = Math.max(0, Math.min(finalY + tT, rotatedHeight - 1))
-      const safeW = Math.max(1, Math.min(finalW - tL - tR, rotatedWidth - safeX))
-      const safeH = Math.max(1, Math.min(finalH - tT - tB, rotatedHeight - safeY))
+      finalX += tL
+      finalY += tT
+      finalW = Math.max(1, finalW - tL - tR)
+      finalH = Math.max(1, finalH - tT - tB)
 
-      // 现在在已变换的图像上进行裁剪
+      // 创建最终画布
       const finalCanvas = document.createElement('canvas')
       const finalCtx = finalCanvas.getContext('2d', { alpha: true, desynchronized: true })
       if (!finalCtx) {
@@ -91,47 +90,51 @@ export const cropEngine: ImageProcessor<CropOptions> = async (file, options) => 
         return
       }
 
-      finalCanvas.width = safeW
-      finalCanvas.height = safeH
+      finalCanvas.width = finalW
+      finalCanvas.height = finalH
 
-      // 从工作画布中截取目标区域
+      // 如果设定了填充色且不是透明，则填充底层（用于扩图）
+      if (options.fillColor && options.fillColor !== 'transparent') {
+        finalCtx.fillStyle = options.fillColor
+        finalCtx.fillRect(0, 0, finalW, finalH)
+      }
+
+      // 将工作画布绘制到最终画布上，通过负向偏移量实现裁剪和扩图的自动适应
       finalCtx.imageSmoothingEnabled = true
       finalCtx.imageSmoothingQuality = 'high'
-      finalCtx.drawImage(
-        workCanvas,
-        safeX,
-        safeY,
-        safeW,
-        safeH,
-        0,
-        0,
-        finalCanvas.width,
-        finalCanvas.height
-      )
+      finalCtx.drawImage(workCanvas, -finalX, -finalY)
 
-      // 边缘像素清理：四边各 3 行/列，alpha < 128 设为全透明
-      // 与 CropBox isBg 阈值保持一致，消灭导出时半透明边缘在白底上显现的白边
-      try {
-        const edgeData = finalCtx.getImageData(0, 0, safeW, safeH)
-        const d = edgeData.data
-        const scanDepth = 3
-        for (let pass = 0; pass < scanDepth; pass++) {
-          for (const row of [pass, safeH - 1 - pass]) {
-            for (let x = 0; x < safeW; x++) {
-              const i = (row * safeW + x) * 4
-              if ((d[i + 3] ?? 0) < 128) d[i + 3] = 0
+      // 检测是否发生了外扩
+      const isExpanding =
+        finalX < 0 ||
+        finalY < 0 ||
+        finalX + finalW > rotatedWidth ||
+        finalY + finalH > rotatedHeight
+
+      // 仅在严格裁剪（未扩图）时，清理可能因为抗锯齿残留的细微背景像素
+      if (!isExpanding) {
+        try {
+          const edgeData = finalCtx.getImageData(0, 0, finalW, finalH)
+          const d = edgeData.data
+          const scanDepth = 3
+          for (let pass = 0; pass < scanDepth; pass++) {
+            for (const row of [pass, finalH - 1 - pass]) {
+              for (let x = 0; x < finalW; x++) {
+                const i = (row * finalW + x) * 4
+                if ((d[i + 3] ?? 0) < 128) d[i + 3] = 0
+              }
+            }
+            for (const col of [pass, finalW - 1 - pass]) {
+              for (let y = 0; y < finalH; y++) {
+                const i = (y * finalW + col) * 4
+                if ((d[i + 3] ?? 0) < 128) d[i + 3] = 0
+              }
             }
           }
-          for (const col of [pass, safeW - 1 - pass]) {
-            for (let y = 0; y < safeH; y++) {
-              const i = (y * safeW + col) * 4
-              if ((d[i + 3] ?? 0) < 128) d[i + 3] = 0
-            }
-          }
+          finalCtx.putImageData(edgeData, 0, 0)
+        } catch {
+          // 跨域或安全限制下跳过清理
         }
-        finalCtx.putImageData(edgeData, 0, 0)
-      } catch {
-        // 跨域或安全限制下跳过清理
       }
 
       const targetFormat = options.format || file.type
