@@ -29,22 +29,22 @@ withDefaults(defineProps<Props>(), {
     <div v-else class="flex-1 flex flex-col md:flex-row overflow-hidden relative min-h-0">
       <div class="flex-1 flex flex-col min-w-0 min-h-[40vh] md:min-h-0 relative">
         <header
-          class="bg-card/80 backdrop-blur-md border-b border-border shrink-0 relative z-20 overflow-x-auto overflow-y-hidden no-scrollbar h-14"
+          class="bg-card/80 backdrop-blur-md border-b border-border shrink-0 relative z-20 overflow-x-auto overflow-y-hidden h-14 custom-scrollbar"
         >
-          <div class="h-full flex items-center px-4 md:px-6 min-w-max">
+          <div class="h-full flex items-center px-4 md:px-6 w-full justify-between gap-4">
             <div class="flex items-center gap-4 md:gap-6 shrink-0">
               <slot name="header-left"></slot>
             </div>
 
-            <div class="flex items-center gap-2 md:gap-3 shrink-0 ml-auto">
+            <div class="flex items-center gap-2 md:gap-3 shrink min-w-0">
               <slot name="header-actions"></slot>
 
               <!-- 独立控制右侧面板的开关 -->
               <button
                 v-if="showSidebar"
                 @click="layoutStore.toggleInspector"
-                class="hidden md:flex p-2 hover:bg-muted rounded-lg transition-all duration-200 text-muted-foreground ml-1 active:scale-95"
-                :class="{ 'bg-muted text-primary': !layoutStore.isInspectorCollapsed }"
+                class="hidden md:flex p-2 hover:bg-muted rounded-lg transition-all duration-200 text-muted-foreground/60 hover:text-primary ml-1 shrink-0 active:scale-95"
+                :class="{ 'bg-muted text-primary opacity-100': !layoutStore.isInspectorCollapsed }"
                 :title="layoutStore.isInspectorCollapsed ? '展开属性面板' : '收起属性面板'"
               >
                 <PanelRightOpen v-if="layoutStore.isInspectorCollapsed" :size="18" />

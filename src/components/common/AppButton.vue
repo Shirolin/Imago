@@ -82,7 +82,11 @@ const extraClasses = computed(() => {
     }
     if (props.variant === 'secondary') {
       classes +=
-        'bg-secondary/40 border border-border/60 hover:border-primary/40 hover:bg-secondary/60 hover:text-foreground text-foreground '
+        'bg-secondary/40 border border-border/60 hover:border-primary/40 hover:bg-secondary/60 hover:text-foreground text-muted-foreground/80 '
+    }
+    if (props.variant === 'ghost') {
+      classes +=
+        'bg-transparent hover:bg-muted/50 border border-transparent hover:border-border/40 text-muted-foreground hover:text-foreground '
     }
     if (props.variant === 'danger') {
       classes +=

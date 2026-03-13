@@ -157,7 +157,9 @@ const menuGroups = [
               class="flex flex-col justify-center"
               :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
             >
-              <h1 class="text-2xl font-extrabold tracking-tight whitespace-nowrap leading-none">
+              <h1
+                class="text-2xl font-extrabold tracking-tight whitespace-nowrap leading-none text-primary/90"
+              >
                 Imago
               </h1>
               <span class="text-[10px] font-bold text-muted-foreground/60 tracking-tight mt-1.5">

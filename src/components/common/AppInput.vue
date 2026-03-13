@@ -63,7 +63,7 @@ const handleDecrement = () => {
         v-model="value"
         :type="type"
         :placeholder="placeholder"
-        class="w-full h-10 bg-muted/20 border border-border/40 rounded-lg text-xs font-bold focus:border-primary focus:bg-background/80 outline-none transition-all tabular-nums placeholder:text-muted-foreground/40"
+        class="w-full h-10 bg-muted/20 border border-border/40 rounded-lg text-xs font-bold text-muted-foreground focus:text-foreground focus:border-primary focus:bg-background/80 outline-none transition-all tabular-nums placeholder:text-muted-foreground/40"
         :class="[icon ? 'pl-9' : 'pl-3', type === 'number' ? 'pr-20' : suffix ? 'pr-8' : 'pr-3']"
       />
 

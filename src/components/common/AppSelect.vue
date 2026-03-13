@@ -56,7 +56,7 @@ onUnmounted(() => {
     <button
       type="button"
       @click="toggle"
-      class="w-full flex items-center justify-between p-3 bg-muted/40 border border-border/50 rounded-xl text-sm font-bold hover:bg-muted/60 transition-all focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none group"
+      class="w-full flex items-center justify-between p-3 bg-muted/40 border border-border/50 rounded-xl text-sm font-bold text-muted-foreground hover:text-primary hover:bg-muted/60 transition-all focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none group"
       :class="{ 'border-primary ring-2 ring-primary/10': isOpen }"
     >
       <span class="truncate">{{ selectedLabel }}</span>
@@ -90,7 +90,7 @@ onUnmounted(() => {
             :class="
               modelValue === option.value
                 ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:bg-muted/80 hover:text-foreground'
+                : 'text-muted-foreground hover:bg-muted/80 hover:text-primary'
             "
           >
             <span class="truncate">{{ option.label }}</span>

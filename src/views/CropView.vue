@@ -22,6 +22,8 @@ import {
   FileType,
   Maximize2,
   Undo2,
+  Redo2,
+  Pipette,
   RefreshCcw,
   Info
 } from 'lucide-vue-next'
@@ -69,7 +71,8 @@ const { isProcessing, processSelected, processSingle } = useImageProcessor(cropE
 const handleEyeDropper = async () => {
   if (!isEyeDropperSupported) return
   try {
-    const dropper = new (globalThis as any).EyeDropper() as EyeDropper
+    const EyeDropperClass = (globalThis as any).EyeDropper
+    const dropper = new EyeDropperClass() as EyeDropper
     const result = await dropper.open()
     fillColor.value = result.sRGBHex
   } catch {
@@ -360,36 +363,56 @@ watch(
                   <button
                     @click="handleRotate"
                     aria-label="顺时针旋转90度"
-                    class="aspect-square flex flex-col items-center justify-center gap-1.5 rounded-xl bg-background border border-border hover:border-primary hover:text-primary transition-all active:scale-90"
+                    class="group aspect-square flex flex-col items-center justify-center gap-1.5 rounded-xl bg-background border border-border hover:border-primary/40 hover:text-primary transition-all active:scale-90 text-muted-foreground"
                   >
-                    <RotateCw :size="18" />
-                    <span class="text-[0.7rem] font-bold opacity-60">旋转</span>
+                    <RotateCw
+                      :size="18"
+                      class="opacity-60 group-hover:opacity-100 transition-opacity"
+                    />
+                    <span class="text-[0.65rem] font-bold opacity-60 group-hover:opacity-100"
+                      >旋转</span
+                    >
                   </button>
                   <button
                     @click="handleFlipH"
                     aria-label="水平翻转"
                     :class="{ 'bg-primary/10 border-primary text-primary': flipH }"
-                    class="aspect-square flex flex-col items-center justify-center gap-1.5 rounded-xl bg-background border border-border hover:border-primary transition-all active:scale-90"
+                    class="group aspect-square flex flex-col items-center justify-center gap-1.5 rounded-xl bg-background border border-border hover:border-primary/40 hover:text-primary transition-all active:scale-90 text-muted-foreground"
                   >
-                    <FlipHorizontal :size="18" />
-                    <span class="text-[0.7rem] font-bold opacity-60">水平</span>
+                    <FlipHorizontal
+                      :size="18"
+                      class="opacity-60 group-hover:opacity-100 transition-opacity"
+                    />
+                    <span class="text-[0.65rem] font-bold opacity-60 group-hover:opacity-100"
+                      >水平</span
+                    >
                   </button>
                   <button
                     @click="handleFlipV"
                     aria-label="垂直翻转"
                     :class="{ 'bg-primary/10 border-primary text-primary': flipV }"
-                    class="aspect-square flex flex-col items-center justify-center gap-1.5 rounded-xl bg-background border border-border hover:border-primary transition-all active:scale-90"
+                    class="group aspect-square flex flex-col items-center justify-center gap-1.5 rounded-xl bg-background border border-border hover:border-primary/40 hover:text-primary transition-all active:scale-90 text-muted-foreground"
                   >
-                    <FlipVertical :size="18" />
-                    <span class="text-[0.7rem] font-bold opacity-60">垂直</span>
+                    <FlipVertical
+                      :size="18"
+                      class="opacity-60 group-hover:opacity-100 transition-opacity"
+                    />
+                    <span class="text-[0.65rem] font-bold opacity-60 group-hover:opacity-100"
+                      >垂直</span
+                    >
                   </button>
                   <button
                     @click="handleReset"
                     aria-label="重置所有变换"
-                    class="aspect-square flex flex-col items-center justify-center gap-1.5 rounded-xl bg-background border border-border hover:text-destructive hover:border-destructive transition-all active:scale-90"
+                    class="group aspect-square flex flex-col items-center justify-center gap-1.5 rounded-xl bg-background border border-border hover:text-destructive hover:border-destructive/40 transition-all active:scale-90 text-muted-foreground"
                   >
-                    <RefreshCcw :size="18" />
-                    <span class="text-[0.7rem] font-bold opacity-60">重置</span>
+                    <RefreshCcw
+                      :size="18"
+                      class="opacity-60 group-hover:opacity-100 transition-opacity"
+                    />
+                    <span class="text-[0.65rem] font-bold opacity-60 group-hover:opacity-100"
+                      >重置</span
+                    >
                   </button>
                 </div>
 
@@ -398,19 +421,29 @@ watch(
                     @click="handleUndo"
                     aria-label="撤销"
                     :disabled="!canUndo"
-                    class="h-9 flex items-center justify-center gap-2 rounded-xl bg-background border border-border hover:border-primary transition-all active:scale-95 disabled:opacity-30 disabled:grayscale"
+                    class="group h-9 flex items-center justify-center gap-2 rounded-xl bg-background border border-border hover:border-primary/40 hover:text-primary transition-all active:scale-95 disabled:opacity-30 disabled:grayscale text-muted-foreground"
                   >
-                    <Undo2 :size="14" />
-                    <span class="text-[0.7rem] font-bold">撤销</span>
+                    <Undo2
+                      :size="14"
+                      class="opacity-60 group-hover:opacity-100 transition-opacity"
+                    />
+                    <span class="text-[0.65rem] font-bold opacity-60 group-hover:opacity-100"
+                      >撤销</span
+                    >
                   </button>
                   <button
                     @click="handleRedo"
                     aria-label="重回"
                     :disabled="!canRedo"
-                    class="h-9 flex items-center justify-center gap-2 rounded-xl bg-background border border-border hover:border-primary transition-all active:scale-95 disabled:opacity-30 disabled:grayscale"
+                    class="group h-9 flex items-center justify-center gap-2 rounded-xl bg-background border border-border hover:border-primary/40 hover:text-primary transition-all active:scale-95 disabled:opacity-30 disabled:grayscale text-muted-foreground"
                   >
-                    <RefreshCcw :size="14" class="scale-x-[-1]" />
-                    <span class="text-[0.7rem] font-bold">重做</span>
+                    <Redo2
+                      :size="14"
+                      class="opacity-60 group-hover:opacity-100 transition-opacity"
+                    />
+                    <span class="text-[0.65rem] font-bold opacity-60 group-hover:opacity-100"
+                      >重做</span
+                    >
                   </button>
                 </div>
               </div>
@@ -423,20 +456,20 @@ watch(
                 <div class="flex items-center gap-2">
                   <button
                     @click="handleFit"
-                    class="px-2 py-1 rounded text-[0.7rem] font-bold text-primary hover:bg-primary/10 transition-colors"
+                    class="px-2 py-1 rounded text-[0.7rem] font-bold text-primary/80 hover:text-primary hover:bg-primary/10 transition-all"
                   >
                     铺满
                   </button>
                   <div class="flex gap-1 bg-muted/20 p-1 rounded-lg border border-border/40">
                     <button
-                      v-for="mode in (['thirds', 'golden', 'none'] as const)"
+                      v-for="mode in ['thirds', 'golden', 'none'] as const"
                       :key="mode"
                       @click="gridMode = mode"
-                      class="px-2 py-1 rounded text-[0.7rem] font-bold transition-all"
+                      class="px-2 py-1 rounded text-[0.65rem] font-bold transition-all"
                       :class="
                         gridMode === mode
                           ? 'bg-primary text-primary-foreground shadow-sm'
-                          : 'text-muted-foreground hover:text-foreground'
+                          : 'text-muted-foreground/60 hover:text-foreground'
                       "
                     >
                       {{ mode === 'thirds' ? '九宫' : mode === 'golden' ? '黄金' : '无' }}
@@ -455,7 +488,7 @@ watch(
                     currentRatio === ratio.value ||
                     (ratio.value === 0 && currentRatio === undefined)
                       ? 'bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20'
-                      : 'bg-background border-border text-foreground hover:border-primary/40'
+                      : 'bg-background border-border text-muted-foreground hover:text-primary hover:border-primary/40'
                   "
                 >
                   <svg
@@ -475,129 +508,119 @@ watch(
               </div>
 
               <!-- 扩图底色填充 -->
-              <div class="space-y-4 pt-4 border-t border-border/30">
+              <div class="space-y-3 pt-4 border-t border-border/30">
                 <div class="flex items-center justify-between px-1">
                   <span
-                    class="text-[0.7rem] font-bold text-muted-foreground uppercase tracking-wider"
+                    class="text-[0.7rem] font-bold text-muted-foreground/60 uppercase tracking-wider"
                     >画布扩展填充</span
                   >
                   <span
                     v-if="fillColor !== 'transparent'"
-                    class="text-xs font-mono text-muted-foreground/60"
+                    class="text-[0.65rem] font-mono text-muted-foreground/50"
                     >{{ fillColor.toUpperCase() }}</span
                   >
                 </div>
-                <div class="flex items-center gap-3 px-1">
-                  <!-- 透明 -->
-                  <button
-                    @click="fillColor = 'transparent'"
-                    class="relative group flex flex-col items-center gap-1.5 transition-all"
-                    title="透明背景"
+
+                <div class="flex items-center gap-2.5 px-1">
+                  <!-- 快速选择组：透明、白、黑 -->
+                  <div
+                    class="flex items-center gap-1.5 p-1 bg-muted/30 rounded-xl border border-border/40 shadow-inner-glow shrink-0"
                   >
-                    <div
-                      class="w-8 h-8 rounded-xl border-2 transition-all flex items-center justify-center overflow-hidden shadow-sm"
+                    <!-- 透明 -->
+                    <button
+                      @click="fillColor = 'transparent'"
+                      class="w-8 h-8 rounded-lg transition-all flex items-center justify-center overflow-hidden border-[1.5px] relative group/color"
                       :class="
                         fillColor === 'transparent'
-                          ? 'border-primary ring-4 ring-primary/10 scale-110'
-                          : 'border-border/40 hover:border-primary/40'
+                          ? 'border-primary ring-2 ring-primary/10 shadow-sm'
+                          : 'border-transparent hover:bg-background/60'
                       "
+                      title="透明"
                     >
                       <div class="w-full h-full opacity-40 transparency-grid-small"></div>
-                    </div>
-                    <span
-                      class="text-[0.7rem] font-bold transition-colors"
+                      <div
+                        v-if="fillColor !== 'transparent'"
+                        class="absolute inset-0 flex items-center justify-center opacity-0 group-hover/color:opacity-100 transition-opacity"
+                      >
+                        <X :size="10" class="text-muted-foreground/40" />
+                      </div>
+                    </button>
+                    <!-- 纯白 -->
+                    <button
+                      @click="fillColor = '#FFFFFF'"
+                      class="w-8 h-8 rounded-lg border-[1.5px] transition-all bg-white shadow-sm"
                       :class="
-                        fillColor === 'transparent' ? 'text-primary' : 'text-muted-foreground'
+                        fillColor === '#FFFFFF'
+                          ? 'border-primary ring-2 ring-primary/10'
+                          : 'border-border/20 hover:border-primary/30'
                       "
-                      >透明</span
-                    >
-                  </button>
-
-                  <div class="w-[1px] h-6 bg-border/30 mx-1"></div>
-
-                  <!-- 常用色 -->
-                  <button
-                    v-for="color in ['white', 'black']"
-                    :key="color"
-                    @click="fillColor = color === 'white' ? '#FFFFFF' : '#000000'"
-                    class="group flex flex-col items-center gap-1.5 transition-all"
-                  >
-                    <div
-                      class="w-8 h-8 rounded-xl border-2 transition-all shadow-sm"
-                      :class="[
-                        color === 'white' ? 'bg-white' : 'bg-black',
-                        (fillColor === '#FFFFFF' && color === 'white') ||
-                        (fillColor === '#000000' && color === 'black')
-                          ? 'border-primary ring-4 ring-primary/10 scale-110'
-                          : 'border-border/40 hover:border-primary/40'
-                      ]"
-                    ></div>
-                    <span
-                      class="text-[0.7rem] font-bold transition-colors"
+                      title="纯白"
+                    ></button>
+                    <!-- 纯黑 -->
+                    <button
+                      @click="fillColor = '#000000'"
+                      class="w-8 h-8 rounded-lg border-[1.5px] transition-all bg-black shadow-sm"
                       :class="
-                        (fillColor === '#FFFFFF' && color === 'white') ||
-                        (fillColor === '#000000' && color === 'black')
-                          ? 'text-primary'
-                          : 'text-muted-foreground'
+                        fillColor === '#000000'
+                          ? 'border-primary ring-2 ring-primary/10'
+                          : 'border-border/20 hover:border-primary/30'
                       "
-                      >{{ color === 'white' ? '纯白' : '纯黑' }}</span
-                    >
-                  </button>
+                      title="纯黑"
+                    ></button>
+                  </div>
 
-                  <!-- 吸色与自定义 -->
-                  <div class="flex items-center gap-2 ml-auto">
-                    <!-- 原生吸色器 (EyeDropper) -->
+                  <div class="w-[1.5px] h-8 bg-border/20 rounded-full mx-0.5 shrink-0"></div>
+
+                  <!-- 自定义与吸色组 -->
+                  <div class="flex-1 flex items-center gap-2 min-w-0">
+                    <!-- 吸色器 -->
                     <button
                       v-if="isEyeDropperSupported"
                       @click="handleEyeDropper"
-                      class="w-8 h-8 rounded-xl border border-border/40 bg-background flex items-center justify-center hover:border-primary/40 hover:text-primary transition-all active:scale-90"
+                      class="w-9 h-9 rounded-xl border border-border/40 bg-background flex items-center justify-center hover:border-primary/40 hover:text-primary transition-all active:scale-90 text-muted-foreground shrink-0 shadow-sm"
                       title="从屏幕吸色"
                     >
-                      <RefreshCcw :size="14" class="rotate-45" />
+                      <Pipette :size="14" />
                     </button>
 
-                    <!-- 自定义调色盘 -->
-                    <label class="group flex flex-col items-center gap-1.5 cursor-pointer relative">
+                    <!-- 自定义颜色输入 -->
+                    <label class="relative flex-1 h-9 group cursor-pointer min-w-0">
                       <input
                         type="color"
                         v-model="fillColor"
                         class="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
                       />
                       <div
-                        class="w-8 h-8 rounded-xl border-2 transition-all shadow-sm overflow-hidden flex items-center justify-center bg-background"
+                        class="w-full h-full rounded-xl border border-border/40 bg-background flex items-center px-2 gap-2 group-hover:border-primary/40 transition-all shadow-sm overflow-hidden"
                         :class="
                           !['transparent', '#FFFFFF', '#000000'].includes(fillColor)
-                            ? 'border-primary ring-4 ring-primary/10 scale-110'
-                            : 'border-border/40 hover:border-primary/40'
+                            ? 'border-primary/60 bg-primary/5'
+                            : ''
                         "
                       >
                         <div
-                          v-if="['transparent', '#FFFFFF', '#000000'].includes(fillColor)"
-                          class="w-full h-full opacity-60"
-                          style="
-                            background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
-                          "
+                          class="w-4 h-4 rounded shadow-inner shrink-0 border border-black/5"
+                          :style="{
+                            background: ['transparent'].includes(fillColor)
+                              ? 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)'
+                              : fillColor
+                          }"
                         ></div>
-                        <div
-                          v-else
-                          class="w-full h-full"
-                          :style="{ backgroundColor: fillColor }"
-                        ></div>
+                        <span
+                          class="text-[0.65rem] font-black text-muted-foreground truncate uppercase tracking-tighter"
+                        >
+                          {{
+                            !['transparent', '#FFFFFF', '#000000'].includes(fillColor)
+                              ? fillColor
+                              : 'Custom'
+                          }}
+                        </span>
                       </div>
-                      <span
-                        class="text-[0.7rem] font-bold transition-colors"
-                        :class="
-                          !['transparent', '#FFFFFF', '#000000'].includes(fillColor)
-                            ? 'text-primary'
-                            : 'text-muted-foreground'
-                        "
-                        >自定义</span
-                      >
                     </label>
                   </div>
                 </div>
-                <p class="text-[0.7rem] text-muted-foreground/40 px-1 leading-tight">
-                  吸附模式已开启。拉动裁剪框超出边界将自动填充底色。
+                <p class="text-[0.65rem] text-muted-foreground/50 px-1 leading-tight italic">
+                  拖拽裁剪框超出图片边界将自动填充背景色。
                 </p>
               </div>
 
@@ -607,10 +630,10 @@ watch(
                   <div class="flex items-center justify-between px-1">
                     <label
                       for="crop-x"
-                      class="text-[0.7rem] font-bold text-muted-foreground uppercase tracking-wider cursor-pointer"
+                      class="text-[0.7rem] font-bold text-muted-foreground/60 uppercase tracking-wider cursor-pointer"
                       >X (%)</label
                     >
-                    <span class="text-xs font-mono text-muted-foreground/60"
+                    <span class="text-xs font-mono text-muted-foreground/40"
                       >{{ pixelValues.x }}px</span
                     >
                   </div>
@@ -627,10 +650,10 @@ watch(
                   <div class="flex items-center justify-between px-1">
                     <label
                       for="crop-y"
-                      class="text-[0.7rem] font-bold text-muted-foreground uppercase tracking-wider cursor-pointer"
+                      class="text-[0.7rem] font-bold text-muted-foreground/60 uppercase tracking-wider cursor-pointer"
                       >Y (%)</label
                     >
-                    <span class="text-xs font-mono text-muted-foreground/60"
+                    <span class="text-xs font-mono text-muted-foreground/40"
                       >{{ pixelValues.y }}px</span
                     >
                   </div>
@@ -647,10 +670,10 @@ watch(
                   <div class="flex items-center justify-between px-1">
                     <label
                       for="crop-w"
-                      class="text-[0.7rem] font-bold text-muted-foreground uppercase tracking-wider cursor-pointer"
+                      class="text-[0.7rem] font-bold text-muted-foreground/60 uppercase tracking-wider cursor-pointer"
                       >Width (%)</label
                     >
-                    <span class="text-xs font-mono text-primary font-bold"
+                    <span class="text-xs font-mono text-primary/60 font-bold"
                       >{{ pixelValues.w }}px</span
                     >
                   </div>
@@ -667,10 +690,10 @@ watch(
                   <div class="flex items-center justify-between px-1">
                     <label
                       for="crop-h"
-                      class="text-[0.7rem] font-bold text-muted-foreground uppercase tracking-wider cursor-pointer"
+                      class="text-[0.7rem] font-bold text-muted-foreground/60 uppercase tracking-wider cursor-pointer"
                       >Height (%)</label
                     >
-                    <span class="text-xs font-mono text-primary font-bold"
+                    <span class="text-xs font-mono text-primary/60 font-bold"
                       >{{ pixelValues.h }}px</span
                     >
                   </div>
@@ -717,18 +740,18 @@ watch(
                 <div class="space-y-2 pt-2 border-t border-border/30">
                   <div class="flex items-center justify-between px-0.5">
                     <span
-                      class="text-[0.7rem] font-bold text-muted-foreground uppercase tracking-wider"
+                      class="text-[0.7rem] font-bold text-muted-foreground/60 uppercase tracking-wider"
                       >边框修剪 (px)</span
                     >
                     <button
                       v-if="trimPx.top || trimPx.bottom || trimPx.left || trimPx.right"
                       @click="trimPx = { top: 0, bottom: 0, left: 0, right: 0 }"
-                      class="text-[0.7rem] text-muted-foreground/50 hover:text-destructive transition-colors"
+                      class="text-[0.65rem] text-muted-foreground/40 hover:text-destructive transition-colors font-bold"
                     >
                       重置
                     </button>
                   </div>
-                  <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                  <div class="grid grid-cols-2 gap-x-4 gap-y-2.5">
                     <div
                       v-for="edge in [
                         ['top', '上 (px)'],
@@ -740,7 +763,7 @@ watch(
                       class="space-y-1"
                     >
                       <span
-                        class="text-[0.7rem] font-bold text-muted-foreground/60 uppercase tracking-wider px-1"
+                        class="text-[0.65rem] font-bold text-muted-foreground/40 uppercase tracking-wider px-1"
                         >{{ edge[1] }}</span
                       >
                       <AppInput
@@ -752,7 +775,7 @@ watch(
                       />
                     </div>
                   </div>
-                  <p class="text-[0.7rem] text-muted-foreground/40 px-0.5">
+                  <p class="text-[0.65rem] text-muted-foreground/40 px-0.5 italic">
                     仅影响导出，不改变预览框位置
                   </p>
                 </div>
@@ -794,10 +817,10 @@ watch(
                     <img :src="img.preview" class="w-full h-full object-cover" />
                   </div>
                   <div class="flex-1 min-w-0">
-                    <p class="text-xs font-bold text-foreground truncate">
+                    <p class="text-[0.7rem] font-bold text-muted-foreground/90 truncate">
                       {{ img.file.name }}
                     </p>
-                    <p class="text-[0.7rem] text-muted-foreground font-mono mt-0.5 opacity-60">
+                    <p class="text-[0.65rem] text-muted-foreground/40 font-mono mt-0.5">
                       {{ img.width }}x{{ img.height }}
                     </p>
                   </div>

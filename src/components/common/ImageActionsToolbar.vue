@@ -26,7 +26,6 @@ const props = withDefaults(defineProps<Props>(), {
 const store = useImageStore()
 const { fileInput, triggerFileInput, handleFileChange, downloadAllAsZip, isDownloadingAll } =
   useFileHelpers()
-const { isPC } = useBreakpoints()
 
 // 确认框状态
 const showConfirm = ref(false)
@@ -44,7 +43,7 @@ const handleConfirmDelete = () => {
 </script>
 
 <template>
-  <div class="flex items-center gap-1 md:gap-2">
+  <div class="flex items-center gap-1.5 md:gap-2.5 shrink-0">
     <input
       type="file"
       ref="fileInput"
@@ -54,71 +53,91 @@ const handleConfirmDelete = () => {
       class="hidden"
     />
 
-    <!-- 1. 添加图片按钮 -->
-    <AppButton
-      variant="secondary"
-      size="md"
-      @click="triggerFileInput"
-      class="!px-3 md:!px-4 !h-9 md:!h-10 animate-in fade-in slide-in-from-right-4 duration-500 fill-mode-both"
-    >
-      <template #icon><Plus :size="16" /></template>
-      <span v-if="isPC" class="ml-2">添加图片</span>
-    </AppButton>
+    <!-- 1. 核心操作组 (高优先级) -->
+    <div class="flex items-center gap-1 md:gap-1.5">
+      <AppButton
+        variant="secondary"
+        size="md"
+        @click="triggerFileInput"
+        class="!px-2.5 md:!px-3 h-9 md:h-10 text-muted-foreground/80 hover:text-primary transition-all group shrink-0"
+        title="添加图片"
+      >
+        <template #icon><Plus :size="16" class="opacity-60 group-hover:opacity-100" /></template>
+        <span class="hidden md:inline text-[0.75rem]">添加图片</span>
+      </AppButton>
 
-    <!-- 2. 打包下载按钮 (带交错延迟) -->
-    <AppButton
-      v-if="showDownloadAll && store.doneCount > 0"
-      variant="cta"
-      size="md"
-      :loading="isDownloadingAll"
-      @click="downloadAllAsZip(props.zipPrefix)"
-      class="!px-3 md:!px-4 !h-9 md:!h-10 animate-in fade-in slide-in-from-right-4 duration-500 delay-75 fill-mode-both"
-    >
-      <template #icon><Download :size="16" /></template>
-      <span v-if="isPC" class="ml-2">下载全部 ({{ store.doneCount }})</span>
-    </AppButton>
+      <AppButton
+        v-if="showDownloadAll && store.doneCount > 0"
+        variant="cta"
+        size="md"
+        :loading="isDownloadingAll"
+        @click="downloadAllAsZip(props.zipPrefix)"
+        class="!px-2.5 md:!px-3 h-9 md:h-10 shadow-lg shadow-primary/10 transition-all shrink-0"
+        title="下载全部"
+      >
+        <template #icon><Download :size="16" /></template>
+        <span class="hidden lg:inline text-[0.75rem]">下载全部 ({{ store.doneCount }})</span>
+        <span class="lg:hidden font-mono text-[0.75rem]">{{ store.doneCount }}</span>
+      </AppButton>
+    </div>
 
-    <!-- 3. 删除选中按钮 (带交错延迟) -->
-    <AppButton
-      v-if="showDeleteSelected"
-      variant="danger"
-      size="md"
-      :disabled="!store.selectedCount || isProcessing"
-      @click="openConfirm"
-      class="!px-3 md:!px-4 !h-9 md:!h-10 animate-in fade-in slide-in-from-right-4 duration-500 delay-100 fill-mode-both"
-    >
-      <template #icon><Trash2 :size="16" /></template>
-      <span v-if="isPC" class="ml-2">删除选中</span>
-    </AppButton>
+    <div
+      v-if="store.images.length > 0"
+      class="w-[1px] h-4 bg-border/20 mx-0.5 md:mx-1 shrink-0"
+    ></div>
 
-    <!-- 4. 清空全部按钮 (带交错延迟) -->
-    <AppButton
-      v-if="showClearAll"
-      variant="secondary"
-      size="md"
-      :disabled="isProcessing"
-      @click="store.clearImages"
-      class="!px-3 md:!px-4 !h-9 md:!h-10 animate-in fade-in slide-in-from-right-4 duration-500 delay-150 fill-mode-both"
+    <!-- 2. 管理操作组 (更加紧凑的折叠) -->
+    <div
+      v-if="store.images.length > 0"
+      class="flex items-center gap-1 md:gap-1 animate-in fade-in slide-in-from-right-2"
     >
-      <template #icon><X :size="16" /></template>
-      <span v-if="isPC" class="ml-2">清空全部</span>
-    </AppButton>
+      <!-- 恢复原图 -->
+      <AppButton
+        v-if="store.doneCount > 0"
+        variant="ghost"
+        size="md"
+        :disabled="isProcessing"
+        @click="store.resetAll"
+        class="h-9 w-9 md:h-10 md:w-10 !p-0 !rounded-lg text-muted-foreground/60 hover:text-primary transition-colors group shrink-0"
+        title="恢复原图"
+      >
+        <template #icon
+          ><RotateCcw :size="16" class="opacity-60 group-hover:opacity-100"
+        /></template>
+        <span class="hidden 2xl:inline ml-2 text-[0.75rem]">恢复原图</span>
+      </AppButton>
 
-    <!-- 5. 恢复全部按钮 (带交错延迟) -->
-    <AppButton
-      v-if="store.doneCount > 0"
-      variant="secondary"
-      size="md"
-      :disabled="isProcessing"
-      @click="store.resetAll"
-      class="!px-3 md:!px-4 !h-9 md:!h-10 animate-in fade-in slide-in-from-right-4 duration-500 delay-200 fill-mode-both"
-    >
-      <template #icon><RotateCcw :size="16" /></template>
-      <span v-if="isPC" class="ml-2">恢复原图</span>
-    </AppButton>
+      <!-- 删除选中 -->
+      <AppButton
+        v-if="showDeleteSelected && store.selectedCount > 0"
+        variant="ghost"
+        size="md"
+        :disabled="isProcessing"
+        @click="openConfirm"
+        class="h-9 w-9 md:h-10 md:w-10 !p-0 !rounded-lg text-muted-foreground/60 hover:text-destructive transition-colors group shrink-0"
+        title="删除选中"
+      >
+        <template #icon><Trash2 :size="16" class="opacity-60 group-hover:opacity-100" /></template>
+        <span class="hidden 2xl:inline ml-2 text-[0.75rem]">删除选中</span>
+      </AppButton>
+
+      <!-- 清空全部 -->
+      <AppButton
+        v-if="showClearAll"
+        variant="ghost"
+        size="md"
+        :disabled="isProcessing"
+        @click="store.clearImages"
+        class="h-9 w-9 md:h-10 md:w-10 !p-0 !rounded-lg text-muted-foreground/60 hover:text-destructive transition-colors group shrink-0"
+        title="清空全部"
+      >
+        <template #icon><X :size="16" class="opacity-60 group-hover:opacity-100" /></template>
+        <span class="hidden 2xl:inline ml-2 text-[0.75rem]">清空全部</span>
+      </AppButton>
+    </div>
 
     <!-- 允许插入额外的操作 -->
-    <div class="animate-in fade-in slide-in-from-right-4 duration-500 delay-250 fill-mode-both">
+    <div class="flex items-center gap-1.5">
       <slot name="extra"></slot>
     </div>
 

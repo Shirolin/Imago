@@ -14,11 +14,12 @@ const isAllDone = computed(() => {
 
 <template>
   <div
-    class="relative flex items-center gap-3 md:gap-4 cursor-pointer px-4 md:px-6 h-10 md:h-12 rounded-full border transition-all duration-500 hover:-translate-y-0.5 active:scale-[0.96] group shrink-0 select-none overflow-hidden"
+    class="relative flex items-center cursor-pointer transition-all duration-500 hover:-translate-y-0.5 active:scale-[0.96] group shrink-0 select-none overflow-hidden"
     :class="[
       isAllDone
         ? 'bg-primary/[0.03] border-primary/30 shadow-primary'
-        : 'bg-muted/40 border-border/50 hover:border-primary/40 hover:bg-background shadow-soft hover:shadow-elevated'
+        : 'bg-muted/40 border-border/50 hover:border-primary/40 hover:bg-background shadow-soft hover:shadow-elevated',
+      isPC ? 'px-5 h-11 rounded-2xl border gap-4' : 'px-3 h-10 rounded-xl border gap-2.5'
     ]"
     @click="store.toggleAll"
   >
@@ -28,6 +29,7 @@ const isAllDone = computed(() => {
       class="absolute inset-0 bg-primary/5 animate-pulse pointer-events-none"
     ></div>
 
+    <!-- 图标区 -->
     <div
       class="flex items-center justify-center transition-all duration-300 relative z-10"
       :class="[
@@ -35,39 +37,47 @@ const isAllDone = computed(() => {
           ? 'text-primary scale-110'
           : store.isAllSelected
             ? 'text-primary'
-            : 'text-muted-foreground group-hover:text-foreground'
+            : 'text-muted-foreground group-hover:text-primary/80'
       ]"
     >
       <CheckCircle2
         v-if="isAllDone"
-        :size="20"
+        :size="isPC ? 20 : 18"
         class="drop-shadow-[0_0_8px_rgba(var(--primary),0.4)]"
         stroke-width="2.5"
       />
-      <CheckSquare v-else-if="store.isAllSelected" :size="20" class="drop-shadow-sm" />
-      <Square v-else :size="20" stroke-width="2.5" />
+      <CheckSquare v-else-if="store.isAllSelected" :size="isPC ? 20 : 18" class="drop-shadow-sm" />
+      <Square v-else :size="isPC ? 20 : 18" stroke-width="2.5" />
     </div>
 
-    <div class="flex flex-col justify-center relative z-10">
-      <div class="flex items-center gap-1.5">
+    <!-- 文字区 -->
+    <div class="flex flex-col justify-center relative z-10 min-w-0">
+      <div class="flex items-center gap-1.5 md:gap-2">
         <span
-          class="font-black text-[0.85rem] md:text-[0.95rem] text-foreground leading-none tracking-tight transition-colors"
-          :class="{ 'text-primary': isAllDone }"
+          class="font-black text-muted-foreground leading-none tracking-tight transition-colors whitespace-nowrap"
+          :class="[isPC ? 'text-[0.95rem]' : 'text-[0.85rem]', { 'text-primary/80': isAllDone }]"
         >
           <span v-if="isPC">已选择 </span>
-          {{ store.selectedCount }}
-          <span v-if="store.images.length > 0" class="opacity-30">/ {{ store.images.length }}</span>
+          <span class="font-mono">{{ store.selectedCount }}</span>
+          <span v-if="store.images.length > 0" class="opacity-30 mx-0.5">/</span>
+          <span v-if="store.images.length > 0" class="opacity-30 font-mono">{{
+            store.images.length
+          }}</span>
         </span>
+
+        <!-- Ready 状态标签 (仅在 PC 或全选完成时展示) -->
         <div
           v-if="isAllDone"
-          class="px-1.5 py-0.5 rounded-sm bg-primary text-white text-[0.6rem] font-black uppercase tracking-widest animate-in fade-in zoom-in duration-500"
+          class="px-1.5 py-0.5 rounded bg-primary text-white text-[0.6rem] font-black uppercase tracking-widest animate-in fade-in zoom-in duration-500 hidden sm:block"
         >
           Ready
         </div>
       </div>
+
+      <!-- 副标题 (仅 PC 展示) -->
       <span
         v-if="isPC"
-        class="text-[0.65rem] font-black uppercase tracking-[0.2em] mt-0.5 opacity-40 leading-none group-hover:opacity-80 transition-opacity"
+        class="text-[0.6rem] font-black uppercase tracking-[0.25em] mt-1 opacity-30 leading-none group-hover:opacity-60 transition-opacity truncate"
       >
         {{ isAllDone ? 'Processing Complete' : 'Toggle Selection' }}
       </span>

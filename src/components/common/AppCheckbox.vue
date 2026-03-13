@@ -17,7 +17,7 @@ const emit = defineEmits(['update:modelValue'])
       :class="[
         modelValue
           ? 'bg-primary border-primary scale-105 shadow-primary/20'
-          : 'bg-muted/30 border-border/80 group-hover:border-primary/50'
+          : 'bg-muted/30 border-border group-hover:border-primary/40 group-hover:bg-primary/5'
       ]"
     >
       <input
@@ -35,7 +35,7 @@ const emit = defineEmits(['update:modelValue'])
     </div>
     <span
       v-if="label"
-      class="text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors"
+      class="text-xs font-bold text-muted-foreground group-hover:text-primary transition-colors"
     >
       {{ label }}
     </span>
