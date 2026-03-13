@@ -123,71 +123,81 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="w-full h-full flex flex-col bg-slate-950 relative overflow-hidden">
+  <div class="w-full h-full flex flex-col bg-muted/20 relative overflow-hidden">
     <!-- 异常状态 (Robustness) -->
     <div
       v-if="isError"
-      class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background/90 backdrop-blur-sm px-6 text-center"
+      class="absolute inset-0 z-[100] flex flex-col items-center justify-center bg-background/95 backdrop-blur-md px-6 text-center animate-in fade-in duration-500"
     >
       <div
-        class="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center text-destructive mb-4 animate-in zoom-in duration-300"
+        class="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center text-destructive mb-6 shadow-soft"
       >
-        <Maximize :size="32" />
+        <Maximize :size="40" />
       </div>
-      <h3 class="text-base font-bold text-foreground mb-1">预览生成失败</h3>
+      <h3 class="text-lg font-black text-foreground mb-2">预览生成失败</h3>
       <p
-        class="text-[0.7rem] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60"
+        class="text-[0.7rem] text-muted-foreground uppercase tracking-[0.25em] font-black opacity-60 max-w-xs leading-relaxed"
       >
-        请尝试重新处理该图片或检查网络连接
+        无法获取高分辨率图像，请尝试重新处理或检查连接。
       </p>
     </div>
 
     <!-- 准备中状态 (Performance Feedback) -->
     <div
       v-if="isDecoding && !isError"
-      class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background/60 backdrop-blur-md"
+      class="absolute inset-0 z-[100] flex flex-col items-center justify-center bg-background/80 backdrop-blur-xl"
     >
-      <Loader2 class="w-10 h-10 text-primary animate-spin" stroke-width="3" />
+      <div class="relative">
+        <Loader2 class="w-12 h-12 text-primary animate-spin" stroke-width="2.5" />
+        <div class="absolute inset-0 blur-xl bg-primary/20 animate-pulse -z-10"></div>
+      </div>
       <span
-        class="mt-4 text-[0.75rem] font-black text-primary uppercase tracking-[0.3em] animate-pulse"
-        >Decoding High-Res...</span
+        class="mt-6 text-[0.7rem] font-black text-primary uppercase tracking-[0.4em] animate-pulse"
+        >Decoding Resolution...</span
       >
     </div>
 
     <!-- 核心视图区域 -->
-    <div class="flex-1 relative flex items-center justify-center p-2 md:p-8 cursor-move">
+    <div class="flex-1 relative flex items-center justify-center p-4 md:p-12 cursor-move group">
       <div
-        class="w-full h-full max-w-7xl relative rounded-2xl overflow-hidden border border-white/5 bg-black shadow-2xl transition-opacity duration-500"
+        class="w-full h-full max-w-7xl relative rounded-3xl overflow-hidden border border-border/50 bg-black shadow-elevated transition-all duration-700"
         :class="[
-          isDecoding ? 'opacity-0' : 'opacity-100',
-          isResizing || isPanning ? 'select-none' : ''
+          isDecoding ? 'opacity-0 scale-95' : 'opacity-100 scale-100',
+          isResizing || isPanning ? 'select-none ring-2 ring-primary/20' : ''
         ]"
         ref="container"
         @pointerdown.self="handlePointerDown($event, 'pan')"
       >
-        <!-- 图片内容层 (Performance: will-change-transform) -->
+        <!-- 层级 1: 处理后图片 (底层) -->
         <div
           class="absolute inset-0 w-full h-full will-change-transform"
-          :class="{ 'transition-transform duration-300 ease-out': !isPanning }"
+          :class="{ 'transition-transform duration-500 cubic-bezier(0.2, 0, 0, 1)': !isPanning }"
           :style="{
             transform: `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`
           }"
           @pointerdown.self="handlePointerDown($event, 'pan')"
         >
-          <!-- 下层 (处理后) -->
           <img
             :src="processedUrl"
             class="absolute inset-0 w-full h-full object-contain pointer-events-none"
             style="transform: translateZ(0)"
             alt="After"
           />
+        </div>
 
-          <!-- 上层 (处理前) -->
+        <!-- 层级 2: 处理前图片 (顶层，带静态裁剪容器) -->
+        <div
+          class="absolute inset-0 w-full h-full pointer-events-none z-20 overflow-hidden"
+          :style="{
+            clipPath: `inset(0 ${100 - sliderPos}% 0 0)`,
+            willChange: 'clip-path'
+          }"
+        >
           <div
-            class="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-20"
+            class="absolute inset-0 w-full h-full will-change-transform"
+            :class="{ 'transition-transform duration-500 cubic-bezier(0.2, 0, 0, 1)': !isPanning }"
             :style="{
-              clipPath: `inset(0 ${100 - sliderPos}% 0 0)`,
-              willChange: 'clip-path'
+              transform: `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`
             }"
           >
             <img
@@ -197,101 +207,108 @@ onUnmounted(() => {
               alt="Before"
             />
           </div>
-
-          <!-- 显性分割线 -->
-          <div
-            class="absolute inset-y-0 z-30 w-[1.5px] bg-primary shadow-[0_0_20px_rgba(var(--primary-rgb),0.8)] pointer-events-none"
-            :style="{ left: `${sliderPos}%` }"
-          ></div>
         </div>
 
-        <!-- 滑块控制柄 (Adaptation: Larger touch target) -->
+        <!-- 层级 3: UI 覆盖层 (相对于容器固定，不随缩放变化) -->
+
+        <!-- 分割线 -->
         <div
-          class="absolute inset-y-0 z-40 w-16 -ml-8 cursor-col-resize flex items-center justify-center group active:scale-110 transition-transform touch-none"
+          class="absolute inset-y-0 z-30 w-[2px] bg-primary shadow-[0_0_20px_rgba(var(--primary-rgb),0.6)] pointer-events-none transition-opacity duration-300"
+          :class="isDecoding ? 'opacity-0' : 'opacity-100'"
+          :style="{ left: `${sliderPos}%` }"
+        ></div>
+
+        <!-- 滑块控制柄 -->
+        <div
+          class="absolute inset-y-0 z-40 w-20 -ml-10 cursor-col-resize flex items-center justify-center group/handle active:scale-110 transition-transform touch-none"
           :style="{ left: `${sliderPos}%` }"
           @pointerdown.prevent="handlePointerDown($event, 'resize')"
         >
           <div
-            class="w-12 h-12 bg-white text-black rounded-full shadow-2xl flex items-center justify-center ring-4 ring-black/40 group-hover:ring-primary/40 transition-all border border-black/10"
+            class="w-12 h-12 bg-background border-2 border-primary/40 rounded-full shadow-elevated flex items-center justify-center transition-all group-hover/handle:border-primary group-hover/handle:scale-110 group-hover/handle:shadow-primary/20 group-active/handle:bg-primary group-active/handle:text-primary-foreground group-active/handle:border-primary"
           >
             <ChevronsLeftRight
-              :size="24"
-              class="group-active:scale-125 transition-transform"
-              stroke-width="2.5"
+              :size="20"
+              class="text-muted-foreground group-hover/handle:text-primary group-active/handle:text-primary-foreground transition-colors"
+              stroke-width="3"
             />
           </div>
         </div>
 
-        <!-- 悬浮标签 (Adaptation: Mobile Optimized Positions) -->
+        <!-- 悬浮标签 -->
         <div
-          class="absolute top-4 left-4 md:top-auto md:bottom-8 md:left-8 z-10 px-3 py-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl flex flex-col pointer-events-none opacity-90 transition-all duration-300"
-          :class="{ 'scale-75 origin-top-left md:scale-100': scale > 1.5 }"
+          class="absolute top-4 left-4 md:top-auto md:bottom-8 md:left-8 z-10 px-4 py-2 bg-background/80 backdrop-blur-lg border border-border/50 rounded-2xl shadow-soft flex flex-col pointer-events-none transition-all duration-300"
+          :class="{ 'opacity-0 translate-y-2': scale > 2 }"
         >
           <span
-            class="text-[0.6rem] font-black text-white/60 uppercase tracking-widest leading-none mb-1"
+            class="text-[0.6rem] font-black text-muted-foreground/40 uppercase tracking-[0.2em] leading-none mb-1.5"
             >Original</span
           >
-          <span class="text-[0.75rem] font-black text-white tabular-nums">{{ originalSize }}</span>
+          <span class="text-[0.85rem] font-black text-foreground tabular-nums leading-none">{{
+            originalSize
+          }}</span>
         </div>
 
         <div
-          class="absolute top-4 right-4 md:top-auto md:bottom-8 md:right-8 z-10 px-3 py-2 bg-primary/80 backdrop-blur-md text-white border border-white/10 rounded-xl shadow-2xl flex flex-col text-right pointer-events-none opacity-90 transition-all duration-300"
-          :class="{ 'scale-75 origin-top-right md:scale-100': scale > 1.5 }"
+          class="absolute top-4 right-4 md:top-auto md:bottom-8 md:right-8 z-10 px-4 py-2 bg-primary/10 backdrop-blur-lg border border-primary/20 rounded-2xl shadow-soft flex flex-col text-right pointer-events-none transition-all duration-300"
+          :class="{ 'opacity-0 translate-y-2': scale > 2 }"
         >
           <span
-            class="text-[0.6rem] font-black text-white/60 uppercase tracking-widest leading-none mb-1"
+            class="text-[0.6rem] font-black text-primary/60 uppercase tracking-[0.2em] leading-none mb-1.5"
             >Processed</span
           >
-          <span class="text-[0.75rem] font-black text-white tabular-nums">{{ processedSize }}</span>
+          <span class="text-[0.85rem] font-black text-primary tabular-nums leading-none">{{
+            processedSize
+          }}</span>
         </div>
       </div>
     </div>
 
-    <!-- 底部缩放工具栏 (Adaptation: Scaled for mobile) -->
+    <!-- 底部缩放工具栏 -->
     <div
-      class="absolute bottom-8 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-1 p-1.5 bg-background/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden scale-90 md:scale-100 transition-transform"
+      class="absolute bottom-10 left-1/2 -translate-x-1/2 z-[150] flex items-center gap-1.5 p-2 bg-background/80 backdrop-blur-2xl border border-border/60 rounded-3xl shadow-elevated scale-90 md:scale-100 transition-all hover:scale-105"
     >
       <button
         @click="zoom(-0.5)"
-        class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-muted text-foreground transition-all active:scale-90"
+        class="w-10 h-10 flex items-center justify-center rounded-2xl hover:bg-muted text-muted-foreground hover:text-primary transition-all active:scale-90"
         title="缩小"
       >
         <ZoomOut :size="18" />
       </button>
 
-      <div class="px-2 min-w-[50px] text-center">
-        <span class="text-[0.75rem] font-black tabular-nums tracking-tighter"
+      <div class="px-3 min-w-[60px] text-center border-x border-border/30">
+        <span class="text-[0.8rem] font-black tabular-nums tracking-tighter text-foreground"
           >{{ Math.round(scale * 100) }}%</span
         >
       </div>
 
       <button
         @click="zoom(0.5)"
-        class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-muted text-foreground transition-all active:scale-90"
+        class="w-10 h-10 flex items-center justify-center rounded-2xl hover:bg-muted text-muted-foreground hover:text-primary transition-all active:scale-90"
         title="放大"
       >
         <ZoomIn :size="18" />
       </button>
 
-      <div class="w-px h-4 bg-border/60 mx-1"></div>
+      <div class="w-[1.5px] h-4 bg-border/20 mx-1"></div>
 
       <button
         @click="reset"
-        class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-primary hover:text-white text-foreground transition-all active:scale-90"
+        class="w-10 h-10 flex items-center justify-center rounded-2xl hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all active:scale-90"
         title="重置视图"
       >
         <Maximize :size="18" />
       </button>
     </div>
 
-    <!-- 操作提示 (Experience) -->
+    <!-- 操作提示 -->
     <div
-      class="absolute top-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/20 backdrop-blur-md rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity hidden md:block"
+      class="absolute top-8 left-1/2 -translate-x-1/2 px-5 py-2.5 bg-background/40 backdrop-blur-xl border border-border/20 rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 hidden md:block"
     >
       <span
-        class="text-[0.6rem] text-white/60 font-medium uppercase tracking-widest flex items-center gap-2"
+        class="text-[0.65rem] text-muted-foreground/80 font-black uppercase tracking-[0.2em] flex items-center gap-3"
       >
-        <Grip :size="12" /> 滚轮缩放 • 拖拽背景移动
+        <Grip :size="14" class="text-primary/60" /> 滚轮缩放 • 拖拽背景平移
       </span>
     </div>
   </div>

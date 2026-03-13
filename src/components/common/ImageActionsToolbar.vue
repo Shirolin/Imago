@@ -5,7 +5,6 @@ import { useFileHelpers } from '../../composables/useFileHelpers'
 import AppButton from './AppButton.vue'
 import AppModal from './AppModal.vue'
 import { Plus, Trash2, X, AlertTriangle, Download, RotateCcw } from 'lucide-vue-next'
-import { useBreakpoints } from '../../composables/useBreakpoints'
 
 interface Props {
   showDeleteSelected?: boolean
@@ -29,15 +28,19 @@ const { fileInput, triggerFileInput, handleFileChange, downloadAllAsZip, isDownl
 
 // 确认框状态
 const showConfirm = ref(false)
+const confirmMode = ref<'delete' | 'clear'>('delete')
 
-const openConfirm = () => {
-  if (store.selectedCount > 0) {
-    showConfirm.value = true
-  }
+const openConfirm = (mode: 'delete' | 'clear') => {
+  confirmMode.value = mode
+  showConfirm.value = true
 }
 
-const handleConfirmDelete = () => {
-  store.removeSelected()
+const handleConfirmAction = () => {
+  if (confirmMode.value === 'delete') {
+    store.removeSelected()
+  } else {
+    store.clearImages()
+  }
   showConfirm.value = false
 }
 </script>
@@ -113,7 +116,7 @@ const handleConfirmDelete = () => {
         variant="ghost"
         size="md"
         :disabled="isProcessing"
-        @click="openConfirm"
+        @click="openConfirm('delete')"
         class="h-9 w-9 md:h-10 md:w-10 !p-0 !rounded-lg text-muted-foreground/60 hover:text-destructive transition-colors group shrink-0"
         title="删除选中"
       >
@@ -127,7 +130,7 @@ const handleConfirmDelete = () => {
         variant="ghost"
         size="md"
         :disabled="isProcessing"
-        @click="store.clearImages"
+        @click="openConfirm('clear')"
         class="h-9 w-9 md:h-10 md:w-10 !p-0 !rounded-lg text-muted-foreground/60 hover:text-destructive transition-colors group shrink-0"
         title="清空全部"
       >
@@ -141,12 +144,14 @@ const handleConfirmDelete = () => {
       <slot name="extra"></slot>
     </div>
 
-    <!-- 删除确认对话框 -->
+    <!-- 统一确认对话框 (Dangerous Actions) -->
     <AppModal :show="showConfirm" @close="showConfirm = false" title="确认操作" variant="dialog">
       <template #header>
         <div class="flex items-center gap-2 text-destructive">
           <AlertTriangle :size="18" />
-          <span class="font-bold text-sm uppercase tracking-widest">危险操作确认</span>
+          <span class="font-bold text-sm uppercase tracking-widest">{{
+            confirmMode === 'clear' ? '清空队列确认' : '删除选中确认'
+          }}</span>
         </div>
       </template>
 
@@ -154,13 +159,24 @@ const handleConfirmDelete = () => {
         <div
           class="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center text-destructive mb-2"
         >
-          <Trash2 :size="32" />
+          <Trash2 v-if="confirmMode === 'delete'" :size="32" />
+          <X v-else :size="32" />
         </div>
         <div class="space-y-1">
           <h3 class="text-lg font-bold text-foreground leading-tight">
-            删除选中的 {{ store.selectedCount }} 张图片？
+            {{
+              confirmMode === 'delete'
+                ? `删除选中的 ${store.selectedCount} 张图片？`
+                : '确定要清空所有图片吗？'
+            }}
           </h3>
-          <p class="text-sm text-muted-foreground">该操作将永久从当前队列中移除这些文件。</p>
+          <p class="text-sm text-muted-foreground">
+            {{
+              confirmMode === 'delete'
+                ? '该操作将永久从当前队列中移除选中的文件。'
+                : '此操作将移除队列中的所有内容，无法撤销。'
+            }}
+          </p>
         </div>
       </div>
 
@@ -169,8 +185,8 @@ const handleConfirmDelete = () => {
           <AppButton variant="secondary" class="flex-1" @click="showConfirm = false">
             取消
           </AppButton>
-          <AppButton variant="danger" class="flex-1" @click="handleConfirmDelete">
-            确认删除
+          <AppButton variant="danger" class="flex-1" @click="handleConfirmAction">
+            确认执行
           </AppButton>
         </div>
       </template>
