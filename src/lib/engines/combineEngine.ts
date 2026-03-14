@@ -4,6 +4,7 @@ export interface CombineOptions {
   direction: 'vertical' | 'horizontal' | 'grid'
   spacing: number
   backgroundColor: string
+  alignment: 'start' | 'center' | 'end'
 }
 
 export const combineEngine: MultiImageProcessor<CombineOptions> = async (files, options) => {
@@ -14,7 +15,7 @@ export const combineEngine: MultiImageProcessor<CombineOptions> = async (files, 
       return new Promise<HTMLImageElement>((resolve, reject) => {
         const img = new Image()
         img.onload = () => resolve(img)
-        img.onerror = reject
+        img.onerror = () => reject(new Error(`Failed to load image: ${file.name}`))
         img.src = URL.createObjectURL(file)
       })
     })
@@ -23,56 +24,78 @@ export const combineEngine: MultiImageProcessor<CombineOptions> = async (files, 
   let totalWidth = 0
   let totalHeight = 0
 
+  const maxWidth = Math.max(...images.map((img) => img.width))
+  const maxHeight = Math.max(...images.map((img) => img.height))
+
   if (options.direction === 'vertical') {
-    totalWidth = Math.max(...images.map((img) => img.width))
+    totalWidth = maxWidth
     totalHeight =
       images.reduce((sum, img) => sum + img.height, 0) + (images.length - 1) * options.spacing
   } else if (options.direction === 'horizontal') {
     totalWidth =
       images.reduce((sum, img) => sum + img.width, 0) + (images.length - 1) * options.spacing
-    totalHeight = Math.max(...images.map((img) => img.height))
+    totalHeight = maxHeight
   } else {
-    // Grid mode: Simplified to a single row for now, or we can calculate a square grid
     const cols = Math.ceil(Math.sqrt(images.length))
     const rows = Math.ceil(images.length / cols)
-    const cellWidth = Math.max(...images.map((img) => img.width))
-    const cellHeight = Math.max(...images.map((img) => img.height))
-    totalWidth = cellWidth * cols + (cols - 1) * options.spacing
-    totalHeight = cellHeight * rows + (rows - 1) * options.spacing
+    totalWidth = maxWidth * cols + (cols - 1) * options.spacing
+    totalHeight = maxHeight * rows + (rows - 1) * options.spacing
   }
 
   const canvas = document.createElement('canvas')
   canvas.width = totalWidth
   canvas.height = totalHeight
-  const ctx = canvas.getContext('2d')
+  const ctx = canvas.getContext('2d', { alpha: true })
   if (!ctx) throw new Error('Failed to get canvas context')
 
-  // Fill background
-  ctx.fillStyle = options.backgroundColor
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  // Clear/Fill background
+  if (options.backgroundColor === 'transparent') {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+  } else {
+    ctx.fillStyle = options.backgroundColor
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+  }
 
   let currentX = 0
   let currentY = 0
 
   if (options.direction === 'vertical') {
     images.forEach((img) => {
-      ctx.drawImage(img, (totalWidth - img.width) / 2, currentY)
+      let x = 0
+      if (options.alignment === 'center') x = (totalWidth - img.width) / 2
+      else if (options.alignment === 'end') x = totalWidth - img.width
+
+      ctx.drawImage(img, x, currentY)
       currentY += img.height + options.spacing
     })
   } else if (options.direction === 'horizontal') {
     images.forEach((img) => {
-      ctx.drawImage(img, currentX, (totalHeight - img.height) / 2)
+      let y = 0
+      if (options.alignment === 'center') y = (totalHeight - img.height) / 2
+      else if (options.alignment === 'end') y = totalHeight - img.height
+
+      ctx.drawImage(img, currentX, y)
       currentX += img.width + options.spacing
     })
   } else {
     const cols = Math.ceil(Math.sqrt(images.length))
-    const cellWidth = Math.max(...images.map((img) => img.width))
-    const cellHeight = Math.max(...images.map((img) => img.height))
     images.forEach((img, i) => {
       const r = Math.floor(i / cols)
       const c = i % cols
-      const x = c * (cellWidth + options.spacing) + (cellWidth - img.width) / 2
-      const y = r * (cellHeight + options.spacing) + (cellHeight - img.height) / 2
+
+      let offsetX = 0
+      let offsetY = 0
+
+      if (options.alignment === 'center') {
+        offsetX = (maxWidth - img.width) / 2
+        offsetY = (maxHeight - img.height) / 2
+      } else if (options.alignment === 'end') {
+        offsetX = maxWidth - img.width
+        offsetY = maxHeight - img.height
+      }
+
+      const x = c * (maxWidth + options.spacing) + offsetX
+      const y = r * (maxHeight + options.spacing) + offsetY
       ctx.drawImage(img, x, y)
     })
   }
@@ -87,11 +110,12 @@ export const combineEngine: MultiImageProcessor<CombineOptions> = async (files, 
           blob,
           size: blob.size,
           width: canvas.width,
-          height: canvas.height
+          height: canvas.height,
+          format: 'png'
         })
       } else {
         reject(new Error('Canvas toBlob failed'))
       }
-    }, 'image/png') // Use PNG for combining to preserve quality
+    }, 'image/png')
   })
 }

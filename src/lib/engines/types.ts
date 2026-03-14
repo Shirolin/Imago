@@ -4,6 +4,7 @@ export interface ProcessResult {
   size: number
   width?: number
   height?: number
+  format?: string
 }
 
 export interface ProcessingOptions {

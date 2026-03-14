@@ -10,6 +10,7 @@ interface Option {
 interface Props {
   modelValue: string | number | boolean
   options: Option[]
+  ariaLabel?: string
 }
 
 defineProps<Props>()
@@ -21,11 +22,18 @@ const select = (value: string | number | boolean) => {
 </script>
 
 <template>
-  <div class="flex bg-muted p-1 rounded-xl border border-border">
+  <div
+    class="flex bg-muted p-1 rounded-xl border border-border"
+    role="radiogroup"
+    :aria-label="ariaLabel"
+  >
     <button
       v-for="option in options"
       :key="String(option.value)"
-      class="flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2"
+      type="button"
+      role="radio"
+      :aria-checked="modelValue === option.value"
+      class="flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-muted"
       :class="
         modelValue === option.value
           ? 'bg-card text-primary shadow-sm'
