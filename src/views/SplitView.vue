@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useImageStore } from '../stores/imageStore'
+import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
@@ -23,14 +24,14 @@ import {
   Grip,
   CheckCircle2,
   MousePointer2,
-  ChevronUp,
-  ChevronDown
+  Download
 } from 'lucide-vue-next'
 import { splitEngine } from '../lib/engines/splitEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useResizeObserver } from '@vueuse/core'
 
 const store = useImageStore()
+const { downloadImage } = useFileHelpers()
 
 // --- 基础状态 ---
 const rows = ref(3)
@@ -41,7 +42,7 @@ const outputFormat = ref<string>('original')
 const outputQuality = ref(0.9)
 const selectedImageId = ref<string | null>(null)
 
-const { isProcessing, processAll, processSelected } = useImageProcessor(splitEngine)
+const { isProcessing, processSingle } = useImageProcessor(splitEngine)
 
 const selectedImage = computed(() => {
   if (!store.images.length) return null
@@ -318,8 +319,9 @@ const handlePointerUp = () => {
 
 const handleWheel = (e: WheelEvent) => {
   e.preventDefault()
+  const img = selectedImage.value
   const container = containerRef.value
-  if (!container || !selectedImage.value) return
+  if (!container || !img) return
   const zoomStep = 1.15
   const delta = e.deltaY > 0 ? 1 / zoomStep : zoomStep
   const newScale = Math.max(0.05, Math.min(scale.value * delta, 20))
@@ -352,6 +354,9 @@ const clearLines = () => {
 }
 
 const handleProcess = () => {
+  const img = selectedImage.value
+  if (!img) return
+
   const options = {
     rows: linesY.value.length + 1,
     cols: linesX.value.length + 1,
@@ -361,8 +366,15 @@ const handleProcess = () => {
     format: outputFormat.value === 'original' ? undefined : outputFormat.value,
     quality: outputQuality.value
   }
-  if (store.selectedCount > 0) processSelected(options)
-  else processAll(options)
+
+  processSingle(img.id, options)
+}
+
+const handleDownloadCurrent = () => {
+  const img = selectedImage.value
+  if (img?.status === 'done' && (img.processedBlob || img.processedBlobs)) {
+    downloadImage(img.processedBlobs || img.processedBlob!, img.file.name, '_Imago_Split')
+  }
 }
 
 const formatOptions = [
@@ -372,7 +384,7 @@ const formatOptions = [
   { label: 'PNG (无损)', value: 'image/png' }
 ]
 
-// 监听参数变化，标记脏状态 (对齐全站交互标准)
+// 监听参数变化，标记脏状态
 watch(
   [
     rows,
@@ -382,13 +394,13 @@ watch(
     shave,
     outputFormat,
     outputQuality,
-    // 深度监听线条数组
     () => [...linesX.value],
     () => [...linesY.value]
   ],
   () => {
-    if (store.doneCount > 0) {
-      store.markAllAsDirty()
+    const img = selectedImage.value
+    if (img && img.status === 'done') {
+      store.updateImage(img.id, { isDirty: true })
     }
   },
   { deep: true }
@@ -396,9 +408,9 @@ watch(
 
 const buttonText = computed(() => {
   if (isProcessing.value) return '正在处理...'
-  if (store.images.some((img) => img.isDirty)) return '重新应用新参数'
-  if (store.selectedCount > 0) return `切分选中的 ${store.selectedCount} 张`
-  return '执行智能切图'
+  const img = selectedImage.value
+  if (img?.isDirty) return '重新应用新参数'
+  return '执行切图导出'
 })
 
 const showMagnifier = computed(() => !!draggingLine.value)
@@ -411,7 +423,7 @@ const showMagnifier = computed(() => !!draggingLine.value)
     </template>
 
     <template #header-actions>
-      <ImageActionsToolbar :is-processing="isProcessing" show-clear-all zip-prefix="_Imago_Split" />
+      <ImageActionsToolbar :is-processing="isProcessing" show-clear-all />
     </template>
 
     <template #content>
@@ -700,7 +712,18 @@ const showMagnifier = computed(() => !!draggingLine.value)
             </div>
           </section>
         </div>
-        <div class="pt-4 border-t border-border shrink-0">
+        <div class="pt-4 border-t border-border shrink-0 flex flex-col gap-3">
+          <AppButton
+            v-if="selectedImage?.status === 'done' && !selectedImage?.isDirty"
+            size="lg"
+            variant="secondary"
+            class="w-full h-12 rounded-2xl border-primary/20 text-primary hover:bg-primary/5 transition-all"
+            @click="handleDownloadCurrent"
+          >
+            <template #icon><Download :size="18" /></template>
+            <span class="font-bold">下载当前切片</span>
+          </AppButton>
+
           <AppButton
             size="lg"
             variant="cta"
