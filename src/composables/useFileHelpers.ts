@@ -59,9 +59,34 @@ export function useFileHelpers() {
   }
 
   /**
-   * 下载已处理的文件
+   * 下载已处理的文件 (支持单张图或多张切片)
    */
-  const downloadImage = (blob: Blob, originalFileName: string, tag = '_Imago_Processed') => {
+  const downloadImage = async (
+    blob: Blob | Blob[],
+    originalFileName: string,
+    tag = '_Imago_Processed'
+  ) => {
+    // 如果是多张子图（如切图结果），打一个小 ZIP 下载
+    if (Array.isArray(blob)) {
+      const zip = new JSZip()
+      blob.forEach((b, idx) => {
+        const lastDot = originalFileName.lastIndexOf('.')
+        const baseName = lastDot !== -1 ? originalFileName.substring(0, lastDot) : originalFileName
+        const finalName = getNewFileName(`${baseName}_tile_${idx + 1}`, b.type, tag)
+        zip.file(finalName, b)
+      })
+      const content = await zip.generateAsync({ type: 'blob' })
+      const url = URL.createObjectURL(content)
+      const a = document.createElement('a')
+      a.href = url
+      const lastDot = originalFileName.lastIndexOf('.')
+      const zipName = `${lastDot !== -1 ? originalFileName.substring(0, lastDot) : originalFileName}${tag}.zip`
+      a.download = zipName
+      a.click()
+      URL.revokeObjectURL(url)
+      return
+    }
+
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -73,33 +98,42 @@ export function useFileHelpers() {
   }
 
   /**
-   * 打包下载所有已处理图片为 ZIP，若只有一张则直接下载
+   * 打包下载所有已处理图片为 ZIP
+   * 逻辑：遍历所有图片，如果图片产生多个切片，则在 ZIP 内创建文件夹存储
    */
   const downloadAllAsZip = async (tag = '_Imago_Processed') => {
-    const doneImages = store.images.filter((img) => img.status === 'done' && img.processedBlob)
+    const doneImages = store.images.filter(
+      (img) => img.status === 'done' && (img.processedBlob || img.processedBlobs)
+    )
     if (doneImages.length === 0) return
-
-    // 如果只有一张图片，直接下载单张，不打 ZIP 包
-    if (doneImages.length === 1) {
-      const img = doneImages[0]!
-      downloadImage(img.processedBlob!, img.file.name, tag)
-      return
-    }
 
     isDownloadingAll.value = true
     try {
       const zip = new JSZip()
 
       doneImages.forEach((img) => {
-        const finalName = getNewFileName(img.file.name, img.processedBlob!.type, tag)
-        zip.file(finalName, img.processedBlob!)
+        const lastDot = img.file.name.lastIndexOf('.')
+        const baseName = lastDot !== -1 ? img.file.name.substring(0, lastDot) : img.file.name
+
+        if (img.processedBlobs && img.processedBlobs.length > 0) {
+          // 场景 A: 该图片产生了多个结果（如切图）
+          // 为避免混乱，在压缩包内为该图片建立子文件夹
+          const folder = zip.folder(baseName)
+          img.processedBlobs.forEach((b, idx) => {
+            const finalName = getNewFileName(`${baseName}_tile_${idx + 1}`, b.type, tag)
+            folder?.file(finalName, b)
+          })
+        } else if (img.processedBlob) {
+          // 场景 B: 常见的单图处理（压缩、Resize）
+          const finalName = getNewFileName(img.file.name, img.processedBlob.type, tag)
+          zip.file(finalName, img.processedBlob)
+        }
       })
 
       const content = await zip.generateAsync({ type: 'blob' })
       const url = URL.createObjectURL(content)
 
       const now = new Date()
-      // 避免使用容易被 esbuild 误认为 CSS 语法的正则 [ - : T ]
       const timestamp =
         now
           .toISOString()
@@ -108,8 +142,7 @@ export function useFileHelpers() {
           .replace(/T/g, '')
           .split('.')[0]
           ?.slice(0, 14) || 'date'
-      // 压缩包本身保留 Imago 前缀，方便识别来源
-      const fileName = `Imago_Archive_${timestamp}.zip`
+      const fileName = `Imago_All_${timestamp}.zip`
 
       const a = document.createElement('a')
       a.href = url

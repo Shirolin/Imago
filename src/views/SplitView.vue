@@ -8,7 +8,6 @@ import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import AppSlider from '../components/common/AppSlider.vue'
-import AppTip from '../components/common/AppTip.vue'
 import AppSelect from '../components/common/AppSelect.vue'
 import {
   Scissors,
@@ -24,7 +23,8 @@ import {
   Grip,
   CheckCircle2,
   MousePointer2,
-  Plus
+  ChevronUp,
+  ChevronDown
 } from 'lucide-vue-next'
 import { splitEngine } from '../lib/engines/splitEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
@@ -235,10 +235,12 @@ const snap = (val: number, axis: 'x' | 'y') => {
 }
 
 const handlePointerDown = (e: PointerEvent) => {
+  const container = containerRef.value
+  if (!container) return
   if (e.button === 1 || e.shiftKey) {
     isPanning.value = true
     startPanPos.value = { x: e.clientX - offset.value.x, y: e.clientY - offset.value.y }
-    containerRef.value?.setPointerCapture(e.pointerId)
+    container.setPointerCapture(e.pointerId)
     return
   }
   if (hoveredLine.value) {
@@ -269,8 +271,13 @@ const handlePointerMove = (e: PointerEvent) => {
   if (draggingLine.value) {
     const { axis, index } = draggingLine.value
     const snapped = snap(axis === 'x' ? pos.x : pos.y, axis)
-    if (axis === 'x') linesX.value[index] = snapped
-    else linesY.value[index] = snapped
+    if (axis === 'x') {
+      const lineArr = linesX.value
+      if (lineArr[index] !== undefined) lineArr[index] = snapped
+    } else {
+      const lineArr = linesY.value
+      if (lineArr[index] !== undefined) lineArr[index] = snapped
+    }
     return
   }
   const threshold = 12 / scale.value
@@ -339,6 +346,11 @@ const resetView = () => {
 useResizeObserver(containerRef, resetView)
 watch(() => selectedImage.value?.id, resetView)
 
+const clearLines = () => {
+  linesX.value = []
+  linesY.value = []
+}
+
 const handleProcess = () => {
   const options = {
     rows: linesY.value.length + 1,
@@ -359,6 +371,37 @@ const formatOptions = [
   { label: 'JPEG (高兼容)', value: 'image/jpeg' },
   { label: 'PNG (无损)', value: 'image/png' }
 ]
+
+// 监听参数变化，标记脏状态 (对齐全站交互标准)
+watch(
+  [
+    rows,
+    cols,
+    editMode,
+    centerMode,
+    shave,
+    outputFormat,
+    outputQuality,
+    // 深度监听线条数组
+    () => [...linesX.value],
+    () => [...linesY.value]
+  ],
+  () => {
+    if (store.doneCount > 0) {
+      store.markAllAsDirty()
+    }
+  },
+  { deep: true }
+)
+
+const buttonText = computed(() => {
+  if (isProcessing.value) return '正在处理...'
+  if (store.images.some((img) => img.isDirty)) return '重新应用新参数'
+  if (store.selectedCount > 0) return `切分选中的 ${store.selectedCount} 张`
+  return '执行智能切图'
+})
+
+const showMagnifier = computed(() => !!draggingLine.value)
 </script>
 
 <template>
@@ -408,9 +451,8 @@ const formatOptions = [
           </div>
 
           <div
-            v-if="draggingLine || (editMode === 'custom' && !isPanning)"
+            v-if="showMagnifier"
             class="absolute z-50 w-36 h-36 rounded-full border-4 border-white shadow-2xl pointer-events-none overflow-hidden bg-black flex flex-col transition-opacity duration-200"
-            :class="draggingLine ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'"
             :style="{ left: magnifierPos.x - 72 + 'px', top: magnifierPos.y - 180 + 'px' }"
           >
             <div class="relative flex-1">
@@ -566,7 +608,7 @@ const formatOptions = [
                   <div class="grid grid-cols-2 gap-2.5">
                     <button
                       @click="activeAxis = 'x'"
-                      class="flex items-center justify-center gap-2.5 py-3 rounded-xl border-2 transition-all font-black text-xs"
+                      class="flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all font-black text-xs"
                       :class="
                         activeAxis === 'x'
                           ? 'bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20'
@@ -577,7 +619,7 @@ const formatOptions = [
                     </button>
                     <button
                       @click="activeAxis = 'y'"
-                      class="flex items-center justify-center gap-2.5 py-3 rounded-xl border-2 transition-all font-black text-xs"
+                      class="flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all font-black text-xs"
                       :class="
                         activeAxis === 'y'
                           ? 'bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20'
@@ -589,15 +631,34 @@ const formatOptions = [
                   </div>
                 </div>
                 <button
-                  @click="linesX = []; linesY = []"
+                  @click="clearLines"
                   class="w-full py-2.5 rounded-xl border border-border hover:border-destructive hover:text-destructive transition-all text-[0.6rem] font-black uppercase tracking-widest flex items-center justify-center gap-2"
                 >
                   清空所有线条
                 </button>
               </div>
+              <div class="flex justify-between items-center px-1 pt-2">
+                <div class="flex flex-col">
+                  <span
+                    class="text-[0.55rem] font-black text-muted-foreground/40 uppercase tracking-widest"
+                    >Total Tiles</span
+                  >
+                  <span class="text-xl font-black text-primary font-mono leading-none">{{
+                    (linesX.length + 1) * (linesY.length + 1)
+                  }}</span>
+                </div>
+                <div class="text-right">
+                  <span
+                    class="text-[0.55rem] font-black text-muted-foreground/40 uppercase tracking-widest"
+                    >Active Lines</span
+                  >
+                  <p class="text-[0.7rem] font-bold text-foreground">
+                    {{ linesX.length }}V / {{ linesY.length }}H
+                  </p>
+                </div>
+              </div>
             </div>
           </section>
-
           <section class="space-y-5">
             <AppSectionHeader title="增强处理" :icon="Layers" />
             <div class="space-y-4 px-1">
@@ -609,7 +670,10 @@ const formatOptions = [
                   { label: '正方形', value: 'square', icon: Box }
                 ]"
               />
-              <div v-if="centerMode !== 'none'" class="pt-2 space-y-4">
+              <div
+                v-if="centerMode !== 'none'"
+                class="pt-2 space-y-4 animate-in fade-in duration-300"
+              >
                 <AppSlider
                   v-model="shave"
                   label="边缘修剪 (Shave)"
@@ -621,9 +685,8 @@ const formatOptions = [
               </div>
             </div>
           </section>
-
           <section class="space-y-5">
-            <AppSectionHeader title="导出设置" :icon="FileType" />
+            <AppSectionHeader title="导出配置" :icon="FileType" />
             <div class="space-y-4 px-1">
               <AppSelect v-model="outputFormat" :options="formatOptions" />
               <AppSlider
@@ -637,7 +700,6 @@ const formatOptions = [
             </div>
           </section>
         </div>
-
         <div class="pt-4 border-t border-border shrink-0">
           <AppButton
             size="lg"
@@ -648,9 +710,7 @@ const formatOptions = [
             @click="handleProcess"
           >
             <template #icon><Scissors v-if="!isProcessing" :size="20" class="mr-2.5" /></template>
-            <span class="font-bold tracking-tight text-base">{{
-              isProcessing ? '正在处理...' : '执行智能切图'
-            }}</span>
+            <span class="font-bold tracking-tight text-base">{{ buttonText }}</span>
           </AppButton>
         </div>
       </div>

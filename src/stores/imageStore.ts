@@ -12,6 +12,7 @@ export interface ImageItem {
   format: string
   processedSize?: number
   processedBlob?: Blob
+  processedBlobs?: Blob[]
   processedWidth?: number
   processedHeight?: number
   error?: string

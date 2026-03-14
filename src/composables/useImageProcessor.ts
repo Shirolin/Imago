@@ -19,12 +19,20 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
         signal: abortController.signal
       })
 
+      // 智能识别返回结果：可能是单个 Blob，也可能是 Blob[]，或者是包含这些属性的对象
+      const isArray = Array.isArray(result)
+      const blobs = isArray ? (result as Blob[]) : (result as any).blobs
+      const singleBlob = !isArray ? (result as any).blob || (result as Blob) : undefined
+
       store.updateImage(id, {
         status: 'done',
-        processedSize: result.size,
-        processedBlob: result.blob || (result.blobs ? result.blobs[0] : undefined),
-        processedWidth: result.width,
-        processedHeight: result.height,
+        processedSize: isArray
+          ? (result as Blob[]).reduce((sum, b) => sum + b.size, 0)
+          : (result as any).size,
+        processedBlob: singleBlob instanceof Blob ? singleBlob : blobs ? blobs[0] : undefined,
+        processedBlobs: blobs,
+        processedWidth: (result as any).width,
+        processedHeight: (result as any).height,
         abortController: undefined,
         isDirty: false
       })
