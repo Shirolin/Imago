@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useImageStore } from '../stores/imageStore'
 import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
@@ -23,8 +23,8 @@ import {
   Maximize,
   Grip,
   CheckCircle2,
-  MousePointer2,
-  Download
+  Keyboard,
+  MousePointerSquareDashed
 } from 'lucide-vue-next'
 import { splitEngine } from '../lib/engines/splitEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
@@ -73,12 +73,19 @@ const hoveredLine = ref<{ axis: 'x' | 'y'; index: number } | null>(null)
 const isSnapping = ref(false)
 const mousePos = ref({ x: 0, y: 0 })
 const magnifierPos = ref({ x: 0, y: 0 })
+const isAltPressed = ref(false)
 
 // 网格线数据
 const linesX = ref<number[]>([])
 const linesY = ref<number[]>([])
 
-// 性能优化：缓存 Image 对象
+// --- 性能优化：布局缓存 ---
+let cachedCanvasRect: DOMRect | null = null
+const updateCanvasRect = () => {
+  if (canvasRef.value) cachedCanvasRect = canvasRef.value.getBoundingClientRect()
+}
+
+// 缓存 Image 对象
 let cachedImage: HTMLImageElement | null = null
 let isDrawingRaf = false
 
@@ -107,7 +114,45 @@ const requestDraw = () => {
   })
 }
 
-// 初始化/同步网格线
+// --- 状态恢复与同步 ---
+watch(
+  () => selectedImage.value?.id,
+  (newId) => {
+    if (!newId) return
+    const img = selectedImage.value
+    if (img?.splitMeta) {
+      const meta = img.splitMeta
+      editMode.value = meta.editMode
+      rows.value = meta.rows
+      cols.value = meta.cols
+      linesX.value = [...meta.linesX]
+      linesY.value = [...meta.linesY]
+    } else {
+      rows.value = 3
+      cols.value = 3
+      editMode.value = 'grid'
+      syncGridLines()
+    }
+    resetView()
+  },
+  { immediate: true }
+)
+
+const saveMeta = () => {
+  const img = selectedImage.value
+  if (img) {
+    store.updateImage(img.id, {
+      splitMeta: {
+        linesX: [...linesX.value],
+        linesY: [...linesY.value],
+        editMode: editMode.value,
+        rows: rows.value,
+        cols: cols.value
+      }
+    })
+  }
+}
+
 const syncGridLines = () => {
   const img = selectedImage.value
   if (!img || editMode.value === 'custom') return
@@ -119,9 +164,11 @@ const syncGridLines = () => {
   for (let i = 1; i < rows.value; i++) linesY.value.push((h * i) / rows.value)
 }
 
-watch([rows, cols, editMode, () => selectedImage.value?.id], syncGridLines, { immediate: true })
+watch([rows, cols, editMode], () => {
+  syncGridLines()
+  saveMeta()
+})
 
-// 画布绘制
 const draw = () => {
   const canvas = canvasRef.value
   const ctx = canvas?.getContext('2d')
@@ -146,11 +193,15 @@ const draw = () => {
     const colorPrimary = getComputedStyle(document.documentElement)
       .getPropertyValue('--primary')
       .trim()
-    const colorPrimaryHsl = `hsl(${colorPrimary})`
+    const colorMuted = getComputedStyle(document.documentElement)
+      .getPropertyValue('--muted-foreground')
+      .trim()
+    const activeColor =
+      isAltPressed.value && isPreview ? `hsl(${colorMuted})` : `hsl(${colorPrimary})`
 
     ctx.beginPath()
     ctx.lineWidth = (isPreview ? 1 : 2) / scale.value
-    ctx.strokeStyle = isPreview ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.4)'
+    ctx.strokeStyle = isPreview ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.3)'
     if (isVertical) {
       ctx.moveTo(pos + 1 / scale.value, 0)
       ctx.lineTo(pos + 1 / scale.value, h)
@@ -163,7 +214,7 @@ const draw = () => {
     ctx.beginPath()
     if (isPreview) ctx.setLineDash([5, 5])
     ctx.lineWidth = (isHovered ? 3 : 1.5) / scale.value
-    ctx.strokeStyle = isPreview ? 'rgba(255,255,255,0.8)' : colorPrimaryHsl
+    ctx.strokeStyle = isPreview ? 'rgba(255,255,255,0.7)' : activeColor
     if (isVertical) {
       ctx.moveTo(pos, 0)
       ctx.lineTo(pos, h)
@@ -173,12 +224,12 @@ const draw = () => {
     }
     if (isHovered && !isPreview) {
       ctx.shadowBlur = 10 / scale.value
-      ctx.shadowColor = colorPrimaryHsl
+      ctx.shadowColor = activeColor
     }
     ctx.stroke()
 
     if (!isPreview) {
-      ctx.fillStyle = colorPrimaryHsl
+      ctx.fillStyle = activeColor
       const dotSize = 4 / scale.value
       if (isVertical) {
         ctx.fillRect(pos - dotSize, 0, dotSize * 2, dotSize * 2)
@@ -201,27 +252,30 @@ const draw = () => {
   if (editMode.value === 'custom' && !draggingLine.value) {
     const snappedPos = snap(
       activeAxis.value === 'x' ? mousePos.value.x : mousePos.value.y,
-      activeAxis.value
+      activeAxis.value,
+      isAltPressed.value
     )
     drawStylizedLine(snappedPos, activeAxis.value === 'x', false, true)
   }
 }
 
-watch([scale, offset, linesX, linesY, hoveredLine, mousePos], requestDraw)
+watch([scale, offset, linesX, linesY, hoveredLine, mousePos, isAltPressed], requestDraw)
 
 const getLogicPos = (e: PointerEvent) => {
-  const canvas = canvasRef.value
-  if (!canvas) return { x: 0, y: 0 }
-  const rect = canvas.getBoundingClientRect()
+  if (!cachedCanvasRect) updateCanvasRect()
+  const rect = cachedCanvasRect!
   return {
     x: (e.clientX - rect.left) / scale.value,
     y: (e.clientY - rect.top) / scale.value
   }
 }
 
-const snap = (val: number, axis: 'x' | 'y') => {
+const snap = (val: number, axis: 'x' | 'y', skip: boolean = false) => {
   const img = selectedImage.value
-  if (!img) return val
+  if (!img || skip) {
+    isSnapping.value = false
+    return val
+  }
   const threshold = 15 / scale.value
   const max = axis === 'x' ? img.width! : img.height!
   const targets = [0, max / 2, max]
@@ -238,6 +292,7 @@ const snap = (val: number, axis: 'x' | 'y') => {
 const handlePointerDown = (e: PointerEvent) => {
   const container = containerRef.value
   if (!container) return
+  updateCanvasRect()
   if (e.button === 1 || e.shiftKey) {
     isPanning.value = true
     startPanPos.value = { x: e.clientX - offset.value.x, y: e.clientY - offset.value.y }
@@ -250,7 +305,7 @@ const handlePointerDown = (e: PointerEvent) => {
   }
   if (editMode.value === 'custom') {
     const pos = getLogicPos(e)
-    const snapped = snap(activeAxis.value === 'x' ? pos.x : pos.y, activeAxis.value)
+    const snapped = snap(activeAxis.value === 'x' ? pos.x : pos.y, activeAxis.value, e.altKey)
     if (activeAxis.value === 'x') {
       linesX.value.push(snapped)
       linesX.value.sort((a, b) => a - b)
@@ -258,6 +313,7 @@ const handlePointerDown = (e: PointerEvent) => {
       linesY.value.push(snapped)
       linesY.value.sort((a, b) => a - b)
     }
+    saveMeta()
   }
 }
 
@@ -269,9 +325,11 @@ const handlePointerMove = (e: PointerEvent) => {
   const pos = getLogicPos(e)
   mousePos.value = pos
   magnifierPos.value = { x: e.clientX, y: e.clientY }
+  isAltPressed.value = e.altKey
+
   if (draggingLine.value) {
     const { axis, index } = draggingLine.value
-    const snapped = snap(axis === 'x' ? pos.x : pos.y, axis)
+    const snapped = snap(axis === 'x' ? pos.x : pos.y, axis, e.altKey)
     if (axis === 'x') {
       const lineArr = linesX.value
       if (lineArr[index] !== undefined) lineArr[index] = snapped
@@ -279,6 +337,7 @@ const handlePointerMove = (e: PointerEvent) => {
       const lineArr = linesY.value
       if (lineArr[index] !== undefined) lineArr[index] = snapped
     }
+    saveMeta()
     return
   }
   const threshold = 12 / scale.value
@@ -308,6 +367,7 @@ const handleDoubleClick = () => {
     if (axis === 'x') linesX.value.splice(index, 1)
     else linesY.value.splice(index, 1)
     hoveredLine.value = null
+    saveMeta()
   }
 }
 
@@ -333,6 +393,16 @@ const handleWheel = (e: WheelEvent) => {
     y: mouseY - (mouseY - offset.value.y) * (newScale / scale.value)
   }
   scale.value = newScale
+  updateCanvasRect()
+}
+
+const zoomIn = () => {
+  scale.value *= 1.2
+  updateCanvasRect()
+}
+const zoomOut = () => {
+  scale.value *= 0.8
+  updateCanvasRect()
 }
 
 const resetView = () => {
@@ -343,20 +413,39 @@ const resetView = () => {
   const ch = container.clientHeight - 80
   scale.value = Math.min(cw / img.width!, ch / img.height!, 1)
   offset.value = { x: 0, y: 0 }
+  setTimeout(updateCanvasRect, 100)
 }
 
 useResizeObserver(containerRef, resetView)
-watch(() => selectedImage.value?.id, resetView)
+
+const handleKey = (e: KeyboardEvent) => {
+  isAltPressed.value = e.altKey
+}
+onMounted(() => {
+  window.addEventListener('keydown', handleKey)
+  window.addEventListener('keyup', handleKey)
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKey)
+  window.removeEventListener('keyup', handleKey)
+})
 
 const clearLines = () => {
   linesX.value = []
   linesY.value = []
+  saveMeta()
 }
 
-const handleProcess = () => {
+const handleDownloadCurrent = () => {
+  const img = selectedImage.value
+  if (img?.status === 'done' && (img.processedBlob || img.processedBlobs)) {
+    downloadImage(img.processedBlobs || img.processedBlob!, img.file.name, '_Split')
+  }
+}
+
+const handleProcess = async () => {
   const img = selectedImage.value
   if (!img) return
-
   const options = {
     rows: linesY.value.length + 1,
     cols: linesX.value.length + 1,
@@ -366,15 +455,8 @@ const handleProcess = () => {
     format: outputFormat.value === 'original' ? undefined : outputFormat.value,
     quality: outputQuality.value
   }
-
-  processSingle(img.id, options)
-}
-
-const handleDownloadCurrent = () => {
-  const img = selectedImage.value
-  if (img?.status === 'done' && (img.processedBlob || img.processedBlobs)) {
-    downloadImage(img.processedBlobs || img.processedBlob!, img.file.name, '_Imago_Split')
-  }
+  await processSingle(img.id, options)
+  handleDownloadCurrent()
 }
 
 const formatOptions = [
@@ -384,7 +466,6 @@ const formatOptions = [
   { label: 'PNG (无损)', value: 'image/png' }
 ]
 
-// 监听参数变化，标记脏状态
 watch(
   [
     rows,
@@ -399,9 +480,7 @@ watch(
   ],
   () => {
     const img = selectedImage.value
-    if (img && img.status === 'done') {
-      store.updateImage(img.id, { isDirty: true })
-    }
+    if (img && img.status === 'done') store.updateImage(img.id, { isDirty: true })
   },
   { deep: true }
 )
@@ -409,11 +488,48 @@ watch(
 const buttonText = computed(() => {
   if (isProcessing.value) return '正在处理...'
   const img = selectedImage.value
-  if (img?.isDirty) return '重新应用新参数'
-  return '执行切图导出'
+  if (img?.isDirty) return '重新切分并下载'
+  return '切分并下载'
 })
 
 const showMagnifier = computed(() => !!draggingLine.value)
+
+// --- 模板样式计算属性 (修复解析错误) ---
+const containerClasses = computed(() => ({
+  'cursor-grabbing': isPanning.value,
+  'cursor-crosshair': editMode.value === 'custom' && !hoveredLine.value,
+  'cursor-col-resize': hoveredLine.value?.axis === 'x',
+  'cursor-row-resize': hoveredLine.value?.axis === 'y'
+}))
+
+const magnifierClasses = computed(() =>
+  isAltPressed.value ? 'border-muted-foreground scale-90' : 'border-white'
+)
+
+const hintClasses = computed(() => ({
+  'text-primary animate-pulse': isAltPressed.value
+}))
+
+const canvasContainerClasses = computed(() => ({
+  'shadow-primary/20': isSnapping.value && !isAltPressed.value
+}))
+
+const dotClasses = computed(() =>
+  isAltPressed.value
+    ? 'bg-muted-foreground'
+    : 'bg-primary shadow-[0_0_8px_rgba(var(--primary-rgb),1)]'
+)
+
+const crosshairClasses = computed(() => (isAltPressed.value ? 'bg-white/20' : 'bg-primary/40'))
+
+const magnifierFooterClasses = computed(() =>
+  isAltPressed.value ? 'bg-muted/80 border-white/5' : 'bg-black border-white/10'
+)
+
+const imageCardClasses = (img: any) => ({
+  'border-primary shadow-sm scale-110 z-10': selectedImage.value?.id === img.id,
+  'border-transparent hover:border-border': selectedImage.value?.id !== img.id
+})
 </script>
 
 <template>
@@ -423,7 +539,11 @@ const showMagnifier = computed(() => !!draggingLine.value)
     </template>
 
     <template #header-actions>
-      <ImageActionsToolbar :is-processing="isProcessing" show-clear-all />
+      <ImageActionsToolbar
+        :is-processing="isProcessing"
+        :show-download-all="false"
+        show-clear-all
+      />
     </template>
 
     <template #content>
@@ -433,12 +553,7 @@ const showMagnifier = computed(() => !!draggingLine.value)
         <div
           ref="containerRef"
           class="flex-1 min-h-0 bg-muted/10 border border-border/40 rounded-3xl overflow-hidden relative w-full group select-none touch-none"
-          :class="{
-            'cursor-grabbing': isPanning,
-            'cursor-crosshair': editMode === 'custom' && !hoveredLine,
-            'cursor-col-resize': hoveredLine?.axis === 'x',
-            'cursor-row-resize': hoveredLine?.axis === 'y'
-          }"
+          :class="containerClasses"
           @wheel="handleWheel"
           @pointerdown="handlePointerDown"
           @pointermove="handlePointerMove"
@@ -452,7 +567,7 @@ const showMagnifier = computed(() => !!draggingLine.value)
           >
             <div
               class="relative shadow-2xl transition-shadow duration-500"
-              :class="{ 'shadow-primary/20': isSnapping }"
+              :class="canvasContainerClasses"
             >
               <canvas
                 ref="canvasRef"
@@ -464,7 +579,8 @@ const showMagnifier = computed(() => !!draggingLine.value)
 
           <div
             v-if="showMagnifier"
-            class="absolute z-50 w-36 h-36 rounded-full border-4 border-white shadow-2xl pointer-events-none overflow-hidden bg-black flex flex-col transition-opacity duration-200"
+            class="absolute z-50 w-36 h-36 rounded-full border-4 shadow-2xl pointer-events-none overflow-hidden bg-black flex flex-col transition-all duration-200"
+            :class="magnifierClasses"
             :style="{ left: magnifierPos.x - 72 + 'px', top: magnifierPos.y - 180 + 'px' }"
           >
             <div class="relative flex-1">
@@ -478,27 +594,33 @@ const showMagnifier = computed(() => !!draggingLine.value)
                 }"
               ></div>
               <div class="absolute inset-0 flex items-center justify-center z-20">
-                <div
-                  class="w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary-rgb),1)] ring-2 ring-white"
-                ></div>
-                <div class="absolute w-full h-[1px] bg-primary/40"></div>
-                <div class="absolute h-full w-[1px] bg-primary/40"></div>
+                <div class="w-1.5 h-1.5 rounded-full ring-2 ring-white" :class="dotClasses"></div>
+                <div class="absolute w-full h-[1px]" :class="crosshairClasses"></div>
+                <div class="absolute h-full w-[1px]" :class="crosshairClasses"></div>
               </div>
             </div>
             <div
-              class="h-7 bg-black flex items-center justify-center border-t border-white/10 px-2 shrink-0"
+              class="h-7 flex items-center justify-center border-t px-2 shrink-0 transition-colors"
+              :class="magnifierFooterClasses"
             >
               <span
-                class="text-[0.65rem] text-white font-mono font-black tracking-tighter uppercase flex items-center gap-2"
+                class="text-[0.6rem] text-white font-mono font-black tracking-tighter uppercase flex items-center gap-2"
               >
                 <div
-                  v-if="isSnapping"
+                  v-if="isSnapping && !isAltPressed"
                   class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"
                 ></div>
+                <MousePointerSquareDashed
+                  v-if="isAltPressed"
+                  :size="10"
+                  class="text-muted-foreground"
+                />
                 {{
-                  isSnapping
-                    ? 'Snapped'
-                    : `${Math.round(mousePos.x)}px, ${Math.round(mousePos.y)}px`
+                  isAltPressed
+                    ? 'Free Mode'
+                    : isSnapping
+                      ? 'Snapped'
+                      : `${Math.round(mousePos.x)}px, ${Math.round(mousePos.y)}px`
                 }}
               </span>
             </div>
@@ -512,11 +634,7 @@ const showMagnifier = computed(() => !!draggingLine.value)
                 v-for="img in displayImages"
                 :key="img.id"
                 class="w-10 h-10 rounded-lg overflow-hidden shrink-0 cursor-pointer border-2 transition-all relative"
-                :class="
-                  selectedImage?.id === img.id
-                    ? 'border-primary shadow-sm scale-110 z-10'
-                    : 'border-transparent hover:border-border'
-                "
+                :class="imageCardClasses(img)"
                 @click="selectedImageId = img.id"
                 :title="img.file.name"
               >
@@ -535,7 +653,7 @@ const showMagnifier = computed(() => !!draggingLine.value)
             class="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 p-1.5 bg-background/80 backdrop-blur-2xl border border-border/60 rounded-2xl shadow-elevated"
           >
             <button
-              @click="scale *= 0.8"
+              @click="zoomOut"
               class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted text-muted-foreground hover:text-primary transition-all active:scale-90"
             >
               <ZoomOut :size="18" />
@@ -544,7 +662,7 @@ const showMagnifier = computed(() => !!draggingLine.value)
               <span class="text-xs font-black text-foreground">{{ Math.round(scale * 100) }}%</span>
             </div>
             <button
-              @click="scale *= 1.2"
+              @click="zoomIn"
               class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted text-muted-foreground hover:text-primary transition-all active:scale-90"
             >
               <ZoomIn :size="18" />
@@ -569,7 +687,8 @@ const showMagnifier = computed(() => !!draggingLine.value)
             <div class="w-px h-3 bg-white/10"></div>
             <span
               class="text-[0.65rem] text-white/90 font-black uppercase tracking-[0.2em] flex items-center gap-2"
-              ><MousePointer2 :size="14" class="text-primary" /> 双击删除线条</span
+              :class="hintClasses"
+              ><Keyboard :size="14" /> Alt 禁用吸附 • 双击删除</span
             >
           </div>
         </div>
@@ -712,18 +831,7 @@ const showMagnifier = computed(() => !!draggingLine.value)
             </div>
           </section>
         </div>
-        <div class="pt-4 border-t border-border shrink-0 flex flex-col gap-3">
-          <AppButton
-            v-if="selectedImage?.status === 'done' && !selectedImage?.isDirty"
-            size="lg"
-            variant="secondary"
-            class="w-full h-12 rounded-2xl border-primary/20 text-primary hover:bg-primary/5 transition-all"
-            @click="handleDownloadCurrent"
-          >
-            <template #icon><Download :size="18" /></template>
-            <span class="font-bold">下载当前切片</span>
-          </AppButton>
-
+        <div class="pt-4 border-t border-border shrink-0">
           <AppButton
             size="lg"
             variant="cta"

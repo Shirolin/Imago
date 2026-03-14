@@ -15,6 +15,13 @@ export interface ImageItem {
   processedBlobs?: Blob[]
   processedWidth?: number
   processedHeight?: number
+  splitMeta?: {
+    linesX: number[]
+    linesY: number[]
+    editMode: 'grid' | 'custom'
+    rows: number
+    cols: number
+  }
   error?: string
   abortController?: AbortController
   isDirty?: boolean

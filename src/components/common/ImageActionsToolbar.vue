@@ -96,8 +96,8 @@ const handleConfirmAction = () => {
     >
       <!-- 恢复原图 -->
       <AppButton
-        v-if="store.doneCount > 0"
-        variant="ghost"
+        v-if="showDownloadAll && store.doneCount > 0"
+        variant="cta"
         size="md"
         :disabled="isProcessing"
         @click="store.resetAll"
