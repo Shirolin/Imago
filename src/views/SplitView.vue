@@ -23,8 +23,8 @@ import {
   Maximize,
   Grip,
   CheckCircle2,
-  ChevronUp,
-  ChevronDown
+  MousePointer2,
+  Plus
 } from 'lucide-vue-next'
 import { splitEngine } from '../lib/engines/splitEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
@@ -62,14 +62,16 @@ const offset = ref({ x: 0, y: 0 })
 const isPanning = ref(false)
 const startPanPos = ref({ x: 0, y: 0 })
 
-// 模式：grid (均分), custom (自由编辑)
+// 模式与轴向
 const editMode = ref<'grid' | 'custom'>('grid')
 const activeAxis = ref<'x' | 'y'>('x')
 
-// 交互状态
+// 交互精细状态
 const draggingLine = ref<{ axis: 'x' | 'y'; index: number } | null>(null)
+const hoveredLine = ref<{ axis: 'x' | 'y'; index: number } | null>(null)
 const isSnapping = ref(false)
 const mousePos = ref({ x: 0, y: 0 })
+const magnifierPos = ref({ x: 0, y: 0 })
 
 // 网格线数据
 const linesX = ref<number[]>([])
@@ -118,7 +120,7 @@ const syncGridLines = () => {
 
 watch([rows, cols, editMode, () => selectedImage.value?.id], syncGridLines, { immediate: true })
 
-// 画布绘制逻辑
+// 画布绘制
 const draw = () => {
   const canvas = canvasRef.value
   const ctx = canvas?.getContext('2d')
@@ -133,11 +135,34 @@ const draw = () => {
   ctx.clearRect(0, 0, w, h)
   ctx.drawImage(cachedImage, 0, 0)
 
-  const drawLine = (pos: number, isVertical: boolean) => {
+  const drawStylizedLine = (
+    pos: number,
+    isVertical: boolean,
+    isHovered: boolean,
+    isPreview: boolean = false
+  ) => {
+    ctx.save()
+    const colorPrimary = getComputedStyle(document.documentElement)
+      .getPropertyValue('--primary')
+      .trim()
+    const colorPrimaryHsl = `hsl(${colorPrimary})`
+
     ctx.beginPath()
-    ctx.setLineDash([10, 10])
-    ctx.lineWidth = 2 / scale.value
-    ctx.strokeStyle = 'hsl(var(--primary))'
+    ctx.lineWidth = (isPreview ? 1 : 2) / scale.value
+    ctx.strokeStyle = isPreview ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.4)'
+    if (isVertical) {
+      ctx.moveTo(pos + 1 / scale.value, 0)
+      ctx.lineTo(pos + 1 / scale.value, h)
+    } else {
+      ctx.moveTo(0, pos + 1 / scale.value)
+      ctx.lineTo(w, pos + 1 / scale.value)
+    }
+    ctx.stroke()
+
+    ctx.beginPath()
+    if (isPreview) ctx.setLineDash([5, 5])
+    ctx.lineWidth = (isHovered ? 3 : 1.5) / scale.value
+    ctx.strokeStyle = isPreview ? 'rgba(255,255,255,0.8)' : colorPrimaryHsl
     if (isVertical) {
       ctx.moveTo(pos, 0)
       ctx.lineTo(pos, h)
@@ -145,37 +170,43 @@ const draw = () => {
       ctx.moveTo(0, pos)
       ctx.lineTo(w, pos)
     }
-    ctx.save()
-    ctx.globalAlpha = 0.3
-    ctx.lineWidth = 6 / scale.value
+    if (isHovered && !isPreview) {
+      ctx.shadowBlur = 10 / scale.value
+      ctx.shadowColor = colorPrimaryHsl
+    }
     ctx.stroke()
+
+    if (!isPreview) {
+      ctx.fillStyle = colorPrimaryHsl
+      const dotSize = 4 / scale.value
+      if (isVertical) {
+        ctx.fillRect(pos - dotSize, 0, dotSize * 2, dotSize * 2)
+        ctx.fillRect(pos - dotSize, h - dotSize * 2, dotSize * 2, dotSize * 2)
+      } else {
+        ctx.fillRect(0, pos - dotSize, dotSize * 2, dotSize * 2)
+        ctx.fillRect(w - dotSize * 2, pos - dotSize, dotSize * 2, dotSize * 2)
+      }
+    }
     ctx.restore()
-    ctx.stroke()
   }
 
-  linesX.value.forEach((x) => drawLine(x, true))
-  linesY.value.forEach((y) => drawLine(y, false))
+  linesX.value.forEach((lx, i) =>
+    drawStylizedLine(lx, true, hoveredLine.value?.axis === 'x' && hoveredLine.value.index === i)
+  )
+  linesY.value.forEach((ly, i) =>
+    drawStylizedLine(ly, false, hoveredLine.value?.axis === 'y' && hoveredLine.value.index === i)
+  )
+
+  if (editMode.value === 'custom' && !draggingLine.value) {
+    const snappedPos = snap(
+      activeAxis.value === 'x' ? mousePos.value.x : mousePos.value.y,
+      activeAxis.value
+    )
+    drawStylizedLine(snappedPos, activeAxis.value === 'x', false, true)
+  }
 }
 
-watch([scale, offset, linesX, linesY], requestDraw)
-
-const resetView = () => {
-  const img = selectedImage.value
-  const container = containerRef.value
-  if (!container || !img) return
-  const w = img.width!
-  const h = img.height!
-  const cw = container.clientWidth - 80
-  const ch = container.clientHeight - 80
-  scale.value = Math.min(cw / w, ch / h, 1)
-  offset.value = { x: 0, y: 0 }
-}
-
-useResizeObserver(containerRef, resetView)
-watch(() => selectedImage.value?.id, resetView)
-
-const magnifierPos = ref({ x: 0, y: 0 })
-const showMagnifier = computed(() => !!draggingLine.value)
+watch([scale, offset, linesX, linesY, hoveredLine, mousePos], requestDraw)
 
 const getLogicPos = (e: PointerEvent) => {
   const canvas = canvasRef.value
@@ -190,55 +221,38 @@ const getLogicPos = (e: PointerEvent) => {
 const snap = (val: number, axis: 'x' | 'y') => {
   const img = selectedImage.value
   if (!img) return val
-  const threshold = 10 / scale.value
+  const threshold = 15 / scale.value
   const max = axis === 'x' ? img.width! : img.height!
-  if (Math.abs(val) < threshold) {
-    isSnapping.value = true
-    return 0
-  }
-  if (Math.abs(val - max) < threshold) {
-    isSnapping.value = true
-    return max
-  }
-  if (Math.abs(val - max / 2) < threshold) {
-    isSnapping.value = true
-    return max / 2
+  const targets = [0, max / 2, max]
+  for (const t of targets) {
+    if (Math.abs(val - t) < threshold) {
+      isSnapping.value = true
+      return t
+    }
   }
   isSnapping.value = false
   return val
 }
 
 const handlePointerDown = (e: PointerEvent) => {
-  const container = containerRef.value
-  if (!container) return
   if (e.button === 1 || e.shiftKey) {
     isPanning.value = true
     startPanPos.value = { x: e.clientX - offset.value.x, y: e.clientY - offset.value.y }
-    container.setPointerCapture(e.pointerId)
+    containerRef.value?.setPointerCapture(e.pointerId)
     return
   }
-  const pos = getLogicPos(e)
-  const threshold = 12 / scale.value
-  for (let i = 0; i < linesX.value.length; i++) {
-    const lx = linesX.value[i]
-    if (lx !== undefined && Math.abs(pos.x - lx) < threshold) {
-      draggingLine.value = { axis: 'x', index: i }
-      return
-    }
-  }
-  for (let i = 0; i < linesY.value.length; i++) {
-    const ly = linesY.value[i]
-    if (ly !== undefined && Math.abs(pos.y - ly) < threshold) {
-      draggingLine.value = { axis: 'y', index: i }
-      return
-    }
+  if (hoveredLine.value) {
+    draggingLine.value = { ...hoveredLine.value }
+    return
   }
   if (editMode.value === 'custom') {
+    const pos = getLogicPos(e)
+    const snapped = snap(activeAxis.value === 'x' ? pos.x : pos.y, activeAxis.value)
     if (activeAxis.value === 'x') {
-      linesX.value.push(pos.x)
+      linesX.value.push(snapped)
       linesX.value.sort((a, b) => a - b)
     } else {
-      linesY.value.push(pos.y)
+      linesY.value.push(snapped)
       linesY.value.sort((a, b) => a - b)
     }
   }
@@ -251,32 +265,41 @@ const handlePointerMove = (e: PointerEvent) => {
   }
   const pos = getLogicPos(e)
   mousePos.value = pos
+  magnifierPos.value = { x: e.clientX, y: e.clientY }
   if (draggingLine.value) {
     const { axis, index } = draggingLine.value
     const snapped = snap(axis === 'x' ? pos.x : pos.y, axis)
-    if (axis === 'x') {
-      const lineArr = linesX.value
-      if (lineArr[index] !== undefined) lineArr[index] = snapped
-    } else {
-      const lineArr = linesY.value
-      if (lineArr[index] !== undefined) lineArr[index] = snapped
-    }
-    magnifierPos.value = { x: e.clientX, y: e.clientY }
+    if (axis === 'x') linesX.value[index] = snapped
+    else linesY.value[index] = snapped
+    return
   }
+  const threshold = 12 / scale.value
+  let found = false
+  for (let i = 0; i < linesX.value.length; i++) {
+    if (Math.abs(pos.x - linesX.value[i]!) < threshold) {
+      hoveredLine.value = { axis: 'x', index: i }
+      found = true
+      break
+    }
+  }
+  if (!found) {
+    for (let i = 0; i < linesY.value.length; i++) {
+      if (Math.abs(pos.y - linesY.value[i]!) < threshold) {
+        hoveredLine.value = { axis: 'y', index: i }
+        found = true
+        break
+      }
+    }
+  }
+  if (!found) hoveredLine.value = null
 }
 
-const handleDoubleClick = (e: MouseEvent) => {
-  const pos = getLogicPos(e as any)
-  const threshold = 12 / scale.value
-  const idxX = linesX.value.findIndex((x) => Math.abs(x - pos.x) < threshold)
-  if (idxX !== -1) {
-    linesX.value.splice(idxX, 1)
-    return
-  }
-  const idxY = linesY.value.findIndex((y) => Math.abs(y - pos.y) < threshold)
-  if (idxY !== -1) {
-    linesY.value.splice(idxY, 1)
-    return
+const handleDoubleClick = () => {
+  if (hoveredLine.value) {
+    const { axis, index } = hoveredLine.value
+    if (axis === 'x') linesX.value.splice(index, 1)
+    else linesY.value.splice(index, 1)
+    hoveredLine.value = null
   }
 }
 
@@ -288,12 +311,11 @@ const handlePointerUp = () => {
 
 const handleWheel = (e: WheelEvent) => {
   e.preventDefault()
-  const img = selectedImage.value
   const container = containerRef.value
-  if (!container || !img) return
-  const zoomStep = 1.1
+  if (!container || !selectedImage.value) return
+  const zoomStep = 1.15
   const delta = e.deltaY > 0 ? 1 / zoomStep : zoomStep
-  const newScale = Math.max(0.1, Math.min(scale.value * delta, 10))
+  const newScale = Math.max(0.05, Math.min(scale.value * delta, 20))
   const rect = container.getBoundingClientRect()
   const mouseX = e.clientX - rect.left
   const mouseY = e.clientY - rect.top
@@ -303,6 +325,19 @@ const handleWheel = (e: WheelEvent) => {
   }
   scale.value = newScale
 }
+
+const resetView = () => {
+  const container = containerRef.value
+  const img = selectedImage.value
+  if (!container || !img) return
+  const cw = container.clientWidth - 80
+  const ch = container.clientHeight - 80
+  scale.value = Math.min(cw / img.width!, ch / img.height!, 1)
+  offset.value = { x: 0, y: 0 }
+}
+
+useResizeObserver(containerRef, resetView)
+watch(() => selectedImage.value?.id, resetView)
 
 const handleProcess = () => {
   const options = {
@@ -317,6 +352,13 @@ const handleProcess = () => {
   if (store.selectedCount > 0) processSelected(options)
   else processAll(options)
 }
+
+const formatOptions = [
+  { label: '保留原格式', value: 'original' },
+  { label: 'WebP (推荐)', value: 'image/webp' },
+  { label: 'JPEG (高兼容)', value: 'image/jpeg' },
+  { label: 'PNG (无损)', value: 'image/png' }
+]
 </script>
 
 <template>
@@ -336,6 +378,12 @@ const handleProcess = () => {
         <div
           ref="containerRef"
           class="flex-1 min-h-0 bg-muted/10 border border-border/40 rounded-3xl overflow-hidden relative w-full group select-none touch-none"
+          :class="{
+            'cursor-grabbing': isPanning,
+            'cursor-crosshair': editMode === 'custom' && !hoveredLine,
+            'cursor-col-resize': hoveredLine?.axis === 'x',
+            'cursor-row-resize': hoveredLine?.axis === 'y'
+          }"
           @wheel="handleWheel"
           @pointerdown="handlePointerDown"
           @pointermove="handlePointerMove"
@@ -344,43 +392,55 @@ const handleProcess = () => {
         >
           <div class="absolute inset-0 transparency-grid opacity-40"></div>
           <div
-            class="absolute inset-0 flex items-center justify-center transition-transform duration-75"
+            class="absolute inset-0 flex items-center justify-center"
             :style="{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})` }"
           >
-            <div class="relative shadow-2xl">
-              <canvas ref="canvasRef" class="block rounded-sm" @dblclick="handleDoubleClick" />
+            <div
+              class="relative shadow-2xl transition-shadow duration-500"
+              :class="{ 'shadow-primary/20': isSnapping }"
+            >
+              <canvas
+                ref="canvasRef"
+                class="block rounded-sm bg-black/5"
+                @dblclick="handleDoubleClick"
+              />
             </div>
           </div>
 
           <div
-            v-if="showMagnifier"
-            class="absolute z-50 w-32 h-32 rounded-full border-4 border-white shadow-2xl pointer-events-none overflow-hidden bg-black flex flex-col"
-            :style="{ left: magnifierPos.x - 64 + 'px', top: magnifierPos.y - 160 + 'px' }"
+            v-if="draggingLine || (editMode === 'custom' && !isPanning)"
+            class="absolute z-50 w-36 h-36 rounded-full border-4 border-white shadow-2xl pointer-events-none overflow-hidden bg-black flex flex-col transition-opacity duration-200"
+            :class="draggingLine ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'"
+            :style="{ left: magnifierPos.x - 72 + 'px', top: magnifierPos.y - 180 + 'px' }"
           >
             <div class="relative flex-1">
               <div
                 class="absolute inset-0"
                 :style="{
                   backgroundImage: `url(${selectedImage?.preview})`,
-                  backgroundPosition: `${-(mousePos.x * scale * 2) + 64}px ${-(mousePos.y * scale * 2) + 64}px`,
-                  backgroundSize: `${(selectedImage?.width || 0) * scale * 2}px ${(selectedImage?.height || 0) * scale * 2}px`,
+                  backgroundPosition: `${-(mousePos.x * scale * 2.5) + 72}px ${-(mousePos.y * scale * 2.5) + 72}px`,
+                  backgroundSize: `${(selectedImage?.width || 0) * scale * 2.5}px ${(selectedImage?.height || 0) * scale * 2.5}px`,
                   backgroundRepeat: 'no-repeat'
                 }"
               ></div>
               <div class="absolute inset-0 flex items-center justify-center z-20">
                 <div
-                  class="w-1 h-1 bg-primary rounded-full shadow-[0_0_4px_rgba(var(--primary-rgb),0.8)]"
+                  class="w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary-rgb),1)] ring-2 ring-white"
                 ></div>
-                <div class="absolute w-full h-[0.5px] bg-primary/30"></div>
-                <div class="absolute h-full w-[0.5px] bg-primary/30"></div>
+                <div class="absolute w-full h-[1px] bg-primary/40"></div>
+                <div class="absolute h-full w-[1px] bg-primary/40"></div>
               </div>
             </div>
             <div
-              class="h-6 bg-black flex items-center justify-center border-t border-white/10 px-2 shrink-0"
+              class="h-7 bg-black flex items-center justify-center border-t border-white/10 px-2 shrink-0"
             >
               <span
-                class="text-[0.6rem] text-white/80 font-mono font-bold tracking-tighter uppercase"
+                class="text-[0.65rem] text-white font-mono font-black tracking-tighter uppercase flex items-center gap-2"
               >
+                <div
+                  v-if="isSnapping"
+                  class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"
+                ></div>
                 {{
                   isSnapping
                     ? 'Snapped'
@@ -390,9 +450,9 @@ const handleProcess = () => {
             </div>
           </div>
 
-          <div class="absolute top-4 left-4 right-4 z-30">
+          <div class="absolute top-4 left-4 right-4 z-30 pointer-events-none">
             <div
-              class="flex gap-2 p-2 bg-background/60 backdrop-blur-xl border border-border/40 rounded-2xl overflow-x-auto no-scrollbar shadow-elevated w-fit max-w-full mx-auto"
+              class="flex gap-2 p-2 bg-background/60 backdrop-blur-xl border border-border/40 rounded-2xl overflow-x-auto no-scrollbar shadow-elevated w-fit max-w-full mx-auto pointer-events-auto"
             >
               <button
                 v-for="img in displayImages"
@@ -404,6 +464,7 @@ const handleProcess = () => {
                     : 'border-transparent hover:border-border'
                 "
                 @click="selectedImageId = img.id"
+                :title="img.file.name"
               >
                 <img :src="img.preview" alt="" class="w-full h-full object-cover" />
                 <div
@@ -425,10 +486,8 @@ const handleProcess = () => {
             >
               <ZoomOut :size="18" />
             </button>
-            <div class="px-2 min-w-[60px] text-center border-x border-border/20">
-              <span class="text-xs font-black font-mono text-foreground"
-                >{{ Math.round(scale * 100) }}%</span
-              >
+            <div class="px-2 min-w-[60px] text-center border-x border-border/20 font-mono">
+              <span class="text-xs font-black text-foreground">{{ Math.round(scale * 100) }}%</span>
             </div>
             <button
               @click="scale *= 1.2"
@@ -447,26 +506,30 @@ const handleProcess = () => {
           </div>
 
           <div
-            class="absolute top-20 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/20 backdrop-blur-md rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"
+            class="absolute top-20 left-1/2 -translate-x-1/2 px-5 py-2.5 bg-black/40 backdrop-blur-md border border-white/5 rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center gap-4"
           >
             <span
-              class="text-[0.6rem] text-white/80 font-black uppercase tracking-[0.2em] flex items-center gap-2"
+              class="text-[0.65rem] text-white/90 font-black uppercase tracking-[0.2em] flex items-center gap-2"
+              ><Grip :size="14" class="text-primary" /> 滚轮缩放 • Shift+平移</span
             >
-              <Grip :size="12" /> 滚轮缩放 • Shift+拖拽平移
-            </span>
+            <div class="w-px h-3 bg-white/10"></div>
+            <span
+              class="text-[0.65rem] text-white/90 font-black uppercase tracking-[0.2em] flex items-center gap-2"
+              ><MousePointer2 :size="14" class="text-primary" /> 双击删除线条</span
+            >
           </div>
         </div>
 
         <div class="flex items-center justify-between px-1 shrink-0 h-8">
           <div class="flex items-center gap-2 text-muted-foreground/40">
-            <RefreshCw :size="12" />
-            <span class="text-[0.55rem] font-bold uppercase tracking-wider font-mono"
-              >Dynamic Canvas Rendering</span
+            <RefreshCw :size="12" class="animate-spin-slow" /><span
+              class="text-[0.55rem] font-bold uppercase tracking-wider font-mono"
+              >Pixel-Perfect Editing</span
             >
           </div>
-          <span class="text-[0.6rem] font-black uppercase tracking-widest text-primary/60">
-            Ready to Export {{ (linesX.length + 1) * (linesY.length + 1) }} Tiles per Image
-          </span>
+          <span class="text-[0.6rem] font-black uppercase tracking-widest text-primary/60"
+            >Ready to Export {{ (linesX.length + 1) * (linesY.length + 1) }} Tiles</span
+          >
         </div>
       </div>
     </template>
@@ -486,86 +549,67 @@ const handleProcess = () => {
               />
               <div
                 v-if="editMode === 'grid'"
-                class="bg-muted/10 rounded-2xl p-5 border border-border/60 shadow-inner space-y-6 animate-in fade-in duration-300"
+                class="bg-muted/10 rounded-2xl p-5 border border-border/60 shadow-inner space-y-6 animate-in zoom-in-95 duration-300"
               >
                 <AppSlider v-model="rows" label="垂直行数 (Rows)" :min="1" :max="10" :step="1" />
                 <AppSlider v-model="cols" label="水平列数 (Cols)" :min="1" :max="10" :step="1" />
               </div>
               <div
                 v-else
-                class="bg-primary/5 rounded-2xl p-5 border border-primary/20 space-y-4 animate-in fade-in duration-300"
+                class="bg-primary/5 rounded-2xl p-5 border border-primary/20 space-y-5 animate-in zoom-in-95 duration-300"
               >
                 <div class="flex flex-col gap-3">
                   <label
-                    class="text-[0.6rem] font-black text-primary uppercase tracking-widest px-1"
-                    >添加新切线轴向</label
+                    class="text-[0.65rem] font-black text-primary uppercase tracking-widest px-1"
+                    >添加新线轴向</label
                   >
-                  <div class="grid grid-cols-2 gap-2">
+                  <div class="grid grid-cols-2 gap-2.5">
                     <button
                       @click="activeAxis = 'x'"
-                      class="flex items-center justify-center gap-2 py-2 rounded-xl border transition-all font-bold text-xs"
+                      class="flex items-center justify-center gap-2.5 py-3 rounded-xl border-2 transition-all font-black text-xs"
                       :class="
                         activeAxis === 'x'
                           ? 'bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20'
                           : 'bg-background border-border text-muted-foreground hover:border-primary/40'
                       "
                     >
-                      垂直线 (X)
+                      垂直线
                     </button>
                     <button
                       @click="activeAxis = 'y'"
-                      class="flex items-center justify-center gap-2 py-2 rounded-xl border transition-all font-bold text-xs"
+                      class="flex items-center justify-center gap-2.5 py-3 rounded-xl border-2 transition-all font-black text-xs"
                       :class="
                         activeAxis === 'y'
                           ? 'bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20'
                           : 'bg-background border-border text-muted-foreground hover:border-primary/40'
                       "
                     >
-                      水平线 (Y)
+                      水平线
                     </button>
                   </div>
                 </div>
-                <AppTip variant="info" class="text-[0.6rem] py-2 border-primary/10"
-                  >点击图片添加切线，拖拽移动，双击删除。</AppTip
+                <button
+                  @click="linesX = []; linesY = []"
+                  class="w-full py-2.5 rounded-xl border border-border hover:border-destructive hover:text-destructive transition-all text-[0.6rem] font-black uppercase tracking-widest flex items-center justify-center gap-2"
                 >
-              </div>
-              <div class="flex justify-between items-center px-1 pt-2">
-                <div class="flex flex-col">
-                  <span
-                    class="text-[0.55rem] font-black text-muted-foreground/40 uppercase tracking-widest"
-                    >Total Tiles</span
-                  >
-                  <span class="text-xl font-black text-primary font-mono leading-none">{{
-                    (linesX.length + 1) * (linesY.length + 1)
-                  }}</span>
-                </div>
-                <div class="text-right">
-                  <span
-                    class="text-[0.55rem] font-black text-muted-foreground/40 uppercase tracking-widest"
-                    >Active Lines</span
-                  >
-                  <p class="text-[0.7rem] font-bold text-foreground">
-                    {{ linesX.length }}V / {{ linesY.length }}H
-                  </p>
-                </div>
+                  清空所有线条
+                </button>
               </div>
             </div>
           </section>
+
           <section class="space-y-5">
             <AppSectionHeader title="增强处理" :icon="Layers" />
             <div class="space-y-4 px-1">
               <AppSegmentedControl
                 v-model="centerMode"
                 :options="[
-                  { label: '标准切分', value: 'none', icon: Grid3X3 },
-                  { label: '自动居中', value: 'center', icon: AlignCenter },
-                  { label: '补全正方形', value: 'square', icon: Box }
+                  { label: '标准', value: 'none', icon: Grid3X3 },
+                  { label: '居中', value: 'center', icon: AlignCenter },
+                  { label: '正方形', value: 'square', icon: Box }
                 ]"
               />
-              <div
-                v-if="centerMode !== 'none'"
-                class="pt-2 space-y-4 animate-in fade-in duration-300"
-              >
+              <div v-if="centerMode !== 'none'" class="pt-2 space-y-4">
                 <AppSlider
                   v-model="shave"
                   label="边缘修剪 (Shave)"
@@ -574,24 +618,14 @@ const handleProcess = () => {
                   :step="1"
                   unit="px"
                 />
-                <AppTip variant="info" class="text-[0.6rem] py-2"
-                  >居中模式会自动识别背景并重新对齐内容。</AppTip
-                >
               </div>
             </div>
           </section>
+
           <section class="space-y-5">
-            <AppSectionHeader title="导出配置" :icon="FileType" />
+            <AppSectionHeader title="导出设置" :icon="FileType" />
             <div class="space-y-4 px-1">
-              <AppSelect
-                v-model="outputFormat"
-                :options="[
-                  { label: '保留原格式', value: 'original' },
-                  { label: 'WebP (推荐)', value: 'image/webp' },
-                  { label: 'JPEG (高兼容)', value: 'image/jpeg' },
-                  { label: 'PNG (无损)', value: 'image/png' }
-                ]"
-              />
+              <AppSelect v-model="outputFormat" :options="formatOptions" />
               <AppSlider
                 v-if="outputFormat !== 'original' && outputFormat !== 'image/png'"
                 v-model="outputQuality"
@@ -603,6 +637,7 @@ const handleProcess = () => {
             </div>
           </section>
         </div>
+
         <div class="pt-4 border-t border-border shrink-0">
           <AppButton
             size="lg"
@@ -646,5 +681,16 @@ const handleProcess = () => {
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 10px;
+}
+.animate-spin-slow {
+  animation: spin 3s linear infinite;
+}
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
