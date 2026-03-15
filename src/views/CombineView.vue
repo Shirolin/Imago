@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useImageStore } from '../stores/imageStore'
-import { useElementSize, watchOnce, useResizeObserver } from '@vueuse/core'
+import { useElementSize, watchOnce, useResizeObserver, useElementBounding } from '@vueuse/core'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
 import {
@@ -47,7 +47,12 @@ const startPanPos = ref({ x: 0, y: 0 })
 
 // 优化：使用 useResizeObserver 提供的 rect 避免直接读取 offsetWidth 触发重绘
 const { width: contentWidth, height: contentHeight } = useElementSize(contentRef)
-const { width: containerWidth, height: containerHeight } = useElementSize(containerRef)
+const {
+  width: containerWidth,
+  height: containerHeight,
+  left: containerLeft,
+  top: containerTop
+} = useElementBounding(containerRef)
 
 const resetView = () => {
   if (
@@ -83,10 +88,9 @@ const handleWheel = (e: WheelEvent) => {
   const delta = e.deltaY > 0 ? 1 / zoomStep : zoomStep
   const newScale = Math.max(0.05, Math.min(scale.value * delta, 10))
 
-  // 优化：使用缓存的 container 尺寸
-  const rect = container.getBoundingClientRect()
-  const mouseX = e.clientX - rect.left - rect.width / 2
-  const mouseY = e.clientY - rect.top - rect.height / 2
+  // 优化：使用缓存的 container 尺寸和位置
+  const mouseX = e.clientX - containerLeft.value - containerWidth.value / 2
+  const mouseY = e.clientY - containerTop.value - containerHeight.value / 2
 
   offset.value = {
     x: mouseX - (mouseX - offset.value.x) * (newScale / scale.value),
@@ -257,8 +261,7 @@ const sidebarClasses = computed(
   () => 'p-6 flex flex-col gap-6 h-full overflow-y-auto custom-scrollbar'
 )
 const bottomCtaClasses = computed(
-  () =>
-    'mt-auto pt-6 border-t border-border bg-background sticky bottom-0 -mx-6 px-6 pb-6 z-10'
+  () => 'mt-auto pt-6 border-t border-border bg-background sticky bottom-0 -mx-6 px-6 pb-6 z-10'
 )
 
 const previewListStyles = computed(() => {
@@ -326,7 +329,7 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
           @pointerleave="handlePointerUp"
         >
           <!-- 底层棋盘格 -->
-          <div class="absolute inset-0 transparency-grid opacity-40"></div>
+          <div class="absolute inset-0 transparency-grid"></div>
 
           <!-- 交互画布 -->
           <div
@@ -387,11 +390,13 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
                         P{{ index + 1 }}
                       </div>
 
-                      <!-- 底部文件名 -->
+                      <!-- 底部文件名 (防御性文本处理) -->
                       <div
-                        class="absolute bottom-0 left-0 right-0 px-2 py-1.5 bg-gradient-to-t from-black/60 to-transparent"
+                        class="absolute bottom-0 left-0 right-0 px-2 py-1.5 bg-gradient-to-t from-black/80 to-transparent"
                       >
-                        <p class="text-[9px] text-white/90 truncate font-mono max-w-full">
+                        <p
+                          class="text-[9px] text-white/90 truncate font-mono max-w-full leading-none"
+                        >
                           {{ img.file.name }}
                         </p>
                       </div>
@@ -407,8 +412,12 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
               </TransitionGroup>
             </div>
 
-            <!-- 空状态提示 -->
-            <AppTip v-if="!hasEnoughImages" :icon="Info" class="max-w-md pointer-events-auto">
+            <!-- 空状态提示 (适应性宽度) -->
+            <AppTip
+              v-if="!hasEnoughImages"
+              :icon="Info"
+              class="max-w-[85%] md:max-w-md pointer-events-auto"
+            >
               请至少上传两张图片。当前支持纵向、横向及网格模式。
             </AppTip>
           </div>
@@ -437,7 +446,8 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
           >
             <button
               @click="zoomOut"
-              class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted text-muted-foreground hover:text-primary transition-all active:scale-90"
+              class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted text-muted-foreground hover:text-primary transition-all active:scale-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              aria-label="缩小视图"
             >
               <ZoomOut :size="18" />
             </button>
@@ -446,15 +456,17 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
             </div>
             <button
               @click="zoomIn"
-              class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted text-muted-foreground hover:text-primary transition-all active:scale-90"
+              class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted text-muted-foreground hover:text-primary transition-all active:scale-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              aria-label="放大视图"
             >
               <ZoomIn :size="18" />
             </button>
             <div class="w-px h-4 bg-border/20 mx-1"></div>
             <button
               @click="resetView"
-              class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all active:scale-90"
+              class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all active:scale-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
               title="重置视图"
+              aria-label="重置视图比例"
             >
               <Maximize :size="18" />
             </button>
@@ -482,14 +494,17 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
           <div class="flex flex-col gap-4">
             <div class="flex items-center justify-between">
               <AppSectionHeader title="拼接模式" :icon="Settings2" />
-              <div 
+              <div
                 class="group/help relative cursor-help p-1 text-muted-foreground/40 hover:text-primary transition-colors"
                 title="操作说明"
               >
                 <Info :size="14" />
-                <div class="absolute right-0 top-full mt-2 w-48 p-3 bg-popover border border-border rounded-xl shadow-elevated opacity-0 group-hover/help:opacity-100 pointer-events-none transition-all z-50">
+                <div
+                  class="absolute right-0 top-full mt-2 w-48 p-3 bg-popover border border-border rounded-xl shadow-elevated opacity-0 group-hover/help:opacity-100 pointer-events-none transition-all z-50"
+                >
                   <p class="text-[10px] leading-relaxed text-foreground/80 font-medium">
-                    <span class="text-primary font-bold">排序:</span> 鼠标拖拽图片或使用 Ctrl + 方向键。<br/><br/>
+                    <span class="text-primary font-bold">排序:</span> 鼠标拖拽图片或使用 Ctrl +
+                    方向键。<br /><br />
                     <span class="text-primary font-bold">平移:</span> 按住鼠标中键或 Shift + 左键。
                   </p>
                 </div>
@@ -589,38 +604,6 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
     </template>
   </WorkspaceLayout>
 </template>
-
-<style>
-/* Transparency Grid Pattern - Normalized with Design Tokens */
-.transparency-grid {
-  background-image: conic-gradient(
-    hsl(var(--muted-foreground) / 0.08) 0 25%,
-    transparent 0 50%,
-    hsl(var(--muted-foreground) / 0.08) 0 75%,
-    transparent 0
-  );
-  background-size: 20px 20px;
-}
-
-.transparency-grid-sm {
-  background-image: conic-gradient(
-    hsl(var(--muted-foreground) / 0.12) 0 25%,
-    transparent 0 50%,
-    hsl(var(--muted-foreground) / 0.12) 0 75%,
-    transparent 0
-  );
-  background-size: 8px 8px;
-}
-
-:root {
-  --checkerboard-pattern: conic-gradient(
-    hsl(var(--muted-foreground) / 0.05) 0 25%,
-    transparent 0 50%,
-    hsl(var(--muted-foreground) / 0.05) 0 75%,
-    transparent 0
-  );
-}
-</style>
 
 <style scoped>
 input[type='color']::-webkit-color-swatch-wrapper {

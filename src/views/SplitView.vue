@@ -28,7 +28,7 @@ import {
 } from 'lucide-vue-next'
 import { splitEngine } from '../lib/engines/splitEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
-import { useResizeObserver } from '@vueuse/core'
+import { useResizeObserver, useElementBounding, useElementSize } from '@vueuse/core'
 
 const store = useImageStore()
 const { downloadImage } = useFileHelpers()
@@ -85,23 +85,43 @@ const updateCanvasRect = () => {
   if (canvasRef.value) cachedCanvasRect = canvasRef.value.getBoundingClientRect()
 }
 
-// 缓存 Image 对象
-let cachedImage: HTMLImageElement | null = null
+// 缓存离屏 Canvas
+let offscreenCanvas: HTMLCanvasElement | null = null
 let isDrawingRaf = false
+
+const updateCachedImage = () => {
+  const imgData = selectedImage.value
+  if (!imgData) {
+    offscreenCanvas = null
+    return
+  }
+  const img = new Image()
+  img.src = imgData.preview
+  img.onload = () => {
+    // 创建离屏 Canvas 预渲染图片
+    offscreenCanvas = document.createElement('canvas')
+    offscreenCanvas.width = imgData.width!
+    offscreenCanvas.height = imgData.height!
+    const octx = offscreenCanvas.getContext('2d')
+    octx?.drawImage(img, 0, 0)
+    requestDraw()
+  }
+}
 
 const draw = () => {
   const canvas = canvasRef.value
   const ctx = canvas?.getContext('2d')
   const img = selectedImage.value
-  if (!canvas || !ctx || !cachedImage || !img) return
+  if (!canvas || !ctx || !offscreenCanvas || !img) return
 
   const w = img.width!
   const h = img.height!
   canvas.width = w
   canvas.height = h
 
+  // 极速绘制：直接从离屏 Canvas 拷贝，避免浏览器重新解析图片像素
   ctx.clearRect(0, 0, w, h)
-  ctx.drawImage(cachedImage, 0, 0)
+  ctx.drawImage(offscreenCanvas, 0, 0)
 
   const drawStylizedLine = (
     pos: number,
@@ -188,20 +208,6 @@ const requestDraw = () => {
   })
 }
 
-const updateCachedImage = () => {
-  const imgData = selectedImage.value
-  if (!imgData) {
-    cachedImage = null
-    return
-  }
-  const img = new Image()
-  img.src = imgData.preview
-  img.onload = () => {
-    cachedImage = img
-    requestDraw()
-  }
-}
-
 const syncGridLines = () => {
   const img = selectedImage.value
   if (!img || editMode.value === 'custom') return
@@ -212,6 +218,13 @@ const syncGridLines = () => {
   for (let i = 1; i < cols.value; i++) linesX.value.push((w * i) / cols.value)
   for (let i = 1; i < rows.value; i++) linesY.value.push((h * i) / rows.value)
 }
+
+const {
+  width: containerWidth,
+  height: containerHeight,
+  left: containerLeft,
+  top: containerTop
+} = useElementBounding(containerRef)
 
 const resetView = () => {
   const container = containerRef.value
@@ -392,10 +405,9 @@ const handleWheel = (e: WheelEvent) => {
   const delta = e.deltaY > 0 ? 1 / zoomStep : zoomStep
   const newScale = Math.max(0.05, Math.min(scale.value * delta, 20))
 
-  const rect = container.getBoundingClientRect()
   // 将鼠标坐标转换为相对于容器中心的坐标，以匹配 flex center 布局下的 offset 系统
-  const mouseX = e.clientX - rect.left - rect.width / 2
-  const mouseY = e.clientY - rect.top - rect.height / 2
+  const mouseX = e.clientX - containerLeft.value - containerWidth.value / 2
+  const mouseY = e.clientY - containerTop.value - containerHeight.value / 2
 
   offset.value = {
     x: mouseX - (mouseX - offset.value.x) * (newScale / scale.value),
@@ -558,13 +570,13 @@ const imageCardClasses = (img: any) => ({
           @pointerup="handlePointerUp"
           @pointerleave="handlePointerUp"
         >
-          <div class="absolute inset-0 transparency-grid opacity-40"></div>
+          <div class="absolute inset-0 transparency-grid"></div>
           <div
             class="absolute inset-0 flex items-center justify-center"
             :style="{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})` }"
           >
             <div
-              class="relative shadow-2xl transition-shadow duration-500"
+              class="relative shadow-2xl transition-shadow duration-500 will-change-transform"
               :class="canvasContainerClasses"
             >
               <canvas
@@ -652,7 +664,8 @@ const imageCardClasses = (img: any) => ({
           >
             <button
               @click="zoomOut"
-              class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted text-muted-foreground hover:text-primary transition-all active:scale-90"
+              class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted text-muted-foreground hover:text-primary transition-all active:scale-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              aria-label="缩小视图"
             >
               <ZoomOut :size="18" />
             </button>
@@ -661,15 +674,17 @@ const imageCardClasses = (img: any) => ({
             </div>
             <button
               @click="zoomIn"
-              class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted text-muted-foreground hover:text-primary transition-all active:scale-90"
+              class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted text-muted-foreground hover:text-primary transition-all active:scale-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              aria-label="放大视图"
             >
               <ZoomIn :size="18" />
             </button>
             <div class="w-px h-4 bg-border/20 mx-1"></div>
             <button
               @click="resetView"
-              class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all active:scale-90"
+              class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all active:scale-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
               title="重置视图"
+              aria-label="重置视图比例"
             >
               <Maximize :size="18" />
             </button>
@@ -848,15 +863,6 @@ const imageCardClasses = (img: any) => ({
 </template>
 
 <style scoped>
-.transparency-grid {
-  background-image: conic-gradient(
-    hsl(var(--muted-foreground) / 0.1) 0 25%,
-    transparent 0 50%,
-    hsl(var(--muted-foreground) / 0.1) 0 75%,
-    transparent 0
-  );
-  background-size: 16px 16px;
-}
 .shadow-elevated {
   box-shadow: 0 8px 30px -10px rgba(0, 0, 0, 0.15);
 }

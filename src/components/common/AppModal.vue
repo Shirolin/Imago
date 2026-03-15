@@ -54,6 +54,8 @@ onMounted(() => {
       ref="dialogRef"
       class="fixed inset-0 w-full h-full max-w-full max-h-full p-0 bg-transparent border-none outline-none backdrop:bg-background/80 backdrop:backdrop-blur-sm m-0 overflow-hidden"
       @cancel.prevent="emit('close')"
+      aria-modal="true"
+      :aria-labelledby="title ? 'modal-title' : undefined"
     >
       <!-- 对话框模式：居中卡片 -->
       <div v-if="variant === 'dialog'" class="w-full h-full flex items-center justify-center p-4">
@@ -62,13 +64,17 @@ onMounted(() => {
             class="h-14 flex items-center justify-between px-6 border-b border-border shrink-0 bg-card"
           >
             <slot name="header">
-              <h3 class="font-bold text-foreground text-xs uppercase tracking-widest">
+              <h3
+                id="modal-title"
+                class="font-bold text-foreground text-xs uppercase tracking-widest"
+              >
                 {{ title }}
               </h3>
             </slot>
             <button
               @click="emit('close')"
-              class="text-muted-foreground hover:text-foreground transition-colors"
+              class="text-muted-foreground hover:text-foreground transition-colors p-1"
+              aria-label="关闭对话框"
             >
               <X :size="18" />
             </button>
@@ -98,7 +104,10 @@ onMounted(() => {
           >
             <div class="flex items-center gap-3">
               <slot name="header">
-                <h3 class="font-bold text-foreground text-xs uppercase tracking-widest">
+                <h3
+                  id="modal-title"
+                  class="font-bold text-foreground text-xs uppercase tracking-widest"
+                >
                   {{ title }}
                 </h3>
               </slot>
@@ -106,6 +115,7 @@ onMounted(() => {
             <button
               @click="emit('close')"
               class="w-9 h-9 flex items-center justify-center hover:bg-muted rounded-lg text-muted-foreground transition-colors"
+              aria-label="关闭对话框"
             >
               <X :size="18" />
             </button>

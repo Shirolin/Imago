@@ -66,7 +66,7 @@ const handleInput = (e: Event) => {
       >
         <!-- 已填充进度条 (Delightful Fill) -->
         <div
-          class="h-full bg-primary/80 transition-[width] duration-75 ease-out shadow-[0_0_10px_rgba(var(--primary),0.3)]"
+          class="h-full bg-primary/80 transition-[width] duration-75 ease-out shadow-[0_0_12px_hsl(var(--primary)/0.3)]"
           :style="{ width: progressPercent + '%' }"
         ></div>
       </div>
@@ -84,7 +84,7 @@ const handleInput = (e: Event) => {
         :max="max"
         :step="step"
         :aria-label="label"
-        class="absolute w-full h-full bg-transparent appearance-none cursor-pointer z-10 outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary [&::-webkit-slider-thumb]:shadow-[0_2px_8px_rgba(0,0,0,0.15)] [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200 hover:[&::-webkit-slider-thumb]:scale-110 hover:[&::-webkit-slider-thumb]:shadow-[0_0_0_4px_hsla(var(--primary)/0.15)] active:[&::-webkit-slider-thumb]:scale-90 active:[&::-webkit-slider-thumb]:bg-primary active:[&::-webkit-slider-thumb]:border-white active:[&::-webkit-slider-thumb]:shadow-[0_0_0_6px_hsla(var(--primary)/0.25)]"
+        class="absolute w-full h-full bg-transparent appearance-none cursor-pointer z-10 outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary [&::-webkit-slider-thumb]:shadow-[0_2px_8px_rgba(0,0,0,0.15)] [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200 hover:[&::-webkit-slider-thumb]:scale-110 hover:[&::-webkit-slider-thumb]:shadow-[0_0_0_4px_hsl(var(--primary)/0.15)] active:[&::-webkit-slider-thumb]:scale-90 active:[&::-webkit-slider-thumb]:bg-primary active:[&::-webkit-slider-thumb]:border-white active:[&::-webkit-slider-thumb]:shadow-[0_0_0_6px_hsl(var(--primary)/0.25)]"
       />
     </div>
   </div>

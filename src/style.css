@@ -32,6 +32,10 @@
     --warning-foreground: 38 92% 10%;
     --info: 210 100% 50%;
     --info-foreground: 0 0% 100%;
+
+    /* 视觉辅助设计令牌 */
+    --checkerboard: 0 0% 0%;
+    --checkerboard-opacity: 0.05;
   }
 
   [data-theme='dark'] {
@@ -55,13 +59,16 @@
     --input: 173 10% 18%;
     --ring: 173 80% 40%;
 
-    /* 语义化颜色 (深色模式微调，如果需要) */
+    /* 语义化颜色 (深色模式微调) */
     --success: 142 70% 45%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 38 92% 10%;
     --info: 210 100% 50%;
     --info-foreground: 0 0% 100%;
+
+    /* 棋盘格 (深色模式亮度略微提升) */
+    --checkerboard-opacity: 0.08;
   }
 
   /* 核心按钮系统变量 (Standardization) */
@@ -129,5 +136,26 @@
 
   .no-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+
+  /* 通用棋盘格实用类 */
+  .transparency-grid {
+    background-image: conic-gradient(
+      hsl(var(--checkerboard) / var(--checkerboard-opacity)) 0 25%,
+      transparent 0 50%,
+      hsl(var(--checkerboard) / var(--checkerboard-opacity)) 0 75%,
+      transparent 0
+    );
+    background-size: 20px 20px;
+  }
+
+  .transparency-grid-sm {
+    background-image: conic-gradient(
+      hsl(var(--checkerboard) / var(--checkerboard-opacity)) 0 25%,
+      transparent 0 50%,
+      hsl(var(--checkerboard) / var(--checkerboard-opacity)) 0 75%,
+      transparent 0
+    );
+    background-size: 10px 10px;
   }
 }

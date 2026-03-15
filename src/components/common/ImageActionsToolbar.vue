@@ -64,6 +64,7 @@ const handleConfirmAction = () => {
         @click="triggerFileInput"
         class="!px-3 md:!px-4 h-9 md:h-10 text-foreground/80 hover:text-primary transition-all group shrink-0"
         title="添加图片"
+        aria-label="从本地选择并添加图片"
       >
         <template #icon>
           <Plus :size="16" class="opacity-70 group-hover:opacity-100 transition-opacity" />
@@ -76,21 +77,22 @@ const handleConfirmAction = () => {
         variant="cta"
         size="md"
         :loading="isDownloadingAll"
+        :disabled="isProcessing || isDownloadingAll"
         @click="downloadAllAsZip(props.zipPrefix)"
         class="!px-3 md:!px-4 h-9 md:h-10 transition-all shrink-0"
         title="下载全部"
+        :aria-label="`打包并下载全部 ${store.doneCount} 张已处理图片`"
       >
         <template #icon><Download :size="16" /></template>
-        <span class="hidden lg:inline text-[0.75rem] font-bold">下载全部 ({{ store.doneCount }})</span>
+        <span class="hidden lg:inline text-[0.75rem] font-bold"
+          >下载全部 ({{ store.doneCount }})</span
+        >
         <span class="lg:hidden font-mono text-[0.75rem] font-bold">{{ store.doneCount }}</span>
       </AppButton>
     </div>
 
     <!-- 竖向分隔线 -->
-    <div
-      v-if="store.images.length > 0"
-      class="w-px h-4 bg-border/40 mx-1 shrink-0"
-    ></div>
+    <div v-if="store.images.length > 0" class="w-px h-4 bg-border/40 mx-1 shrink-0"></div>
 
     <!-- 2. 队列管理组 (恢复、删除、清空) -->
     <div
@@ -106,6 +108,7 @@ const handleConfirmAction = () => {
         @click="store.resetAll"
         class="h-9 w-9 md:h-10 md:w-10 !p-0 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all group shrink-0"
         title="恢复原图"
+        aria-label="重置所有图片到原始状态"
       >
         <template #icon>
           <RotateCcw :size="16" class="opacity-60 group-hover:opacity-100" />
@@ -121,6 +124,7 @@ const handleConfirmAction = () => {
         @click="openConfirm('delete')"
         class="h-9 w-9 md:h-10 md:w-10 !p-0 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-all group shrink-0"
         title="删除选中"
+        :aria-label="`从队列中移除选中的 ${store.selectedCount} 张图片`"
       >
         <template #icon>
           <Trash2 :size="16" class="opacity-60 group-hover:opacity-100" />
@@ -136,6 +140,7 @@ const handleConfirmAction = () => {
         @click="openConfirm('clear')"
         class="h-9 w-9 md:h-10 md:w-10 !p-0 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-all group shrink-0"
         title="清空全部"
+        aria-label="清空当前所有处理队列"
       >
         <template #icon>
           <X :size="16" class="opacity-60 group-hover:opacity-100" />
