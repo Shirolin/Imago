@@ -89,86 +89,6 @@ const updateCanvasRect = () => {
 let cachedImage: HTMLImageElement | null = null
 let isDrawingRaf = false
 
-const updateCachedImage = () => {
-  const imgData = selectedImage.value
-  if (!imgData) {
-    cachedImage = null
-    return
-  }
-  const img = new Image()
-  img.src = imgData.preview
-  img.onload = () => {
-    cachedImage = img
-    requestDraw()
-  }
-}
-
-watch(() => selectedImage.value?.id, updateCachedImage, { immediate: true })
-
-const requestDraw = () => {
-  if (isDrawingRaf) return
-  isDrawingRaf = true
-  requestAnimationFrame(() => {
-    draw()
-    isDrawingRaf = false
-  })
-}
-
-// --- 状态恢复与同步 ---
-watch(
-  () => selectedImage.value?.id,
-  (newId) => {
-    if (!newId) return
-    const img = selectedImage.value
-    if (img?.splitMeta) {
-      const meta = img.splitMeta
-      editMode.value = meta.editMode
-      rows.value = meta.rows
-      cols.value = meta.cols
-      linesX.value = [...meta.linesX]
-      linesY.value = [...meta.linesY]
-    } else {
-      rows.value = 3
-      cols.value = 3
-      editMode.value = 'grid'
-      syncGridLines()
-    }
-    resetView()
-  },
-  { immediate: true }
-)
-
-const saveMeta = () => {
-  const img = selectedImage.value
-  if (img) {
-    store.updateImage(img.id, {
-      splitMeta: {
-        linesX: [...linesX.value],
-        linesY: [...linesY.value],
-        editMode: editMode.value,
-        rows: rows.value,
-        cols: cols.value
-      }
-    })
-  }
-}
-
-const syncGridLines = () => {
-  const img = selectedImage.value
-  if (!img || editMode.value === 'custom') return
-  const w = img.width!
-  const h = img.height!
-  linesX.value = []
-  linesY.value = []
-  for (let i = 1; i < cols.value; i++) linesX.value.push((w * i) / cols.value)
-  for (let i = 1; i < rows.value; i++) linesY.value.push((h * i) / rows.value)
-}
-
-watch([rows, cols, editMode], () => {
-  syncGridLines()
-  saveMeta()
-})
-
 const draw = () => {
   const canvas = canvasRef.value
   const ctx = canvas?.getContext('2d')
@@ -258,6 +178,92 @@ const draw = () => {
     drawStylizedLine(snappedPos, activeAxis.value === 'x', false, true)
   }
 }
+
+const requestDraw = () => {
+  if (isDrawingRaf) return
+  isDrawingRaf = true
+  requestAnimationFrame(() => {
+    draw()
+    isDrawingRaf = false
+  })
+}
+
+const updateCachedImage = () => {
+  const imgData = selectedImage.value
+  if (!imgData) {
+    cachedImage = null
+    return
+  }
+  const img = new Image()
+  img.src = imgData.preview
+  img.onload = () => {
+    cachedImage = img
+    requestDraw()
+  }
+}
+
+const syncGridLines = () => {
+  const img = selectedImage.value
+  if (!img || editMode.value === 'custom') return
+  const w = img.width!
+  const h = img.height!
+  linesX.value = []
+  linesY.value = []
+  for (let i = 1; i < cols.value; i++) linesX.value.push((w * i) / cols.value)
+  for (let i = 1; i < rows.value; i++) linesY.value.push((h * i) / rows.value)
+}
+
+const resetView = () => {
+  const container = containerRef.value
+  const img = selectedImage.value
+  if (!container || !img) return
+  const cw = container.clientWidth - 80
+  const ch = container.clientHeight - 80
+  scale.value = Math.min(cw / img.width!, ch / img.height!, 1)
+  offset.value = { x: 0, y: 0 }
+  setTimeout(updateCanvasRect, 100)
+}
+
+const saveMeta = () => {
+  const img = selectedImage.value
+  if (img) {
+    store.updateImage(img.id, {
+      splitMeta: {
+        linesX: [...linesX.value],
+        linesY: [...linesY.value],
+        editMode: editMode.value,
+        rows: rows.value,
+        cols: cols.value
+      }
+    })
+  }
+}
+
+watch(() => selectedImage.value?.id, updateCachedImage, { immediate: true })
+
+// --- 状态恢复与同步 ---
+watch(
+  () => selectedImage.value?.id,
+  (newId) => {
+    if (!newId) return
+    const img = selectedImage.value
+    if (img?.splitMeta) {
+      const meta = img.splitMeta
+      editMode.value = meta.editMode
+      rows.value = meta.rows
+      cols.value = meta.cols
+      linesX.value = [...meta.linesX]
+      linesY.value = [...meta.linesY]
+    } else {
+      rows.value = 3
+      cols.value = 3
+      editMode.value = 'grid'
+      syncGridLines()
+    }
+    resetView()
+  },
+  { immediate: true }
+)
 
 watch([scale, offset, linesX, linesY, hoveredLine, mousePos, isAltPressed], requestDraw)
 
@@ -385,9 +391,12 @@ const handleWheel = (e: WheelEvent) => {
   const zoomStep = 1.15
   const delta = e.deltaY > 0 ? 1 / zoomStep : zoomStep
   const newScale = Math.max(0.05, Math.min(scale.value * delta, 20))
+
   const rect = container.getBoundingClientRect()
-  const mouseX = e.clientX - rect.left
-  const mouseY = e.clientY - rect.top
+  // 将鼠标坐标转换为相对于容器中心的坐标，以匹配 flex center 布局下的 offset 系统
+  const mouseX = e.clientX - rect.left - rect.width / 2
+  const mouseY = e.clientY - rect.top - rect.height / 2
+
   offset.value = {
     x: mouseX - (mouseX - offset.value.x) * (newScale / scale.value),
     y: mouseY - (mouseY - offset.value.y) * (newScale / scale.value)
@@ -403,17 +412,6 @@ const zoomIn = () => {
 const zoomOut = () => {
   scale.value *= 0.8
   updateCanvasRect()
-}
-
-const resetView = () => {
-  const container = containerRef.value
-  const img = selectedImage.value
-  if (!container || !img) return
-  const cw = container.clientWidth - 80
-  const ch = container.clientHeight - 80
-  scale.value = Math.min(cw / img.width!, ch / img.height!, 1)
-  offset.value = { x: 0, y: 0 }
-  setTimeout(updateCanvasRect, 100)
 }
 
 useResizeObserver(containerRef, resetView)

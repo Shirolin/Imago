@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useImageStore } from '../stores/imageStore'
+import { useElementSize, watchOnce, useResizeObserver } from '@vueuse/core'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
 import {
@@ -17,7 +18,11 @@ import {
   AlignEndVertical,
   Info,
   GripVertical,
-  X
+  X,
+  Maximize,
+  ZoomIn,
+  ZoomOut,
+  RefreshCw
 } from 'lucide-vue-next'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
@@ -32,11 +37,97 @@ import { useFileHelpers } from '../composables/useFileHelpers'
 const store = useImageStore()
 const { downloadImage } = useFileHelpers()
 
-// --- State ---
+// --- 画布交互引擎 (仿 Split 模式) ---
+const containerRef = ref<HTMLDivElement | null>(null)
+const contentRef = ref<HTMLDivElement | null>(null)
+const scale = ref(1)
+const offset = ref({ x: 0, y: 0 })
+const isPanning = ref(false)
+const startPanPos = ref({ x: 0, y: 0 })
+
+// 更新内容尺寸观察
+const { width: contentWidth, height: contentHeight } = useElementSize(contentRef)
+
+const resetView = () => {
+  const container = containerRef.value
+  const content = contentRef.value
+  if (!container || !content) return
+
+  const cw = container.clientWidth - 100
+  const ch = container.clientHeight - 100
+  const w = content.offsetWidth
+  const h = content.offsetHeight
+
+  if (w > 0 && h > 0) {
+    scale.value = Math.min(cw / w, ch / h, 1)
+    offset.value = { x: 0, y: 0 }
+  }
+}
+
+const handleWheel = (e: WheelEvent) => {
+  if (!containerRef.value) return
+  e.preventDefault()
+  const zoomStep = 1.15
+  const delta = e.deltaY > 0 ? 1 / zoomStep : zoomStep
+  const newScale = Math.max(0.05, Math.min(scale.value * delta, 10))
+
+  const rect = containerRef.value.getBoundingClientRect()
+  // 将鼠标坐标转换为相对于容器中心的坐标，以匹配 flex center 布局下的 offset 系统
+  const mouseX = e.clientX - rect.left - rect.width / 2
+  const mouseY = e.clientY - rect.top - rect.height / 2
+
+  offset.value = {
+    x: mouseX - (mouseX - offset.value.x) * (newScale / scale.value),
+    y: mouseY - (mouseY - offset.value.y) * (newScale / scale.value)
+  }
+  scale.value = newScale
+}
+
+const handlePointerDown = (e: PointerEvent) => {
+  const container = containerRef.value
+  if (!container) return
+  // 中键或 Shift+左键 触发平移
+  if (e.button === 1 || (e.button === 0 && e.shiftKey)) {
+    isPanning.value = true
+    startPanPos.value = { x: e.clientX - offset.value.x, y: e.clientY - offset.value.y }
+    container.setPointerCapture(e.pointerId)
+  }
+}
+
+const handlePointerMove = (e: PointerEvent) => {
+  if (isPanning.value) {
+    offset.value = { x: e.clientX - startPanPos.value.x, y: e.clientY - startPanPos.value.y }
+  }
+}
+
+const handlePointerUp = () => {
+  isPanning.value = false
+}
+
+const zoomIn = () => {
+  scale.value *= 1.2
+}
+const zoomOut = () => {
+  scale.value /= 1.2
+}
+
+// 监听内容或容器变化自动重置一次 (初次加载)
+watchOnce([() => store.images.length, containerRef], () => {
+  setTimeout(resetView, 100)
+})
+
+// --- 状态与配置 ---
 const combineDirection = ref<'vertical' | 'horizontal' | 'grid'>('vertical')
 const alignment = ref<'start' | 'center' | 'end'>('center')
 const spacing = ref(10)
-const backgroundColor = ref('#00000000') // Default transparent
+const backgroundColor = ref('#00000000')
+const columns = ref(3) // 网格模式下的列数
+
+// --- 逻辑 ---
+import { watchOnce, useResizeObserver } from '@vueuse/core'
+useResizeObserver(containerRef, () => {
+  // 如果当前是适应状态，可以跟随缩放
+})
 
 // --- Options Config ---
 const combineDirections = [
@@ -164,14 +255,13 @@ const bottomCtaClasses = computed(
   () =>
     'mt-auto pt-6 border-t border-border bg-background/80 backdrop-blur sticky bottom-0 -mx-6 px-6 pb-6 z-10 shadow-[0_-12px_24px_-12px_rgba(0,0,0,0.1)]'
 )
-const contentClasses = computed(
-  () =>
-    'flex-1 overflow-auto p-12 flex flex-col items-center min-h-0 bg-neutral-900/5 custom-scrollbar focus:outline-none'
-)
+const contentClasses = computed(() => {
+  return 'flex-1 p-12 flex flex-col items-center min-h-0 transparency-grid custom-scrollbar focus:outline-none relative transition-colors duration-300 overflow-hidden'
+})
 
 const previewCanvasClasses = computed(() => {
   const base =
-    'relative transition-all duration-300 ease-out p-1 ring-1 ring-border/50 shadow-2xl rounded-sm'
+    'relative transition-transform duration-300 ease-out p-1 ring-1 ring-border/50 shadow-2xl rounded-sm'
   return base
 })
 
@@ -179,7 +269,7 @@ const previewListStyles = computed(() => {
   const isTransparent = backgroundColor.value === '#00000000'
 
   const styles: Record<string, string | number> = {
-    display: 'flex',
+    display: 'inline-flex',
     gap: `${spacing.value}px`,
     backgroundColor: isTransparent ? 'transparent' : backgroundColor.value,
     backgroundImage: isTransparent ? 'var(--checkerboard-pattern)' : 'none',
@@ -221,79 +311,164 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
     </template>
 
     <template #content>
-      <div :class="contentClasses" tabindex="-1">
-        <AppTip v-if="!hasEnoughImages" :icon="Info" class="mb-8 max-w-md">
-          请至少上传两张图片以开启合并。当前模式支持纵向长图、横向拼接及智能网格。
-        </AppTip>
-
+      <div
+        class="h-full flex flex-col gap-3 p-4 md:p-6 animate-in fade-in duration-500 overflow-hidden w-full"
+      >
+        <!-- 核心视口框架 (仿 Split) -->
         <div
-          v-if="store.images.length > 0"
-          :class="previewCanvasClasses"
-          :style="previewListStyles"
-          role="list"
-          aria-label="图片拼接预览区"
+          ref="containerRef"
+          class="flex-1 min-h-0 bg-muted/10 border border-border/40 rounded-3xl overflow-hidden relative w-full group select-none touch-none"
+          :class="{ 'cursor-grabbing': isPanning }"
+          @wheel="handleWheel"
+          @pointerdown="handlePointerDown"
+          @pointermove="handlePointerMove"
+          @pointerup="handlePointerUp"
+          @pointerleave="handlePointerUp"
         >
-          <TransitionGroup name="preview-list">
+          <!-- 底层棋盘格 -->
+          <div class="absolute inset-0 transparency-grid opacity-40"></div>
+
+          <!-- 交互画布 -->
+          <div
+            class="absolute inset-0 flex items-center justify-center transition-transform duration-200 ease-out"
+            :style="{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})` }"
+          >
             <div
-              v-for="(img, index) in store.images"
-              :key="img.id"
-              :class="itemWrapperClasses(index)"
-              draggable="true"
-              tabindex="0"
-              role="listitem"
-              :aria-label="`图片 ${index + 1}: ${img.file.name}`"
-              @dragstart="onDragStart(index)"
-              @dragover="(e) => onDragOver(e, index)"
-              @drop="onDrop(index)"
-              @dragend="onDragEnd"
-              @keydown="(e) => handleKeyDown(e, index)"
+              v-if="store.images.length > 0"
+              ref="contentRef"
+              class="relative shadow-2xl transition-shadow duration-500 rounded-sm"
+              :style="previewListStyles"
+              role="list"
             >
-              <!-- 纯净预览 -->
-              <div
-                class="relative overflow-hidden shadow-sm hover:shadow-md transition-shadow rounded-sm bg-background"
-              >
-                <img
-                  :src="img.preview"
-                  class="block max-w-[240px] md:max-w-[400px] h-auto pointer-events-none select-none"
-                  :alt="img.file.name"
-                />
-
-                <!-- 悬浮操作 -->
+              <TransitionGroup name="preview-list">
                 <div
-                  class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2"
+                  v-for="(img, index) in store.images"
+                  :key="img.id"
+                  :class="itemWrapperClasses(index)"
+                  draggable="true"
+                  tabindex="0"
+                  role="listitem"
+                  @dragstart="onDragStart(index)"
+                  @dragover="(e) => onDragOver(e, index)"
+                  @drop="onDrop(index)"
+                  @dragend="onDragEnd"
+                  @keydown="(e) => handleKeyDown(e, index)"
                 >
-                  <button
-                    @click.stop="store.removeImage(img.id)"
-                    class="p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg active:scale-90 focus:ring-2 focus:ring-white outline-none"
-                    title="移除此图"
-                    tabindex="0"
-                  >
-                    <X :size="14" />
-                  </button>
+                  <!-- 预览图片 (仿 Lightroom 网格) -->
                   <div
-                    class="px-2 py-0.5 bg-white/20 backdrop-blur-md rounded text-[10px] text-white font-medium select-none"
+                    class="relative overflow-hidden shadow-sm rounded-sm bg-background ring-1 ring-white/10 group"
                   >
-                    #{{ index + 1 }}
-                  </div>
-                  <div class="cursor-grab active:cursor-grabbing p-1 text-white/70 hidden md:block">
-                    <GripVertical :size="16" />
-                  </div>
-                </div>
-              </div>
+                    <img
+                      :src="img.preview"
+                      class="block max-w-[240px] md:max-w-[400px] h-auto pointer-events-none select-none transition-transform duration-500 group-hover:scale-105"
+                      :alt="img.file.name"
+                    />
 
-              <!-- 排序指示器 -->
-              <div
-                v-if="dropTargetIndex === index && dragIndex !== index"
-                class="absolute inset-0 bg-primary/20 border-2 border-primary border-dashed rounded-sm pointer-events-none z-30 flex items-center justify-center"
-              >
-                <div
-                  class="bg-primary text-white text-[10px] px-2 py-1 rounded-full font-bold shadow-lg animate-pulse"
-                >
-                  置于此处
+                    <!-- 悬浮操作 (角落布局) -->
+                    <div
+                      class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none"
+                    >
+                      <!-- 右上角删除 -->
+                      <button
+                        @click.stop="store.removeImage(img.id)"
+                        class="absolute top-1.5 right-1.5 p-1.5 bg-red-500/90 text-white rounded-lg hover:bg-red-600 transition-all active:scale-90 shadow-lg pointer-events-auto backdrop-blur-sm"
+                        title="移除此图"
+                      >
+                        <X :size="12" />
+                      </button>
+
+                      <!-- 左上角序号 -->
+                      <div
+                        class="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-black/60 backdrop-blur-md rounded text-[9px] text-white font-bold uppercase tracking-tighter ring-1 ring-white/20"
+                      >
+                        P{{ index + 1 }}
+                      </div>
+
+                      <!-- 底部文件名 (可选，增加专业感) -->
+                      <div
+                        class="absolute bottom-0 left-0 right-0 px-2 py-1 bg-gradient-to-t from-black/60 to-transparent"
+                      >
+                        <p class="text-[8px] text-white/80 truncate font-mono">
+                          {{ img.file.name }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 排序指示器 -->
+                  <div
+                    v-if="dropTargetIndex === index && dragIndex !== index"
+                    class="absolute inset-0 bg-primary/20 border-2 border-primary border-dashed rounded-sm pointer-events-none z-30"
+                  ></div>
                 </div>
-              </div>
+              </TransitionGroup>
             </div>
-          </TransitionGroup>
+
+            <!-- 空状态提示 -->
+            <AppTip v-if="!hasEnoughImages" :icon="Info" class="max-w-md pointer-events-auto">
+              请至少上传两张图片。当前支持纵向、横向及网格模式。
+            </AppTip>
+          </div>
+
+          <!-- 顶部快捷键提示栏 (仿 Split) -->
+          <div
+            class="absolute top-6 left-1/2 -translate-x-1/2 px-5 py-2.5 bg-black/40 backdrop-blur-md border border-white/5 rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center gap-4 z-30"
+          >
+            <span
+              class="text-[0.65rem] text-white/90 font-black uppercase tracking-[0.2em] flex items-center gap-2"
+            >
+              <RefreshCw :size="14" class="text-primary" /> 滚轮缩放 • Shift+平移
+            </span>
+            <div class="w-px h-3 bg-white/10"></div>
+            <span
+              class="text-[0.65rem] text-white/90 font-black uppercase tracking-[0.2em] flex items-center gap-2"
+            >
+              <Layers :size="14" /> 拖动图片重排顺序
+            </span>
+          </div>
+
+          <!-- 底部悬浮控制栏 (仿 Split 精致样式) -->
+          <div
+            v-if="store.images.length > 0"
+            class="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 p-1.5 bg-background/80 backdrop-blur-2xl border border-border/60 rounded-2xl shadow-elevated"
+          >
+            <button
+              @click="zoomOut"
+              class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted text-muted-foreground hover:text-primary transition-all active:scale-90"
+            >
+              <ZoomOut :size="18" />
+            </button>
+            <div class="px-2 min-w-[60px] text-center border-x border-border/20 font-mono">
+              <span class="text-xs font-black text-foreground">{{ Math.round(scale * 100) }}%</span>
+            </div>
+            <button
+              @click="zoomIn"
+              class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted text-muted-foreground hover:text-primary transition-all active:scale-90"
+            >
+              <ZoomIn :size="18" />
+            </button>
+            <div class="w-px h-4 bg-border/20 mx-1"></div>
+            <button
+              @click="resetView"
+              class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all active:scale-90"
+              title="重置视图"
+            >
+              <Maximize :size="18" />
+            </button>
+          </div>
+        </div>
+
+        <!-- 底部状态信息栏 (仿 Split) -->
+        <div class="flex items-center justify-between px-1 shrink-0 h-8">
+          <div class="flex items-center gap-2 text-muted-foreground/40">
+            <RefreshCw :size="12" class="animate-spin-slow" />
+            <span class="text-[0.55rem] font-bold uppercase tracking-wider font-mono"
+              >Ready to Combine</span
+            >
+          </div>
+          <span class="text-[0.6rem] font-black uppercase tracking-widest text-primary/60">
+            {{ store.images.length }} Images Selected • {{ combineDirection }} Mode
+          </span>
         </div>
       </div>
     </template>
@@ -323,44 +498,57 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
           <AppSlider v-model="spacing" label="图片间距" :min="0" :max="200" unit="px" />
 
           <div class="flex flex-col gap-4">
-            <div
-              class="flex items-center justify-between font-bold text-[0.85rem] text-foreground/70 uppercase tracking-wider"
-            >
-              <label for="bg-color-input">画布背景</label>
+            <AppSectionHeader title="间距颜色" :icon="Settings2" />
+            <div class="grid grid-cols-4 gap-2">
               <button
-                @click="backgroundColor = '#00000000'"
-                class="text-[10px] text-primary hover:underline focus:outline-none focus:ring-1 focus:ring-primary rounded px-1"
+                v-for="color in [
+                  { label: '透明', value: '#00000000' },
+                  { label: '纯白', value: '#ffffff' },
+                  { label: '纯黑', value: '#000000' }
+                ]"
+                :key="color.value"
+                @click="backgroundColor = color.value"
+                class="flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all"
+                :class="
+                  backgroundColor === color.value
+                    ? 'border-primary bg-primary/5 text-primary'
+                    : 'border-border bg-muted/30 text-muted-foreground hover:border-border/80'
+                "
               >
-                重置透明
+                <div
+                  class="w-6 h-6 rounded-md border border-border/50"
+                  :class="{ 'transparency-grid-sm': color.value === '#00000000' }"
+                  :style="{
+                    backgroundColor: color.value !== '#00000000' ? color.value : 'transparent'
+                  }"
+                ></div>
+                <span class="text-[10px] font-bold">{{ color.label }}</span>
               </button>
-            </div>
-            <div class="flex gap-3">
-              <div class="relative w-11 h-11 shrink-0">
+              <div
+                class="relative flex flex-col items-center gap-1.5 p-2 rounded-xl border border-border bg-muted/30"
+              >
                 <input
-                  id="bg-color-input"
                   type="color"
                   v-model="backgroundColor"
-                  class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                  aria-label="选择背景颜色"
+                  class="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                 />
                 <div
-                  class="w-full h-full border-2 border-border rounded-xl shadow-sm overflow-hidden bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAAXNSR0IArs4c6QAAACBJREFUGFdjZEADJv///2f4z8DAwMgABYwC+AzYJKGSAEYpBAtunp26AAAAAElFTkSuQmCC')] bg-repeat"
-                >
-                  <div
-                    class="w-full h-full transition-colors duration-300"
-                    :style="{
-                      backgroundColor:
-                        backgroundColor === '#00000000' ? 'transparent' : backgroundColor
-                    }"
-                  ></div>
-                </div>
+                  class="w-6 h-6 rounded-md border border-border/50 shadow-sm"
+                  :style="{
+                    backgroundColor: !['#00000000', '#ffffff', '#000000'].includes(backgroundColor)
+                      ? backgroundColor
+                      : '#999'
+                  }"
+                ></div>
+                <span class="text-[10px] font-bold text-muted-foreground">自定义</span>
               </div>
+            </div>
+            <div class="flex gap-2 mt-1">
               <input
                 type="text"
                 v-model="backgroundColor"
-                class="flex-1 px-4 bg-muted/50 border border-border/50 rounded-xl text-foreground font-mono text-xs outline-none focus:border-primary/50 focus:bg-muted transition-all"
-                placeholder="HEX 或 #00000000"
-                aria-label="背景颜色 HEX 值"
+                class="flex-1 px-4 py-2 bg-muted/50 border border-border/50 rounded-xl text-foreground font-mono text-xs outline-none focus:border-primary/50 focus:bg-muted transition-all"
+                placeholder="HEX #RRGGBB"
               />
             </div>
           </div>
@@ -395,6 +583,37 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
 </template>
 
 <style>
+/* Transparency Grid Pattern */
+.transparency-grid {
+  background-image:
+    linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+    linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
+    linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+  background-size: 16px 16px;
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0px;
+  background-color: #ffffff;
+}
+
+.transparency-grid-sm {
+  background-image:
+    linear-gradient(45deg, #ccc 25%, transparent 25%),
+    linear-gradient(-45deg, #ccc 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #ccc 75%),
+    linear-gradient(-45deg, transparent 75%, #ccc 75%);
+  background-size: 8px 8px;
+  background-position:
+    0 0,
+    0 4px,
+    4px -4px,
+    -4px 0px;
+  background-color: #ffffff;
+}
+
 :root {
   --checkerboard-pattern: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAAXNSR0IArs4c6QAAACBJREFUGFdjZEADJv///2f4z8DAwMgABYwC+AzYJKGSAEYpBAtunp26AAAAAElFTkSuQmCC');
 }
@@ -418,5 +637,92 @@ input[type='color']::-webkit-color-swatch {
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
+}
+
+/* Preview list transitions */
+.preview-list-move,
+.preview-list-enter-active,
+.preview-list-leave-active {
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.preview-list-enter-from,
+.preview-list-leave-to {
+  opacity: 0;
+  transform: scale(0.9) translateY(10px);
+}
+
+.preview-list-leave-active {
+  position: absolute;
+}
+
+/* Canvas Controls */
+.canvas-controls-wrapper {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  pointer-events: none;
+}
+
+.canvas-controls {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  background: rgba(var(--card), 0.8);
+  backdrop-blur: 16px;
+  border: 1px solid rgba(var(--border), 0.5);
+  border-radius: 14px;
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  color: var(--foreground);
+}
+
+.control-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  color: var(--muted-foreground);
+  transition: all 0.2s;
+}
+
+.control-btn:hover {
+  background: rgba(var(--primary), 0.1);
+  color: var(--primary);
+}
+
+.control-btn:active {
+  scale: 0.95;
+}
+
+.zoom-display {
+  padding: 0 10px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--foreground);
+  cursor: pointer;
+  min-width: 50px;
+  text-align: center;
+  user-select: none;
+}
+
+.zoom-display:hover {
+  color: var(--primary);
+}
+
+.control-divider {
+  width: 1px;
+  height: 16px;
+  background: rgba(var(--border), 0.3);
+  margin: 0 4px;
 }
 </style>
