@@ -37,7 +37,7 @@ import { useFileHelpers } from '../composables/useFileHelpers'
 const store = useImageStore()
 const { downloadImage } = useFileHelpers()
 
-// --- 画布交互引擎 (仿 Split 模式) ---
+// 核心视口框架 (仿 Split)
 const containerRef = ref<HTMLDivElement | null>(null)
 const contentRef = ref<HTMLDivElement | null>(null)
 const scale = ref(1)
@@ -45,34 +45,46 @@ const offset = ref({ x: 0, y: 0 })
 const isPanning = ref(false)
 const startPanPos = ref({ x: 0, y: 0 })
 
-// 更新内容尺寸观察
+// 优化：使用 useResizeObserver 提供的 rect 避免直接读取 offsetWidth 触发重绘
 const { width: contentWidth, height: contentHeight } = useElementSize(contentRef)
+const { width: containerWidth, height: containerHeight } = useElementSize(containerRef)
 
 const resetView = () => {
-  const container = containerRef.value
-  const content = contentRef.value
-  if (!container || !content) return
+  if (
+    !containerWidth.value ||
+    !containerHeight.value ||
+    !contentWidth.value ||
+    !contentHeight.value
+  )
+    return
 
-  const cw = container.clientWidth - 100
-  const ch = container.clientHeight - 100
-  const w = content.offsetWidth
-  const h = content.offsetHeight
+  const cw = containerWidth.value - 100
+  const ch = containerHeight.value - 100
+  const w = contentWidth.value
+  const h = contentHeight.value
 
-  if (w > 0 && h > 0) {
-    scale.value = Math.min(cw / w, ch / h, 1)
-    offset.value = { x: 0, y: 0 }
-  }
+  scale.value = Math.min(cw / w, ch / h, 1)
+  offset.value = { x: 0, y: 0 }
 }
 
+// 监听尺寸变化自动适配，增加防抖保护
+import { useDebounceFn } from '@vueuse/core'
+const debouncedReset = useDebounceFn(resetView, 150)
+
+useResizeObserver(containerRef, debouncedReset)
+useResizeObserver(contentRef, debouncedReset)
+
 const handleWheel = (e: WheelEvent) => {
-  if (!containerRef.value) return
+  const container = containerRef.value
+  if (!container) return
   e.preventDefault()
+
   const zoomStep = 1.15
   const delta = e.deltaY > 0 ? 1 / zoomStep : zoomStep
   const newScale = Math.max(0.05, Math.min(scale.value * delta, 10))
 
-  const rect = containerRef.value.getBoundingClientRect()
-  // 将鼠标坐标转换为相对于容器中心的坐标，以匹配 flex center 布局下的 offset 系统
+  // 优化：使用缓存的 container 尺寸
+  const rect = container.getBoundingClientRect()
   const mouseX = e.clientX - rect.left - rect.width / 2
   const mouseY = e.clientY - rect.top - rect.height / 2
 
@@ -121,13 +133,6 @@ const combineDirection = ref<'vertical' | 'horizontal' | 'grid'>('vertical')
 const alignment = ref<'start' | 'center' | 'end'>('center')
 const spacing = ref(10)
 const backgroundColor = ref('#00000000')
-const columns = ref(3) // 网格模式下的列数
-
-// --- 逻辑 ---
-import { watchOnce, useResizeObserver } from '@vueuse/core'
-useResizeObserver(containerRef, () => {
-  // 如果当前是适应状态，可以跟随缩放
-})
 
 // --- Options Config ---
 const combineDirections = [
@@ -361,34 +366,37 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
                     <img
                       :src="img.preview"
                       class="block max-w-[240px] md:max-w-[400px] h-auto pointer-events-none select-none transition-transform duration-500 group-hover:scale-105"
-                      :alt="img.file.name"
+                      :alt="`预览图 ${index + 1}: ${img.file.name}`"
                     />
 
                     <!-- 悬浮操作 (角落布局) -->
                     <div
                       class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none"
                     >
-                      <!-- 右上角删除 -->
-                      <button
-                        @click.stop="store.removeImage(img.id)"
-                        class="absolute top-1.5 right-1.5 p-1.5 bg-red-500/90 text-white rounded-lg hover:bg-red-600 transition-all active:scale-90 shadow-lg pointer-events-auto backdrop-blur-sm"
-                        title="移除此图"
-                      >
-                        <X :size="12" />
-                      </button>
+                      <!-- 右上角删除 (扩大热区) -->
+                      <div class="absolute top-0 right-0 p-1 pointer-events-auto">
+                        <button
+                          @click.stop="store.removeImage(img.id)"
+                          class="p-2 bg-red-500/90 text-white rounded-lg hover:bg-red-600 transition-all active:scale-90 shadow-lg backdrop-blur-sm flex items-center justify-center min-w-[32px] min-h-[32px]"
+                          :title="`移除图片 ${img.file.name}`"
+                          :aria-label="`移除图片 ${img.file.name}`"
+                        >
+                          <X :size="16" />
+                        </button>
+                      </div>
 
                       <!-- 左上角序号 -->
                       <div
-                        class="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-black/60 backdrop-blur-md rounded text-[9px] text-white font-bold uppercase tracking-tighter ring-1 ring-white/20"
+                        class="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md rounded text-[10px] text-white font-bold uppercase tracking-tighter ring-1 ring-white/20"
                       >
                         P{{ index + 1 }}
                       </div>
 
-                      <!-- 底部文件名 (可选，增加专业感) -->
+                      <!-- 底部文件名 (加固文本溢出) -->
                       <div
-                        class="absolute bottom-0 left-0 right-0 px-2 py-1 bg-gradient-to-t from-black/60 to-transparent"
+                        class="absolute bottom-0 left-0 right-0 px-2 py-1.5 bg-gradient-to-t from-black/80 to-transparent"
                       >
-                        <p class="text-[8px] text-white/80 truncate font-mono">
+                        <p class="text-[9px] text-white/90 truncate font-mono max-w-full">
                           {{ img.file.name }}
                         </p>
                       </div>
@@ -583,39 +591,34 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
 </template>
 
 <style>
-/* Transparency Grid Pattern */
+/* Transparency Grid Pattern - Normalized with Design Tokens */
 .transparency-grid {
-  background-image:
-    linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
-    linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
-    linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
-  background-size: 16px 16px;
-  background-position:
-    0 0,
-    0 8px,
-    8px -8px,
-    -8px 0px;
-  background-color: #ffffff;
+  background-image: conic-gradient(
+    hsl(var(--muted-foreground) / 0.08) 0 25%,
+    transparent 0 50%,
+    hsl(var(--muted-foreground) / 0.08) 0 75%,
+    transparent 0
+  );
+  background-size: 20px 20px;
 }
 
 .transparency-grid-sm {
-  background-image:
-    linear-gradient(45deg, #ccc 25%, transparent 25%),
-    linear-gradient(-45deg, #ccc 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #ccc 75%),
-    linear-gradient(-45deg, transparent 75%, #ccc 75%);
+  background-image: conic-gradient(
+    hsl(var(--muted-foreground) / 0.12) 0 25%,
+    transparent 0 50%,
+    hsl(var(--muted-foreground) / 0.12) 0 75%,
+    transparent 0
+  );
   background-size: 8px 8px;
-  background-position:
-    0 0,
-    0 4px,
-    4px -4px,
-    -4px 0px;
-  background-color: #ffffff;
 }
 
 :root {
-  --checkerboard-pattern: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAAXNSR0IArs4c6QAAACBJREFUGFdjZEADJv///2f4z8DAwMgABYwC+AzYJKGSAEYpBAtunp26AAAAAElFTkSuQmCC');
+  --checkerboard-pattern: conic-gradient(
+    hsl(var(--muted-foreground) / 0.05) 0 25%,
+    transparent 0 50%,
+    hsl(var(--muted-foreground) / 0.05) 0 75%,
+    transparent 0
+  );
 }
 </style>
 
@@ -632,7 +635,7 @@ input[type='color']::-webkit-color-swatch {
   height: 5px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: hsl(var(--border));
   border-radius: 10px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -643,86 +646,22 @@ input[type='color']::-webkit-color-swatch {
 .preview-list-move,
 .preview-list-enter-active,
 .preview-list-leave-active {
-  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .preview-list-enter-from,
 .preview-list-leave-to {
   opacity: 0;
-  transform: scale(0.9) translateY(10px);
+  transform: scale(0.92) translateY(12px);
 }
 
 .preview-list-leave-active {
   position: absolute;
 }
 
-/* Canvas Controls */
-.canvas-controls-wrapper {
-  position: absolute;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 40;
-  pointer-events: none;
-}
-
-.canvas-controls {
-  pointer-events: auto;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px;
-  background: rgba(var(--card), 0.8);
-  backdrop-blur: 16px;
-  border: 1px solid rgba(var(--border), 0.5);
-  border-radius: 14px;
+.shadow-elevated {
   box-shadow:
-    0 10px 25px -5px rgba(0, 0, 0, 0.1),
-    0 8px 10px -6px rgba(0, 0, 0, 0.1),
-    inset 0 1px 1px rgba(255, 255, 255, 0.1);
-  color: var(--foreground);
-}
-
-.control-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  color: var(--muted-foreground);
-  transition: all 0.2s;
-}
-
-.control-btn:hover {
-  background: rgba(var(--primary), 0.1);
-  color: var(--primary);
-}
-
-.control-btn:active {
-  scale: 0.95;
-}
-
-.zoom-display {
-  padding: 0 10px;
-  font-family: var(--font-mono, monospace);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--foreground);
-  cursor: pointer;
-  min-width: 50px;
-  text-align: center;
-  user-select: none;
-}
-
-.zoom-display:hover {
-  color: var(--primary);
-}
-
-.control-divider {
-  width: 1px;
-  height: 16px;
-  background: rgba(var(--border), 0.3);
-  margin: 0 4px;
+    0 10px 30px -10px rgba(0, 0, 0, 0.12),
+    0 4px 10px -5px rgba(0, 0, 0, 0.05);
 }
 </style>
