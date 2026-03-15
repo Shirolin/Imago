@@ -50,13 +50,16 @@ const activeImage = computed(() => {
   return store.images.find((img) => img.id === activeImageId.value) || store.images[0]
 })
 
-// 实时预览样式
-const filterStyle = computed(() => {
-  if (isComparing.value) return {}
-  return {
-    filter: `brightness(${brightness.value}%) contrast(${contrast.value}%) saturate(${saturation.value}%) blur(${blur.value}px) grayscale(${grayscale.value}%) sepia(${sepia.value}%) hue-rotate(${hueRotate.value}deg) invert(${invert.value}%)`
-  }
+// 生成 CSS Filter 字符串
+const filterValue = computed(() => {
+  if (isComparing.value) return 'none'
+  return `brightness(${brightness.value}%) contrast(${contrast.value}%) saturate(${saturation.value}%) blur(${blur.value}px) grayscale(${grayscale.value}%) sepia(${sepia.value}%) hue-rotate(${hueRotate.value}deg) invert(${invert.value}%)`
 })
+
+// 实时预览样式
+const filterStyle = computed(() => ({
+  filter: filterValue.value
+}))
 
 // 暗角预览样式 (使用径向渐变模拟)
 const vignetteOverlayStyle = computed(() => {
@@ -65,7 +68,8 @@ const vignetteOverlayStyle = computed(() => {
     background: `radial-gradient(circle, transparent 40%, rgba(0,0,0,${vignette.value / 100}) 100%)`,
     pointerEvents: 'none' as const,
     position: 'absolute' as const,
-    inset: 0
+    inset: 0,
+    zIndex: 10
   }
 })
 
@@ -79,7 +83,8 @@ const noiseOverlayStyle = computed(() => {
     inset: 0,
     backgroundColor: '#000',
     maskImage:
-      "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E\")"
+      "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E\")",
+    zIndex: 11
   }
 })
 
@@ -369,10 +374,11 @@ watch(
         @remove="store.removeImage"
       >
         <template #overlay="{ image }">
+          <!-- 修复：使用 fixed 铺满且 pointer-events-none，配合 backdrop-filter 影响背景图片 -->
           <div
-            class="absolute inset-0 pointer-events-none"
+            class="fixed inset-0 pointer-events-none transition-all duration-300 z-10"
             v-if="activeImage?.id === image.id"
-            :style="filterStyle"
+            :style="{ backdropFilter: filterValue }"
           ></div>
           <div v-if="activeImage?.id === image.id" :style="vignetteOverlayStyle"></div>
           <div v-if="activeImage?.id === image.id" :style="noiseOverlayStyle"></div>
@@ -410,6 +416,7 @@ watch(
                 alt="Preview"
                 class="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
               />
+              <!-- 覆盖层增加 z-index 确保在图片之上但在按钮之下 -->
               <div v-if="activeImage" :style="vignetteOverlayStyle"></div>
               <div v-if="activeImage" :style="noiseOverlayStyle"></div>
 
@@ -431,7 +438,7 @@ watch(
                 @touchstart.prevent="isComparing = true"
                 @touchend.prevent="isComparing = false"
                 @mouseleave="isComparing = false"
-                class="absolute bottom-3 left-3 flex items-center gap-2 px-3 py-1.5 bg-black/60 backdrop-blur-md rounded-full border border-white/10 hover:bg-primary/20 hover:border-primary/40 transition-all active:scale-95 group/compare"
+                class="absolute bottom-3 left-3 flex items-center gap-2 px-3 py-1.5 bg-black/60 backdrop-blur-md rounded-full border border-white/10 hover:bg-primary/20 hover:border-primary/40 transition-all active:scale-95 group/compare z-30"
               >
                 <component
                   :is="isComparing ? EyeOff : Eye"

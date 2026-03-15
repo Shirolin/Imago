@@ -36,9 +36,12 @@ export const filterEngine: ImageProcessor<FilterOptions> = async (file, options)
       ctx.drawImage(img, 0, 0)
 
       // 2. 锐化处理 (卷积矩阵)
+      // 注意：必须在 drawImage 之后获取 ImageData，此时 filter 已经作用于像素
       if (options.sharpen > 0) {
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
         const sharpenedData = applySharpen(imageData, options.sharpen / 100)
+        // 重置 filter 避免 putImageData 后的再次污染（虽然 putImageData 本身不受 filter 影响）
+        ctx.filter = 'none'
         ctx.putImageData(sharpenedData, 0, 0)
       }
 
