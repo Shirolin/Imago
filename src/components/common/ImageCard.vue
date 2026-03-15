@@ -21,9 +21,13 @@ const store = useImageStore()
 interface Props {
   image: ImageItem
   isSelected?: boolean
+  imageStyle?: CSSProperties
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  isSelected: false,
+  imageStyle: () => ({})
+})
 const emit = defineEmits(['toggle', 'remove', 'download', 'compare'])
 
 // 智能倍镜逻辑
@@ -111,8 +115,13 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
       @mouseleave="leaveMagnifier"
       @mousemove="handleMouseMove"
     >
-      <!-- 【左上角】：选择框 + 业务贴纸插槽 -->
-      <div class="absolute top-3 left-3 z-30 flex items-center gap-2 pointer-events-none">
+      <!-- 【专用层】：滤镜与视觉效果预览 (z-10, 位于图片之上，UI 之下) -->
+      <div class="absolute inset-0 z-10 pointer-events-none overflow-hidden">
+        <slot name="visual-effects" :image="image"></slot>
+      </div>
+
+      <!-- 【左上角】：选择框 (z-50) -->
+      <div class="absolute top-3 left-3 z-50 flex items-center gap-2 pointer-events-none">
         <div
           class="transition-all duration-300"
           :class="
@@ -128,10 +137,10 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
         <slot name="overlay" :image="image"></slot>
       </div>
 
-      <!-- 【右上角】：删除按钮 -->
+      <!-- 【右上角】：删除按钮 (z-50) -->
       <button
         @click.stop="emit('remove', image.id)"
-        class="absolute top-3 right-3 z-30 bg-black/20 hover:bg-destructive text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 group-focus-within/image:opacity-100 focus:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-white/10 outline-none focus-visible:ring-2 focus-visible:ring-white"
+        class="absolute top-3 right-3 z-50 bg-black/20 hover:bg-destructive text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 group-focus-within/image:opacity-100 focus:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-white/10 outline-none focus-visible:ring-2 focus-visible:ring-white"
         aria-label="从列表移除图片"
       >
         <X :size="14" />
@@ -146,20 +155,21 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
           'group-hover:scale-105': !showMagnifier && !isDirtyDone,
           'opacity-40 grayscale-[0.5] blur-[1px] scale-95': isDirtyDone
         }"
+        :style="imageStyle"
       />
 
-      <!-- 脏状态覆盖层 (斜纹滚动) -->
+      <!-- 脏状态覆盖层 (z-20) -->
       <div
         v-if="isDirtyDone"
-        class="absolute inset-0 z-10 pointer-events-none overflow-hidden opacity-30"
+        class="absolute inset-0 z-20 pointer-events-none overflow-hidden opacity-30"
       >
         <div class="absolute inset-[-100%] bg-stripe-pattern animate-stripe-scroll"></div>
       </div>
 
-      <!-- 智能倍镜组件 -->
+      <!-- 智能倍镜组件 (z-30) -->
       <div
         v-if="showMagnifier && processedUrl && originalHDUrl && store.showMagnifier"
-        class="absolute inset-0 z-20 pointer-events-none overflow-hidden"
+        class="absolute inset-0 z-30 pointer-events-none overflow-hidden"
       >
         <!-- 倍镜容器 -->
         <div
@@ -195,9 +205,9 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
         </div>
       </div>
 
-      <!-- 【底部 HUD】：技术参数条 -->
+      <!-- 【底部 HUD】：技术参数条 (提升至 z-40，确保不被滤镜层遮挡) -->
       <div
-        class="absolute bottom-0 left-0 right-0 h-9 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-20 flex items-end px-3 pb-2 transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100 pointer-events-none"
+        class="absolute bottom-0 left-0 right-0 h-9 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-40 flex items-end px-3 pb-2 transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100 pointer-events-none"
       >
         <div
           class="flex items-center gap-2 text-[0.65rem] font-bold text-white/90 tabular-nums tracking-tight"

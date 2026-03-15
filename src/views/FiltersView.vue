@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useImageStore } from '../stores/imageStore'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import ImageCard from '../components/common/ImageCard.vue'
@@ -25,6 +25,7 @@ import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSlider from '../components/common/AppSlider.vue'
 import { filterEngine } from '../lib/engines/filterEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
+import { useDebounceFn } from '@vueuse/core'
 
 const store = useImageStore()
 
@@ -289,21 +290,36 @@ const resetEffects = () => {
   resetField('invert')
 }
 
-// 直方图逻辑
+// ---------------------------------------------------------
+// 直方图逻辑 (性能优化版)
+// ---------------------------------------------------------
 const histogramCanvas = ref<HTMLCanvasElement | null>(null)
-const updateHistogram = () => {
-  if (!activeImage.value || !histogramCanvas.value) return
-  const img = new Image()
-  img.src = activeImage.value.preview
-  img.onload = () => {
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    canvas.width = 100
-    canvas.height = 100
-    ctx.drawImage(img, 0, 0, 100, 100)
-    const data = ctx.getImageData(0, 0, 100, 100).data
+let analysisCanvas: HTMLCanvasElement | null = null
+let analysisCtx: CanvasRenderingContext2D | null = null
+let cachedAnalysisImg: HTMLImageElement | null = null
 
+const initAnalysis = () => {
+  if (!analysisCanvas) {
+    analysisCanvas = document.createElement('canvas')
+    analysisCanvas.width = 100
+    analysisCanvas.height = 100
+    analysisCtx = analysisCanvas.getContext('2d', { willReadFrequently: true })
+  }
+}
+
+const updateHistogram = useDebounceFn(() => {
+  if (!activeImage.value || !histogramCanvas.value) return
+  initAnalysis()
+
+  const runAnalysis = (img: HTMLImageElement) => {
+    if (!analysisCtx || !analysisCanvas) return
+
+    // 1. 将图片绘制到离屏 Canvas 并应用当前滤镜 (确保直方图准确)
+    analysisCtx.clearRect(0, 0, 100, 100)
+    analysisCtx.filter = filterValue.value
+    analysisCtx.drawImage(img, 0, 0, 100, 100)
+
+    const data = analysisCtx.getImageData(0, 0, 100, 100).data
     const r = new Array(256).fill(0)
     const g = new Array(256).fill(0)
     const b = new Array(256).fill(0)
@@ -321,7 +337,6 @@ const updateHistogram = () => {
     hCtx.clearRect(0, 0, hW, hH)
 
     const max = Math.max(...r, ...g, ...b)
-
     const drawChannel = (arr: number[], color: string) => {
       hCtx.beginPath()
       hCtx.strokeStyle = color
@@ -340,15 +355,26 @@ const updateHistogram = () => {
     drawChannel(g, '#44ff44')
     drawChannel(b, '#4444ff')
   }
-}
+
+  // 缓存 Image 对象，避免重复创建
+  if (cachedAnalysisImg && cachedAnalysisImg.src === activeImage.value.preview) {
+    runAnalysis(cachedAnalysisImg)
+  } else {
+    cachedAnalysisImg = new Image()
+    cachedAnalysisImg.src = activeImage.value.preview
+    cachedAnalysisImg.onload = () => runAnalysis(cachedAnalysisImg!)
+  }
+}, 100)
 
 watch(
-  [activeImage, brightness, contrast, saturation, grayscale, sepia, hueRotate, invert],
+  [activeImage, brightness, contrast, saturation, grayscale, sepia, hueRotate, invert, isComparing],
   () => {
     updateHistogram()
   },
   { immediate: true }
 )
+
+onMounted(() => initAnalysis())
 </script>
 
 <template>
@@ -372,16 +398,12 @@ watch(
         }"
         @click="handleCardClick(img.id)"
         @remove="store.removeImage"
+        :image-style="store.selectedIds.has(img.id) ? filterStyle : {}"
       >
-        <template #overlay="{ image }">
-          <!-- 修复：使用 fixed 铺满且 pointer-events-none，配合 backdrop-filter 影响背景图片 -->
-          <div
-            class="fixed inset-0 pointer-events-none transition-all duration-300 z-10"
-            v-if="activeImage?.id === image.id"
-            :style="{ backdropFilter: filterValue }"
-          ></div>
-          <div v-if="activeImage?.id === image.id" :style="vignetteOverlayStyle"></div>
-          <div v-if="activeImage?.id === image.id" :style="noiseOverlayStyle"></div>
+        <template #visual-effects="{ image }">
+          <!-- 实时效果叠加层 (仅选中的图片卡片显示预览，且通过专用插槽隔离 UI) -->
+          <div v-if="store.selectedIds.has(image.id)" :style="vignetteOverlayStyle"></div>
+          <div v-if="store.selectedIds.has(image.id)" :style="noiseOverlayStyle"></div>
         </template>
       </ImageCard>
     </template>
@@ -416,7 +438,6 @@ watch(
                 alt="Preview"
                 class="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
               />
-              <!-- 覆盖层增加 z-index 确保在图片之上但在按钮之下 -->
               <div v-if="activeImage" :style="vignetteOverlayStyle"></div>
               <div v-if="activeImage" :style="noiseOverlayStyle"></div>
 
