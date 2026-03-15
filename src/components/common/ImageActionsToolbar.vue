@@ -46,7 +46,7 @@ const handleConfirmAction = () => {
 </script>
 
 <template>
-  <div class="flex items-center gap-1.5 md:gap-2.5 shrink-0">
+  <div class="flex items-center gap-2 md:gap-3 shrink-0">
     <input
       type="file"
       ref="fileInput"
@@ -56,17 +56,19 @@ const handleConfirmAction = () => {
       class="hidden"
     />
 
-    <!-- 1. 核心操作组 (高优先级) -->
-    <div class="flex items-center gap-1 md:gap-1.5">
+    <!-- 1. 核心操作组 (添加与下载) -->
+    <div class="flex items-center gap-1.5 md:gap-2">
       <AppButton
         variant="secondary"
         size="md"
         @click="triggerFileInput"
-        class="!px-2.5 md:!px-3 h-9 md:h-10 text-muted-foreground/80 hover:text-primary transition-all group shrink-0"
+        class="!px-3 md:!px-4 h-9 md:h-10 text-foreground/80 hover:text-primary transition-all group shrink-0"
         title="添加图片"
       >
-        <template #icon><Plus :size="16" class="opacity-60 group-hover:opacity-100" /></template>
-        <span class="hidden md:inline text-[0.75rem]">添加图片</span>
+        <template #icon>
+          <Plus :size="16" class="opacity-70 group-hover:opacity-100 transition-opacity" />
+        </template>
+        <span class="hidden md:inline text-[0.75rem] font-bold">添加图片</span>
       </AppButton>
 
       <AppButton
@@ -75,39 +77,39 @@ const handleConfirmAction = () => {
         size="md"
         :loading="isDownloadingAll"
         @click="downloadAllAsZip(props.zipPrefix)"
-        class="!px-2.5 md:!px-3 h-9 md:h-10 shadow-lg shadow-primary/10 transition-all shrink-0"
+        class="!px-3 md:!px-4 h-9 md:h-10 transition-all shrink-0"
         title="下载全部"
       >
         <template #icon><Download :size="16" /></template>
-        <span class="hidden lg:inline text-[0.75rem]">下载全部 ({{ store.doneCount }})</span>
-        <span class="lg:hidden font-mono text-[0.75rem]">{{ store.doneCount }}</span>
+        <span class="hidden lg:inline text-[0.75rem] font-bold">下载全部 ({{ store.doneCount }})</span>
+        <span class="lg:hidden font-mono text-[0.75rem] font-bold">{{ store.doneCount }}</span>
       </AppButton>
     </div>
 
+    <!-- 竖向分隔线 -->
     <div
       v-if="store.images.length > 0"
-      class="w-[1px] h-4 bg-border/20 mx-0.5 md:mx-1 shrink-0"
+      class="w-px h-4 bg-border/40 mx-1 shrink-0"
     ></div>
 
-    <!-- 2. 管理操作组 (更加紧凑的折叠) -->
+    <!-- 2. 队列管理组 (恢复、删除、清空) -->
     <div
       v-if="store.images.length > 0"
-      class="flex items-center gap-1 md:gap-1 animate-in fade-in slide-in-from-right-2"
+      class="flex items-center gap-1 animate-in fade-in slide-in-from-right-2 duration-300"
     >
       <!-- 恢复原图 -->
       <AppButton
-        v-if="showDownloadAll && store.doneCount > 0"
-        variant="cta"
+        v-if="store.doneCount > 0"
+        variant="ghost"
         size="md"
         :disabled="isProcessing"
         @click="store.resetAll"
-        class="h-9 w-9 md:h-10 md:w-10 !p-0 !rounded-lg text-muted-foreground/60 hover:text-primary transition-colors group shrink-0"
+        class="h-9 w-9 md:h-10 md:w-10 !p-0 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all group shrink-0"
         title="恢复原图"
       >
-        <template #icon
-          ><RotateCcw :size="16" class="opacity-60 group-hover:opacity-100"
-        /></template>
-        <span class="hidden 2xl:inline ml-2 text-[0.75rem]">恢复原图</span>
+        <template #icon>
+          <RotateCcw :size="16" class="opacity-60 group-hover:opacity-100" />
+        </template>
       </AppButton>
 
       <!-- 删除选中 -->
@@ -117,11 +119,12 @@ const handleConfirmAction = () => {
         size="md"
         :disabled="isProcessing"
         @click="openConfirm('delete')"
-        class="h-9 w-9 md:h-10 md:w-10 !p-0 !rounded-lg text-muted-foreground/60 hover:text-destructive transition-colors group shrink-0"
+        class="h-9 w-9 md:h-10 md:w-10 !p-0 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-all group shrink-0"
         title="删除选中"
       >
-        <template #icon><Trash2 :size="16" class="opacity-60 group-hover:opacity-100" /></template>
-        <span class="hidden 2xl:inline ml-2 text-[0.75rem]">删除选中</span>
+        <template #icon>
+          <Trash2 :size="16" class="opacity-60 group-hover:opacity-100" />
+        </template>
       </AppButton>
 
       <!-- 清空全部 -->
@@ -131,25 +134,26 @@ const handleConfirmAction = () => {
         size="md"
         :disabled="isProcessing"
         @click="openConfirm('clear')"
-        class="h-9 w-9 md:h-10 md:w-10 !p-0 !rounded-lg text-muted-foreground/60 hover:text-destructive transition-colors group shrink-0"
+        class="h-9 w-9 md:h-10 md:w-10 !p-0 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-all group shrink-0"
         title="清空全部"
       >
-        <template #icon><X :size="16" class="opacity-60 group-hover:opacity-100" /></template>
-        <span class="hidden 2xl:inline ml-2 text-[0.75rem]">清空全部</span>
+        <template #icon>
+          <X :size="16" class="opacity-60 group-hover:opacity-100" />
+        </template>
       </AppButton>
     </div>
 
     <!-- 允许插入额外的操作 -->
-    <div class="flex items-center gap-1.5">
+    <div class="flex items-center gap-2">
       <slot name="extra"></slot>
     </div>
 
-    <!-- 统一确认对话框 (Dangerous Actions) -->
+    <!-- 统一确认对话框 -->
     <AppModal :show="showConfirm" @close="showConfirm = false" title="确认操作" variant="dialog">
       <template #header>
         <div class="flex items-center gap-2 text-destructive">
           <AlertTriangle :size="18" />
-          <span class="font-bold text-sm uppercase tracking-widest">{{
+          <span class="font-bold text-[0.7rem] uppercase tracking-[0.2em]">{{
             confirmMode === 'clear' ? '清空队列确认' : '删除选中确认'
           }}</span>
         </div>
@@ -162,15 +166,15 @@ const handleConfirmAction = () => {
           <Trash2 v-if="confirmMode === 'delete'" :size="32" />
           <X v-else :size="32" />
         </div>
-        <div class="space-y-1">
-          <h3 class="text-lg font-bold text-foreground leading-tight">
+        <div class="space-y-1.5">
+          <h3 class="text-lg font-black text-foreground leading-tight tracking-tight">
             {{
               confirmMode === 'delete'
                 ? `删除选中的 ${store.selectedCount} 张图片？`
                 : '确定要清空所有图片吗？'
             }}
           </h3>
-          <p class="text-sm text-muted-foreground">
+          <p class="text-xs text-muted-foreground max-w-[240px] leading-relaxed">
             {{
               confirmMode === 'delete'
                 ? '该操作将永久从当前队列中移除选中的文件。'
@@ -181,7 +185,7 @@ const handleConfirmAction = () => {
       </div>
 
       <template #footer>
-        <div class="flex items-center gap-3 w-full px-6">
+        <div class="flex items-center gap-3 w-full">
           <AppButton variant="secondary" class="flex-1" @click="showConfirm = false">
             取消
           </AppButton>

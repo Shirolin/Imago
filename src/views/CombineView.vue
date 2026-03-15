@@ -131,7 +131,7 @@ watchOnce([() => store.images.length, containerRef], () => {
 // --- 状态与配置 ---
 const combineDirection = ref<'vertical' | 'horizontal' | 'grid'>('vertical')
 const alignment = ref<'start' | 'center' | 'end'>('center')
-const spacing = ref(10)
+const spacing = ref(0)
 const backgroundColor = ref('#00000000')
 
 // --- Options Config ---
@@ -258,17 +258,8 @@ const sidebarClasses = computed(
 )
 const bottomCtaClasses = computed(
   () =>
-    'mt-auto pt-6 border-t border-border bg-background/80 backdrop-blur sticky bottom-0 -mx-6 px-6 pb-6 z-10 shadow-[0_-12px_24px_-12px_rgba(0,0,0,0.1)]'
+    'mt-auto pt-6 border-t border-border bg-background sticky bottom-0 -mx-6 px-6 pb-6 z-10'
 )
-const contentClasses = computed(() => {
-  return 'flex-1 p-12 flex flex-col items-center min-h-0 transparency-grid custom-scrollbar focus:outline-none relative transition-colors duration-300 overflow-hidden'
-})
-
-const previewCanvasClasses = computed(() => {
-  const base =
-    'relative transition-transform duration-300 ease-out p-1 ring-1 ring-border/50 shadow-2xl rounded-sm'
-  return base
-})
 
 const previewListStyles = computed(() => {
   const isTransparent = backgroundColor.value === '#00000000'
@@ -288,7 +279,7 @@ const previewListStyles = computed(() => {
           ? 'flex-end'
           : 'center',
     justifyContent: 'center',
-    padding: `${spacing.value > 20 ? 0 : 4}px`,
+    padding: '0',
     minWidth: '100px',
     minHeight: '100px'
   }
@@ -308,11 +299,15 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
 <template>
   <WorkspaceLayout show-sidebar no-scroll>
     <template #header-left>
-      <ImageSelectionStatus />
+      <div class="flex items-center gap-3">
+        <ImageSelectionStatus />
+      </div>
     </template>
 
     <template #header-actions>
-      <ImageActionsToolbar show-clear-all />
+      <div class="flex items-center gap-2">
+        <ImageActionsToolbar :show-clear-all="true" />
+      </div>
     </template>
 
     <template #content>
@@ -322,7 +317,7 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
         <!-- 核心视口框架 (仿 Split) -->
         <div
           ref="containerRef"
-          class="flex-1 min-h-0 bg-muted/10 border border-border/40 rounded-3xl overflow-hidden relative w-full group select-none touch-none"
+          class="flex-1 min-h-0 bg-muted/10 border border-border/40 rounded-3xl overflow-hidden relative w-full group/viewport select-none touch-none"
           :class="{ 'cursor-grabbing': isPanning }"
           @wheel="handleWheel"
           @pointerdown="handlePointerDown"
@@ -341,7 +336,7 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
             <div
               v-if="store.images.length > 0"
               ref="contentRef"
-              class="relative shadow-2xl transition-shadow duration-500 rounded-sm"
+              class="relative shadow-2xl transition-shadow duration-500"
               :style="previewListStyles"
               role="list"
             >
@@ -359,25 +354,25 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
                   @dragend="onDragEnd"
                   @keydown="(e) => handleKeyDown(e, index)"
                 >
-                  <!-- 预览图片 (仿 Lightroom 网格) -->
+                  <!-- 预览图片 (直角边缘以便精准拼接) -->
                   <div
-                    class="relative overflow-hidden shadow-sm rounded-sm bg-background ring-1 ring-white/10 group"
+                    class="relative overflow-hidden bg-background ring-1 ring-white/10 group/item"
                   >
                     <img
                       :src="img.preview"
-                      class="block max-w-[240px] md:max-w-[400px] h-auto pointer-events-none select-none transition-transform duration-500 group-hover:scale-105"
+                      class="block max-w-[240px] md:max-w-[400px] h-auto pointer-events-none select-none"
                       :alt="`预览图 ${index + 1}: ${img.file.name}`"
                     />
 
-                    <!-- 悬浮操作 (角落布局) -->
+                    <!-- 操作层 (仅在悬浮单张图片时显示) -->
                     <div
-                      class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none"
+                      class="absolute inset-0 bg-black/20 opacity-0 group-hover/item:opacity-100 transition-all duration-300 pointer-events-none"
                     >
                       <!-- 右上角删除 (扩大热区) -->
                       <div class="absolute top-0 right-0 p-1 pointer-events-auto">
                         <button
                           @click.stop="store.removeImage(img.id)"
-                          class="p-2 bg-red-500/90 text-white rounded-lg hover:bg-red-600 transition-all active:scale-90 shadow-lg backdrop-blur-sm flex items-center justify-center min-w-[32px] min-h-[32px]"
+                          class="p-2 bg-red-500/80 text-white rounded-lg hover:bg-red-600 transition-all active:scale-90 shadow-lg backdrop-blur-sm flex items-center justify-center min-w-[32px] min-h-[32px]"
                           :title="`移除图片 ${img.file.name}`"
                           :aria-label="`移除图片 ${img.file.name}`"
                         >
@@ -387,14 +382,14 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
 
                       <!-- 左上角序号 -->
                       <div
-                        class="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md rounded text-[10px] text-white font-bold uppercase tracking-tighter ring-1 ring-white/20"
+                        class="absolute top-2 left-2 px-2 py-0.5 bg-black/50 backdrop-blur-md rounded text-[10px] text-white font-bold uppercase tracking-tighter ring-1 ring-white/10"
                       >
                         P{{ index + 1 }}
                       </div>
 
-                      <!-- 底部文件名 (加固文本溢出) -->
+                      <!-- 底部文件名 -->
                       <div
-                        class="absolute bottom-0 left-0 right-0 px-2 py-1.5 bg-gradient-to-t from-black/80 to-transparent"
+                        class="absolute bottom-0 left-0 right-0 px-2 py-1.5 bg-gradient-to-t from-black/60 to-transparent"
                       >
                         <p class="text-[9px] text-white/90 truncate font-mono max-w-full">
                           {{ img.file.name }}
@@ -420,7 +415,7 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
 
           <!-- 顶部快捷键提示栏 (仿 Split) -->
           <div
-            class="absolute top-6 left-1/2 -translate-x-1/2 px-5 py-2.5 bg-black/40 backdrop-blur-md border border-white/5 rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center gap-4 z-30"
+            class="absolute top-6 left-1/2 -translate-x-1/2 px-5 py-2.5 bg-black/40 backdrop-blur-md border border-white/5 rounded-full pointer-events-none opacity-0 group-hover/viewport:opacity-100 transition-all duration-500 flex items-center gap-4 z-30"
           >
             <span
               class="text-[0.65rem] text-white/90 font-black uppercase tracking-[0.2em] flex items-center gap-2"
@@ -431,7 +426,7 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
             <span
               class="text-[0.65rem] text-white/90 font-black uppercase tracking-[0.2em] flex items-center gap-2"
             >
-              <Layers :size="14" /> 拖动图片重排顺序
+              <GripVertical :size="14" class="text-primary" /> 拖动图片或 Ctrl+方向键排序
             </span>
           </div>
 
@@ -484,9 +479,22 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
     <template #sidebar>
       <div :class="sidebarClasses">
         <div class="flex flex-col gap-6 pb-24">
-          <!-- 设置区块 -->
           <div class="flex flex-col gap-4">
-            <AppSectionHeader title="拼接模式" :icon="Settings2" />
+            <div class="flex items-center justify-between">
+              <AppSectionHeader title="拼接模式" :icon="Settings2" />
+              <div 
+                class="group/help relative cursor-help p-1 text-muted-foreground/40 hover:text-primary transition-colors"
+                title="操作说明"
+              >
+                <Info :size="14" />
+                <div class="absolute right-0 top-full mt-2 w-48 p-3 bg-popover border border-border rounded-xl shadow-elevated opacity-0 group-hover/help:opacity-100 pointer-events-none transition-all z-50">
+                  <p class="text-[10px] leading-relaxed text-foreground/80 font-medium">
+                    <span class="text-primary font-bold">排序:</span> 鼠标拖拽图片或使用 Ctrl + 方向键。<br/><br/>
+                    <span class="text-primary font-bold">平移:</span> 按住鼠标中键或 Shift + 左键。
+                  </p>
+                </div>
+              </div>
+            </div>
             <AppSegmentedControl
               v-model="combineDirection"
               :options="combineDirections"
@@ -566,7 +574,7 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
           <AppButton
             size="lg"
             variant="cta"
-            class="w-full shadow-xl shadow-primary/20"
+            class="w-full shadow-lg"
             :loading="isProcessing"
             :disabled="!hasEnoughImages"
             @click="handleCombine"
@@ -576,14 +584,6 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
             </template>
             {{ isProcessing ? '正在拼合...' : '生成并下载' }}
           </AppButton>
-          <div
-            class="text-center text-[10px] text-muted-foreground mt-3 flex flex-col items-center gap-1 italic"
-          >
-            <p class="flex items-center gap-1.5">
-              <GripVertical :size="10" /> 提示：直接拖动图片可以实时预览排序效果
-            </p>
-            <p class="opacity-60 text-[9px]">支持键盘 Ctrl + 方向键 移动图片顺序</p>
-          </div>
         </div>
       </div>
     </template>
