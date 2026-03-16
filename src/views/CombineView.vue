@@ -22,20 +22,20 @@ import {
   Maximize,
   ZoomIn,
   ZoomOut,
-  RefreshCw
+  RefreshCw,
+  Plus
 } from 'lucide-vue-next'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import AppSlider from '../components/common/AppSlider.vue'
-import AppTip from '../components/common/AppTip.vue'
 import { combineEngine } from '../lib/engines/combineEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useFileHelpers } from '../composables/useFileHelpers'
 
 const store = useImageStore()
-const { downloadImage } = useFileHelpers()
+const { downloadImage, triggerFileInput } = useFileHelpers()
 
 // 核心视口框架 (仿 Split)
 const containerRef = ref<HTMLDivElement | null>(null)
@@ -420,14 +420,58 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
               </TransitionGroup>
             </div>
 
-            <!-- 空状态提示 (适应性宽度) -->
-            <AppTip
+            <!-- 专业级空状态引导 (Stitch & Merge Empty State) -->
+            <div
               v-if="!hasEnoughImages"
-              :icon="Info"
-              class="max-w-[85%] md:max-w-md pointer-events-auto"
+              class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in duration-500 pointer-events-none"
             >
-              请至少上传两张图片。当前支持纵向、横向及网格模式。
-            </AppTip>
+              <div
+                class="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6 ring-8 ring-primary/5 shadow-inner"
+              >
+                <Layers :size="40" class="text-primary animate-pulse" />
+              </div>
+              <h3 class="text-lg font-black text-foreground mb-2 tracking-tight">
+                {{ store.images.length === 0 ? '开始您的精彩拼接' : '还差一点点...' }}
+              </h3>
+              <p
+                class="text-xs text-muted-foreground max-w-[280px] leading-relaxed mb-8 font-medium"
+              >
+                {{
+                  store.images.length === 0
+                    ? '上传两张或更多图片，轻松制作纵横拼接长图或精美画册网格。'
+                    : '目前仅有一张图片，请再添加至少一张图片以激活拼接预览。'
+                }}
+              </p>
+
+              <!-- 快捷操作区域 -->
+              <div class="flex items-center gap-3 pointer-events-auto">
+                <AppButton
+                  variant="primary"
+                  size="md"
+                  class="shadow-xl shadow-primary/20 rounded-full px-6"
+                  @click="triggerFileInput"
+                >
+                  <template #icon><Plus :size="18" class="mr-1.5" /></template>
+                  立即添加图片
+                </AppButton>
+              </div>
+
+              <!-- 模式提示小标签 -->
+              <div class="mt-12 flex items-center gap-8 opacity-40">
+                <div class="flex flex-col items-center gap-1.5">
+                  <ArrowDown :size="14" />
+                  <span class="text-[0.6rem] font-bold uppercase tracking-widest">纵向拼接</span>
+                </div>
+                <div class="flex flex-col items-center gap-1.5">
+                  <ArrowRight :size="14" />
+                  <span class="text-[0.6rem] font-bold uppercase tracking-widest">横向拼接</span>
+                </div>
+                <div class="flex flex-col items-center gap-1.5">
+                  <Grid3X3 :size="14" />
+                  <span class="text-[0.6rem] font-bold uppercase tracking-widest">智能网格</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- 顶部快捷键提示栏 (仿 Split) -->
