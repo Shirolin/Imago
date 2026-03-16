@@ -136,6 +136,9 @@ watchOnce([() => store.images.length, containerRef], () => {
 const combineDirection = ref<'vertical' | 'horizontal' | 'grid'>('vertical')
 const alignment = ref<'start' | 'center' | 'end'>('center')
 const spacing = ref(0)
+const columns = ref(3)
+const padding = ref(0)
+const borderRadius = ref(0)
 const backgroundColor = ref('#00000000')
 
 // --- Options Config ---
@@ -176,6 +179,9 @@ const handleCombine = async () => {
     const result = await processCombine({
       direction: combineDirection.value,
       spacing: spacing.value,
+      columns: columns.value,
+      padding: padding.value,
+      borderRadius: borderRadius.value,
       backgroundColor:
         backgroundColor.value === '#00000000' ? 'transparent' : backgroundColor.value,
       alignment: alignment.value
@@ -266,15 +272,16 @@ const bottomCtaClasses = computed(
 
 const previewListStyles = computed(() => {
   const isTransparent = backgroundColor.value === '#00000000'
+  const isGrid = combineDirection.value === 'grid'
 
   const styles: Record<string, string | number> = {
-    display: 'inline-flex',
+    display: isGrid ? 'grid' : 'inline-flex',
+    gridTemplateColumns: isGrid ? `repeat(${columns.value}, max-content)` : 'none',
     gap: `${spacing.value}px`,
     backgroundColor: isTransparent ? 'transparent' : backgroundColor.value,
     backgroundImage: isTransparent ? 'var(--checkerboard-pattern)' : 'none',
     backgroundRepeat: 'repeat',
     flexDirection: combineDirection.value === 'vertical' ? 'column' : 'row',
-    flexWrap: combineDirection.value === 'grid' ? 'wrap' : 'nowrap',
     alignItems:
       alignment.value === 'start'
         ? 'flex-start'
@@ -282,7 +289,7 @@ const previewListStyles = computed(() => {
           ? 'flex-end'
           : 'center',
     justifyContent: 'center',
-    padding: '0',
+    padding: `${padding.value}px`,
     minWidth: '100px',
     minHeight: '100px'
   }
@@ -357,9 +364,10 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
                   @dragend="onDragEnd"
                   @keydown="(e) => handleKeyDown(e, index)"
                 >
-                  <!-- 预览图片 (直角边缘以便精准拼接) -->
+                  <!-- 预览图片 (直角边缘以便精准拼接，若有圆角则应用) -->
                   <div
                     class="relative overflow-hidden bg-background ring-1 ring-white/10 group/item"
+                    :style="{ borderRadius: `${borderRadius}px` }"
                   >
                     <img
                       :src="img.preview"
@@ -526,7 +534,17 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
             />
           </div>
 
+          <AppSlider
+            v-if="combineDirection === 'grid'"
+            v-model="columns"
+            label="网格列数"
+            :min="1"
+            :max="10"
+            unit="列"
+          />
           <AppSlider v-model="spacing" label="图片间距" :min="0" :max="200" unit="px" />
+          <AppSlider v-model="padding" label="外边距 (Padding)" :min="0" :max="200" unit="px" />
+          <AppSlider v-model="borderRadius" label="图片圆角" :min="0" :max="100" unit="px" />
 
           <div class="flex flex-col gap-4">
             <AppSectionHeader title="间距颜色" :icon="Settings2" />

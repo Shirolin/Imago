@@ -10,7 +10,6 @@ import {
   Split,
   Layers,
   Palette,
-  Grid3X3,
   Sun,
   Moon,
   Monitor,
@@ -76,12 +75,10 @@ const routeNameMap: Record<string, string> = {
   Exif: '清除 EXIF',
   split: '图片分割',
   Split: '图片分割',
-  combine: '图片合并',
-  Combine: '图片合并',
+  combine: '拼接合并',
+  Combine: '拼接合并',
   filters: '色彩滤镜',
-  Filters: '色彩滤镜',
-  grid: '网格生成',
-  Grid: '网格生成'
+  Filters: '色彩滤镜'
 }
 
 const menuGroups = [
@@ -103,9 +100,8 @@ const menuGroups = [
   {
     label: '创意工具',
     items: [
-      { name: '图片合并', path: '/combine', icon: Layers },
-      { name: '色彩滤镜', path: '/filters', icon: Palette },
-      { name: '网格生成', path: '/grid', icon: Grid3X3 }
+      { name: '拼接合并', path: '/combine', icon: Layers },
+      { name: '色彩滤镜', path: '/filters', icon: Palette }
     ]
   }
 ]
