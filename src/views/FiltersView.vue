@@ -445,14 +445,21 @@ onMounted(() => initAnalysis())
           <section class="space-y-4">
             <div class="flex items-center justify-between px-0.5">
               <AppSectionHeader title="画质预览" :icon="Eye" />
-              <div class="flex items-center gap-3">
+
+              <!-- 直方图胶囊容器 (移除意外边框并重构) -->
+              <div
+                class="flex items-center gap-2 px-2 py-1 bg-muted/30 rounded-full border-0 focus-within:bg-muted/50 transition-all"
+              >
                 <canvas
                   ref="histogramCanvas"
-                  width="60"
-                  height="24"
-                  class="opacity-50 grayscale hover:grayscale-0 transition-all"
+                  width="50"
+                  height="16"
+                  class="opacity-60 grayscale hover:grayscale-0 transition-all border-0 outline-none"
+                  title="实时色彩分布"
                 ></canvas>
-                <span class="text-[0.6rem] font-black text-primary/60 uppercase tracking-[0.2em]"
+                <div class="w-px h-2 bg-border/40"></div>
+                <span
+                  class="text-[0.55rem] font-black text-primary/60 uppercase tracking-[0.1em] select-none"
                   >Live</span
                 >
               </div>
