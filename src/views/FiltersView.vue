@@ -26,11 +26,23 @@ import AppSlider from '../components/common/AppSlider.vue'
 import { filterEngine } from '../lib/engines/filterEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useDebounceFn } from '@vueuse/core'
+import { ChevronDown, ChevronUp } from 'lucide-vue-next'
 
 const store = useImageStore()
 
 const activeImageId = ref<string | null>(null)
 const isComparing = ref(false)
+
+// 折叠状态管理
+const expandedSections = ref({
+  exposure: true,
+  color: false,
+  effects: false
+})
+
+const toggleSection = (section: keyof typeof expandedSections.value) => {
+  expandedSections.value[section] = !expandedSections.value[section]
+}
 
 // 基础状态
 const brightness = ref(100)
@@ -290,6 +302,24 @@ const resetEffects = () => {
   resetField('invert')
 }
 
+// 检查是否有未应用的变更
+const isDirty = computed(() => {
+  const d = presets[0]!.values
+  return (
+    brightness.value !== d.brightness ||
+    contrast.value !== d.contrast ||
+    saturation.value !== d.saturation ||
+    blur.value !== d.blur ||
+    grayscale.value !== d.grayscale ||
+    sepia.value !== d.sepia ||
+    hueRotate.value !== d.hueRotate ||
+    invert.value !== d.invert ||
+    vignette.value !== d.vignette ||
+    noise.value !== d.noise ||
+    sharpen.value !== d.sharpen
+  )
+})
+
 // ---------------------------------------------------------
 // 直方图逻辑 (性能优化版)
 // ---------------------------------------------------------
@@ -431,6 +461,19 @@ onMounted(() => initAnalysis())
             <div
               class="group relative aspect-video bg-slate-950 rounded-2xl border border-border/40 overflow-hidden shadow-soft ring-1 ring-white/5"
             >
+              <!-- 预览模式标签 (Clarify) -->
+              <div
+                v-if="activeImage && isDirty && !isComparing"
+                class="absolute top-3 left-3 z-30 px-2 py-1 bg-primary/20 backdrop-blur-md border border-primary/30 rounded-md animate-in fade-in slide-in-from-top-1 duration-300"
+              >
+                <span
+                  class="text-[0.55rem] font-black text-primary uppercase tracking-[0.15em] flex items-center gap-1.5"
+                >
+                  <span class="w-1 h-1 rounded-full bg-primary animate-pulse"></span>
+                  预览中 (未应用)
+                </span>
+              </div>
+
               <img
                 v-if="activeImage"
                 :src="activeImage.preview"
@@ -467,7 +510,7 @@ onMounted(() => initAnalysis())
                   class="text-white group-hover/compare:text-primary transition-colors"
                 />
                 <span class="text-[0.55rem] font-black text-white uppercase tracking-widest">{{
-                  isComparing ? 'Original' : 'Compare'
+                  isComparing ? '正在查看原图' : '长按对比效果'
                 }}</span>
               </button>
             </div>
@@ -506,77 +549,149 @@ onMounted(() => initAnalysis())
             </div>
           </section>
 
-          <!-- 3. 精细调节 -->
-          <div class="space-y-10">
+          <!-- 3. 精细调节 (折叠版块) -->
+          <div class="space-y-4">
             <!-- 曝光与对比 -->
-            <section class="space-y-6">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
+            <section
+              class="border border-border/20 rounded-2xl overflow-hidden transition-all duration-300 bg-background/20"
+            >
+              <button
+                @click="toggleSection('exposure')"
+                class="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/30 transition-colors"
+              >
+                <div class="flex items-center gap-2.5">
                   <Zap :size="14" class="text-primary" />
                   <span class="text-[0.65rem] font-black uppercase tracking-widest text-foreground"
                     >曝光与对比</span
                   >
                 </div>
-                <button
-                  @click="resetExposure"
-                  class="text-muted-foreground/30 hover:text-primary transition-colors"
-                >
-                  <RotateCcw :size="12" />
-                </button>
-              </div>
-              <div class="space-y-5 px-1">
-                <AppSlider v-model="brightness" label="亮度" :max="200" :icon="Sun" />
-                <AppSlider v-model="contrast" label="对比度" :max="200" :icon="Contrast" />
-              </div>
+                <div class="flex items-center gap-3">
+                  <button
+                    @click.stop="resetExposure"
+                    class="text-muted-foreground/30 hover:text-primary transition-colors"
+                  >
+                    <RotateCcw :size="12" />
+                  </button>
+                  <component
+                    :is="expandedSections.exposure ? ChevronUp : ChevronDown"
+                    :size="14"
+                    class="text-muted-foreground/40"
+                  />
+                </div>
+              </button>
+
+              <Transition
+                enter-active-class="transition-all duration-300 ease-out"
+                leave-active-class="transition-all duration-200 ease-in"
+                enter-from-class="max-h-0 opacity-0"
+                enter-to-class="max-h-[200px] opacity-100"
+                leave-from-class="max-h-[200px] opacity-100"
+                leave-to-class="max-h-0 opacity-0"
+              >
+                <div v-show="expandedSections.exposure" class="px-4 pb-5 space-y-5 overflow-hidden">
+                  <AppSlider v-model="brightness" label="亮度" :max="200" :icon="Sun" />
+                  <AppSlider v-model="contrast" label="对比度" :max="200" :icon="Contrast" />
+                </div>
+              </Transition>
             </section>
 
             <!-- 色彩与色调 -->
-            <section class="space-y-6">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
+            <section
+              class="border border-border/20 rounded-2xl overflow-hidden transition-all duration-300 bg-background/20"
+            >
+              <button
+                @click="toggleSection('color')"
+                class="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/30 transition-colors"
+              >
+                <div class="flex items-center gap-2.5">
                   <Palette :size="14" class="text-primary" />
                   <span class="text-[0.65rem] font-black uppercase tracking-widest text-foreground"
                     >色彩与色调</span
                   >
                 </div>
-                <button
-                  @click="resetColor"
-                  class="text-muted-foreground/30 hover:text-primary transition-colors"
-                >
-                  <RotateCcw :size="12" />
-                </button>
-              </div>
-              <div class="space-y-5 px-1">
-                <AppSlider v-model="saturation" label="饱和度" :max="200" :icon="Droplets" />
-                <AppSlider v-model="hueRotate" label="色相旋转" :max="360" :icon="Wand2" unit="°" />
-                <AppSlider v-model="grayscale" label="黑白深度" :max="100" />
-                <AppSlider v-model="sepia" label="复古怀旧" :max="100" />
-              </div>
+                <div class="flex items-center gap-3">
+                  <button
+                    @click.stop="resetColor"
+                    class="text-muted-foreground/30 hover:text-primary transition-colors"
+                  >
+                    <RotateCcw :size="12" />
+                  </button>
+                  <component
+                    :is="expandedSections.color ? ChevronUp : ChevronDown"
+                    :size="14"
+                    class="text-muted-foreground/40"
+                  />
+                </div>
+              </button>
+
+              <Transition
+                enter-active-class="transition-all duration-300 ease-out"
+                leave-active-class="transition-all duration-200 ease-in"
+                enter-from-class="max-h-0 opacity-0"
+                enter-to-class="max-h-[400px] opacity-100"
+                leave-from-class="max-h-[400px] opacity-100"
+                leave-to-class="max-h-0 opacity-0"
+              >
+                <div v-show="expandedSections.color" class="px-4 pb-5 space-y-5 overflow-hidden">
+                  <AppSlider v-model="saturation" label="饱和度" :max="200" :icon="Droplets" />
+                  <AppSlider
+                    v-model="hueRotate"
+                    label="色相旋转"
+                    :max="360"
+                    :icon="Wand2"
+                    unit="°"
+                  />
+                  <AppSlider v-model="grayscale" label="黑白深度" :max="100" />
+                  <AppSlider v-model="sepia" label="复古怀旧" :max="100" />
+                </div>
+              </Transition>
             </section>
 
             <!-- 细节与特效 -->
-            <section class="space-y-6">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
+            <section
+              class="border border-border/20 rounded-2xl overflow-hidden transition-all duration-300 bg-background/20"
+            >
+              <button
+                @click="toggleSection('effects')"
+                class="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/30 transition-colors"
+              >
+                <div class="flex items-center gap-2.5">
                   <Sparkles :size="14" class="text-primary" />
                   <span class="text-[0.65rem] font-black uppercase tracking-widest text-foreground"
                     >细节与特效</span
                   >
                 </div>
-                <button
-                  @click="resetEffects"
-                  class="text-muted-foreground/30 hover:text-primary transition-colors"
-                >
-                  <RotateCcw :size="12" />
-                </button>
-              </div>
-              <div class="space-y-5 px-1">
-                <AppSlider v-model="sharpen" label="锐化细节" :max="100" />
-                <AppSlider v-model="vignette" label="暗角范围" :max="100" />
-                <AppSlider v-model="noise" label="颗粒杂色" :max="100" :icon="CloudRain" />
-                <AppSlider v-model="blur" label="柔和模糊" :max="20" unit="px" />
-                <AppSlider v-model="invert" label="色彩反转" :max="100" />
-              </div>
+                <div class="flex items-center gap-3">
+                  <button
+                    @click.stop="resetEffects"
+                    class="text-muted-foreground/30 hover:text-primary transition-colors"
+                  >
+                    <RotateCcw :size="12" />
+                  </button>
+                  <component
+                    :is="expandedSections.effects ? ChevronUp : ChevronDown"
+                    :size="14"
+                    class="text-muted-foreground/40"
+                  />
+                </div>
+              </button>
+
+              <Transition
+                enter-active-class="transition-all duration-300 ease-out"
+                leave-active-class="transition-all duration-200 ease-in"
+                enter-from-class="max-h-0 opacity-0"
+                enter-to-class="max-h-[500px] opacity-100"
+                leave-from-class="max-h-[500px] opacity-100"
+                leave-to-class="max-h-0 opacity-0"
+              >
+                <div v-show="expandedSections.effects" class="px-4 pb-5 space-y-5 overflow-hidden">
+                  <AppSlider v-model="sharpen" label="锐化细节" :max="100" />
+                  <AppSlider v-model="vignette" label="暗角范围" :max="100" />
+                  <AppSlider v-model="noise" label="颗粒杂色" :max="100" :icon="CloudRain" />
+                  <AppSlider v-model="blur" label="柔和模糊" :max="20" unit="px" />
+                  <AppSlider v-model="invert" label="色彩反转" :max="100" />
+                </div>
+              </Transition>
             </section>
           </div>
         </div>
@@ -592,11 +707,16 @@ onMounted(() => initAnalysis())
             >
               <RotateCcw :size="10" /> Reset All
             </button>
-            <span
-              class="text-[0.55rem] font-black text-muted-foreground/40 uppercase tracking-widest"
-            >
-              {{ store.selectedCount || store.images.length }} Assets Selected
-            </span>
+            <div class="flex flex-col items-end gap-0.5">
+              <span
+                class="text-[0.55rem] font-black text-muted-foreground/40 uppercase tracking-widest"
+              >
+                {{ store.selectedCount || store.images.length }} Assets Selected
+              </span>
+              <span v-if="isDirty" class="text-[0.5rem] font-bold text-primary/60 animate-pulse">
+                效果尚未应用到原图
+              </span>
+            </div>
           </div>
           <AppButton
             size="lg"
@@ -608,7 +728,9 @@ onMounted(() => initAnalysis())
             <template #icon
               ><Check v-if="!isProcessing" :size="20" class="mr-2.5 stroke-[3px]"
             /></template>
-            <span class="tracking-tight uppercase font-black text-sm">Apply Changes</span>
+            <span class="tracking-tight uppercase font-black text-sm">{{
+              isDirty ? '应用当前效果' : '保存设置'
+            }}</span>
           </AppButton>
         </div>
       </div>

@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<Props>(), {
   min: 0,
   max: 100,
   step: 1,
-  unit: ''
+  unit: '%'
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -28,37 +28,55 @@ const progressPercent = computed(() => {
 })
 
 const handleInput = (e: Event) => {
-  const value = Number((e.target as HTMLInputElement).value)
+  const value = parseFloat((e.target as HTMLInputElement).value)
+  emit('update:modelValue', value)
+}
+
+const handleNumberInput = (e: Event) => {
+  let value = parseFloat((e.target as HTMLInputElement).value)
+  if (isNaN(value)) return
+  // 边界约束 (Hardening)
+  value = Math.max(props.min, Math.min(props.max, value))
   emit('update:modelValue', value)
 }
 </script>
 
 <template>
-  <div class="flex flex-col gap-3 group/slider">
-    <div
-      class="flex items-center justify-between text-[0.65rem] font-black text-muted-foreground uppercase tracking-widest px-0.5 transition-colors group-hover/slider:text-foreground"
-    >
+  <div class="flex flex-col gap-2.5 group/slider">
+    <!-- 头部信息 -->
+    <div class="flex items-center justify-between">
       <div class="flex items-center gap-2">
         <component
           v-if="icon"
           :is="icon"
           :size="12"
-          class="opacity-60 group-hover/slider:text-primary group-hover/slider:opacity-100 transition-all"
+          class="text-muted-foreground/50 group-hover/slider:text-primary transition-colors"
         />
-        <span class="opacity-80 group-hover/slider:opacity-100">{{ label }}</span>
+        <span class="text-[0.6rem] font-bold text-muted-foreground/70 uppercase tracking-widest">{{
+          label
+        }}</span>
       </div>
+
+      <!-- 数字输入框 (Harden: 精准调节) -->
       <div
-        class="transition-transform duration-300"
-        :class="{ 'scale-110 text-primary': isDragging }"
+        class="flex items-center bg-muted/30 border border-border/20 rounded-lg px-1.5 py-0.5 focus-within:border-primary/40 focus-within:bg-muted/50 transition-all"
       >
-        <slot :modelValue="modelValue">
-          <span class="font-mono text-[0.75rem] font-black text-primary"
-            >{{ modelValue }}{{ unit }}</span
-          >
-        </slot>
+        <input
+          type="number"
+          :value="modelValue"
+          @input="handleNumberInput"
+          :min="min"
+          :max="max"
+          :step="step"
+          class="w-10 bg-transparent border-none outline-none text-[0.65rem] font-black text-foreground tabular-nums text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        />
+        <span class="text-[0.55rem] font-bold text-muted-foreground/40 ml-1 select-none">{{
+          unit
+        }}</span>
       </div>
     </div>
 
+    <!-- 滑块交互区 -->
     <div class="relative flex items-center h-5">
       <!-- 背景轨道 -->
       <div
@@ -91,16 +109,16 @@ const handleInput = (e: Event) => {
 </template>
 
 <style scoped>
-/* 针对 Firefox 的滑块样式适配 */
+/* 确保滑块在 Firefox 下也有良好表现 */
 input[type='range']::-moz-range-thumb {
   width: 16px;
   height: 16px;
   background: white;
-  border-radius: 50%;
   border: 2px solid hsl(var(--primary));
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  transition: all 0.2s;
+  border-radius: 50%;
   cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 input[type='range']:hover::-moz-range-thumb {
   transform: scale(1.1);
