@@ -439,7 +439,7 @@ onMounted(() => initAnalysis())
     </template>
 
     <template #sidebar>
-      <div class="flex flex-col h-full bg-card/40 backdrop-blur-sm border-l border-border/50">
+      <div class="flex flex-col h-full">
         <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-10">
           <!-- 1. 沉浸式预览区 -->
           <section class="space-y-4">

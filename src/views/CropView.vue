@@ -353,7 +353,7 @@ watch(
       </template>
 
       <template #sidebar>
-        <div class="flex flex-col h-full bg-card/40 backdrop-blur-lg border-l border-border/50">
+        <div class="flex flex-col h-full">
           <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-10">
             <!-- 1. 变换与历史 -->
             <section class="space-y-4">

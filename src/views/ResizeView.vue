@@ -283,9 +283,7 @@ const buttonText = computed(() => {
       </template>
 
       <template #sidebar>
-        <div
-          class="flex flex-col h-full bg-card/40 backdrop-blur-xl border-l border-border/50 shadow-2xl"
-        >
+        <div class="flex flex-col h-full">
           <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-7">
             <!-- 1. 调整模式 -->
             <section class="space-y-4">

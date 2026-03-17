@@ -97,13 +97,13 @@ withDefaults(defineProps<Props>(), {
       <aside
         v-if="showSidebar"
         id="inspector-panel"
-        class="bg-card border-t md:border-t-0 md:border-l border-border flex flex-col shrink-0 relative transition-all duration-300 ease-in-out z-50 md:z-20 md:shadow-none"
+        class="bg-card border-t md:border-t-0 md:border-l border-border flex flex-col shrink-0 relative transition-all duration-300 ease-in-out z-50 md:z-20"
         :class="[
           // 移动端样式：固定在底部的抽屉 (Bottom Sheet)
           'fixed bottom-0 left-0 right-0 md:static w-full md:h-auto rounded-t-[2.5rem] md:rounded-none',
           layoutStore.isInspectorCollapsed
             ? 'translate-y-full md:translate-y-0 md:w-0 border-transparent invisible md:visible'
-            : 'translate-y-0 md:w-[300px] xl:w-[340px] shadow-2xl-up md:shadow-none visible',
+            : 'translate-y-0 md:w-[300px] xl:w-[340px] shadow-2xl-up visible',
           // 高度控制
           'max-h-[85vh] md:max-h-none'
         ]"
@@ -128,8 +128,10 @@ withDefaults(defineProps<Props>(), {
 </template>
 
 <style scoped>
-.shadow-2xl-up {
-  box-shadow: 0 -10px 40px -15px rgba(0, 0, 0, 0.3);
+@media (max-width: 767px) {
+  .shadow-2xl-up {
+    box-shadow: 0 -10px 40px -15px rgba(0, 0, 0, 0.3);
+  }
 }
 
 .fade-enter-active,
