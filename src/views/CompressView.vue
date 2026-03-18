@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useImageStore } from '../stores/imageStore'
+import { useLayoutStore } from '../stores/layoutStore'
 import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import ImageCard from '../components/common/ImageCard.vue'
@@ -32,6 +33,7 @@ import { useImageProcessor } from '../composables/useImageProcessor'
 import type { ImageItem } from '../stores/imageStore'
 
 const store = useImageStore()
+const layoutStore = useLayoutStore()
 const { formatSize, downloadImage } = useFileHelpers()
 
 // 状态控制
@@ -231,7 +233,12 @@ const buttonText = computed(() => {
         <!-- 核心内容区 (独立滚动网格) -->
         <div class="h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-6">
           <div
-            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6"
+            class="grid gap-4 md:gap-6"
+            :class="[
+              layoutStore.cardSizeMode === 'compact'
+                ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8'
+                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
+            ]"
           >
             <ImageCard
               v-for="img in displayImages"
@@ -263,26 +270,46 @@ const buttonText = computed(() => {
               </template>
               <template #meta="{ image }">
                 <div
-                  class="flex items-center gap-3 bg-muted/30 p-3 rounded-2xl mt-1.5 border border-border transition-all duration-300 group-hover:border-primary/20 shadow-inner"
+                  class="flex items-center bg-muted/30 border border-border transition-all duration-300 group-hover:border-primary/20 shadow-inner"
+                  :class="[
+                    layoutStore.cardSizeMode === 'compact'
+                      ? 'gap-1.5 p-1.5 rounded-xl mt-1'
+                      : 'gap-3 p-3 rounded-2xl mt-1.5'
+                  ]"
                 >
                   <div class="flex-1 flex flex-col gap-0.5">
                     <span
-                      class="text-[0.6rem] font-black uppercase text-muted-foreground tracking-widest mt-0.5"
+                      class="font-black uppercase text-muted-foreground tracking-widest mt-0.5"
+                      :class="
+                        layoutStore.cardSizeMode === 'compact' ? 'text-[0.5rem]' : 'text-[0.6rem]'
+                      "
                       >原始</span
                     >
-                    <span class="text-[0.75rem] font-bold text-foreground">{{
-                      formatSize(image.originalSize)
-                    }}</span>
+                    <span
+                      class="font-bold text-foreground transition-all"
+                      :class="
+                        layoutStore.cardSizeMode === 'compact' ? 'text-[0.65rem]' : 'text-[0.75rem]'
+                      "
+                      >{{ formatSize(image.originalSize) }}</span
+                    >
                   </div>
-                  <div class="text-muted-foreground flex shrink-0"><ArrowRight :size="12" /></div>
+                  <div class="text-muted-foreground flex shrink-0">
+                    <ArrowRight :size="layoutStore.cardSizeMode === 'compact' ? 10 : 12" />
+                  </div>
                   <div class="flex-1 flex flex-col gap-0.5">
                     <span
-                      class="text-[0.6rem] font-black uppercase text-muted-foreground tracking-widest mt-0.5"
+                      class="font-black uppercase text-muted-foreground tracking-widest mt-0.5"
+                      :class="
+                        layoutStore.cardSizeMode === 'compact' ? 'text-[0.5rem]' : 'text-[0.6rem]'
+                      "
                       >压缩后</span
                     >
                     <span
-                      class="text-[0.75rem] font-bold transition-colors"
-                      :class="image.status === 'done' ? 'text-primary' : 'text-foreground'"
+                      class="font-bold transition-all"
+                      :class="[
+                        image.status === 'done' ? 'text-primary' : 'text-foreground',
+                        layoutStore.cardSizeMode === 'compact' ? 'text-[0.65rem]' : 'text-[0.75rem]'
+                      ]"
                     >
                       {{ image.status === 'done' ? formatSize(image.processedSize!) : '--' }}
                     </span>

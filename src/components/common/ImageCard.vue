@@ -13,10 +13,12 @@ import {
 } from 'lucide-vue-next'
 import { useFileHelpers } from '../../composables/useFileHelpers'
 import { useImageStore } from '../../stores/imageStore'
+import { useLayoutStore } from '../../stores/layoutStore'
 import type { ImageItem } from '../../stores/imageStore'
 
 const { formatSize } = useFileHelpers()
 const store = useImageStore()
+const layoutStore = useLayoutStore()
 
 interface Props {
   image: ImageItem
@@ -232,27 +234,37 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
     </div>
 
     <!-- 底部：文件名与操作 -->
-    <div class="p-3 flex flex-col gap-2.5">
+    <div
+      class="flex flex-col transition-all duration-300"
+      :class="layoutStore.cardSizeMode === 'compact' ? 'p-2 gap-1.5' : 'p-3 gap-2.5'"
+    >
       <h4
-        class="font-bold text-[0.85rem] text-foreground truncate leading-tight"
+        class="font-bold text-foreground truncate leading-tight transition-all"
+        :class="layoutStore.cardSizeMode === 'compact' ? 'text-[0.75rem]' : 'text-[0.85rem]'"
         :title="image.file.name"
       >
         {{ image.file.name }}
       </h4>
 
-      <div class="flex justify-between items-center gap-2 mt-0.5 min-h-[32px]">
+      <div
+        class="flex justify-between items-center gap-2 mt-0.5 transition-all"
+        :class="layoutStore.cardSizeMode === 'compact' ? 'min-h-[24px]' : 'min-h-[32px]'"
+      >
         <div
-          class="flex items-center gap-1.5 px-2.5 h-6 rounded-md font-black text-[0.65rem] border transition-all duration-300 uppercase tracking-widest"
-          :class="{
-            'text-primary border-primary/20 bg-primary/[0.03]':
-              image.status === 'done' && !image.isDirty,
-            'text-amber-500 border-amber-500/20 bg-amber-500/[0.03] shadow-[0_0_8px_rgba(245,158,11,0.1)]':
-              isDirtyDone,
-            'text-blue-500 border-blue-500/20 bg-blue-500/[0.03]': image.status === 'processing',
-            'text-destructive border-destructive/20 bg-destructive/[0.03]':
-              image.status === 'error',
-            'text-muted-foreground border-border bg-muted/20': image.status === 'idle'
-          }"
+          class="flex items-center gap-1.5 rounded-md font-black text-[0.65rem] border transition-all duration-300 uppercase tracking-widest"
+          :class="[
+            {
+              'text-primary border-primary/20 bg-primary/[0.03]':
+                image.status === 'done' && !image.isDirty,
+              'text-amber-500 border-amber-500/20 bg-amber-500/[0.03] shadow-[0_0_8px_rgba(245,158,11,0.1)]':
+                isDirtyDone,
+              'text-blue-500 border-blue-500/20 bg-blue-500/[0.03]': image.status === 'processing',
+              'text-destructive border-destructive/20 bg-destructive/[0.03]':
+                image.status === 'error',
+              'text-muted-foreground border-border bg-muted/20': image.status === 'idle'
+            },
+            layoutStore.cardSizeMode === 'compact' ? 'px-1.5 h-5' : 'px-2.5 h-6'
+          ]"
         >
           <div class="w-2.5 h-2.5 flex items-center justify-center">
             <CheckCircle2 v-if="image.status === 'done'" :size="11" />
@@ -262,7 +274,7 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
               :class="{ 'animate-pulse': image.status === 'processing' }"
             ></div>
           </div>
-          <span class="mt-0.5">{{
+          <span v-if="layoutStore.cardSizeMode === 'large'" class="mt-0.5">{{
             image.status === 'done'
               ? image.isDirty
                 ? '待更新'
@@ -273,17 +285,21 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
           }}</span>
         </div>
 
-        <div class="flex items-center gap-1">
+        <div
+          class="flex items-center transition-all"
+          :class="layoutStore.cardSizeMode === 'compact' ? 'gap-0' : 'gap-1'"
+        >
           <button
             v-if="image.status === 'done' || image.status === 'error'"
             @click.stop="store.resetImage(image.id)"
-            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-secondary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            class="flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-secondary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            :class="layoutStore.cardSizeMode === 'compact' ? 'w-6 h-6' : 'w-8 h-8'"
             title="恢复原图"
           >
-            <RotateCcw :size="16" />
+            <RotateCcw :size="layoutStore.cardSizeMode === 'compact' ? 12 : 16" />
           </button>
           <button
-            v-if="image.status === 'done'"
+            v-if="image.status === 'done' && layoutStore.cardSizeMode === 'large'"
             @click.stop="emit('compare', image.id)"
             class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-secondary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
             title="对比画质细节"
@@ -293,10 +309,11 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
           <button
             v-if="image.status === 'done'"
             @click.stop="emit('download', image.id)"
-            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-primary text-muted-foreground hover:text-primary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            class="flex items-center justify-center rounded-lg hover:bg-primary text-muted-foreground hover:text-primary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            :class="layoutStore.cardSizeMode === 'compact' ? 'w-6 h-6' : 'w-8 h-8'"
             title="保存处理后的图片"
           >
-            <Download :size="16" />
+            <Download :size="layoutStore.cardSizeMode === 'compact' ? 12 : 16" />
           </button>
         </div>
       </div>

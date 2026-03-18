@@ -66,7 +66,12 @@ withDefaults(defineProps<Props>(), {
         >
           <div
             v-if="!noScroll"
-            class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6 md:gap-10"
+            class="grid gap-6 md:gap-10"
+            :class="[
+              layoutStore.cardSizeMode === 'compact'
+                ? 'grid-cols-[repeat(auto-fill,minmax(140px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]'
+                : 'grid-cols-[repeat(auto-fill,minmax(180px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]'
+            ]"
           >
             <slot name="content"></slot>
           </div>
