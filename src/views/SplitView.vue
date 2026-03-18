@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { useImageStore } from '../stores/imageStore'
+import { useImageStore, type ImageItem } from '../stores/imageStore'
 import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
@@ -28,7 +28,7 @@ import {
 } from 'lucide-vue-next'
 import { splitEngine } from '../lib/engines/splitEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
-import { useResizeObserver, useElementBounding, useElementSize } from '@vueuse/core'
+import { useResizeObserver, useElementBounding } from '@vueuse/core'
 
 const store = useImageStore()
 const { downloadImage } = useFileHelpers()
@@ -536,7 +536,7 @@ const magnifierFooterClasses = computed(() =>
   isAltPressed.value ? 'bg-muted/80 border-white/5' : 'bg-black border-white/10'
 )
 
-const imageCardClasses = (img: any) => ({
+const imageCardClasses = (img: ImageItem) => ({
   'border-primary shadow-sm scale-110 z-10': selectedImage.value?.id === img.id,
   'border-transparent hover:border-border': selectedImage.value?.id !== img.id
 })
@@ -863,20 +863,6 @@ const imageCardClasses = (img: any) => ({
 </template>
 
 <style scoped>
-.shadow-elevated {
-  box-shadow: 0 8px 30px -10px rgba(0, 0, 0, 0.15);
-}
-.custom-scrollbar::-webkit-scrollbar {
-  height: 4px;
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 10px;
-}
 .animate-spin-slow {
   animation: spin 3s linear infinite;
 }

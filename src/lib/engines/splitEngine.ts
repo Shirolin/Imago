@@ -95,7 +95,10 @@ export const splitEngine: ImageProcessor<SplitOptions> = async (file, options) =
           if (blob) results.push(blob)
         }
       }
-      resolve(results as any) // 强制适配 ProcessResult 联合类型
+      resolve({
+        blobs: results,
+        size: results.reduce((acc, b) => acc + b.size, 0)
+      }) // 强制适配 ProcessResult 联合类型
     }
 
     img.onerror = () => {

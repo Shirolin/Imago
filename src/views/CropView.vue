@@ -71,7 +71,8 @@ const { isProcessing, processSelected, processSingle } = useImageProcessor(cropE
 const handleEyeDropper = async () => {
   if (!isEyeDropperSupported) return
   try {
-    const EyeDropperClass = (globalThis as any).EyeDropper
+    const EyeDropperClass = (globalThis as unknown as { EyeDropper: new () => EyeDropper })
+      .EyeDropper
     const dropper = new EyeDropperClass() as EyeDropper
     const result = await dropper.open()
     fillColor.value = result.sRGBHex
@@ -827,6 +828,8 @@ watch(
                   <button
                     @click.stop="store.removeImage(img.id)"
                     class="opacity-0 group-hover:opacity-100 p-1 hover:text-destructive transition-all"
+                    :aria-label="`移除图片 ${img.file.name}`"
+                    :title="`移除图片 ${img.file.name}`"
                   >
                     <X :size="14" />
                   </button>
@@ -856,17 +859,6 @@ watch(
 </template>
 
 <style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: hsl(var(--border) / 0.5);
-  border-radius: 10px;
-}
-
 .transparency-grid-small {
   background-image: conic-gradient(
     hsl(var(--muted-foreground) / 0.2) 0 25%,

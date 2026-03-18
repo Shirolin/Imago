@@ -25,7 +25,7 @@ export const readExif = async (file: File): Promise<ExifData | null> => {
       jfif: true,
       iptc: true,
       xmp: true
-    })) as any // 使用 any 承接库返回的复杂对象
+    })) as Record<string, unknown> // 使用 Record 承接库返回的复杂对象
 
     if (!rawData) return { metaCount: 0 }
 

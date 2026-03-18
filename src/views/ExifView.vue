@@ -250,7 +250,7 @@ const handleClearExif = async () => {
     </template>
 
     <template #sidebar>
-      <div class="p-4 flex flex-col gap-4 h-full overflow-hidden bg-background">
+      <div class="p-4 flex flex-col gap-4 h-full overflow-hidden">
         <AppSectionHeader title="PRIVACY ANALYSIS" :icon="Info" class="mb-1 text-foreground" />
         <div class="flex-1 overflow-y-auto custom-scrollbar pr-1 flex flex-col gap-4">
           <div v-if="selectedImage && !isReadingExif" class="flex flex-col gap-3">
@@ -413,20 +413,3 @@ const handleClearExif = async () => {
     </template>
   </WorkspaceLayout>
 </template>
-
-<style scoped>
-.shadow-elevated {
-  box-shadow: 0 8px 30px -10px rgba(0, 0, 0, 0.12);
-}
-.custom-scrollbar::-webkit-scrollbar {
-  height: 3px;
-  width: 3px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 10px;
-}
-</style>

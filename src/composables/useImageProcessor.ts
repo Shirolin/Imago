@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { useImageStore, type ImageItem } from '../stores/imageStore'
-import type { ImageProcessor, MultiImageProcessor } from '../lib/engines/types'
+import type { ImageProcessor, MultiImageProcessor, ProcessResult } from '../lib/engines/types'
 
 export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImageProcessor<T>) {
   const store = useImageStore()
@@ -20,19 +20,20 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
       })
 
       // 智能识别返回结果：可能是单个 Blob，也可能是 Blob[]，或者是包含这些属性的对象
+      const typedResult = result as ProcessResult
       const isArray = Array.isArray(result)
-      const blobs = isArray ? (result as Blob[]) : (result as any).blobs
-      const singleBlob = !isArray ? (result as any).blob || (result as Blob) : undefined
+      const blobs = isArray ? (result as unknown as Blob[]) : typedResult.blobs
+      const singleBlob = !isArray ? typedResult.blob || (result as unknown as Blob) : undefined
 
       store.updateImage(id, {
         status: 'done',
         processedSize: isArray
-          ? (result as Blob[]).reduce((sum, b) => sum + b.size, 0)
-          : (result as any).size,
+          ? (result as unknown as Blob[]).reduce((sum, b) => sum + b.size, 0)
+          : typedResult.size,
         processedBlob: singleBlob instanceof Blob ? singleBlob : blobs ? blobs[0] : undefined,
         processedBlobs: blobs,
-        processedWidth: (result as any).width,
-        processedHeight: (result as any).height,
+        processedWidth: typedResult.width,
+        processedHeight: typedResult.height,
         abortController: undefined,
         isDirty: false
       })

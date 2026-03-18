@@ -675,18 +675,6 @@ input[type='color']::-webkit-color-swatch {
   border: none;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
-  border-radius: 10px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
 /* Preview list transitions */
 .preview-list-move,
 .preview-list-enter-active,
@@ -702,11 +690,5 @@ input[type='color']::-webkit-color-swatch {
 
 .preview-list-leave-active {
   position: absolute;
-}
-
-.shadow-elevated {
-  box-shadow:
-    0 10px 30px -10px rgba(0, 0, 0, 0.12),
-    0 4px 10px -5px rgba(0, 0, 0, 0.05);
 }
 </style>
