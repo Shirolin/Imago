@@ -108,7 +108,7 @@ const tools = [
           v-for="tool in tools"
           :key="tool.name"
           :to="tool.path"
-          class="group bg-card border border-border/60 rounded-2xl p-6 md:p-8 flex flex-col no-underline text-inherit transition-all duration-300 relative overflow-hidden hover:border-primary/40 hover:-translate-y-1.5 shadow-soft hover:shadow-elevated"
+          class="group bg-card border border-border/60 rounded-2xl p-6 md:p-8 flex flex-col no-underline text-inherit transition-all duration-300 relative overflow-hidden hover:border-primary/40 hover:-translate-y-1.5 shadow-lg hover:shadow-xl"
         >
           <!-- 背景高光装饰 - 极大程度淡化 -->
           <div

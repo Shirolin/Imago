@@ -21,7 +21,7 @@ const isAllDone = computed(() => {
       :class="[
         isAllDone
           ? 'bg-primary/[0.03] border-primary/30 shadow-primary'
-          : 'bg-muted/40 border-border/50 hover:border-primary/40 hover:bg-background shadow-soft hover:shadow-elevated',
+          : 'bg-muted/40 border-border/50 hover:border-primary/40 hover:bg-background shadow-md hover:shadow-lg',
         isPC ? 'px-5 h-11 rounded-2xl border gap-4' : 'px-3 h-10 rounded-xl border gap-2.5'
       ]"
       @click="store.toggleAll"

@@ -197,7 +197,7 @@ const menuGroups = [
           class="flex items-center font-bold text-sm transition-all duration-300 group relative overflow-hidden shrink-0"
           :class="[
             $route.path === '/'
-              ? 'bg-primary/10 text-primary shadow-[inset_0_0_12px_rgba(var(--primary-rgb),0.05)]'
+              ? 'bg-primary/10 text-primary'
               : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
             layoutStore.isMenuCollapsed
               ? 'md:justify-center h-11 md:w-[72px] md:rounded-none px-4 py-3.5 gap-3 rounded-xl'
@@ -250,7 +250,7 @@ const menuGroups = [
             class="flex items-center font-bold text-sm transition-all duration-300 group relative overflow-hidden shrink-0"
             :class="[
               $route.path === item.path
-                ? 'bg-primary/10 text-primary shadow-[inset_0_0_12px_rgba(var(--primary-rgb),0.05)]'
+                ? 'bg-primary/10 text-primary'
                 : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
               layoutStore.isMenuCollapsed && !isMobileSidebarOpen
                 ? 'md:justify-center h-11 md:w-[72px] md:rounded-none'

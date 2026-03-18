@@ -34,6 +34,8 @@ import { combineEngine } from '../lib/engines/combineEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useFileHelpers } from '../composables/useFileHelpers'
 
+import InspectorFooter from '../components/layout/InspectorFooter.vue'
+
 const store = useImageStore()
 const { downloadImage, triggerFileInput } = useFileHelpers()
 
@@ -262,14 +264,6 @@ const handleKeyDown = (e: KeyboardEvent, index: number) => {
   }
 }
 
-// --- Computed Styles ---
-const sidebarClasses = computed(
-  () => 'p-6 flex flex-col gap-6 h-full overflow-y-auto custom-scrollbar'
-)
-const bottomCtaClasses = computed(
-  () => 'mt-auto pt-6 border-t border-border bg-background sticky bottom-0 -mx-6 px-6 pb-6 z-10'
-)
-
 const previewListStyles = computed(() => {
   const isTransparent = backgroundColor.value === '#00000000'
   const isGrid = combineDirection.value === 'grid'
@@ -426,7 +420,7 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
               class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in duration-500 pointer-events-none"
             >
               <div
-                class="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6 ring-8 ring-primary/5 shadow-inner"
+                class="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6 ring-8 ring-primary/5"
               >
                 <Layers :size="40" class="text-primary animate-pulse" />
               </div>
@@ -541,8 +535,8 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
     </template>
 
     <template #sidebar>
-      <div :class="sidebarClasses">
-        <div class="flex flex-col gap-6 pb-24">
+      <div class="flex flex-col h-full relative">
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-10">
           <div class="flex flex-col gap-4">
             <div class="flex items-center justify-between">
               <AppSectionHeader title="拼接模式" :icon="Settings2" />
@@ -647,11 +641,11 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
           </div>
         </div>
 
-        <div :class="bottomCtaClasses">
+        <InspectorFooter>
           <AppButton
             size="lg"
             variant="cta"
-            class="w-full shadow-lg"
+            class="w-full h-14 rounded-2xl hover:-translate-y-0.5 transition-all duration-300 active:scale-95 shadow-xl shadow-primary/10"
             :loading="isProcessing"
             :disabled="!hasEnoughImages"
             @click="handleCombine"
@@ -661,7 +655,7 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
             </template>
             {{ isProcessing ? '正在拼合...' : '生成并下载' }}
           </AppButton>
-        </div>
+        </InspectorFooter>
       </div>
     </template>
   </WorkspaceLayout>

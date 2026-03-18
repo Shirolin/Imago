@@ -32,6 +32,8 @@ import { getSupportedFormats } from '../lib/utils/formatSupport'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import type { ImageItem } from '../stores/imageStore'
 
+import InspectorFooter from '../components/layout/InspectorFooter.vue'
+
 const store = useImageStore()
 const layoutStore = useLayoutStore()
 const { formatSize, downloadImage } = useFileHelpers()
@@ -270,7 +272,7 @@ const buttonText = computed(() => {
               </template>
               <template #meta="{ image }">
                 <div
-                  class="flex items-center bg-muted/30 border border-border transition-all duration-300 group-hover:border-primary/20 shadow-inner"
+                  class="flex items-center bg-muted/30 border border-border transition-all duration-300 group-hover:border-primary/20"
                   :class="[
                     layoutStore.cardSizeMode === 'compact'
                       ? 'gap-1.5 p-1.5 rounded-xl mt-1'
@@ -322,9 +324,10 @@ const buttonText = computed(() => {
       </template>
 
       <template #sidebar>
-        <div class="flex flex-col h-full">
+        <div class="flex flex-col h-full relative">
+          <!-- 1. 参数调节区 (可滚动) -->
           <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-7">
-            <!-- 1. 压缩策略 -->
+            <!-- 压缩策略 -->
             <section class="space-y-4">
               <div class="flex items-center justify-between px-0.5">
                 <AppSectionHeader title="压缩策略" :icon="Settings2" />
@@ -336,9 +339,10 @@ const buttonText = computed(() => {
               <AppSegmentedControl v-model="compressionMode" :options="modeOptions" />
             </section>
 
-            <!-- 2. 参数调节区 -->
+            <!-- 参数调节区 -->
             <section class="relative">
-              <div class="bg-muted/10 rounded-2xl p-5 border border-border/60 shadow-inner">
+              <div class="bg-muted/10 rounded-2xl p-5 border border-border/60">
+                <!-- ... 内容省略，保持原样 ... -->
                 <div v-if="compressionMode === 'quality'" class="space-y-7">
                   <template v-if="outputFormat === 'image/png'">
                     <AppSlider
@@ -382,7 +386,7 @@ const buttonText = computed(() => {
                   <template v-else>
                     <AppSlider
                       v-model="compressionQuality"
-                      label="平衡画质与体积"
+                      label="平衡画画质与体积"
                       :min="0.1"
                       :max="1.0"
                       :step="0.05"
@@ -437,7 +441,7 @@ const buttonText = computed(() => {
               </div>
             </section>
 
-            <!-- 3. 转换格式 -->
+            <!-- 转换格式 -->
             <section class="space-y-4">
               <AppSectionHeader title="转换格式" :icon="FileType" />
               <div class="space-y-3">
@@ -456,7 +460,7 @@ const buttonText = computed(() => {
               </div>
             </section>
 
-            <!-- 4. 进阶设置 -->
+            <!-- 进阶设置 -->
             <section class="space-y-4 pb-4">
               <button
                 @click="showAdvanced = !showAdvanced"
@@ -515,10 +519,8 @@ const buttonText = computed(() => {
             </section>
           </div>
 
-          <!-- 底部固定操作区 -->
-          <div
-            class="p-6 bg-gradient-to-t from-card via-card to-transparent pt-12 mt-auto border-t border-border/40 relative z-20 shrink-0"
-          >
+          <!-- 2. 底部固定操作区 (新组件) -->
+          <InspectorFooter>
             <AppButton
               size="lg"
               variant="cta"
@@ -532,7 +534,7 @@ const buttonText = computed(() => {
               /></template>
               <span class="tracking-tight text-base font-bold">{{ buttonText }}</span>
             </AppButton>
-          </div>
+          </InspectorFooter>
         </div>
       </template>
     </WorkspaceLayout>

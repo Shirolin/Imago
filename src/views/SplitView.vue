@@ -30,6 +30,8 @@ import { splitEngine } from '../lib/engines/splitEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useResizeObserver, useElementBounding } from '@vueuse/core'
 
+import InspectorFooter from '../components/layout/InspectorFooter.vue'
+
 const store = useImageStore()
 const { downloadImage } = useFileHelpers()
 
@@ -721,8 +723,9 @@ const imageCardClasses = (img: ImageItem) => ({
     </template>
 
     <template #sidebar>
-      <div class="p-6 flex flex-col gap-8 h-full overflow-hidden bg-background">
-        <div class="flex-1 overflow-y-auto custom-scrollbar pr-1 flex flex-col gap-8">
+      <div class="flex flex-col h-full relative">
+        <!-- 1. 参数调节区 (可滚动) -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-10">
           <section class="space-y-5">
             <AppSectionHeader title="网格设置" :icon="Grid3X3" />
             <div class="space-y-4 px-1">
@@ -735,7 +738,7 @@ const imageCardClasses = (img: ImageItem) => ({
               />
               <div
                 v-if="editMode === 'grid'"
-                class="bg-muted/10 rounded-2xl p-5 border border-border/60 shadow-inner space-y-6 animate-in zoom-in-95 duration-300"
+                class="bg-muted/10 rounded-2xl p-5 border border-border/60 space-y-6 animate-in zoom-in-95 duration-300"
               >
                 <AppSlider v-model="rows" label="垂直行数 (Rows)" :min="1" :max="10" :step="1" />
                 <AppSlider v-model="cols" label="水平列数 (Cols)" :min="1" :max="10" :step="1" />
@@ -803,6 +806,7 @@ const imageCardClasses = (img: ImageItem) => ({
               </div>
             </div>
           </section>
+
           <section class="space-y-5">
             <AppSectionHeader title="增强处理" :icon="Layers" />
             <div class="space-y-4 px-1">
@@ -829,6 +833,7 @@ const imageCardClasses = (img: ImageItem) => ({
               </div>
             </div>
           </section>
+
           <section class="space-y-5">
             <AppSectionHeader title="导出配置" :icon="FileType" />
             <div class="space-y-4 px-1">
@@ -844,7 +849,9 @@ const imageCardClasses = (img: ImageItem) => ({
             </div>
           </section>
         </div>
-        <div class="pt-4 border-t border-border shrink-0">
+
+        <!-- 2. 底部动作条 -->
+        <InspectorFooter>
           <AppButton
             size="lg"
             variant="cta"
@@ -856,7 +863,7 @@ const imageCardClasses = (img: ImageItem) => ({
             <template #icon><Scissors v-if="!isProcessing" :size="20" class="mr-2.5" /></template>
             <span class="font-bold tracking-tight text-base">{{ buttonText }}</span>
           </AppButton>
-        </div>
+        </InspectorFooter>
       </div>
     </template>
   </WorkspaceLayout>

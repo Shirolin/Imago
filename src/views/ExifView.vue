@@ -27,6 +27,8 @@ import AppTip from '../components/common/AppTip.vue'
 import { clearExifEngine, readExif, type ExifData } from '../lib/engines/exifEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 
+import InspectorFooter from '../components/layout/InspectorFooter.vue'
+
 const store = useImageStore()
 
 const selectedImageId = ref<string | null>(null)
@@ -250,43 +252,47 @@ const handleClearExif = async () => {
     </template>
 
     <template #sidebar>
-      <div class="p-4 flex flex-col gap-4 h-full overflow-hidden">
-        <AppSectionHeader title="PRIVACY ANALYSIS" :icon="Info" class="mb-1 text-foreground" />
-        <div class="flex-1 overflow-y-auto custom-scrollbar pr-1 flex flex-col gap-4">
-          <div v-if="selectedImage && !isReadingExif" class="flex flex-col gap-3">
+      <div class="flex flex-col h-full relative">
+        <!-- 1. 参数调节区 (可滚动) -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
+          <AppSectionHeader title="隐私数据分析" :icon="Info" class="mb-1 text-foreground" />
+
+          <div v-if="selectedImage && !isReadingExif" class="flex flex-col gap-4">
             <div
               v-if="exifData?.metaCount"
-              class="p-3 bg-destructive/10 rounded-xl border border-destructive/20 flex items-center gap-3"
+              class="p-4 bg-destructive/5 rounded-2xl border border-destructive/10 flex items-center gap-4"
             >
               <div
-                class="w-8 h-8 rounded-lg bg-destructive flex items-center justify-center text-destructive-foreground shrink-0"
+                class="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive shrink-0"
               >
-                <ShieldAlert :size="16" />
+                <ShieldAlert :size="20" />
               </div>
               <div class="min-w-0">
                 <p
-                  class="text-[0.55rem] font-black text-destructive uppercase leading-none mb-1 tracking-widest"
+                  class="text-[0.6rem] font-black text-destructive uppercase leading-none mb-1 tracking-widest"
                 >
-                  Risk Level
+                  Privacy Risk
                 </p>
-                <p class="text-[0.7rem] font-bold text-destructive leading-tight italic truncate">
-                  Detected {{ exifData.metaCount }} Tags
+                <p class="text-[0.75rem] font-bold text-destructive leading-tight italic truncate">
+                  Detected {{ exifData.metaCount }} Hidden Tags
                 </p>
               </div>
             </div>
-            <div class="flex flex-col gap-2">
+
+            <!-- 数据卡片列表 -->
+            <div class="space-y-3">
               <div
                 v-if="exifData?.model"
-                class="p-3 bg-muted/50 rounded-xl border border-border flex gap-3 items-center group transition-colors hover:bg-muted"
+                class="p-4 bg-muted/30 rounded-2xl border border-border/40 flex gap-4 items-center group transition-all hover:bg-muted/50"
               >
                 <div
-                  class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0 transition-transform group-hover:scale-105"
+                  class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 transition-transform group-hover:scale-105 shadow-sm"
                 >
                   <Smartphone
                     v-if="exifData.model.includes('iPhone') || exifData.model.includes('Android')"
-                    :size="16"
+                    :size="18"
                   />
-                  <Camera v-else :size="16" />
+                  <Camera v-else :size="18" />
                 </div>
                 <div class="min-w-0">
                   <p
@@ -294,19 +300,20 @@ const handleClearExif = async () => {
                   >
                     Equipment
                   </p>
-                  <p class="text-[0.75rem] font-bold text-foreground truncate leading-tight">
+                  <p class="text-[0.8rem] font-bold text-foreground truncate leading-tight">
                     {{ exifData.make }} {{ exifData.model }}
                   </p>
                 </div>
               </div>
+
               <div
                 v-if="exifData?.dateTime"
-                class="p-3 bg-muted/50 rounded-xl border border-border flex gap-3 items-center group transition-colors hover:bg-muted"
+                class="p-4 bg-muted/30 rounded-2xl border border-border/40 flex gap-4 items-center group transition-all hover:bg-muted/50"
               >
                 <div
-                  class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0"
+                  class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 transition-transform group-hover:scale-105 shadow-sm"
                 >
-                  <Calendar :size="16" />
+                  <Calendar :size="18" />
                 </div>
                 <div class="min-w-0">
                   <p
@@ -314,19 +321,20 @@ const handleClearExif = async () => {
                   >
                     Capture Time
                   </p>
-                  <p class="text-[0.75rem] font-bold text-foreground leading-tight truncate">
+                  <p class="text-[0.8rem] font-bold text-foreground leading-tight truncate">
                     {{ exifData.dateTime }}
                   </p>
                 </div>
               </div>
+
               <div
                 v-if="exifData?.latitude !== undefined"
-                class="p-3 bg-muted/50 rounded-xl border border-border flex gap-3 items-center group transition-colors hover:bg-muted"
+                class="p-4 bg-muted/30 rounded-2xl border border-border/40 flex gap-4 items-center group transition-all hover:bg-muted/50"
               >
                 <div
-                  class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0"
+                  class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 transition-transform group-hover:scale-105 shadow-sm"
                 >
-                  <MapPin :size="16" />
+                  <MapPin :size="18" />
                 </div>
                 <div class="min-w-0">
                   <p
@@ -334,81 +342,113 @@ const handleClearExif = async () => {
                   >
                     Location
                   </p>
-                  <p class="text-[0.7rem] font-bold text-foreground leading-tight">
+                  <p class="text-[0.75rem] font-bold text-foreground leading-tight font-mono">
                     {{ exifData.latitude.toFixed(4) }}°, {{ exifData.longitude?.toFixed(4) }}°
                   </p>
                 </div>
               </div>
             </div>
+
+            <!-- 详细标签展开 -->
             <div v-if="exifData?.all && Object.keys(exifData.all).length > 0" class="mt-2">
               <button
                 @click="isAllTagsExpanded = !isAllTagsExpanded"
-                class="flex items-center justify-between w-full px-1 mb-2 group text-muted-foreground hover:text-primary transition-colors"
+                class="flex items-center justify-between w-full px-2 mb-3 group text-muted-foreground hover:text-primary transition-colors"
               >
-                <span class="text-[0.55rem] font-black uppercase tracking-[0.2em] font-mono"
-                  >Hidden Metadata ({{ exifData.metaCount }})</span
+                <span class="text-[0.6rem] font-black uppercase tracking-[0.2em] font-mono"
+                  >ALL METADATA ({{ exifData.metaCount }})</span
                 >
                 <component
                   :is="isAllTagsExpanded ? ChevronUp : ChevronDown"
-                  :size="12"
+                  :size="14"
                   class="opacity-40 group-hover:opacity-100"
                 />
               </button>
               <div
                 v-if="isAllTagsExpanded"
-                class="flex flex-wrap gap-1.5 px-1 animate-in slide-in-from-top-1 duration-300"
+                class="flex flex-wrap gap-2 px-1 animate-in slide-in-from-top-1 duration-300"
               >
                 <div
                   v-for="(val, key) in exifData.all"
                   :key="key"
-                  class="px-2 py-1 bg-muted border border-border rounded-md text-[0.6rem] font-bold text-muted-foreground transition-all hover:text-foreground hover:border-primary/50 cursor-help"
+                  class="px-2.5 py-1.5 bg-muted/50 border border-border/60 rounded-lg text-[0.6rem] font-bold text-muted-foreground transition-all hover:text-foreground hover:border-primary/50 cursor-help"
                   :title="`${key}: ${val}`"
                 >
                   {{ key }}
                 </div>
               </div>
             </div>
+
+            <!-- 无隐私数据状态 -->
             <div
               v-if="!exifData?.metaCount"
-              class="py-10 text-center bg-primary/5 rounded-2xl border border-dashed border-primary/20 animate-in fade-in duration-500"
+              class="py-12 text-center bg-primary/[0.03] rounded-3xl border border-dashed border-primary/20 animate-in fade-in duration-500"
             >
-              <ShieldCheck :size="32" class="text-primary/60 mx-auto mb-3" />
-              <p class="text-[0.7rem] font-black text-primary uppercase tracking-[0.3em] mb-1">
+              <ShieldCheck :size="40" class="text-primary/40 mx-auto mb-4" />
+              <p class="text-[0.75rem] font-black text-primary uppercase tracking-[0.3em] mb-1.5">
                 Privacy Secured
               </p>
-              <p class="text-[0.6rem] font-bold text-muted-foreground px-8 leading-relaxed">
-                No sensitive metadata detected.
+              <p class="text-[0.65rem] font-bold text-muted-foreground/60 px-8 leading-relaxed">
+                No sensitive metadata detected in this file.
               </p>
             </div>
           </div>
+
+          <!-- 读取中状态 -->
           <div
             v-else-if="isReadingExif"
-            class="py-24 flex flex-col items-center justify-center gap-3"
+            class="py-32 flex flex-col items-center justify-center gap-4"
           >
-            <RefreshCcw :size="28" class="text-primary animate-spin" />
+            <RefreshCcw :size="32" class="text-primary animate-spin" />
             <p
               class="text-[0.65rem] font-black text-muted-foreground uppercase tracking-[0.4em] animate-pulse"
             >
-              Reading...
+              Analyzing...
             </p>
           </div>
+
+          <!-- 未选中状态 -->
           <div
             v-else
-            class="py-12 text-center bg-muted/30 rounded-2xl border border-dashed border-border px-8"
+            class="py-20 text-center bg-muted/20 rounded-3xl border border-dashed border-border/60 px-8"
           >
-            <Fingerprint :size="24" class="mx-auto text-muted-foreground/40 mb-3" />
-            <p class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-[0.2em]">
-              Select Image
+            <Fingerprint :size="32" class="mx-auto text-muted-foreground/20 mb-4" />
+            <p class="text-[0.7rem] font-bold text-muted-foreground/40 uppercase tracking-[0.2em]">
+              Select Image to Start
             </p>
           </div>
-        </div>
-        <AppTip :icon="ShieldCheck" variant="primary" class="shrink-0">
-          <p
-            class="text-[0.65rem] text-muted-foreground leading-tight font-medium font-mono text-center"
+
+          <!-- 提示移入此处 -->
+          <AppTip
+            v-if="selectedImage"
+            :icon="ShieldCheck"
+            variant="primary"
+            class="bg-primary/5 border-primary/10 mt-6"
           >
-            Data processing happens entirely in your browser.
-          </p>
-        </AppTip>
+            <p class="text-[0.65rem] text-muted-foreground leading-tight font-medium font-mono">
+              Data processing happens entirely in your local browser.
+            </p>
+          </AppTip>
+        </div>
+
+        <!-- 2. 底部动作条 (极简版) -->
+        <InspectorFooter>
+          <AppButton
+            size="lg"
+            variant="cta"
+            class="w-full h-14 rounded-2xl shadow-xl shadow-primary/10 hover:-translate-y-0.5 transition-all duration-300 active:scale-95"
+            :loading="isProcessing"
+            :disabled="
+              !!(!store.selectedCount || isProcessing || (selectedImage && !exifData?.metaCount))
+            "
+            @click="handleClearExif"
+          >
+            <template #icon><Trash2 v-if="!isProcessing" :size="18" class="mr-2.5" /></template>
+            <span class="tracking-tight uppercase font-black text-sm"
+              >清除隐私元数据 ({{ store.selectedCount }})</span
+            >
+          </AppButton>
+        </InspectorFooter>
       </div>
     </template>
   </WorkspaceLayout>

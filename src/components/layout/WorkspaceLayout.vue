@@ -108,8 +108,8 @@ withDefaults(defineProps<Props>(), {
           // 移动端样式：固定在底部的抽屉 (Bottom Sheet)
           'fixed bottom-0 top-auto left-0 right-0 md:static w-full md:h-auto rounded-t-[2rem] md:rounded-none',
           layoutStore.isInspectorCollapsed
-            ? 'translate-y-[calc(100%-44px)] md:translate-y-0 md:w-0 border-transparent shadow-[0_-4px_15px_-1px_rgba(0,0,0,0.06)]'
-            : 'translate-y-0 md:w-[300px] xl:w-[340px] shadow-[0_-15px_40px_-10px_rgba(0,0,0,0.2)] visible',
+            ? 'translate-y-[calc(100%-44px)] md:translate-y-0 md:w-0 border-transparent shadow-[0_-4px_15px_-1px_rgba(0,0,0,0.06)] md:shadow-none'
+            : 'translate-y-0 md:w-[300px] xl:w-[340px] shadow-[0_-15px_40px_-10px_rgba(0,0,0,0.2)] md:shadow-none visible',
           // 高度控制：大幅提升上限，仅保留顶部 20px 呼吸感
           'max-h-[calc(100dvh-20px)] md:max-h-none'
         ]"

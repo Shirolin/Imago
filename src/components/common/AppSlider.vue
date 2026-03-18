@@ -80,7 +80,7 @@ const handleNumberInput = (e: Event) => {
     <div class="relative flex items-center h-5">
       <!-- 背景轨道 -->
       <div
-        class="absolute w-full h-1 bg-muted/60 rounded-full overflow-hidden border border-border/10 shadow-inner"
+        class="absolute w-full h-1 bg-muted/60 rounded-full overflow-hidden border border-border/10"
       >
         <!-- 已填充进度条 (Delightful Fill) -->
         <div

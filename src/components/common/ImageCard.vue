@@ -96,7 +96,7 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
 
 <template>
   <div
-    class="relative bg-card rounded-2xl overflow-hidden border border-border/60 transition-all duration-500 cursor-pointer flex flex-col group hover:shadow-2xl hover:shadow-black/10 hover:border-primary/30 shadow-inner-glow @container outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+    class="relative bg-card rounded-2xl overflow-hidden border border-border/60 transition-all duration-500 cursor-pointer flex flex-col group hover:shadow-2xl hover:shadow-black/10 hover:border-primary/30 @container outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     :class="[
       isSelected
         ? 'ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/[0.03]'
@@ -322,10 +322,6 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
 </template>
 
 <style scoped>
-.shadow-inner-glow {
-  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.02);
-}
-
 /* 脏状态边框呼吸动画 */
 @keyframes dirty-pulse {
   0%,

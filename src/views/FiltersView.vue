@@ -28,6 +28,8 @@ import { useImageProcessor } from '../composables/useImageProcessor'
 import { useDebounceFn } from '@vueuse/core'
 import { ChevronDown, ChevronUp } from 'lucide-vue-next'
 
+import InspectorFooter from '../components/layout/InspectorFooter.vue'
+
 const store = useImageStore()
 
 const activeImageId = ref<string | null>(null)
@@ -439,36 +441,43 @@ onMounted(() => initAnalysis())
     </template>
 
     <template #sidebar>
-      <div class="flex flex-col h-full">
+      <div class="flex flex-col h-full relative">
+        <!-- 1. 参数调节区 (可滚动) -->
         <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-10">
-          <!-- 1. 沉浸式预览区 -->
+          <!-- 沉浸式预览区 -->
           <section class="space-y-4">
             <div class="flex items-center justify-between px-0.5">
               <AppSectionHeader title="画质预览" :icon="Eye" />
 
-              <!-- 直方图胶囊容器 (移除意外边框并重构) -->
-              <div
-                class="flex items-center gap-2 px-2 py-1 bg-muted/30 rounded-full border-0 focus-within:bg-muted/50 transition-all"
-              >
-                <canvas
-                  ref="histogramCanvas"
-                  width="50"
-                  height="16"
-                  class="opacity-60 grayscale hover:grayscale-0 transition-all border-0 outline-none"
-                  title="实时色彩分布"
-                ></canvas>
-                <div class="w-px h-2 bg-border/40"></div>
-                <span
-                  class="text-[0.55rem] font-black text-primary/60 uppercase tracking-[0.1em] select-none"
-                  >Live</span
+              <div class="flex items-center gap-3">
+                <!-- 重置按钮移动至此 -->
+                <button
+                  @click="resetAll"
+                  class="flex items-center gap-1.5 text-[0.55rem] font-black text-muted-foreground/40 hover:text-destructive uppercase tracking-widest transition-all"
+                  title="重置所有参数"
                 >
+                  <RotateCcw :size="10" /> Reset
+                </button>
+                <div class="w-px h-2 bg-border/40"></div>
+                <!-- 直方图胶囊容器 -->
+                <div
+                  class="flex items-center gap-2 px-2 py-1 bg-muted/30 rounded-full border-0 focus-within:bg-muted/50 transition-all"
+                >
+                  <canvas
+                    ref="histogramCanvas"
+                    width="50"
+                    height="16"
+                    class="opacity-60 grayscale hover:grayscale-0 transition-all border-0 outline-none"
+                    title="实时色彩分布"
+                  ></canvas>
+                </div>
               </div>
             </div>
 
             <div
               class="group relative aspect-video bg-slate-950 rounded-2xl border border-border/40 overflow-hidden shadow-soft ring-1 ring-white/5"
             >
-              <!-- 预览模式标签 (Clarify) -->
+              <!-- 预览模式标签 -->
               <div
                 v-if="activeImage && isDirty && !isComparing"
                 class="absolute top-3 left-3 z-30 px-2 py-1 bg-primary/20 backdrop-blur-md border border-primary/30 rounded-md animate-in fade-in slide-in-from-top-1 duration-300"
@@ -501,7 +510,7 @@ onMounted(() => initAnalysis())
                 >
               </div>
 
-              <!-- 对比触发器 (拇指优先) -->
+              <!-- 对比触发器 -->
               <button
                 v-if="activeImage"
                 @mousedown="isComparing = true"
@@ -523,7 +532,7 @@ onMounted(() => initAnalysis())
             </div>
           </section>
 
-          <!-- 2. 分类预设 -->
+          <!-- 风格预设 -->
           <section class="space-y-5">
             <AppSectionHeader title="风格预设" :icon="Sparkles" />
             <div class="grid grid-cols-3 gap-2">
@@ -556,8 +565,8 @@ onMounted(() => initAnalysis())
             </div>
           </section>
 
-          <!-- 3. 精细调节 (折叠版块) -->
-          <div class="space-y-4">
+          <!-- 精细调节 (折叠版块) -->
+          <div class="space-y-4 pb-4">
             <!-- 曝光与对比 -->
             <section
               class="border border-border/20 rounded-2xl overflow-hidden transition-all duration-300 bg-background/20"
@@ -703,28 +712,8 @@ onMounted(() => initAnalysis())
           </div>
         </div>
 
-        <!-- 底部动作条 -->
-        <div
-          class="p-6 bg-gradient-to-t from-card via-card to-transparent pt-12 mt-auto border-t border-border/40 relative z-20 shrink-0"
-        >
-          <div class="flex items-center justify-between mb-4 px-1">
-            <button
-              @click="resetAll"
-              class="flex items-center gap-2 text-[0.55rem] font-black text-muted-foreground/60 hover:text-destructive uppercase tracking-widest transition-colors"
-            >
-              <RotateCcw :size="10" /> Reset All
-            </button>
-            <div class="flex flex-col items-end gap-0.5">
-              <span
-                class="text-[0.55rem] font-black text-muted-foreground/40 uppercase tracking-widest"
-              >
-                {{ store.selectedCount || store.images.length }} Assets Selected
-              </span>
-              <span v-if="isDirty" class="text-[0.5rem] font-bold text-primary/60 animate-pulse">
-                效果尚未应用到原图
-              </span>
-            </div>
-          </div>
+        <!-- 2. 底部动作条 (极简版) -->
+        <InspectorFooter>
           <AppButton
             size="lg"
             variant="cta"
@@ -739,14 +728,10 @@ onMounted(() => initAnalysis())
               isDirty ? '应用当前效果' : '保存设置'
             }}</span>
           </AppButton>
-        </div>
+        </InspectorFooter>
       </div>
     </template>
   </WorkspaceLayout>
 </template>
 
-<style scoped>
-.shadow-soft {
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
-}
-</style>
+<style scoped></style>

@@ -30,6 +30,8 @@ import {
 import { cropEngine } from '../lib/engines/cropEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 
+import InspectorFooter from '../components/layout/InspectorFooter.vue'
+
 const store = useImageStore()
 
 // --- 状态 (Refs) ---
@@ -354,12 +356,14 @@ watch(
       </template>
 
       <template #sidebar>
-        <div class="flex flex-col h-full">
+        <div class="flex flex-col h-full relative">
+          <!-- 1. 参数调节区 (可滚动) -->
           <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-10">
-            <!-- 1. 变换与历史 -->
+            <!-- 变换与历史 -->
             <section class="space-y-4">
               <AppSectionHeader title="变换与历史" :icon="RotateCw" />
               <div class="bg-muted/10 p-4 rounded-2xl border border-border/40 space-y-4">
+                <!-- ... 内容省略，保持原样 ... -->
                 <div class="grid grid-cols-4 gap-2">
                   <button
                     @click="handleRotate"
@@ -450,7 +454,7 @@ watch(
               </div>
             </section>
 
-            <!-- 2. 裁剪比例与精确控制 -->
+            <!-- 裁剪比例与精确控制 -->
             <section class="space-y-4">
               <div class="flex items-center justify-between">
                 <AppSectionHeader title="裁剪区域" :icon="Maximize2" />
@@ -525,7 +529,7 @@ watch(
                 <div class="flex items-center gap-2.5 px-1">
                   <!-- 快速选择组：透明、白、黑 -->
                   <div
-                    class="flex items-center gap-1.5 p-1 bg-muted/30 rounded-xl border border-border/40 shadow-inner-glow shrink-0"
+                    class="flex items-center gap-1.5 p-1 bg-muted/30 rounded-xl border border-border/40 shrink-0"
                   >
                     <!-- 透明 -->
                     <button
@@ -710,7 +714,7 @@ watch(
               </div>
             </section>
 
-            <!-- 3. 输出设置 -->
+            <!-- 输出设置 -->
             <section class="space-y-4">
               <div class="flex items-center justify-between">
                 <AppSectionHeader title="导出设置" :icon="FileType" />
@@ -776,21 +780,18 @@ watch(
                       />
                     </div>
                   </div>
-                  <p class="text-[0.65rem] text-muted-foreground/40 px-0.5 italic">
-                    仅影响导出，不改变预览框位置
-                  </p>
                 </div>
               </div>
             </section>
 
-            <!-- 4. 待处理队列 -->
+            <!-- 待处理队列 -->
             <section class="space-y-4 pb-4">
               <AppSectionHeader title="队列" :icon="ListOrdered" />
               <div class="space-y-2 max-h-[260px] overflow-y-auto pr-1 custom-scrollbar">
                 <div
                   v-for="img in store.images"
                   :key="img.id"
-                  class="flex items-center gap-3 p-2 rounded-xl cursor-pointer border transition-all group"
+                  class="flex items-center gap-3 p-2 rounded-xl cursor-pointer border transition-all group shadow-sm"
                   :class="
                     selectedImageId === img.id
                       ? 'bg-primary/5 border-primary/40'
@@ -838,8 +839,8 @@ watch(
             </section>
           </div>
 
-          <!-- 底部执行 -->
-          <div class="p-6 mt-auto border-t border-border/30 shrink-0">
+          <!-- 2. 底部执行 (新组件) -->
+          <InspectorFooter>
             <AppButton
               size="lg"
               variant="cta"
@@ -851,7 +852,7 @@ watch(
               <template #icon><Scissors v-if="!isProcessing" :size="16" class="mr-2" /></template>
               {{ buttonText }}
             </AppButton>
-          </div>
+          </InspectorFooter>
         </div>
       </template>
     </WorkspaceLayout>

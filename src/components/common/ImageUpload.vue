@@ -154,7 +154,7 @@ onUnmounted(() => {
         class="relative mb-10 md:mb-16 w-[clamp(120px,30cqw,160px)] aspect-[1.2/1] flex justify-center perspective-1000"
       >
         <div
-          class="w-[60%] h-[80%] rounded-[24%] bg-card border-2 border-border text-primary flex items-center justify-center relative z-10 transition-all duration-500 group-hover:border-primary group-hover:scale-110 group-hover:-rotate-3 shadow-soft group-hover:shadow-primary/20"
+          class="w-[60%] h-[80%] rounded-[24%] bg-card border-2 border-border text-primary flex items-center justify-center relative z-10 transition-all duration-500 group-hover:border-primary group-hover:scale-110 group-hover:-rotate-3 shadow-lg group-hover:shadow-primary/20"
         >
           <Upload class="w-1/2 h-1/2 transition-transform duration-500 group-hover:scale-110" />
         </div>
