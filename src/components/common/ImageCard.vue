@@ -122,8 +122,8 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
         <slot name="visual-effects" :image="image"></slot>
       </div>
 
-      <!-- 【左上角】：选择框 (z-50) -->
-      <div class="absolute top-3 left-3 z-50 flex items-center gap-2 pointer-events-none">
+      <!-- 【左上角】：选择框 (z-30) -->
+      <div class="absolute top-3 left-3 z-30 flex items-center gap-2 pointer-events-none">
         <div
           class="transition-all duration-300"
           :class="
@@ -139,10 +139,10 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
         <slot name="overlay" :image="image"></slot>
       </div>
 
-      <!-- 【右上角】：删除按钮 (z-50) -->
+      <!-- 【右上角】：删除按钮 (z-30) -->
       <button
         @click.stop="emit('remove', image.id)"
-        class="absolute top-3 right-3 z-50 bg-black/20 hover:bg-destructive text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 group-focus-within/image:opacity-100 focus:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-white/10 outline-none focus-visible:ring-2 focus-visible:ring-white"
+        class="absolute top-3 right-3 z-30 bg-black/20 hover:bg-destructive text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 group-focus-within/image:opacity-100 focus:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-white/10 outline-none focus-visible:ring-2 focus-visible:ring-white"
         aria-label="从列表移除图片"
       >
         <X :size="14" />
@@ -207,9 +207,9 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
         </div>
       </div>
 
-      <!-- 【底部 HUD】：技术参数条 (提升至 z-40，确保不被滤镜层遮挡) -->
+      <!-- 【底部 HUD】：技术参数条 (降级至 z-20，确保不遮挡侧边栏) -->
       <div
-        class="absolute bottom-0 left-0 right-0 h-9 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-40 flex items-end px-3 pb-2 transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100 pointer-events-none"
+        class="absolute bottom-0 left-0 right-0 h-9 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-20 flex items-end px-3 pb-2 transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100 pointer-events-none"
       >
         <div
           class="flex items-center gap-2 text-[0.65rem] font-bold text-white/90 tabular-nums tracking-tight"
@@ -224,10 +224,10 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
         </div>
       </div>
 
-      <!-- 处理中状态 -->
+      <!-- 处理中状态 (降级至 z-20) -->
       <div
         v-if="image.status === 'processing'"
-        class="absolute inset-0 bg-background/60 backdrop-blur-[2px] z-40 flex items-center justify-center"
+        class="absolute inset-0 bg-background/60 backdrop-blur-[2px] z-20 flex items-center justify-center"
       >
         <Loader2 class="animate-spin text-primary" :size="24" />
       </div>

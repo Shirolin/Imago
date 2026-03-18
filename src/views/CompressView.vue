@@ -215,7 +215,7 @@ const buttonText = computed(() => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col overflow-hidden">
+  <div class="h-full w-full flex flex-col overflow-hidden">
     <WorkspaceLayout show-sidebar no-scroll>
       <template #header-left>
         <ImageSelectionStatus />
@@ -233,11 +233,11 @@ const buttonText = computed(() => {
         <!-- 核心内容区 (独立滚动网格) -->
         <div class="h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-6">
           <div
-            class="grid gap-4 md:gap-6"
+            class="grid transition-all duration-300"
             :class="[
               layoutStore.cardSizeMode === 'compact'
-                ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8'
-                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
+                ? 'grid-cols-[repeat(auto-fill,minmax(130px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 md:gap-8'
+                : 'grid-cols-[repeat(auto-fill,minmax(160px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 md:gap-10'
             ]"
           >
             <ImageCard

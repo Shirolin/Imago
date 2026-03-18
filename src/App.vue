@@ -60,6 +60,23 @@ onMounted(() => {
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     if (theme.value === 'system') applyTheme()
   })
+
+  // 调试脚本：排查移动端阴影截断
+  if (window.innerWidth < 768) {
+    console.group('Mobile Shadow Debug')
+    let el = document.getElementById('inspector-panel')
+    while (el) {
+      const style = window.getComputedStyle(el)
+      if (style.overflow !== 'visible' || style.transform !== 'none') {
+        console.log(`[Layer] ${el.tagName}.${el.className.split(' ').join('.')}`)
+        console.log(` - Overflow: ${style.overflow}`)
+        console.log(` - Transform: ${style.transform}`)
+        console.log(` - Z-Index: ${style.zIndex}`)
+      }
+      el = el.parentElement
+    }
+    console.groupEnd()
+  }
 })
 
 const routeNameMap: Record<string, string> = {
@@ -109,7 +126,7 @@ const menuGroups = [
 
 <template>
   <div
-    class="flex h-screen w-full overflow-hidden relative bg-background text-foreground antialiased transition-colors duration-300"
+    class="flex h-[100dvh] w-full overflow-hidden relative bg-background text-foreground antialiased transition-colors duration-300"
   >
     <div
       v-show="isMobileSidebarOpen"
@@ -167,7 +184,7 @@ const menuGroups = [
       </div>
 
       <nav
-        class="flex-1 overflow-y-auto flex flex-col custom-scrollbar overflow-x-hidden pb-10 transition-all duration-300 pt-2"
+        class="flex-1 min-h-0 overflow-y-auto flex flex-col custom-scrollbar overflow-x-hidden pb-10 transition-all duration-300 pt-2"
         :style="!layoutStore.isMenuCollapsed ? 'scrollbar-gutter: stable' : ''"
         :class="[
           layoutStore.isMenuCollapsed
@@ -342,10 +359,10 @@ const menuGroups = [
       ></div>
     </div>
 
-    <main class="flex-1 flex flex-col overflow-hidden relative">
+    <main class="flex-1 min-h-0 flex flex-col relative z-20">
       <!-- Toolbar (Header) -->
       <header
-        class="shrink-0 flex items-center justify-between px-4 md:px-8 bg-background/80 backdrop-blur-xl border-b border-border z-10 sticky top-0 h-16"
+        class="shrink-0 flex items-center justify-between px-4 md:px-8 bg-background/80 backdrop-blur-xl border-b border-border z-0 md:z-10 sticky top-0 h-16"
       >
         <div class="flex items-center gap-3">
           <button
@@ -413,10 +430,10 @@ const menuGroups = [
         </div>
       </header>
 
-      <div class="flex-1 overflow-hidden relative">
+      <div class="flex-1 min-h-0 overflow-hidden relative h-full">
         <router-view v-slot="{ Component, route }">
           <transition name="page-fade" mode="out-in">
-            <div v-if="Component" :key="route.fullPath" class="h-full w-full">
+            <div v-if="Component" :key="route.fullPath" class="h-full w-full flex flex-col min-h-0">
               <suspense :timeout="0">
                 <template #default>
                   <component :is="Component" />
