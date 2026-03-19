@@ -25,6 +25,7 @@ export interface ImageItem {
   error?: string
   abortController?: AbortController
   isDirty?: boolean
+  exifCount?: number
 }
 
 export const useImageStore = defineStore('image', () => {
