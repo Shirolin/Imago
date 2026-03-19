@@ -4,33 +4,26 @@ import { useImageStore } from '../stores/imageStore'
 import { useLayoutStore } from '../stores/layoutStore'
 import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
-import ImageCard from '../components/common/ImageCard.vue'
 import AppButton from '../components/common/AppButton.vue'
+import AppSlider from '../components/common/AppSlider.vue'
+import AppSelect from '../components/common/AppSelect.vue'
+import AppSectionHeader from '../components/common/AppSectionHeader.vue'
+import AppModal from '../components/common/AppModal.vue'
+import ImageCard from '../components/common/ImageCard.vue'
+import ImageCompare from '../components/common/ImageCompare.vue'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
-import AppSectionHeader from '../components/common/AppSectionHeader.vue'
-import AppSlider from '../components/common/AppSlider.vue'
-import AppTip from '../components/common/AppTip.vue'
-import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
-import AppSelect from '../components/common/AppSelect.vue'
-import AppInput from '../components/common/AppInput.vue'
-import AppCheckbox from '../components/common/AppCheckbox.vue'
-import ImageCompare from '../components/common/ImageCompare.vue'
-import AppModal from '../components/common/AppModal.vue'
 import {
   Zap,
-  ArrowRight,
   Settings2,
-  ImageIcon,
   FileType,
-  ChevronDown,
-  ChevronUp,
-  Palette
+  Info,
+  ArrowRight,
+  Maximize2,
+  Image as ImageIcon
 } from 'lucide-vue-next'
-import { dualEngine } from '../lib/engines'
-import { getSupportedFormats } from '../lib/utils/formatSupport'
+import { compressEngine } from '../lib/engines/compressEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
-import type { ImageItem } from '../stores/imageStore'
 
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
@@ -38,105 +31,42 @@ const store = useImageStore()
 const layoutStore = useLayoutStore()
 const { formatSize, downloadImage } = useFileHelpers()
 
-// 状态控制
-const compressionMode = ref<'quality' | 'target'>('quality')
-const compressionQuality = ref(0.8)
-const pngColors = ref(256)
-const pngEffort = ref(7)
-const targetSizeKB = ref(500)
-const outputFormat = ref<
-  | 'original'
-  | 'image/webp'
-  | 'image/jpeg'
-  | 'image/png'
-  | 'image/avif'
-  | 'image/jxl'
-  | 'image/webp2'
-  | 'image/jpeg-li'
->('original')
-const showAdvanced = ref(false)
-const keepOriginalIfLarger = ref(true)
-const preserveExif = ref(false)
-const maxWidth = ref<number | undefined>(undefined)
-const maxHeight = ref<number | undefined>(undefined)
-
-// 格式推荐质量映射
-const recommendedQualities: Record<string, number> = {
-  'image/jpeg-li': 0.75,
-  'image/jpeg': 0.8,
-  'image/webp': 0.75,
-  'image/avif': 0.55,
-  'image/jxl': 0.7,
-  'image/webp2': 0.65
-}
-
-// 对比预览状态
+// 状态
+const quality = ref(0.8)
+const outputFormat = ref<string>('original')
 const showCompareModal = ref(false)
-const comparingImage = ref<ImageItem | null>(null)
+const comparingImage = ref<any>(null)
 const processedPreviewUrl = ref<string | null>(null)
 
-// 浏览器支持性探测
-const supportedFormats = ref<Record<string, boolean>>({})
+const { isProcessing, processSelected } = useImageProcessor(compressEngine)
 
-onMounted(async () => {
-  const mimes = formatOptions.value
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .map((o: any) => o.value)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .filter((v: any) => v !== 'original') as string[]
-  supportedFormats.value = await getSupportedFormats(mimes)
-})
+const displayImages = computed(() => [...store.images].reverse())
 
-const { isProcessing, processAll, processSelected } = useImageProcessor(dualEngine)
+const formatOptions = [
+  { label: '保留原格式', value: 'original' },
+  { label: 'WebP (推荐)', value: 'image/webp' },
+  { label: 'JPEG (高兼容)', value: 'image/jpeg' },
+  { label: 'PNG (无损压缩)', value: 'image/png' }
+]
 
-// 排序逻辑：最新上传的在前
-const displayImages = computed(() => {
-  return [...store.images].reverse()
-})
+const handleCompress = async () => {
+  await processSelected({
+    quality: quality.value,
+    format: (outputFormat.value === 'original' ? undefined : outputFormat.value) as any
+  })
+}
 
-// 监听格式变化，自动设置推荐质量
-watch(outputFormat, (newFormat) => {
-  if (recommendedQualities[newFormat]) {
-    compressionQuality.value = recommendedQualities[newFormat]
-  }
-})
-
-// 监听核心参数变化，标记脏状态
-watch(
-  [
-    compressionMode,
-    compressionQuality,
-    pngColors,
-    pngEffort,
-    targetSizeKB,
-    outputFormat,
-    maxWidth,
-    maxHeight,
-    keepOriginalIfLarger,
-    preserveExif
-  ],
-  () => {
-    if (store.doneCount > 0) {
-      store.markAllAsDirty()
-    }
-  }
-)
-
-// 对比逻辑
 const handleCompare = (id: string) => {
-  const img = store.images.find((i) => i.id === id)
-  if (img && img.processedBlob) {
-    if (processedPreviewUrl.value) URL.revokeObjectURL(processedPreviewUrl.value)
-    processedPreviewUrl.value = URL.createObjectURL(img.processedBlob)
-    comparingImage.value = img
-    showCompareModal.value = true
-  }
+  const item = store.images.find((img) => img.id === id)
+  if (!item || !item.processedBlob) return
+  comparingImage.value = item
+  processedPreviewUrl.value = URL.createObjectURL(item.processedBlob)
+  showCompareModal.value = true
 }
 
 const closeCompare = () => {
   showCompareModal.value = false
 }
-
 const handleModalLeave = () => {
   if (processedPreviewUrl.value) {
     URL.revokeObjectURL(processedPreviewUrl.value)
@@ -145,94 +75,29 @@ const handleModalLeave = () => {
   comparingImage.value = null
 }
 
-// 选项配置
-const modeOptions = [
-  { label: '画质优先', value: 'quality', icon: ImageIcon },
-  { label: '指定体积', value: 'target', icon: Zap }
-]
-
-const formatOptions = computed(() => {
-  const base = [
-    { label: '保留原格式', value: 'original' },
-    { label: 'JPEG (最佳兼容)', value: 'image/jpeg-li' },
-    { label: 'WebP (推荐)', value: 'image/webp' },
-    { label: 'AVIF (先进格式)', value: 'image/avif' },
-    { label: 'PNG (无损/透明)', value: 'image/png' },
-    { label: 'JPEG XL (次世代)', value: 'image/jxl' },
-    { label: 'WebP2 (实验性)', value: 'image/webp2' }
-  ]
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return base.map((opt: any) => {
-    if (opt.value === 'original' || opt.value === 'image/jpeg-li') return opt
-    const isWasmSupported = [
-      'image/avif',
-      'image/jxl',
-      'image/webp',
-      'image/jpeg',
-      'image/png'
-    ].includes(opt.value)
-    const isSupported = isWasmSupported || supportedFormats.value[opt.value]
-    return {
-      ...opt,
-      label: isSupported === false ? `${opt.label} (暂不支持)` : opt.label,
-      disabled: isSupported === false
-    }
-  })
-})
-
-const handleProcess = () => {
-  const options = {
-    quality: compressionQuality.value,
-    maxSizeMB: compressionMode.value === 'target' ? targetSizeKB.value / 1024 : undefined,
-    maxWidth: maxWidth.value,
-    maxHeight: maxHeight.value,
-    format: outputFormat.value === 'original' ? undefined : outputFormat.value,
-    colors: outputFormat.value === 'image/png' ? pngColors.value : undefined,
-    effort: outputFormat.value === 'image/png' ? pngEffort.value : undefined,
-    keepOriginalIfLarger: keepOriginalIfLarger.value,
-    preserveExif: preserveExif.value
-  }
-
-  if (store.selectedCount > 0) {
-    processSelected(options)
-  } else {
-    processAll(options)
-  }
-}
-
 const handleDownload = (id: string) => {
   const item = store.images.find((img) => img.id === id)
-  if (item?.processedBlob) {
-    downloadImage(item.processedBlob, item.file.name, '_Imago_Lite')
-  }
+  if (item?.processedBlob) downloadImage(item.processedBlob, item.file.name, '_Compressed')
 }
 
+watch([quality, outputFormat], () => store.markAllAsDirty(), { deep: true })
+
 const buttonText = computed(() => {
-  if (isProcessing.value) return '正在处理...'
-  if (store.images.some((img) => img.isDirty)) return '重新应用新参数'
+  if (isProcessing.value) return '正在压缩...'
   if (store.selectedCount > 0) return `压缩选中的 ${store.selectedCount} 张`
-  return '开始压缩转换'
+  return '开始压缩'
 })
 </script>
 
 <template>
   <div class="h-full w-full flex flex-col overflow-hidden">
-    <WorkspaceLayout show-sidebar no-scroll>
-      <template #header-left>
-        <ImageSelectionStatus />
-      </template>
-
-      <template #header-actions>
-        <ImageActionsToolbar
-          :is-processing="isProcessing"
-          show-clear-all
-          zip-prefix="_Imago_Lite"
-        />
-      </template>
+    <WorkspaceLayout show-sidebar no-scroll show-assets-tray>
+      <template #header-left><ImageSelectionStatus /></template>
+      <template #header-actions
+        ><ImageActionsToolbar :is-processing="isProcessing" show-clear-all zip-prefix="_Compressed"
+      /></template>
 
       <template #content>
-        <!-- 核心内容区 (独立滚动网格) -->
         <div class="h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-6">
           <div
             class="grid transition-all duration-300"
@@ -252,69 +117,31 @@ const buttonText = computed(() => {
               @download="handleDownload"
               @compare="handleCompare"
             >
-              <template #overlay="{ image }">
-                <div
-                  v-if="image.status === 'done'"
-                  class="px-2 py-0.5 rounded-md text-[0.6rem] font-black flex items-center shadow-lg bg-background border border-border transition-all duration-300 group-hover:border-primary/40"
-                  :class="
-                    image.processedSize === image.originalSize
-                      ? 'text-muted-foreground'
-                      : 'text-primary'
-                  "
-                >
-                  <template v-if="image.processedSize === image.originalSize">已跳过</template>
-                  <template v-else
-                    >-{{
-                      Math.round((1 - image.processedSize! / image.originalSize) * 100)
-                    }}%</template
-                  >
-                </div>
-              </template>
               <template #meta="{ image }">
                 <div
-                  class="flex items-center bg-muted/30 border border-border transition-all duration-300 group-hover:border-primary/20"
-                  :class="[
-                    layoutStore.cardSizeMode === 'compact'
-                      ? 'gap-1.5 p-1.5 rounded-xl mt-1'
-                      : 'gap-3 p-3 rounded-2xl mt-1.5'
-                  ]"
+                  class="flex items-center bg-muted/30 border border-border transition-all duration-300 group-hover:border-primary/20 p-2 md:p-3 rounded-xl md:rounded-2xl mt-1.5"
+                  :class="[layoutStore.cardSizeMode === 'compact' ? 'gap-1.5' : 'gap-3']"
                 >
                   <div class="flex-1 flex flex-col gap-0.5">
                     <span
-                      class="font-black uppercase text-muted-foreground tracking-widest mt-0.5"
-                      :class="
-                        layoutStore.cardSizeMode === 'compact' ? 'text-[0.5rem]' : 'text-[0.6rem]'
-                      "
+                      class="font-black uppercase text-muted-foreground tracking-widest text-[0.55rem] md:text-[0.6rem]"
                       >原始</span
-                    >
-                    <span
-                      class="font-bold text-foreground transition-all"
-                      :class="
-                        layoutStore.cardSizeMode === 'compact' ? 'text-[0.65rem]' : 'text-[0.75rem]'
-                      "
-                      >{{ formatSize(image.originalSize) }}</span
-                    >
+                    ><span class="font-bold text-foreground text-[0.65rem] md:text-[0.75rem]">{{
+                      formatSize(image.originalSize)
+                    }}</span>
                   </div>
-                  <div class="text-muted-foreground flex shrink-0">
-                    <ArrowRight :size="layoutStore.cardSizeMode === 'compact' ? 10 : 12" />
-                  </div>
+                  <ArrowRight :size="12" class="text-muted-foreground shrink-0" />
                   <div class="flex-1 flex flex-col gap-0.5">
                     <span
-                      class="font-black uppercase text-muted-foreground tracking-widest mt-0.5"
-                      :class="
-                        layoutStore.cardSizeMode === 'compact' ? 'text-[0.5rem]' : 'text-[0.6rem]'
-                      "
+                      class="font-black uppercase text-muted-foreground tracking-widest text-[0.55rem] md:text-[0.6rem]"
                       >压缩后</span
+                    ><span
+                      class="font-bold text-[0.65rem] md:text-[0.75rem]"
+                      :class="image.status === 'done' ? 'text-primary' : 'text-foreground'"
+                      >{{
+                        image.status === 'done' ? formatSize(image.processedSize || 0) : '--'
+                      }}</span
                     >
-                    <span
-                      class="font-bold transition-all"
-                      :class="[
-                        image.status === 'done' ? 'text-primary' : 'text-foreground',
-                        layoutStore.cardSizeMode === 'compact' ? 'text-[0.65rem]' : 'text-[0.75rem]'
-                      ]"
-                    >
-                      {{ image.status === 'done' ? formatSize(image.processedSize!) : '--' }}
-                    </span>
                   </div>
                 </div>
               </template>
@@ -324,242 +151,55 @@ const buttonText = computed(() => {
       </template>
 
       <template #sidebar>
-        <div class="flex flex-col h-full relative">
-          <!-- 1. 参数调节区 (可滚动) -->
-          <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-7">
-            <!-- 压缩策略 -->
-            <section class="space-y-4">
-              <div class="flex items-center justify-between px-0.5">
-                <AppSectionHeader title="压缩策略" :icon="Settings2" />
-                <span
-                  class="text-[0.55rem] font-black text-muted-foreground/60 border border-border/50 px-1.5 py-0.5 rounded uppercase tracking-tighter"
-                  >Smart Engine</span
-                >
-              </div>
-              <AppSegmentedControl v-model="compressionMode" :options="modeOptions" />
-            </section>
-
-            <!-- 参数调节区 -->
-            <section class="relative">
-              <div class="bg-muted/10 rounded-2xl p-5 border border-border/60">
-                <!-- ... 内容省略，保持原样 ... -->
-                <div v-if="compressionMode === 'quality'" class="space-y-7">
-                  <template v-if="outputFormat === 'image/png'">
-                    <AppSlider
-                      v-model="pngColors"
-                      label="最大颜色数"
-                      :min="2"
-                      :max="256"
-                      :step="1"
-                      unit=""
-                      :icon="Palette"
-                    >
-                      <template #default="{ modelValue }">
-                        <span class="font-mono text-xs font-bold text-primary"
-                          >{{ modelValue }} <span class="text-[10px] opacity-60">Colors</span></span
-                        >
-                      </template>
-                    </AppSlider>
-                    <AppSlider
-                      v-model="pngEffort"
-                      label="编码精细度"
-                      :min="1"
-                      :max="9"
-                      :step="1"
-                      unit=""
-                      :icon="Zap"
-                    >
-                      <template #default="{ modelValue }">
-                        <div class="flex items-center gap-1.5">
-                          <span class="font-mono text-xs font-bold text-primary"
-                            >Lv.{{ modelValue }}</span
-                          >
-                          <span
-                            v-if="modelValue >= 7"
-                            class="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-sm font-black uppercase tracking-tighter"
-                            >Pro</span
-                          >
-                        </div>
-                      </template>
-                    </AppSlider>
-                  </template>
-                  <template v-else>
-                    <AppSlider
-                      v-model="compressionQuality"
-                      label="平衡画画质与体积"
-                      :min="0.1"
-                      :max="1.0"
-                      :step="0.05"
-                      :unit="''"
-                    >
-                      <template #default="{ modelValue }">
-                        <div class="flex items-center gap-2">
-                          <span class="font-mono text-sm font-black text-primary"
-                            >{{ Math.round(modelValue * 100) }}%</span
-                          >
-                          <div
-                            v-if="modelValue === recommendedQualities[outputFormat]"
-                            class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"
-                            title="推荐质量"
-                          ></div>
-                        </div>
-                      </template>
-                    </AppSlider>
-                    <div class="flex justify-between items-center px-1">
-                      <span
-                        class="text-[0.55rem] font-black text-muted-foreground uppercase tracking-[0.2em]"
-                        >极限压缩</span
-                      >
-                      <div
-                        class="h-px flex-1 mx-4 bg-gradient-to-r from-transparent via-border/60 to-transparent"
-                      ></div>
-                      <span
-                        class="text-[0.55rem] font-black text-muted-foreground uppercase tracking-[0.2em]"
-                        >最佳画质</span
-                      >
-                    </div>
-                  </template>
-                </div>
-                <div v-else class="space-y-4">
-                  <div class="flex justify-between items-center mb-1">
-                    <label
-                      class="text-[0.65rem] font-black text-muted-foreground uppercase tracking-widest pl-1"
-                      >目标体积</label
-                    >
-                    <span class="font-mono text-sm font-black text-primary"
-                      >{{ targetSizeKB }} <span class="text-[10px] opacity-60">KB</span></span
-                    >
-                  </div>
-                  <AppInput
-                    v-model.number="targetSizeKB"
-                    type="number"
-                    placeholder="500"
-                    :icon="Zap"
-                    suffix="KB"
-                  />
-                </div>
-              </div>
-            </section>
-
-            <!-- 转换格式 -->
-            <section class="space-y-4">
-              <AppSectionHeader title="转换格式" :icon="FileType" />
-              <div class="space-y-3">
-                <AppSelect v-model="outputFormat" :options="formatOptions" />
-                <div v-if="outputFormat !== 'original'" class="px-1">
-                  <AppTip
-                    v-if="!formatOptions.find((o) => o.value === outputFormat)?.disabled"
-                    variant="info"
-                    class="bg-primary/[0.03] border-primary/10 py-2"
-                  >
-                    <span class="text-[0.65rem] font-medium leading-tight"
-                      >已为您自动适配最佳压缩算法。</span
-                    >
-                  </AppTip>
-                </div>
-              </div>
-            </section>
-
-            <!-- 进阶设置 -->
-            <section class="space-y-4 pb-4">
-              <button
-                @click="showAdvanced = !showAdvanced"
-                class="flex items-center justify-between w-full group transition-colors px-0.5"
-                :aria-expanded="showAdvanced"
-              >
-                <AppSectionHeader
-                  title="进阶微调"
-                  :icon="Settings2"
-                  class="group-hover:text-primary"
-                />
-                <div class="flex items-center gap-2">
-                  <span
-                    class="text-[0.6rem] font-bold text-muted-foreground/60 uppercase tracking-widest"
-                    >{{ showAdvanced ? '收起' : '展开' }}</span
-                  >
-                  <component
-                    :is="showAdvanced ? ChevronUp : ChevronDown"
-                    :size="14"
-                    class="text-muted-foreground/40 group-hover:text-primary transition-all"
-                  />
-                </div>
-              </button>
-              <div
-                v-if="showAdvanced"
-                class="space-y-6 pt-1 animate-in fade-in slide-in-from-top-3 duration-300"
-              >
-                <div class="space-y-3">
-                  <label
-                    class="text-[0.6rem] font-black text-muted-foreground uppercase tracking-widest px-1"
-                    >分辨率限制 (可选)</label
-                  >
-                  <div class="grid grid-cols-2 gap-3">
-                    <AppInput
-                      v-model.number="maxWidth"
-                      type="number"
-                      placeholder="宽度"
-                      suffix="W"
-                    />
-                    <AppInput
-                      v-model.number="maxHeight"
-                      type="number"
-                      placeholder="高度"
-                      suffix="H"
-                    />
-                  </div>
-                </div>
-                <AppCheckbox v-model="keepOriginalIfLarger" label="体积变大时保留原图" />
-                <AppCheckbox v-model="preserveExif" label="保留图片元数据 (EXIF)" />
-                <AppCheckbox
-                  :model-value="store.showMagnifier"
-                  @update:model-value="store.setShowMagnifier"
-                  label="开启智能倍镜对比"
-                />
-              </div>
-            </section>
+        <section class="space-y-5">
+          <AppSectionHeader title="压缩设置" :icon="Settings2" />
+          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60">
+            <AppSlider
+              v-model="quality"
+              label="压缩强度"
+              :min="0.1"
+              :max="1.0"
+              :step="0.05"
+              :icon="Zap"
+            />
           </div>
+        </section>
 
-          <!-- 2. 底部固定操作区 (新组件) -->
-          <InspectorFooter>
-            <AppButton
-              size="lg"
-              variant="cta"
-              class="w-full h-14 rounded-2xl hover:-translate-y-0.5 transition-all duration-300 active:scale-95 shadow-xl shadow-primary/10"
-              :loading="isProcessing"
-              :disabled="!store.images.length"
-              @click="handleProcess"
-            >
-              <template #icon
-                ><Zap v-if="!isProcessing" :size="20" class="mr-2.5 fill-current"
-              /></template>
-              <span class="tracking-tight text-base font-bold">{{ buttonText }}</span>
-            </AppButton>
-          </InspectorFooter>
-        </div>
+        <section class="space-y-5">
+          <AppSectionHeader title="输出格式" :icon="FileType" />
+          <div class="px-1"><AppSelect v-model="outputFormat" :options="formatOptions" /></div>
+        </section>
+
+        <section class="pt-2">
+          <div
+            class="p-4 bg-primary/[0.03] border border-dashed border-primary/20 rounded-2xl flex gap-3"
+          >
+            <Info :size="16" class="text-primary shrink-0 mt-0.5" />
+            <p class="text-[0.65rem] text-muted-foreground leading-relaxed">
+              采用先进的 Web 压缩算法，在保持视觉质量的同时大幅减小文件体积。
+            </p>
+          </div>
+        </section>
+      </template>
+
+      <template #footer>
+        <InspectorFooter>
+          <AppButton
+            size="lg"
+            variant="cta"
+            class="w-full h-12 rounded-xl shadow-xl shadow-primary/10 transition-all active:scale-95"
+            :loading="isProcessing"
+            :disabled="!store.selectedCount || isProcessing"
+            @click="handleCompress"
+          >
+            <template #icon><Zap v-if="!isProcessing" :size="18" class="mr-2" /></template>
+            <span class="font-bold text-sm tracking-tight">{{ buttonText }}</span>
+          </AppButton>
+        </InspectorFooter>
       </template>
     </WorkspaceLayout>
 
-    <!-- 对比弹窗 -->
     <AppModal :show="showCompareModal" @close="closeCompare" @after-leave="handleModalLeave">
-      <template #header>
-        <div class="flex items-center gap-3">
-          <div
-            class="p-2 bg-primary rounded-lg text-primary-foreground shadow-lg shadow-primary/20"
-          >
-            <ImageIcon :size="20" />
-          </div>
-          <div v-if="comparingImage">
-            <h3 class="text-sm font-bold text-foreground truncate max-w-[180px] md:max-w-md">
-              {{ comparingImage.file.name }}
-            </h3>
-            <p
-              class="text-[0.65rem] text-muted-foreground font-bold uppercase tracking-widest leading-none mt-1"
-            >
-              对比画质细节
-            </p>
-          </div>
-        </div>
-      </template>
       <ImageCompare
         v-if="comparingImage && processedPreviewUrl"
         :original-url="comparingImage.preview"

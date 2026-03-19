@@ -76,11 +76,11 @@ const handleNumberInput = (e: Event) => {
       </div>
     </div>
 
-    <!-- 滑块交互区 -->
-    <div class="relative flex items-center h-5">
+    <!-- 滑块交互区 (Normalize: 增加内边距补偿手柄半宽溢出) -->
+    <div class="relative flex items-center h-5 px-2">
       <!-- 背景轨道 -->
       <div
-        class="absolute w-full h-1 bg-muted/60 rounded-full overflow-hidden border border-border/10"
+        class="absolute left-2 right-2 h-1 bg-muted/60 rounded-full overflow-hidden border border-border/10"
       >
         <!-- 已填充进度条 (Delightful Fill) -->
         <div

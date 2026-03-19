@@ -26,6 +26,10 @@ export interface ImageItem {
   abortController?: AbortController
   isDirty?: boolean
   exifCount?: number
+  history?: {
+    past: any[]
+    future: any[]
+  }
 }
 
 export const useImageStore = defineStore('image', () => {
@@ -179,14 +183,27 @@ export const useImageStore = defineStore('image', () => {
     }
   }
   const removeSelected = () => {
-    selectedIds.value.forEach((id) => removeImage(id))
+    // 1. 先收集所有待删除图片的 ID
+    const idsToRemove = Array.from(selectedIds.value)
+
+    // 2. 逐一执行标准的 removeImage 逻辑（包含内存释放）
+    idsToRemove.forEach((id) => removeImage(id))
+
+    // 3. 清空选择集
     selectedIds.value.clear()
   }
 
   const clearImages = () => {
+    // 严格遍历释放所有预览 URL 和中止控制器
     images.value.forEach((img) => {
       if (img.abortController) img.abortController.abort()
-      if (img.preview) URL.revokeObjectURL(img.preview)
+      if (img.preview) {
+        try {
+          URL.revokeObjectURL(img.preview)
+        } catch (e) {
+          console.error('Failed to revoke URL:', e)
+        }
+      }
     })
     images.value = []
     selectedIds.value.clear()

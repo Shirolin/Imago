@@ -37,9 +37,12 @@ const reverseScaleStyle = computed(() => ({
 const updateRenderedRect = () => {
   if (!imgRef.value) return
   const img = imgRef.value
-  const ir = img.naturalWidth / img.naturalHeight
-  const refW = 800 // 基准逻辑宽度
-  imgRenderedRect.value = { left: 0, top: 0, width: refW, height: refW / ir }
+  imgRenderedRect.value = {
+    left: 0,
+    top: 0,
+    width: img.naturalWidth,
+    height: img.naturalHeight
+  }
 }
 
 watch(

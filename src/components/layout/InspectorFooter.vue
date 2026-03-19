@@ -2,7 +2,7 @@
 /**
  * InspectorFooter
  * 统一的功能配置面板底部操作区
- * 提供粘性置底、磨砂背景、标准内边距和顶部分割线
+ * 提供物理置底、磨砂背景、标准内边距和顶部分割线
  */
 interface Props {
   // 是否显示顶部分割线
@@ -16,30 +16,30 @@ interface Props {
 withDefaults(defineProps<Props>(), {
   showBorder: true,
   glass: true,
-  padding: 'p-6'
+  padding: 'p-3 md:p-4'
 })
 </script>
 
 <template>
   <footer
-    class="sticky bottom-0 z-20 shrink-0 transition-all duration-300"
+    class="shrink-0 z-20 transition-all duration-300 relative"
     :class="[
       glass ? 'bg-card/95 backdrop-blur-md' : 'bg-card',
-      showBorder ? 'border-t border-border/50' : '',
+      showBorder ? 'border-t border-border/40' : '',
       padding,
-      // 增加向上的微弱投影，提示下方有可滚动内容
-      'shadow-[0_-12px_24px_-10px_rgba(0,0,0,0.05)]'
+      // 增加向上的精致投影，明确层级关系
+      'shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.1)]'
     ]"
   >
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 w-full">
       <slot></slot>
     </div>
   </footer>
 </template>
 
 <style scoped>
-/* 确保在深色模式下阴影更克制 */
+/* 深色模式下的阴影适配 */
 [data-theme='dark'] footer {
-  box-shadow: 0 -12px 30px -15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 -12px 40px -18px rgba(0, 0, 0, 0.4);
 }
 </style>

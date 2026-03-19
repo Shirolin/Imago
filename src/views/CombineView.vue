@@ -95,7 +95,6 @@ const handlePointerDown = (e: PointerEvent) => {
     containerRef.value?.setPointerCapture(e.pointerId)
   }
 }
-
 const handlePointerMove = (e: PointerEvent) => {
   if (isPanning.value)
     offset.value = { x: e.clientX - startPanPos.value.x, y: e.clientY - startPanPos.value.y }
@@ -111,7 +110,7 @@ const zoomOut = () => {
 
 watchOnce([() => store.images.length, containerRef], () => setTimeout(resetView, 100))
 
-// 状态与配置
+// 配置状态
 const combineDirection = ref<'vertical' | 'horizontal' | 'grid'>('vertical')
 const alignment = ref<'start' | 'center' | 'end'>('center')
 const spacing = ref(0)
@@ -160,10 +159,7 @@ const handleCombine = async () => {
         backgroundColor.value === '#00000000' ? 'transparent' : backgroundColor.value,
       alignment: alignment.value
     })
-    if (result?.blob) {
-      downloadImage(result.blob, `combined_${Date.now()}.png`)
-      store.images.forEach((img) => store.updateImage(img.id, { status: 'done' }))
-    }
+    if (result?.blob) downloadImage(result.blob, `combined_${Date.now()}.png`)
   } catch (error) {
     console.error('Combine failed:', error)
   }
@@ -186,41 +182,33 @@ const onDrop = (index: number) => {
   dropTargetIndex.value = null
 }
 
-const previewListStyles = computed(() => {
-  const isTransparent = backgroundColor.value === '#00000000'
-  return {
-    display: combineDirection.value === 'grid' ? 'grid' : 'inline-flex',
-    gridTemplateColumns:
-      combineDirection.value === 'grid' ? `repeat(${columns.value}, max-content)` : 'none',
-    gap: `${spacing.value}px`,
-    backgroundColor: isTransparent ? 'transparent' : backgroundColor.value,
-    backgroundImage: isTransparent ? 'var(--checkerboard-pattern)' : 'none',
-    flexDirection: (combineDirection.value === 'vertical' ? 'column' : 'row') as 'column' | 'row',
-    alignItems:
-      alignment.value === 'start'
-        ? 'flex-start'
-        : alignment.value === 'end'
-          ? 'flex-end'
-          : 'center',
-    justifyContent: 'center',
-    padding: `${padding.value}px`,
-    minWidth: '100px',
-    minHeight: '100px'
-  }
-})
+const previewListStyles = computed(() => ({
+  display: combineDirection.value === 'grid' ? 'grid' : 'inline-flex',
+  gridTemplateColumns:
+    combineDirection.value === 'grid' ? `repeat(${columns.value}, max-content)` : 'none',
+  gap: `${spacing.value}px`,
+  backgroundColor: backgroundColor.value === '#00000000' ? 'transparent' : backgroundColor.value,
+  flexDirection: (combineDirection.value === 'vertical' ? 'column' : 'row') as 'column' | 'row',
+  alignItems:
+    alignment.value === 'start' ? 'flex-start' : alignment.value === 'end' ? 'flex-end' : 'center',
+  justifyContent: 'center',
+  padding: `${padding.value}px`,
+  minWidth: '100px',
+  minHeight: '100px'
+}))
 
 const hasEnoughImages = computed(() => store.images.length >= 2)
 </script>
 
 <template>
-  <WorkspaceLayout show-sidebar no-scroll>
+  <WorkspaceLayout show-sidebar no-scroll show-assets-tray>
     <template #header-left><ImageSelectionStatus /></template>
-    <template #header-actions><ImageActionsToolbar show-clear-all /></template>
+    <template #header-actions
+      ><ImageActionsToolbar :is-processing="isProcessing" show-clear-all
+    /></template>
 
     <template #content>
-      <div
-        class="h-full flex flex-col p-4 md:p-6 animate-in fade-in duration-500 overflow-hidden w-full relative"
-      >
+      <div class="h-full flex flex-col p-4 md:p-6 overflow-hidden w-full relative">
         <div
           ref="containerRef"
           class="flex-1 bg-muted/10 border border-border/40 rounded-3xl overflow-hidden relative w-full group select-none touch-none"
@@ -229,70 +217,54 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
           @pointerdown="handlePointerDown"
           @pointermove="handlePointerMove"
           @pointerup="handlePointerUp"
-          @pointerleave="handlePointerUp"
         >
           <div class="absolute inset-0 transparency-grid opacity-40"></div>
           <div
-            class="absolute inset-0 flex items-center justify-center transition-transform duration-200 ease-out"
+            class="absolute inset-0 flex items-center justify-center transition-transform duration-200"
             :style="{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})` }"
           >
             <div
               v-if="store.images.length > 0"
               ref="contentRef"
-              class="relative shadow-2xl transition-shadow duration-500"
+              class="relative shadow-2xl transition-shadow"
               :style="previewListStyles"
             >
-              <TransitionGroup name="preview-list">
+              <div
+                v-for="(img, index) in store.images"
+                :key="img.id"
+                class="relative group/item focus:outline-none focus:ring-2 focus:ring-primary rounded-sm"
+                :class="{
+                  'opacity-30 grayscale scale-95': dragIndex === index,
+                  'ring-2 ring-primary ring-offset-4':
+                    dropTargetIndex === index && dragIndex !== index
+                }"
+                draggable="true"
+                @dragstart="dragIndex = index"
+                @dragover="onDragOver($event, index)"
+                @drop="onDrop(index)"
+                @dragend="dragIndex = null"
+              >
                 <div
-                  v-for="(img, index) in store.images"
-                  :key="img.id"
-                  class="relative group/item focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-4 rounded-sm"
-                  :class="{
-                    'opacity-30 grayscale scale-95': dragIndex === index,
-                    'ring-2 ring-primary ring-offset-4':
-                      dropTargetIndex === index && dragIndex !== index
-                  }"
-                  draggable="true"
-                  @dragstart="dragIndex = index"
-                  @dragover="onDragOver($event, index)"
-                  @drop="onDrop(index)"
-                  @dragend="dragIndex = null"
+                  class="relative overflow-hidden bg-background shadow-lg"
+                  :style="{ borderRadius: `${borderRadius}px` }"
                 >
+                  <img
+                    :src="img.preview"
+                    class="block max-w-[240px] md:max-w-[400px] h-auto pointer-events-none"
+                  />
                   <div
-                    class="relative overflow-hidden bg-background ring-1 ring-white/10"
-                    :style="{ borderRadius: `${borderRadius}px` }"
+                    class="absolute inset-0 bg-black/20 opacity-0 group-hover/item:opacity-100 transition-all flex flex-col justify-between p-2 pointer-events-none"
                   >
-                    <img
-                      :src="img.preview"
-                      class="block max-w-[240px] md:max-w-[400px] h-auto pointer-events-none"
-                    />
-                    <div
-                      class="absolute inset-0 bg-black/20 opacity-0 group-hover/item:opacity-100 transition-all flex flex-col justify-between p-2 pointer-events-none"
+                    <button
+                      @click.stop="store.removeImage(img.id)"
+                      class="self-end p-1.5 bg-red-500 text-white rounded-md hover:bg-red-600 transition-all pointer-events-auto active:scale-90"
                     >
-                      <div class="flex justify-between items-start">
-                        <div
-                          class="px-1.5 py-0.5 bg-black/50 backdrop-blur-md rounded text-[9px] text-white font-bold uppercase tracking-tighter"
-                        >
-                          P{{ index + 1 }}
-                        </div>
-                        <button
-                          @click.stop="store.removeImage(img.id)"
-                          class="p-1.5 bg-red-500/80 text-white rounded-md hover:bg-red-600 transition-all pointer-events-auto active:scale-90"
-                        >
-                          <X :size="12" />
-                        </button>
-                      </div>
-                      <p
-                        class="text-[9px] text-white/90 truncate font-mono bg-black/40 px-1 py-0.5 rounded w-fit"
-                      >
-                        {{ img.file.name }}
-                      </p>
-                    </div>
+                      <X :size="12" />
+                    </button>
                   </div>
                 </div>
-              </TransitionGroup>
+              </div>
             </div>
-
             <div
               v-if="!hasEnoughImages"
               class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center pointer-events-none"
@@ -302,44 +274,18 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
               >
                 <Layers :size="32" class="text-primary animate-pulse" />
               </div>
-              <h3 class="text-lg font-black text-foreground mb-2">
-                {{ store.images.length === 0 ? '开始您的精彩拼接' : '还差一点点...' }}
-              </h3>
-              <p class="text-xs text-muted-foreground max-w-[240px] leading-relaxed mb-8">
-                {{
-                  store.images.length === 0
-                    ? '上传两张或更多图片，轻松制作纵横拼接长图。'
-                    : '请再添加至少一张图片以激活拼接预览。'
-                }}
-              </p>
               <AppButton
                 variant="cta"
                 size="md"
-                class="rounded-full px-8 pointer-events-auto shadow-xl shadow-primary/20"
+                class="rounded-full px-8 pointer-events-auto"
                 @click="triggerFileInput"
-                ><template #icon><Plus :size="18" class="mr-1.5" /></template
-                >立即添加图片</AppButton
+                ><Plus :size="18" class="mr-1.5" />立即添加图片</AppButton
               >
             </div>
           </div>
-
-          <div
-            class="absolute top-6 left-1/2 -translate-x-1/2 px-5 py-2.5 bg-black/40 backdrop-blur-md border border-white/5 rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center gap-4 z-30 font-bold"
-          >
-            <span
-              class="text-[0.65rem] text-white/90 uppercase tracking-widest flex items-center gap-2"
-              ><RefreshCw :size="14" class="text-primary" /> 滚轮缩放 • Shift+平移</span
-            >
-            <div class="w-px h-3 bg-white/10"></div>
-            <span
-              class="text-[0.65rem] text-white/90 uppercase tracking-widest flex items-center gap-2"
-              ><GripVertical :size="14" class="text-primary" /> 拖动图片或底栏排序</span
-            >
-          </div>
-
           <div
             v-if="hasEnoughImages"
-            class="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 p-1.5 bg-background/80 backdrop-blur-2xl border border-border/60 rounded-2xl shadow-elevated"
+            class="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 p-1.5 bg-background/80 backdrop-blur-2xl border border-border/60 rounded-2xl shadow-elevated"
           >
             <button
               @click="zoomOut"
@@ -360,7 +306,6 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
             <button
               @click="resetView"
               class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-primary/10 text-primary"
-              title="重置视图"
             >
               <Maximize :size="18" />
             </button>
@@ -370,58 +315,49 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
     </template>
 
     <template #sidebar>
-      <div class="flex flex-col h-full relative">
-        <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-10">
-          <section class="space-y-5">
-            <AppSectionHeader title="拼接模式" :icon="Settings2" />
-            <AppSegmentedControl v-model="combineDirection" :options="combineDirections" />
-          </section>
-          <section class="space-y-5">
-            <AppSectionHeader title="对齐方式" :icon="AlignCenter" />
-            <AppSegmentedControl v-model="alignment" :options="alignmentOptions" />
-          </section>
-          <AppSlider
-            v-if="combineDirection === 'grid'"
-            v-model="columns"
-            label="网格列数"
-            :min="1"
-            :max="10"
-            unit="列"
-          />
-          <AppSlider v-model="spacing" label="图片间距" :min="0" :max="200" unit="px" />
-          <AppSlider v-model="padding" label="外边距" :min="0" :max="200" unit="px" />
-          <AppSlider v-model="borderRadius" label="图片圆角" :min="0" :max="100" unit="px" />
-        </div>
-        <InspectorFooter>
-          <AppButton
-            size="lg"
-            variant="cta"
-            class="w-full h-14 rounded-2xl shadow-xl shadow-primary/10 transition-all"
-            :loading="isProcessing"
-            :disabled="!hasEnoughImages"
-            @click="handleCombine"
-          >
-            <template #icon><Layers v-if="!isProcessing" :size="19" class="mr-2.5" /></template>
-            {{ isProcessing ? '正在拼合...' : '生成并下载' }}
-          </AppButton>
-        </InspectorFooter>
+      <section class="space-y-5">
+        <AppSectionHeader title="拼接模式" :icon="Settings2" /><AppSegmentedControl
+          v-model="combineDirection"
+          :options="combineDirections"
+        />
+      </section>
+      <section class="space-y-5">
+        <AppSectionHeader title="对齐方式" :icon="AlignCenter" /><AppSegmentedControl
+          v-model="alignment"
+          :options="alignmentOptions"
+        />
+      </section>
+      <div class="space-y-6 px-1">
+        <AppSlider
+          v-if="combineDirection === 'grid'"
+          v-model="columns"
+          label="网格列数"
+          :min="1"
+          :max="10"
+          unit="列"
+        />
+        <AppSlider v-model="spacing" label="图片间距" :min="0" :max="200" unit="px" />
+        <AppSlider v-model="padding" label="外边距" :min="0" :max="200" unit="px" />
+        <AppSlider v-model="borderRadius" label="图片圆角" :min="0" :max="100" unit="px" />
       </div>
+    </template>
+
+    <template #footer>
+      <InspectorFooter>
+        <AppButton
+          size="lg"
+          variant="cta"
+          class="w-full h-12 rounded-xl shadow-xl shadow-primary/10 active:scale-95 transition-all"
+          :loading="isProcessing"
+          :disabled="!hasEnoughImages"
+          @click="handleCombine"
+        >
+          <template #icon><Layers v-if="!isProcessing" :size="19" class="mr-2" /></template>
+          <span class="font-bold text-sm tracking-tight">{{
+            isProcessing ? '正在拼合...' : '生成并下载'
+          }}</span>
+        </AppButton>
+      </InspectorFooter>
     </template>
   </WorkspaceLayout>
 </template>
-
-<style scoped>
-.preview-list-move,
-.preview-list-enter-active,
-.preview-list-leave-active {
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.preview-list-enter-from,
-.preview-list-leave-to {
-  opacity: 0;
-  transform: scale(0.92) translateY(12px);
-}
-.preview-list-leave-active {
-  position: absolute;
-}
-</style>
