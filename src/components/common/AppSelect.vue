@@ -13,7 +13,9 @@ interface Props<V> {
   placeholder?: string
 }
 
-const props = defineProps<Props<T>>()
+const props = withDefaults(defineProps<Props<T>>(), {
+  options: () => []
+})
 const emit = defineEmits<{
   (e: 'update:modelValue', value: T): void
 }>()
@@ -31,6 +33,7 @@ const select = (value: T) => {
 }
 
 const selectedLabel = computed(() => {
+  if (!props.options) return props.placeholder || '请选择'
   const option = props.options.find((opt) => opt.value === props.modelValue)
   return option ? option.label : props.placeholder || '请选择'
 })

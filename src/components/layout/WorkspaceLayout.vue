@@ -2,6 +2,7 @@
 import { useImageStore } from '../../stores/imageStore'
 import { useLayoutStore } from '../../stores/layoutStore'
 import ImageUpload from '../common/ImageUpload.vue'
+import AssetsTray from './AssetsTray.vue'
 import { PanelRightClose, PanelRightOpen, ChevronUp, ChevronDown } from 'lucide-vue-next'
 import { useBreakpoints } from '../../composables/useBreakpoints'
 
@@ -87,6 +88,9 @@ withDefaults(defineProps<Props>(), {
           </div>
           <slot v-else name="content"></slot>
         </div>
+
+        <!-- 全局资源托盘 -->
+        <AssetsTray v-if="noScroll" />
       </div>
 
       <!-- 移动端背景遮罩 -->

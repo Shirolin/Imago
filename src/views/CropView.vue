@@ -16,7 +16,6 @@ import {
   Minimize2,
   Trash2,
   Grid3X3,
-  CheckCircle2,
   ZoomIn,
   ZoomOut,
   Maximize,
@@ -36,8 +35,7 @@ import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
 const store = useImageStore()
 
-// --- 基础状态 ---
-const selectedImageId = ref<string | null>(null)
+// --- 基础状态绑定 ---
 const rotation = ref(0)
 const flipH = ref(false)
 const flipV = ref(false)
@@ -54,19 +52,13 @@ const internalCrop = ref({ x: 0, y: 0, w: 100, h: 100 })
 const gridMode = ref<'none' | 'thirds' | 'golden' | 'cross'>('thirds')
 const trimPx = ref({ top: 0, bottom: 0, left: 0, right: 0 })
 
-// 交互状态
+// 交互状态 (用于 UI 显示)
 const isDragging = ref(false)
 const isSnapping = ref(false)
 
 const { isProcessing, processSingle } = useImageProcessor(cropEngine)
 
-const selectedImage = computed(() => {
-  if (!store.images.length) return null
-  const img = store.images.find((img) => img.id === selectedImageId.value)
-  return img || store.images[store.images.length - 1] || null
-})
-
-const displayImages = computed(() => [...store.images].reverse())
+const selectedImage = computed(() => store.activeImage)
 
 const pixelSize = computed(() => {
   const img = selectedImage.value
@@ -89,10 +81,10 @@ const { width: cw, height: ch, left: cl, top: ct } = useElementBounding(containe
 const resetView = () => {
   const container = containerRef.value
   const img = selectedImage.value
-  if (!container || !img || !img.width || !img.height) return
+  if (!container || !img || !img.width) return
   const availableW = container.clientWidth - 120
   const availableH = container.clientHeight - 120
-  scale.value = Math.min(availableW / img.width, availableH / img.height, 1)
+  scale.value = Math.min(availableW / img.width, availableH / img.height!, 1)
   offset.value = { x: 0, y: 0 }
 }
 
@@ -159,23 +151,17 @@ const handleReset = () => {
   resetView()
 }
 
+// 监听全局活动图片变化，自动重置视图
 watch(
-  () => store.images.length,
-  (count) => {
-    if (count > 0 && !selectedImageId.value) {
-      const lastImg = store.images[count - 1]
-      if (lastImg) selectedImageId.value = lastImg.id
+  () => store.activeId,
+  async (id) => {
+    if (id) {
+      await nextTick()
+      resetView()
     }
   },
   { immediate: true }
 )
-
-watch(selectedImageId, async (newId) => {
-  if (newId) {
-    await nextTick()
-    resetView()
-  }
-})
 
 const handleProcess = async () => {
   const img = selectedImage.value
@@ -211,8 +197,6 @@ const formatOptions = [
   { label: 'JPEG (高兼容)', value: 'image/jpeg' },
   { label: 'PNG (无损)', value: 'image/png' }
 ]
-
-const buttonText = computed(() => (isProcessing.value ? '正在处理...' : '裁剪并保存'))
 </script>
 
 <template>
@@ -236,6 +220,7 @@ const buttonText = computed(() => (isProcessing.value ? '正在处理...' : '裁
         >
           <div class="absolute inset-0 transparency-grid opacity-40"></div>
 
+          <!-- 核心渲染层 -->
           <div
             class="absolute inset-0 flex items-center justify-center"
             :style="{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})` }"
@@ -253,32 +238,7 @@ const buttonText = computed(() => (isProcessing.value ? '正在处理...' : '裁
             </div>
           </div>
 
-          <div class="absolute top-4 left-4 right-4 z-30 pointer-events-none">
-            <div
-              class="flex gap-2 p-2 bg-background/60 backdrop-blur-xl border border-border/40 rounded-2xl w-fit max-w-full mx-auto pointer-events-auto shadow-elevated"
-            >
-              <button
-                v-for="img in displayImages"
-                :key="img.id"
-                class="w-10 h-10 rounded-lg overflow-hidden shrink-0 cursor-pointer border-2 transition-all relative"
-                :class="[
-                  selectedImageId === img.id
-                    ? 'border-primary scale-110'
-                    : 'border-transparent opacity-60'
-                ]"
-                @click="selectedImageId = img.id"
-              >
-                <img :src="img.preview" class="w-full h-full object-cover" />
-                <div
-                  v-if="img.status === 'done'"
-                  class="absolute inset-0 bg-primary/10 flex items-center justify-center"
-                >
-                  <CheckCircle2 :size="14" class="text-primary" />
-                </div>
-              </button>
-            </div>
-          </div>
-
+          <!-- 悬浮吸附提示条 (顶层 UI) -->
           <div
             class="absolute bottom-20 left-1/2 -translate-x-1/2 pointer-events-none flex items-center gap-4 transition-all duration-300 z-40"
             :class="{
@@ -302,6 +262,7 @@ const buttonText = computed(() => (isProcessing.value ? '正在处理...' : '裁
             </div>
           </div>
 
+          <!-- 底部缩放控制条 -->
           <div
             class="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 p-1.5 bg-background/80 backdrop-blur-2xl border border-border/60 rounded-2xl shadow-elevated"
           >
@@ -336,8 +297,9 @@ const buttonText = computed(() => (isProcessing.value ? '正在处理...' : '裁
             </button>
           </div>
 
+          <!-- 操作快捷键提示 -->
           <div
-            class="absolute top-20 left-1/2 -translate-x-1/2 px-5 py-2.5 bg-black/40 backdrop-blur-md border border-white/5 rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center gap-4"
+            class="absolute top-6 left-1/2 -translate-x-1/2 px-5 py-2.5 bg-black/40 backdrop-blur-md border border-white/5 rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center gap-4"
           >
             <span
               class="text-[0.65rem] text-white/90 font-black uppercase tracking-[0.2em] flex items-center gap-2"

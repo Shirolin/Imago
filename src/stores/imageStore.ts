@@ -31,6 +31,8 @@ export interface ImageItem {
 export const useImageStore = defineStore('image', () => {
   const images = ref<ImageItem[]>([])
   const selectedIds = ref<Set<string>>(new Set())
+  const activeId = ref<string | null>(null)
+  const sortMode = ref<'upload' | 'name' | 'status'>('upload')
 
   // 智能倍镜设置
   const showMagnifier = ref(localStorage.getItem('imago-show-magnifier') !== 'false')
@@ -56,6 +58,29 @@ export const useImageStore = defineStore('image', () => {
     if (totalCount.value === 0) return 0
     if (processingCount.value === 0 && doneCount.value === totalCount.value) return 100
     return Math.round((doneCount.value / totalCount.value) * 100)
+  })
+
+  // 排序逻辑
+  const sortedImages = computed(() => {
+    const list = [...images.value]
+    if (sortMode.value === 'upload') return list.reverse()
+    if (sortMode.value === 'name')
+      return list.sort((a, b) => a.file.name.localeCompare(b.file.name))
+    if (sortMode.value === 'status') {
+      const order = { processing: 0, error: 1, idle: 2, done: 3 }
+      return list.sort((a, b) => order[a.status] - order[b.status])
+    }
+    return list
+  })
+
+  // 获取当前的活动图片对象 (回退逻辑：如果 activeId 无效，取最后一张)
+  const activeImage = computed(() => {
+    if (!images.value.length) return null
+    return (
+      images.value.find((img) => img.id === activeId.value) ||
+      images.value[images.value.length - 1] ||
+      null
+    )
   })
 
   // 脏数据管理
@@ -102,7 +127,6 @@ export const useImageStore = defineStore('image', () => {
     const newImagePromises = uniqueFiles.map(async (file) => {
       const preview = URL.createObjectURL(file)
 
-      // 获取分辨率
       const dimensions = await new Promise<{ width: number; height: number }>((resolve) => {
         const img = new Image()
         img.onload = () => {
@@ -127,23 +151,33 @@ export const useImageStore = defineStore('image', () => {
 
     const resolvedImages = await Promise.all(newImagePromises)
     images.value.push(...resolvedImages)
+
+    // 自动激活最后一张新图片
+    if (resolvedImages.length > 0) {
+      const last = resolvedImages[resolvedImages.length - 1]
+      if (last) activeId.value = last.id
+    }
   }
 
   const removeImage = (id: string) => {
     const index = images.value.findIndex((img) => img.id === id)
     if (index !== -1) {
       const img = images.value[index]
-      if (img && img.abortController) {
-        img.abortController.abort()
+      if (img) {
+        if (img.abortController) img.abortController.abort()
+        if (img.preview) URL.revokeObjectURL(img.preview)
       }
-      if (img && img.preview) {
-        URL.revokeObjectURL(img.preview)
-      }
+
       images.value.splice(index, 1)
       selectedIds.value.delete(id)
+
+      // 如果删除的是活动图片，切换到现有列表的最后一张
+      if (activeId.value === id) {
+        const last = images.value[images.value.length - 1]
+        activeId.value = last ? last.id : null
+      }
     }
   }
-
   const removeSelected = () => {
     selectedIds.value.forEach((id) => removeImage(id))
     selectedIds.value.clear()
@@ -156,6 +190,7 @@ export const useImageStore = defineStore('image', () => {
     })
     images.value = []
     selectedIds.value.clear()
+    activeId.value = null
   }
 
   const toggleSelection = (id: string) => {
@@ -191,6 +226,10 @@ export const useImageStore = defineStore('image', () => {
 
   return {
     images,
+    activeId,
+    activeImage,
+    sortedImages,
+    sortMode,
     selectedIds,
     hasSelected,
     isAllSelected,
