@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { Component } from 'vue'
 
 interface Props {
   modelValue: number
-  label: string
+  label?: string
   min?: number
   max?: number
   step?: number
   unit?: string
-  icon?: Component
   snapValue?: number // 新增：磁吸目标值 (Delight: Snap Feedback)
 }
 
@@ -55,25 +53,14 @@ const handleNumberInput = (e: Event) => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2.5 group/slider">
-    <!-- 头部信息 -->
-    <div class="flex items-center justify-between mb-1.5 px-0.5">
-      <div class="flex items-center gap-1.5 min-w-0">
-        <div class="flex items-center justify-center w-5 h-5 shrink-0 overflow-visible">
-          <component
-            v-if="icon"
-            :is="icon"
-            :size="15"
-            stroke-width="2.2"
-            class="text-muted-foreground/70 group-hover/slider:text-primary transition-colors"
-          />
-        </div>
-        <label
-          :for="sliderId"
-          class="text-[0.65rem] font-bold text-muted-foreground/80 uppercase tracking-widest cursor-pointer truncate leading-none mt-[2px]"
-          >{{ label }}</label
-        >
-      </div>
+  <div class="flex flex-col gap-1.5 group/slider">
+    <!-- 头部信息 (如果外部没传 Header，内部提供基础版) -->
+    <div v-if="label" class="flex items-center justify-between mb-0.5 px-0.5">
+      <label
+        :for="sliderId"
+        class="text-[0.65rem] font-bold text-muted-foreground/80 uppercase tracking-widest cursor-pointer truncate"
+        >{{ label }}</label
+      >
 
       <!-- 数值显示/自定义插槽 -->
       <slot v-if="$slots.default" :modelValue="modelValue"></slot>
@@ -96,6 +83,9 @@ const handleNumberInput = (e: Event) => {
         }}</span>
       </div>
     </div>
+
+    <!-- 插槽：由外部定义更复杂的 Header -->
+    <slot name="header"></slot>
 
     <!-- 滑块交互区 (Normalize: 增加内边距补偿手柄半宽溢出) -->
     <div class="relative flex items-center h-5 px-2.5">
@@ -122,7 +112,7 @@ const handleNumberInput = (e: Event) => {
         :min="min"
         :max="max"
         :step="step"
-        :aria-label="label"
+        :aria-label="label || '调节器'"
         class="absolute w-full h-full bg-transparent appearance-none cursor-pointer z-10 outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary [&::-webkit-slider-thumb]:shadow-[0_2px_8px_rgba(0,0,0,0.15)] [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200 hover:[&::-webkit-slider-thumb]:scale-110 hover:[&::-webkit-slider-thumb]:shadow-[0_0_0_4px_hsl(var(--primary)/0.15)] active:[&::-webkit-slider-thumb]:scale-125 active:[&::-webkit-slider-thumb]:bg-primary active:[&::-webkit-slider-thumb]:border-white active:[&::-webkit-slider-thumb]:shadow-[0_0_0_6px_hsl(var(--primary)/0.25)]"
       />
     </div>

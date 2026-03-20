@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Component } from 'vue'
 import { Plus, Minus } from 'lucide-vue-next'
 
 interface Props {
@@ -8,7 +7,6 @@ interface Props {
   modelValue: string | number | undefined
   type?: 'text' | 'number'
   placeholder?: string
-  icon?: Component
   suffix?: string
   step?: number
   min?: number
@@ -50,21 +48,14 @@ const handleDecrement = () => {
 
 <template>
   <div class="relative group/input flex items-center">
-    <div
-      v-if="icon"
-      class="absolute left-0 w-9 h-full flex items-center justify-center text-muted-foreground/40 group-focus-within/input:text-primary transition-colors pointer-events-none z-10"
-    >
-      <component :is="icon" :size="15" stroke-width="2.2" />
-    </div>
-
     <div class="relative flex-1">
       <input
         :id="inputId"
         v-model="value"
         :type="type"
         :placeholder="placeholder"
-        class="w-full h-10 bg-muted/20 border border-border/40 rounded-lg text-xs font-bold text-muted-foreground focus:text-foreground focus:border-primary focus:bg-background/80 outline-none transition-all tabular-nums placeholder:text-muted-foreground/40"
-        :class="[icon ? 'pl-9' : 'pl-3', type === 'number' ? 'pr-20' : suffix ? 'pr-8' : 'pr-3']"
+        class="w-full h-10 bg-muted/20 border border-border/40 rounded-lg text-xs font-bold text-muted-foreground focus:text-foreground focus:border-primary focus:bg-background/80 outline-none transition-all tabular-nums placeholder:text-muted-foreground/40 pl-3"
+        :class="[type === 'number' ? 'pr-20' : suffix ? 'pr-8' : 'pr-3']"
       />
 
       <!-- 数字调节按钮 (Stepper) -->

@@ -150,100 +150,120 @@ const showPngOptions = computed(() => {
           ]"
         />
 
-        <!-- 画质调节 -->
+        <!-- 配置项容器 -->
         <div
-          v-if="showQualitySlider"
-          class="bg-muted/10 rounded-2xl p-4 border border-border/60 mt-2"
+          v-if="showQualitySlider || showTargetSizeInput || showPngOptions"
+          class="bg-muted/10 rounded-2xl p-4 border border-border/60 mt-2 space-y-6"
         >
-          <AppSlider
-            :model-value="quality"
-            @update:model-value="handleQualityChange"
-            label="输出质量"
-            :min="0.1"
-            :max="1.0"
-            :step="0.01"
-            :icon="Gauge"
-            :snap-value="recommendedQualities[format] || 0.8"
-          >
-            <template #default="{ modelValue }">
+          <!-- 统一布局：[Icon] [Label] [Value] -->
+
+          <!-- A. 输出质量 (Mode: Quality) -->
+          <div v-if="showQualitySlider" class="space-y-2.5">
+            <div class="flex items-center justify-between px-0.5">
               <div class="flex items-center gap-2">
-                <span class="font-mono text-sm font-black text-primary">
-                  {{ Math.round(modelValue * 100) }}%
-                </span>
+                <Gauge :size="15" class="text-primary/70 stroke-[2.2]" />
+                <span
+                  class="text-[0.65rem] font-bold text-muted-foreground/80 uppercase tracking-widest mt-0.5"
+                  >输出质量</span
+                >
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-sm font-black text-primary"
+                  >{{ Math.round(quality * 100) }}%</span
+                >
                 <div
-                  v-if="Math.abs(modelValue - (recommendedQualities[format] || 0.8)) < 0.001"
+                  v-if="Math.abs(quality - (recommendedQualities[format] || 0.8)) < 0.001"
                   class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"
                   title="推荐值"
                 ></div>
               </div>
-            </template>
-          </AppSlider>
-        </div>
-
-        <!-- 体积调节 -->
-        <div
-          v-if="showTargetSizeInput"
-          class="bg-muted/10 rounded-2xl p-4 border border-border/60 mt-2"
-        >
-          <div class="flex justify-between items-center mb-3">
-            <label
-              class="text-[0.65rem] font-black text-muted-foreground uppercase tracking-widest pl-1"
-              >目标体积</label
-            >
-            <span class="font-mono text-sm font-black text-primary"
-              >{{ targetSizeKB }} <span class="text-[10px] opacity-60">KB</span></span
-            >
+            </div>
+            <AppSlider
+              :model-value="quality"
+              @update:model-value="handleQualityChange"
+              :min="0.1"
+              :max="1.0"
+              :step="0.01"
+              :snap-value="recommendedQualities[format] || 0.8"
+            />
           </div>
-          <AppInput
-            :model-value="targetSizeKB"
-            @update:model-value="emit('update:targetSizeKB', $event)"
-            type="number"
-            placeholder="500"
-            :icon="Target"
-            suffix="KB"
-          />
-        </div>
 
-        <!-- PNG 特有精细化选项 -->
-        <div
-          v-if="showPngOptions"
-          class="bg-muted/10 rounded-2xl p-4 border border-border/60 mt-2 space-y-6"
-        >
-          <AppSlider
-            :model-value="colors"
-            @update:model-value="emit('update:colors', $event)"
-            label="最大颜色数"
-            :min="2"
-            :max="256"
-            :step="1"
-            :icon="Palette"
-          >
-            <template #default="{ modelValue }">
-              <span class="font-mono text-xs font-bold text-primary"
-                >{{ modelValue }} <span class="text-[10px] opacity-60">Colors</span></span
-              >
-            </template>
-          </AppSlider>
-          <AppSlider
-            :model-value="effort"
-            @update:model-value="emit('update:effort', $event)"
-            label="编码精细度"
-            :min="1"
-            :max="9"
-            :step="1"
-            :icon="Activity"
-          >
-            <template #default="{ modelValue }">
-              <div class="flex items-center gap-1.5">
-                <span class="font-mono text-xs font-bold text-primary">Lv.{{ modelValue }}</span>
+          <!-- B. 目标体积 (Mode: Target) -->
+          <div v-if="showTargetSizeInput" class="space-y-2.5">
+            <div class="flex items-center justify-between px-0.5">
+              <div class="flex items-center gap-2">
+                <Target :size="15" class="text-primary/70 stroke-[2.2]" />
                 <span
-                  v-if="modelValue >= 7"
-                  class="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-sm font-black uppercase tracking-tighter"
-                  >Pro</span
+                  class="text-[0.65rem] font-bold text-muted-foreground/80 uppercase tracking-widest mt-0.5"
+                  >目标体积</span
                 >
               </div>
-            </template>
-          </AppSlider>
+              <span class="font-mono text-sm font-black text-primary"
+                >{{ targetSizeKB }} <span class="text-[10px] opacity-60">KB</span></span
+              >
+            </div>
+            <AppInput
+              :model-value="targetSizeKB"
+              @update:model-value="emit('update:targetSizeKB', $event)"
+              type="number"
+              placeholder="500"
+              suffix="KB"
+            />
+          </div>
+
+          <!-- C. PNG 选项 -->
+          <template v-if="showPngOptions">
+            <!-- 颜色数 -->
+            <div class="space-y-2.5">
+              <div class="flex items-center justify-between px-0.5">
+                <div class="flex items-center gap-2">
+                  <Palette :size="15" class="text-primary/70 stroke-[2.2]" />
+                  <span
+                    class="text-[0.65rem] font-bold text-muted-foreground/80 uppercase tracking-widest mt-0.5"
+                    >最大颜色数</span
+                  >
+                </div>
+                <span class="font-mono text-xs font-bold text-primary"
+                  >{{ colors }} <span class="text-[10px] opacity-60">Colors</span></span
+                >
+              </div>
+              <AppSlider
+                :model-value="colors"
+                @update:model-value="emit('update:colors', $event)"
+                :min="2"
+                :max="256"
+                :step="1"
+              />
+            </div>
+
+            <!-- 编码精细度 -->
+            <div class="space-y-2.5">
+              <div class="flex items-center justify-between px-0.5">
+                <div class="flex items-center gap-2">
+                  <Activity :size="15" class="text-primary/70 stroke-[2.2]" />
+                  <span
+                    class="text-[0.65rem] font-bold text-muted-foreground/80 uppercase tracking-widest mt-0.5"
+                    >编码精细度</span
+                  >
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="font-mono text-xs font-bold text-primary">Lv.{{ effort }}</span>
+                  <span
+                    v-if="effort >= 7"
+                    class="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-sm font-black uppercase tracking-tighter"
+                    >Pro</span
+                  >
+                </div>
+              </div>
+              <AppSlider
+                :model-value="effort"
+                @update:model-value="emit('update:effort', $event)"
+                :min="1"
+                :max="9"
+                :step="1"
+              />
+            </div>
+          </template>
         </div>
       </div>
     </section>
