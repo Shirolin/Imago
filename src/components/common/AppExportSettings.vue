@@ -98,7 +98,7 @@ watch(
 
 const handleFormatChange = (val: string) => emit('update:format', val)
 const handleQualityChange = (val: number) => emit('update:quality', val)
-const handleModeChange = (val: any) => emit('update:mode', val)
+const handleModeChange = (val: 'quality' | 'target') => emit('update:mode', val)
 const handleExifChange = (val: boolean) => emit('update:preserveExif', val)
 
 const showQualitySlider = computed(

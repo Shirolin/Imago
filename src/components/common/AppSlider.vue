@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 
 interface Props {
   modelValue: number
@@ -20,8 +20,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(['update:modelValue'])
 
-const sliderId = `slider-${Math.random().toString(36).slice(2, 9)}`
-
 const progressPercent = computed(() => {
   return ((props.modelValue - props.min) / (props.max - props.min)) * 100
 })
@@ -32,13 +30,6 @@ const handleInput = (e: Event) => {
     const threshold = (props.max - props.min) * 0.03
     if (Math.abs(value - props.snapValue) < threshold) value = props.snapValue
   }
-  emit('update:modelValue', value)
-}
-
-const handleNumberInput = (e: Event) => {
-  let value = parseFloat((e.target as HTMLInputElement).value)
-  if (isNaN(value)) return
-  value = Math.max(props.min, Math.min(props.max, value))
   emit('update:modelValue', value)
 }
 </script>

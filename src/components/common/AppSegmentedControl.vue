@@ -13,7 +13,7 @@ interface Props<V> {
   ariaLabel?: string
 }
 
-const props = defineProps<Props<T>>()
+defineProps<Props<T>>()
 const emit = defineEmits<{
   (e: 'update:modelValue', value: T): void
 }>()
