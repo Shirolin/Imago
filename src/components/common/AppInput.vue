@@ -52,9 +52,9 @@ const handleDecrement = () => {
   <div class="relative group/input flex items-center">
     <div
       v-if="icon"
-      class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/40 group-focus-within/input:text-primary transition-colors pointer-events-none z-10"
+      class="absolute left-0 w-9 h-full flex items-center justify-center text-muted-foreground/40 group-focus-within/input:text-primary transition-colors pointer-events-none z-10"
     >
-      <component :is="icon" :size="14" />
+      <component :is="icon" :size="15" stroke-width="2.2" />
     </div>
 
     <div class="relative flex-1">

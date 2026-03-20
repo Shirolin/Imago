@@ -57,17 +57,20 @@ const handleNumberInput = (e: Event) => {
 <template>
   <div class="flex flex-col gap-2.5 group/slider">
     <!-- 头部信息 -->
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <component
-          v-if="icon"
-          :is="icon"
-          :size="12"
-          class="text-muted-foreground/50 group-hover/slider:text-primary transition-colors"
-        />
+    <div class="flex items-center justify-between mb-1.5 px-0.5">
+      <div class="flex items-center gap-1.5 min-w-0">
+        <div class="flex items-center justify-center w-5 h-5 shrink-0 overflow-visible">
+          <component
+            v-if="icon"
+            :is="icon"
+            :size="15"
+            stroke-width="2.2"
+            class="text-muted-foreground/70 group-hover/slider:text-primary transition-colors"
+          />
+        </div>
         <label
           :for="sliderId"
-          class="text-[0.6rem] font-bold text-muted-foreground/70 uppercase tracking-widest cursor-pointer"
+          class="text-[0.65rem] font-bold text-muted-foreground/80 uppercase tracking-widest cursor-pointer truncate leading-none mt-[2px]"
           >{{ label }}</label
         >
       </div>

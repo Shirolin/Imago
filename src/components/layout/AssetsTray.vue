@@ -123,7 +123,7 @@ const confirmClear = () => {
         >
           <Clock v-if="store.sortMode === 'upload'" :size="14" />
           <SortAsc v-else-if="store.sortMode === 'name'" :size="14" />
-          <Zap v-else :size="14" />
+          <Timer v-else :size="14" />
         </button>
 
         <div class="h-3 w-px bg-border/30 mx-1"></div>

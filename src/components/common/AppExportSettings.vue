@@ -158,7 +158,7 @@ const showPngOptions = computed(() => {
           <AppSlider
             :model-value="quality"
             @update:model-value="handleQualityChange"
-            label="平衡画质与体积"
+            label="输出质量"
             :min="0.1"
             :max="1.0"
             :step="0.01"
