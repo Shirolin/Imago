@@ -12,6 +12,8 @@ export interface FilterOptions {
   vignette: number
   noise: number
   sharpen: number
+  format?: string
+  quality?: number
 }
 
 export const filterEngine: ImageProcessor<FilterOptions> = async (file, options) => {
@@ -86,6 +88,9 @@ export const filterEngine: ImageProcessor<FilterOptions> = async (file, options)
         ctx.restore()
       }
 
+      const outputFormat = (options.format === 'original' ? undefined : options.format) || file.type
+      const outputQuality = options.quality ?? 0.95
+
       canvas.toBlob(
         (blob) => {
           if (blob) {
@@ -93,14 +98,15 @@ export const filterEngine: ImageProcessor<FilterOptions> = async (file, options)
               blob,
               size: blob.size,
               width: canvas.width,
-              height: canvas.height
+              height: canvas.height,
+              format: outputFormat
             })
           } else {
             reject(new Error('Canvas toBlob failed'))
           }
         },
-        file.type,
-        0.95
+        outputFormat,
+        outputQuality
       )
     }
 

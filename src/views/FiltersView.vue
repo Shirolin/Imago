@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useImageStore } from '../stores/imageStore'
 import { useLayoutStore } from '../stores/layoutStore'
 import { useFileHelpers } from '../composables/useFileHelpers'
@@ -10,7 +10,8 @@ import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import ImageCard from '../components/common/ImageCard.vue'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
-import { Wand2, Settings2, Sparkles, Info, Check } from 'lucide-vue-next'
+import AppExportSettings from '../components/common/AppExportSettings.vue'
+import { Settings2, Sparkles, Check } from 'lucide-vue-next'
 import { filterEngine } from '../lib/engines/filterEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 
@@ -26,6 +27,8 @@ const contrast = ref(100)
 const saturation = ref(100)
 const blur = ref(0)
 const sepia = ref(0)
+const outputFormat = ref<string>('original')
+const outputQuality = ref(0.9)
 const isDirty = ref(false)
 
 const { isProcessing, processSelected } = useImageProcessor(filterEngine)
@@ -44,7 +47,9 @@ const handleApplyFilters = async () => {
     invert: 0,
     vignette: 0,
     sharpen: 0,
-    noise: 0
+    noise: 0,
+    format: outputFormat.value,
+    quality: outputQuality.value
   })
   isDirty.value = false
 }
@@ -55,7 +60,7 @@ const handleDownload = (id: string) => {
 }
 
 watch(
-  [brightness, contrast, saturation, blur, sepia],
+  [brightness, contrast, saturation, blur, sepia, outputFormat, outputQuality],
   () => {
     isDirty.value = true
     store.markAllAsDirty()
@@ -123,6 +128,12 @@ const buttonText = computed(() => {
             </p>
           </div>
         </section>
+
+        <AppExportSettings
+          v-model:format="outputFormat"
+          v-model:quality="outputQuality"
+          class="pt-2"
+        />
       </template>
 
       <template #footer>

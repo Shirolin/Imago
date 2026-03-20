@@ -8,27 +8,15 @@ import AppButton from '../components/common/AppButton.vue'
 import AppInput from '../components/common/AppInput.vue'
 import AppCheckbox from '../components/common/AppCheckbox.vue'
 import AppSlider from '../components/common/AppSlider.vue'
-import AppSelect from '../components/common/AppSelect.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppModal from '../components/common/AppModal.vue'
-import AppTip from '../components/common/AppTip.vue'
 import ImageCard from '../components/common/ImageCard.vue'
 import ImageCompare from '../components/common/ImageCompare.vue'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
-import {
-  Settings2,
-  Maximize2,
-  Percent,
-  RotateCcw,
-  FileType,
-  Layers,
-  ChevronDown,
-  ChevronUp,
-  Image as ImageIcon,
-  ArrowRight
-} from 'lucide-vue-next'
+import AppExportSettings from '../components/common/AppExportSettings.vue'
+import { Settings2, Maximize2, Percent, RotateCcw, ArrowRight, RefreshCw } from 'lucide-vue-next'
 import { resizeEngine } from '../lib/engines/resizeEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 
@@ -47,12 +35,6 @@ const maintainAspectRatio = ref(true)
 const outputFormat = ref<string>('original')
 const outputQuality = ref(0.9)
 const preserveExif = ref(false)
-const showAdvanced = ref(false)
-
-const errors = ref({ width: '', height: '', percentage: '' })
-const hasErrors = computed(
-  () => !!(errors.value.width || errors.value.height || errors.value.percentage)
-)
 
 const { isProcessing, processSingle } = useImageProcessor(resizeEngine)
 
@@ -62,21 +44,6 @@ const modeOptions = [
   { label: '按比例', value: 'percentage', icon: Percent },
   { label: '按尺寸', value: 'dimensions', icon: Maximize2 }
 ]
-
-const formatOptions = [
-  { label: '保留原格式', value: 'original' },
-  { label: 'WebP (推荐)', value: 'image/webp' },
-  { label: 'JPEG (高兼容)', value: 'image/jpeg' },
-  { label: 'PNG (无损)', value: 'image/png' }
-]
-
-const recommendedQualities: Record<string, number> = { 'image/webp': 0.8, 'image/jpeg': 0.85 }
-
-const applyPreset = (p: { w: number; h: number }) => {
-  resizeMode.value = 'dimensions'
-  width.value = p.w
-  height.value = p.h
-}
 
 const resetDimensions = () => {
   width.value = 1920
@@ -152,11 +119,6 @@ const buttonText = computed(() => {
   if (store.selectedCount > 0) return `调整选中的 ${store.selectedCount} 张`
   return '开始调整尺寸'
 })
-
-const presets = [
-  { label: 'FHD 1080p', w: 1920, h: 1080, icon: ImageIcon },
-  { label: '4K UHD', w: 3840, h: 2160, icon: ImageIcon }
-]
 </script>
 
 <template>
@@ -281,37 +243,12 @@ const presets = [
           </div>
         </section>
 
-        <section class="space-y-4">
-          <AppSectionHeader title="导出设置" :icon="FileType" />
-          <div class="space-y-3 px-1">
-            <AppSelect v-model="outputFormat" :options="formatOptions" />
-            <AppSlider
-              v-if="outputFormat !== 'image/png' && outputFormat !== 'original'"
-              v-model="outputQuality"
-              label="质量"
-              :min="0.1"
-              :max="1.0"
-              :step="0.05"
-            />
-          </div>
-        </section>
-
-        <section class="space-y-4">
-          <button
-            @click="showAdvanced = !showAdvanced"
-            class="flex items-center justify-between w-full group transition-colors px-0.5"
-          >
-            <AppSectionHeader title="进阶设置" :icon="Layers" class="group-hover:text-primary" />
-            <component
-              :is="showAdvanced ? ChevronUp : ChevronDown"
-              :size="14"
-              class="text-muted-foreground/40"
-            />
-          </button>
-          <div v-if="showAdvanced" class="space-y-4 animate-in fade-in slide-in-from-top-2">
-            <AppCheckbox v-model="preserveExif" label="保留图片元数据 (EXIF)" />
-          </div>
-        </section>
+        <AppExportSettings
+          v-model:format="outputFormat"
+          v-model:quality="outputQuality"
+          v-model:preserve-exif="preserveExif"
+          show-exif-option
+        />
       </template>
 
       <template #footer>

@@ -5,10 +5,10 @@ import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
 import CropBox from '../components/common/CropBox.vue'
 import AppCanvasWorkspace from '../components/common/AppCanvasWorkspace.vue'
+import AppExportSettings from '../components/common/AppExportSettings.vue'
 import {
   Scissors,
   RotateCw,
-  RefreshCw,
   FlipHorizontal,
   FlipVertical,
   Maximize2,
@@ -27,7 +27,6 @@ import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import AppSlider from '../components/common/AppSlider.vue'
-import AppSelect from '../components/common/AppSelect.vue'
 import AppInput from '../components/common/AppInput.vue'
 import { cropEngine } from '../lib/engines/cropEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
@@ -235,12 +234,6 @@ const ratios = [
   { label: '4:3', value: 4 / 3, icon: Icon43 },
   { label: '16:9', value: 16 / 9, icon: Icon169 },
   { label: '2:3', value: 2 / 3, icon: Icon23 }
-]
-const formatOptions = [
-  { label: '保留原格式', value: 'original' },
-  { label: 'WebP (推荐)', value: 'image/webp' },
-  { label: 'JPEG (高兼容)', value: 'image/jpeg' },
-  { label: 'PNG (无损)', value: 'image/png' }
 ]
 </script>
 
@@ -484,20 +477,14 @@ const formatOptions = [
         </div>
       </section>
 
-      <section class="space-y-4 pt-2 pb-6">
-        <AppSectionHeader title="导出保存" :icon="RefreshCw" />
-        <div class="px-1 space-y-4">
-          <AppSelect v-model="outputFormat" :options="formatOptions" />
-          <AppSlider
-            v-if="outputFormat !== 'original' && outputFormat !== 'image/png'"
-            v-model="outputQuality"
-            label="导出质量"
-            :min="0.1"
-            :max="1.0"
-            :step="0.05"
-          />
-        </div>
-      </section>
+      <AppExportSettings
+        v-model:format="outputFormat"
+        v-model:quality="outputQuality"
+        v-model:preserve-exif="preserveExif"
+        show-exif-option
+        title="导出保存"
+        class="pt-2 pb-6"
+      />
     </template>
 
     <template #footer>

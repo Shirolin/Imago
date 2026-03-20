@@ -5,6 +5,7 @@ import { injectMetadata } from '../utils/metadata'
 
 export interface CompressionOptions {
   quality: number
+  mode?: 'quality' | 'target' // 压缩模式：画质优先或目标体积
   maxSizeMB?: number
   maxWidth?: number
   maxHeight?: number

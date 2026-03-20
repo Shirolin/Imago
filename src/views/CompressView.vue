@@ -1,27 +1,17 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useImageStore } from '../stores/imageStore'
 import { useLayoutStore } from '../stores/layoutStore'
 import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
-import AppSlider from '../components/common/AppSlider.vue'
-import AppSelect from '../components/common/AppSelect.vue'
-import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppModal from '../components/common/AppModal.vue'
 import ImageCard from '../components/common/ImageCard.vue'
 import ImageCompare from '../components/common/ImageCompare.vue'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
-import {
-  Zap,
-  Settings2,
-  FileType,
-  Info,
-  ArrowRight,
-  Maximize2,
-  Image as ImageIcon
-} from 'lucide-vue-next'
+import AppExportSettings from '../components/common/AppExportSettings.vue'
+import { Zap, Info, ArrowRight } from 'lucide-vue-next'
 import { compressEngine } from '../lib/engines/compressEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 
@@ -32,8 +22,17 @@ const layoutStore = useLayoutStore()
 const { formatSize, downloadImage } = useFileHelpers()
 
 // 状态
+const compressionMode = ref<'quality' | 'target'>('quality')
 const quality = ref(0.8)
 const outputFormat = ref<string>('original')
+const pngColors = ref(256)
+const pngEffort = ref(7)
+const targetSizeKB = ref(500)
+const keepOriginalIfLarger = ref(true)
+const preserveExif = ref(false)
+const maxWidth = ref<number | undefined>(undefined)
+const maxHeight = ref<number | undefined>(undefined)
+
 const showCompareModal = ref(false)
 const comparingImage = ref<any>(null)
 const processedPreviewUrl = ref<string | null>(null)
@@ -42,17 +41,18 @@ const { isProcessing, processSelected } = useImageProcessor(compressEngine)
 
 const displayImages = computed(() => [...store.images].reverse())
 
-const formatOptions = [
-  { label: '保留原格式', value: 'original' },
-  { label: 'WebP (推荐)', value: 'image/webp' },
-  { label: 'JPEG (高兼容)', value: 'image/jpeg' },
-  { label: 'PNG (无损压缩)', value: 'image/png' }
-]
-
 const handleCompress = async () => {
   await processSelected({
     quality: quality.value,
-    format: (outputFormat.value === 'original' ? undefined : outputFormat.value) as any
+    format: (outputFormat.value === 'original' ? undefined : outputFormat.value) as any,
+    mode: compressionMode.value,
+    maxSizeMB: compressionMode.value === 'target' ? targetSizeKB.value / 1024 : undefined,
+    colors: outputFormat.value === 'image/png' ? pngColors.value : undefined,
+    effort: outputFormat.value === 'image/png' ? pngEffort.value : undefined,
+    keepOriginalIfLarger: keepOriginalIfLarger.value,
+    preserveExif: preserveExif.value,
+    maxWidth: maxWidth.value,
+    maxHeight: maxHeight.value
   })
 }
 
@@ -151,24 +151,21 @@ const buttonText = computed(() => {
       </template>
 
       <template #sidebar>
-        <section class="space-y-5">
-          <AppSectionHeader title="压缩设置" :icon="Settings2" />
-          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60">
-            <AppSlider
-              v-model="quality"
-              label="压缩强度"
-              :min="0.1"
-              :max="1.0"
-              :step="0.05"
-              :icon="Zap"
-            />
-          </div>
-        </section>
-
-        <section class="space-y-5">
-          <AppSectionHeader title="输出格式" :icon="FileType" />
-          <div class="px-1"><AppSelect v-model="outputFormat" :options="formatOptions" /></div>
-        </section>
+        <AppExportSettings
+          v-model:format="outputFormat"
+          v-model:quality="quality"
+          v-model:mode="compressionMode"
+          v-model:target-size-k-b="targetSizeKB"
+          v-model:colors="pngColors"
+          v-model:effort="pngEffort"
+          v-model:max-width="maxWidth"
+          v-model:max-height="maxHeight"
+          v-model:keep-original-if-larger="keepOriginalIfLarger"
+          v-model:show-magnifier="store.showMagnifier"
+          v-model:preserve-exif="preserveExif"
+          allow-manual-quality
+          title="压缩设置"
+        />
 
         <section class="pt-2">
           <div

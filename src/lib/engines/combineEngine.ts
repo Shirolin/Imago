@@ -8,6 +8,8 @@ export interface CombineOptions {
   columns?: number
   padding?: number
   borderRadius?: number
+  format?: string
+  quality?: number
 }
 
 export const combineEngine: MultiImageProcessor<CombineOptions> = async (files, options) => {
@@ -134,19 +136,26 @@ export const combineEngine: MultiImageProcessor<CombineOptions> = async (files, 
   // Cleanup object URLs
   images.forEach((img) => URL.revokeObjectURL(img.src))
 
+  const outputFormat = (options.format === 'original' ? undefined : options.format) || 'image/png'
+  const outputQuality = options.quality ?? 0.9
+
   return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob) {
-        resolve({
-          blob,
-          size: blob.size,
-          width: canvas.width,
-          height: canvas.height,
-          format: 'png'
-        })
-      } else {
-        reject(new Error('Canvas toBlob failed'))
-      }
-    }, 'image/png')
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          resolve({
+            blob,
+            size: blob.size,
+            width: canvas.width,
+            height: canvas.height,
+            format: outputFormat
+          })
+        } else {
+          reject(new Error('Canvas toBlob failed'))
+        }
+      },
+      outputFormat,
+      outputQuality
+    )
   })
 }

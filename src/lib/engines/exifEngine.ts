@@ -64,11 +64,16 @@ export const readExif = async (file: File): Promise<ExifData | null> => {
   }
 }
 
+export interface ExifOptions {
+  format?: string
+  quality?: number
+}
+
 /**
  * 清除 EXIF 信息的引擎
  * 原理：通过 Canvas 重新绘制图片，Canvas 不会保留原始图片的元数据。
  */
-export const clearExifEngine: ImageProcessor<unknown> = async (file, _options) => {
+export const clearExifEngine: ImageProcessor<ExifOptions> = async (file, options) => {
   return new Promise((resolve, reject) => {
     const img = new Image()
     const url = URL.createObjectURL(file)
@@ -87,6 +92,9 @@ export const clearExifEngine: ImageProcessor<unknown> = async (file, _options) =
 
       ctx.drawImage(img, 0, 0)
 
+      const outputFormat = (options.format === 'original' ? undefined : options.format) || file.type
+      const outputQuality = options.quality ?? 0.95
+
       canvas.toBlob(
         (blob) => {
           if (blob) {
@@ -94,14 +102,15 @@ export const clearExifEngine: ImageProcessor<unknown> = async (file, _options) =
               blob,
               size: blob.size,
               width: canvas.width,
-              height: canvas.height
+              height: canvas.height,
+              format: outputFormat
             })
           } else {
             reject(new Error('Canvas toBlob failed'))
           }
         },
-        file.type,
-        0.95 // 保持高质量
+        outputFormat,
+        outputQuality
       )
     }
 

@@ -299,12 +299,13 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
             <RotateCcw :size="layoutStore.cardSizeMode === 'compact' ? 12 : 16" />
           </button>
           <button
-            v-if="image.status === 'done' && layoutStore.cardSizeMode === 'large'"
+            v-if="image.status === 'done'"
             @click.stop="emit('compare', image.id)"
-            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-secondary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            class="flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-secondary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            :class="layoutStore.cardSizeMode === 'compact' ? 'w-6 h-6' : 'w-8 h-8'"
             title="对比画质细节"
           >
-            <Columns2 :size="16" />
+            <Columns2 :size="layoutStore.cardSizeMode === 'compact' ? 12 : 16" />
           </button>
           <button
             v-if="image.status === 'done'"

@@ -57,8 +57,10 @@ const handleNumberInput = (e: Event) => {
         }}</span>
       </div>
 
-      <!-- 数字输入框 (Harden: 精准调节) -->
+      <!-- 数值显示/自定义插槽 -->
+      <slot v-if="$slots.default" :modelValue="modelValue"></slot>
       <div
+        v-else
         class="flex items-center bg-muted/30 border border-border/20 rounded-lg px-1.5 py-0.5 focus-within:border-primary/40 focus-within:bg-muted/50 transition-all"
       >
         <input

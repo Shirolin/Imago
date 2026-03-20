@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useImageStore } from '../stores/imageStore'
 import { useLayoutStore } from '../stores/layoutStore'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
 import ImageCard from '../components/common/ImageCard.vue'
+import AppExportSettings from '../components/common/AppExportSettings.vue'
 import {
   Trash2,
   Info,
@@ -40,6 +41,8 @@ const activeExifData = computed(() =>
 const activeImage = computed(() => store.images.find((img) => img.id === activeImageId.value))
 const isReadingExif = ref(false)
 const isAllTagsExpanded = ref(false)
+const outputFormat = ref<string>('original')
+const outputQuality = ref(0.9)
 
 const { isProcessing, processSelected } = useImageProcessor(clearExifEngine)
 
@@ -95,7 +98,10 @@ onMounted(() => {
 })
 
 const handleClearExif = async () => {
-  await processSelected({})
+  await processSelected({
+    format: outputFormat.value,
+    quality: outputQuality.value
+  })
   for (const id of store.selectedIds) {
     const img = store.images.find((i) => i.id === id)
     if (img) {
@@ -274,6 +280,12 @@ const handleCardClick = (id: string) => {
           >选择图片查看详情</span
         >
       </div>
+
+      <AppExportSettings
+        v-model:format="outputFormat"
+        v-model:quality="outputQuality"
+        class="mt-6 pt-6 border-t border-border/40"
+      />
     </template>
 
     <template #footer>

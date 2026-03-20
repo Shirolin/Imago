@@ -5,6 +5,7 @@ import { useElementSize, watchOnce, useResizeObserver } from '@vueuse/core'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
 import AppCanvasWorkspace from '../components/common/AppCanvasWorkspace.vue'
+import AppExportSettings from '../components/common/AppExportSettings.vue'
 import {
   Layers,
   Settings2,
@@ -59,6 +60,8 @@ const columns = ref(3)
 const padding = ref(0)
 const borderRadius = ref(0)
 const backgroundColor = ref('#00000000')
+const outputFormat = ref<string>('image/png')
+const outputQuality = ref(0.9)
 
 const combineDirections = [
   { label: '纵向', value: 'vertical', icon: ArrowDown },
@@ -98,9 +101,11 @@ const handleCombine = async () => {
       borderRadius: borderRadius.value,
       backgroundColor:
         backgroundColor.value === '#00000000' ? 'transparent' : backgroundColor.value,
-      alignment: alignment.value
+      alignment: alignment.value,
+      format: outputFormat.value,
+      quality: outputQuality.value
     })
-    if (result?.blob) downloadImage(result.blob, `combined_${Date.now()}.png`)
+    if (result?.blob) downloadImage(result.blob, `combined_${Date.now()}`)
   } catch (error) {
     console.error('Combine failed:', error)
   }
@@ -239,6 +244,11 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
         <AppSlider v-model="spacing" label="图片间距" :min="0" :max="200" unit="px" />
         <AppSlider v-model="padding" label="外边距" :min="0" :max="200" unit="px" />
         <AppSlider v-model="borderRadius" label="图片圆角" :min="0" :max="100" unit="px" />
+        <AppExportSettings
+          v-model:format="outputFormat"
+          v-model:quality="outputQuality"
+          class="pt-4"
+        />
       </div>
     </template>
 

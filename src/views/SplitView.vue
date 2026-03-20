@@ -10,8 +10,8 @@ import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import AppSlider from '../components/common/AppSlider.vue'
-import AppSelect from '../components/common/AppSelect.vue'
-import { Scissors, Grid3X3, Layers, FileType, Box, AlignCenter, Trash2 } from 'lucide-vue-next'
+import AppExportSettings from '../components/common/AppExportSettings.vue'
+import { Scissors, Grid3X3, Layers, Box, AlignCenter, Trash2 } from 'lucide-vue-next'
 import { splitEngine } from '../lib/engines/splitEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useResizeObserver } from '@vueuse/core'
@@ -266,13 +266,6 @@ const handleProcess = async () => {
     )
 }
 
-const formatOptions = [
-  { label: '保留原格式', value: 'original' },
-  { label: 'WebP (推荐)', value: 'image/webp' },
-  { label: 'JPEG (高兼容)', value: 'image/jpeg' },
-  { label: 'PNG (无损)', value: 'image/png' }
-]
-
 useResizeObserver(containerRef, resetView)
 
 const buttonText = computed(() =>
@@ -381,20 +374,12 @@ const buttonText = computed(() =>
         </div>
       </section>
 
-      <section class="space-y-5 pb-4">
-        <AppSectionHeader title="导出配置" :icon="FileType" />
-        <div class="space-y-4 px-1">
-          <AppSelect v-model="outputFormat" :options="formatOptions" />
-          <AppSlider
-            v-if="outputFormat !== 'original' && outputFormat !== 'image/png'"
-            v-model="outputQuality"
-            label="导出质量"
-            :min="0.1"
-            :max="1.0"
-            :step="0.05"
-          />
-        </div>
-      </section>
+      <AppExportSettings
+        v-model:format="outputFormat"
+        v-model:quality="outputQuality"
+        title="导出配置"
+        class="pb-4"
+      />
     </template>
 
     <template #footer>
