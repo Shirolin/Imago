@@ -14,101 +14,117 @@ export interface ResizeOptions {
 
 export const resizeEngine: ImageProcessor<ResizeOptions> = async (file, options) => {
   return new Promise((resolve, reject) => {
-    const img = new Image()
-    const url = URL.createObjectURL(file)
+    const processImage = async () => {
+      let bitmap: ImageBitmap | null = null
+      try {
+        if (options.signal?.aborted) throw new Error('Task aborted')
 
-    img.onload = async () => {
-      URL.revokeObjectURL(url)
+        bitmap = await createImageBitmap(file)
 
-      let targetWidth = img.width
-      let targetHeight = img.height
+        if (options.signal?.aborted) {
+          throw new Error('Task aborted')
+        }
 
-      if (options.mode === 'percentage') {
-        const factor = (options.percentage ?? 100) / 100
-        targetWidth = Math.max(1, img.width * factor)
-        targetHeight = Math.max(1, img.height * factor)
-      } else {
-        targetWidth = options.width ?? img.width
-        targetHeight = options.height ?? img.height
+        let targetWidth = bitmap.width
+        let targetHeight = bitmap.height
 
-        if (options.maintainAspectRatio) {
-          const ratio = img.width / img.height
-          if (options.width && !options.height) {
-            targetHeight = targetWidth / ratio
-          } else if (options.height && !options.width) {
-            targetWidth = targetHeight * ratio
-          } else if (options.width && options.height) {
-            const targetRatio = targetWidth / targetHeight
-            if (targetRatio > ratio) {
-              targetWidth = targetHeight * ratio
-            } else {
+        if (options.mode === 'percentage') {
+          const factor = (options.percentage ?? 100) / 100
+          targetWidth = Math.max(1, bitmap.width * factor)
+          targetHeight = Math.max(1, bitmap.height * factor)
+        } else {
+          targetWidth = options.width ?? bitmap.width
+          targetHeight = options.height ?? bitmap.height
+
+          if (options.maintainAspectRatio) {
+            const ratio = bitmap.width / bitmap.height
+            if (options.width && !options.height) {
               targetHeight = targetWidth / ratio
+            } else if (options.height && !options.width) {
+              targetWidth = targetHeight * ratio
+            } else if (options.width && options.height) {
+              const targetRatio = targetWidth / targetHeight
+              if (targetRatio > ratio) {
+                targetWidth = targetHeight * ratio
+              } else {
+                targetHeight = targetWidth / ratio
+              }
             }
           }
         }
-      }
 
-      const canvas = document.createElement('canvas')
-      canvas.width = Math.round(targetWidth)
-      canvas.height = Math.round(targetHeight)
+        targetWidth = Math.round(targetWidth)
+        targetHeight = Math.round(targetHeight)
 
-      const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true })
-      if (!ctx) {
-        reject(new Error('Failed to get canvas context'))
-        return
-      }
+        let canvas: OffscreenCanvas | HTMLCanvasElement
+        let ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null
 
-      ctx.imageSmoothingEnabled = true
-      ctx.imageSmoothingQuality = 'high'
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        if (typeof OffscreenCanvas !== 'undefined') {
+          canvas = new OffscreenCanvas(targetWidth, targetHeight)
+          ctx = canvas.getContext('2d', {
+            alpha: true,
+            desynchronized: true
+          }) as OffscreenCanvasRenderingContext2D | null
+        } else {
+          canvas = document.createElement('canvas')
+          canvas.width = targetWidth
+          canvas.height = targetHeight
+          ctx = canvas.getContext('2d', {
+            alpha: true,
+            desynchronized: true
+          }) as CanvasRenderingContext2D | null
+        }
 
-      const targetFormat = options.format || file.type
-      const targetQuality = options.quality ?? 0.9
+        if (!ctx) throw new Error('Failed to get canvas context')
 
-      canvas.toBlob(
-        async (blob) => {
-          if (!blob) {
-            reject(new Error('Canvas toBlob failed'))
-            return
-          }
+        ctx.imageSmoothingEnabled = true
+        ctx.imageSmoothingQuality = 'high'
+        ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight)
 
-          let finalBlob = blob
+        bitmap.close()
+        bitmap = null
 
-          // 元数据保留逻辑 (仅针对 JPEG)
-          if (options.preserveExif && file.type === 'image/jpeg' && targetFormat === 'image/jpeg') {
-            try {
-              const processedBuffer = await blob.arrayBuffer()
-              const mergedBuffer = await injectMetadata(file, processedBuffer, 'image/jpeg')
-              finalBlob = new Blob([mergedBuffer], { type: 'image/jpeg' })
-            } catch (e) {
-              console.warn('Metadata injection failed during resize:', e)
-            }
-          }
+        const targetFormat = options.format || file.type
+        const targetQuality = options.quality ?? 0.9
 
-          resolve({
-            blob: finalBlob,
-            size: finalBlob.size,
-            width: canvas.width,
-            height: canvas.height
+        let blob: Blob | null
+        if (typeof OffscreenCanvas !== 'undefined' && canvas instanceof OffscreenCanvas) {
+          blob = await (canvas as OffscreenCanvas).convertToBlob({
+            type: targetFormat,
+            quality: targetQuality
           })
-        },
-        targetFormat,
-        targetQuality
-      )
+        } else {
+          blob = await new Promise<Blob | null>((res) =>
+            (canvas as HTMLCanvasElement).toBlob(res, targetFormat, targetQuality)
+          )
+        }
+
+        if (!blob) throw new Error('Canvas toBlob failed')
+
+        let finalBlob = blob
+
+        if (options.preserveExif && file.type === 'image/jpeg' && targetFormat === 'image/jpeg') {
+          try {
+            const processedBuffer = await blob.arrayBuffer()
+            const mergedBuffer = await injectMetadata(file, processedBuffer, 'image/jpeg')
+            finalBlob = new Blob([mergedBuffer], { type: 'image/jpeg' })
+          } catch (e) {
+            console.warn('Metadata injection failed during resize:', e)
+          }
+        }
+
+        resolve({
+          blob: finalBlob,
+          size: finalBlob.size,
+          width: targetWidth,
+          height: targetHeight
+        })
+      } catch (e) {
+        if (bitmap) bitmap.close()
+        reject(e)
+      }
     }
 
-    img.onerror = () => {
-      URL.revokeObjectURL(url)
-      reject(new Error('Failed to load image'))
-    }
-
-    if (options.signal) {
-      options.signal.addEventListener('abort', () => {
-        img.src = ''
-        reject(new Error('Task aborted'))
-      })
-    }
-
-    img.src = url
+    processImage()
   })
 }

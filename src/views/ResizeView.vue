@@ -77,7 +77,7 @@ const handleProcess = async () => {
       height: height.value,
       percentage: percentage.value,
       maintainAspectRatio: maintainAspectRatio.value,
-      format: (outputFormat.value === 'original' ? undefined : outputFormat.value) as any,
+      format: outputFormat.value === 'original' ? undefined : outputFormat.value,
       quality: outputQuality.value,
       preserveExif: preserveExif.value
     })
@@ -163,7 +163,7 @@ const buttonText = computed(() => {
                 >
                   <div class="flex-1 flex flex-col gap-0.5">
                     <span
-                      class="font-black uppercase text-muted-foreground tracking-widest mt-0.5"
+                      class="font-medium text-muted-foreground mt-0.5"
                       :class="
                         layoutStore.cardSizeMode === 'compact' ? 'text-[0.5rem]' : 'text-[0.6rem]'
                       "
@@ -181,7 +181,7 @@ const buttonText = computed(() => {
                   </div>
                   <div class="flex-1 flex flex-col gap-0.5">
                     <span
-                      class="font-black uppercase text-muted-foreground tracking-widest mt-0.5"
+                      class="font-medium text-muted-foreground mt-0.5"
                       :class="
                         layoutStore.cardSizeMode === 'compact' ? 'text-[0.5rem]' : 'text-[0.6rem]'
                       "
@@ -214,26 +214,48 @@ const buttonText = computed(() => {
 
         <section class="relative">
           <div class="bg-muted/10 rounded-2xl p-4 border border-border/60">
-            <div v-if="resizeMode === 'percentage'" class="space-y-6">
-              <AppSlider
-                v-model="percentage"
-                label="缩放比例"
-                :min="1"
-                :max="200"
-                :step="1"
-                unit="%"
-                :icon="Percent"
-              />
+            <div v-if="resizeMode === 'percentage'" class="space-y-3">
+              <div class="flex items-center justify-between px-0.5 h-6">
+                <div class="flex items-center gap-2.5">
+                  <div
+                    class="bg-primary/5 p-1 rounded-full flex items-center justify-center overflow-visible"
+                  >
+                    <Percent :size="15" :stroke-width="2.5" class="text-primary" />
+                  </div>
+                  <span
+                    class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none"
+                    >缩放比例</span
+                  >
+                </div>
+                <span class="font-mono text-sm font-black text-primary tabular-nums"
+                  >{{ percentage }}%</span
+                >
+              </div>
+              <AppSlider v-model="percentage" :min="1" :max="200" :step="1" />
             </div>
             <div v-else class="space-y-5">
               <div class="grid grid-cols-2 gap-3">
-                <AppInput v-model.number="width" type="number" placeholder="宽度" suffix="W" />
-                <AppInput v-model.number="height" type="number" placeholder="高度" suffix="H" />
+                <AppInput
+                  v-model.number="width"
+                  type="number"
+                  placeholder="宽度"
+                  suffix="W"
+                  aria-label="宯度"
+                />
+                <AppInput
+                  v-model.number="height"
+                  type="number"
+                  placeholder="高度"
+                  suffix="H"
+                  aria-label="高度"
+                />
               </div>
               <div class="flex items-center justify-between px-1">
                 <AppCheckbox v-model="maintainAspectRatio" label="锁定纵横比" />
                 <button
                   @click="resetDimensions"
+                  aria-label="重置尺寸"
+                  title="重置尺寸"
                   class="p-1.5 hover:bg-muted rounded-lg transition-colors text-muted-foreground"
                 >
                   <RotateCcw :size="14" />
