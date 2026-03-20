@@ -1,31 +1,26 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, nextTick, h } from 'vue'
+import { ref, computed, watch, nextTick, h } from 'vue'
 import { useImageStore } from '../stores/imageStore'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
 import CropBox from '../components/common/CropBox.vue'
+import AppCanvasWorkspace from '../components/common/AppCanvasWorkspace.vue'
 import {
   Scissors,
   RotateCw,
+  RefreshCw,
   FlipHorizontal,
   FlipVertical,
-  Type,
-  RefreshCw,
   Maximize2,
-  Minimize2,
-  Trash2,
   Grid3X3,
-  CheckCircle2,
-  ZoomIn,
-  ZoomOut,
-  Maximize,
-  Grip,
   Square,
-  MousePointer2,
   RotateCcw,
   Undo2,
   Redo2,
-  History
+  History,
+  Settings2,
+  Palette,
+  LayoutGrid
 } from 'lucide-vue-next'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
@@ -33,11 +28,11 @@ import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import AppSlider from '../components/common/AppSlider.vue'
 import AppSelect from '../components/common/AppSelect.vue'
+import AppInput from '../components/common/AppInput.vue'
 import { cropEngine } from '../lib/engines/cropEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
-import { useResizeObserver, useElementBounding } from '@vueuse/core'
+import { useResizeObserver } from '@vueuse/core'
 import { useHistory } from '../composables/useHistory'
-
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
 const store = useImageStore()
@@ -62,7 +57,7 @@ const Icon43 = createRatioIcon(18, 14)
 const Icon169 = createRatioIcon(20, 11)
 const Icon23 = createRatioIcon(13, 19)
 
-// --- 状态汇总 ---
+// --- 状态 ---
 const rotation = ref(0)
 const flipH = ref(false)
 const flipV = ref(false)
@@ -76,7 +71,6 @@ const internalCrop = ref({ x: 0, y: 0, w: 100, h: 100 })
 const gridMode = ref<'none' | 'thirds' | 'golden' | 'cross'>('thirds')
 const trimPx = ref({ top: 0, bottom: 0, left: 0, right: 0 })
 
-// 组合设置快照
 const allSettings = computed({
   get: () => ({
     rotation: rotation.value,
@@ -109,8 +103,6 @@ const allSettings = computed({
 })
 
 const { canUndo, canRedo, undo, redo, commit, clear: clearHistory } = useHistory(allSettings)
-
-// 动作点记录：必须在“修改之前”调用，记录旧状态
 const recordBeforeAction = () => commit()
 
 const handleRotate = () => {
@@ -129,15 +121,15 @@ const handleRatioChange = (val: any) => {
   recordBeforeAction()
   currentRatio.value = val
 }
-const handleTransparentToggle = () => {
+
+const setFillColor = (color: string | 'transparent') => {
   recordBeforeAction()
-  isTransparent.value = !isTransparent.value
-}
-const handleColorChange = () => {
-  recordBeforeAction()
-}
-const handleSliderChange = () => {
-  recordBeforeAction()
+  if (color === 'transparent') {
+    isTransparent.value = true
+  } else {
+    isTransparent.value = false
+    customFillColor.value = color
+  }
 }
 
 const finalFillColor = computed(() => (isTransparent.value ? 'transparent' : customFillColor.value))
@@ -146,77 +138,48 @@ const isSnapping = ref(false)
 
 const { isProcessing, processSingle } = useImageProcessor(cropEngine)
 const selectedImage = computed(() => store.activeImage)
-const pixelSize = computed(() => {
+
+const workspaceRef = ref<InstanceType<typeof AppCanvasWorkspace> | null>(null)
+const containerRef = computed(() => workspaceRef.value?.containerRef)
+
+const resetView = () => {
   const img = selectedImage.value
-  if (!img || !img.width || !img.height) return { w: 0, h: 0 }
-  return {
-    w: Math.round((internalCrop.value.w / 100) * img.width),
-    h: Math.round((internalCrop.value.h / 100) * img.height)
+  if (!img || !img.width) return
+  workspaceRef.value?.triggerAutoFit(img.width, img.height!)
+}
+
+const pxCoords = computed({
+  get: () => {
+    const img = selectedImage.value
+    if (!img || !img.width || !img.height) return { x: 0, y: 0, w: 0, h: 0 }
+    return {
+      x: Math.round((internalCrop.value.x / 100) * img.width),
+      y: Math.round((internalCrop.value.y / 100) * img.height),
+      w: Math.round((internalCrop.value.w / 100) * img.width),
+      h: Math.round((internalCrop.value.h / 100) * img.height)
+    }
+  },
+  set: (val) => {
+    const img = selectedImage.value
+    if (!img || !img.width || !img.height) return
+    internalCrop.value = {
+      x: (val.x / img.width) * 100,
+      y: (val.y / img.height) * 100,
+      w: (val.w / img.width) * 100,
+      h: (val.h / img.height) * 100
+    }
   }
 })
 
-const containerRef = ref<HTMLDivElement | null>(null)
-const scale = ref(1)
-const offset = ref({ x: 0, y: 0 })
-const isPanning = ref(false)
-const startPanPos = ref({ x: 0, y: 0 })
-const { width: cw, height: ch, left: cl, top: ct } = useElementBounding(containerRef)
-
-const resetView = () => {
-  const container = containerRef.value
-  const img = selectedImage.value
-  if (!container || !img || !img.width) return
-  const availableW = container.clientWidth - 120
-  const availableH = container.clientHeight - 120
-  scale.value = Math.min(availableW / img.width, availableH / img.height!, 1)
-  offset.value = { x: 0, y: 0 }
-}
-const zoomIn = () => {
-  scale.value *= 1.2
-}
-const zoomOut = () => {
-  scale.value *= 0.8
-}
-const setZoom100 = () => {
-  scale.value = 1
-  offset.value = { x: 0, y: 0 }
-}
-
-const handleWheel = (e: WheelEvent) => {
-  if (e.ctrlKey || e.metaKey) {
-    e.preventDefault()
-    const zoomStep = 1.15
-    const delta = e.deltaY > 0 ? 1 / zoomStep : zoomStep
-    const newScale = Math.max(0.01, Math.min(scale.value * delta, 20))
-    const mouseX = e.clientX - cl.value - cw.value / 2
-    const mouseY = e.clientY - ct.value - ch.value / 2
-    offset.value = {
-      x: mouseX - (mouseX - offset.value.x) * (newScale / scale.value),
-      y: mouseY - (mouseY - offset.value.y) * (newScale / scale.value)
-    }
-    scale.value = newScale
-  }
-}
-const handlePointerDown = (e: PointerEvent) => {
-  if (e.button === 1 || e.altKey) {
-    isPanning.value = true
-    startPanPos.value = { x: e.clientX - offset.value.x, y: e.clientY - offset.value.y }
-    containerRef.value?.setPointerCapture(e.pointerId)
-  }
-}
-const handlePointerMove = (e: PointerEvent) => {
-  if (isPanning.value)
-    offset.value = { x: e.clientX - startPanPos.value.x, y: e.clientY - startPanPos.value.y }
-}
-const handlePointerUp = () => {
-  isPanning.value = false
+const handlePxInputChange = (key: 'x' | 'y' | 'w' | 'h', val: number) => {
+  recordBeforeAction()
+  const newCoords = { ...pxCoords.value }
+  newCoords[key] = val
+  pxCoords.value = newCoords
 }
 
 const onCropChange = (data: any) => {
-  if (data.isDragging && !isDragging.value) {
-    // 关键：拖拽开始的瞬间记录旧位置
-    recordBeforeAction()
-  }
+  if (data.isDragging && !isDragging.value) recordBeforeAction()
   isDragging.value = data.isDragging
   isSnapping.value = data.isSnapping
 }
@@ -238,7 +201,7 @@ watch(
   () => store.activeId,
   async (id) => {
     if (id) {
-      clearHistory() // 切换图片，彻底清空历史栈
+      clearHistory()
       await nextTick()
       resetView()
     }
@@ -279,7 +242,6 @@ const formatOptions = [
   { label: 'JPEG (高兼容)', value: 'image/jpeg' },
   { label: 'PNG (无损)', value: 'image/png' }
 ]
-const buttonText = computed(() => (isProcessing.value ? '正在处理...' : '裁剪并保存'))
 </script>
 
 <template>
@@ -290,104 +252,46 @@ const buttonText = computed(() => (isProcessing.value ? '正在处理...' : '裁
     /></template>
 
     <template #content>
-      <div class="h-full flex flex-col p-4 md:p-6 overflow-hidden w-full relative">
-        <div
-          ref="containerRef"
-          class="flex-1 bg-muted/10 border border-border/40 rounded-3xl overflow-hidden relative group select-none touch-none"
-          :class="{ 'cursor-grabbing': isPanning }"
-          @wheel="handleWheel"
-          @pointerdown="handlePointerDown"
-          @pointermove="handlePointerMove"
-          @pointerup="handlePointerUp"
-        >
-          <div class="absolute inset-0 transparency-grid opacity-40"></div>
-          <div
-            class="absolute inset-0 flex items-center justify-center"
-            :style="{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})` }"
-          >
-            <div v-if="selectedImage" class="relative z-10">
-              <CropBox
-                :image-url="selectedImage.preview"
-                :aspect-ratio="currentRatio"
-                v-model="internalCrop"
-                :grid-mode="gridMode"
-                :fill-color="finalFillColor"
-                :scale="scale"
-                @change="onCropChange"
-              />
-            </div>
+      <AppCanvasWorkspace ref="workspaceRef" @reset="resetView">
+        <template #default="{ scale }">
+          <div v-if="selectedImage" class="relative z-10 shadow-xl">
+            <CropBox
+              :image-url="selectedImage.preview"
+              :aspect-ratio="currentRatio"
+              v-model="internalCrop"
+              :grid-mode="gridMode"
+              :fill-color="finalFillColor"
+              :scale="scale"
+              @change="onCropChange"
+            />
           </div>
+        </template>
+
+        <template #floating>
           <div
-            class="absolute bottom-20 left-1/2 -translate-x-1/2 pointer-events-none flex items-center gap-4 transition-all duration-300 z-40"
-            :class="{
-              'opacity-100 translate-y-0': isDragging,
-              'opacity-0 translate-y-4': !isDragging
-            }"
+            class="absolute bottom-20 left-1/2 -translate-x-1/2 pointer-events-none flex flex-col items-center gap-2 z-40 transition-opacity duration-300"
+            :class="isDragging ? 'opacity-100' : 'opacity-0'"
           >
             <div
               v-if="isSnapping"
-              class="px-4 py-2 bg-black/80 backdrop-blur-xl rounded-full border border-primary text-primary flex items-center gap-3 shadow-2xl transition-all"
+              class="px-3 py-1 bg-primary text-primary-foreground rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-lg"
             >
-              <div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-              <span class="text-[0.7rem] font-bold tracking-widest uppercase"
-                >已吸附边缘 (Alt取消)</span
-              >
+              已吸附 (Alt停用)
             </div>
             <div
-              class="px-4 py-2 bg-black/80 backdrop-blur-xl rounded-full border border-white/10 text-[0.7rem] text-white font-mono font-bold shadow-2xl"
+              class="px-4 py-2 bg-black/80 text-white rounded-xl border border-white/10 text-xs font-mono font-bold shadow-xl"
             >
-              {{ pixelSize.w }} × {{ pixelSize.h }} PX
+              {{ pxCoords.w }} × {{ pxCoords.h }} PX
             </div>
           </div>
-          <div
-            class="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 p-1.5 bg-background/80 backdrop-blur-2xl border border-border/60 rounded-2xl shadow-elevated"
-          >
-            <button
-              @click="zoomOut"
-              class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted"
-            >
-              <ZoomOut :size="18" />
-            </button>
-            <div class="px-2 min-w-[50px] text-center font-mono text-xs font-black">
-              {{ Math.round(scale * 100) }}%
-            </div>
-            <button
-              @click="zoomIn"
-              class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted"
-            >
-              <ZoomIn :size="18" />
-            </button>
-            <div class="w-px h-4 bg-border/20 mx-1"></div>
-            <button
-              @click="setZoom100"
-              class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted text-[10px] font-black uppercase"
-            >
-              1:1
-            </button>
-            <button
-              @click="resetView"
-              class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-primary/10 text-primary"
-              title="适应屏幕"
-            >
-              <Maximize :size="18" />
-            </button>
-          </div>
-          <div
-            class="absolute top-6 left-1/2 -translate-x-1/2 px-5 py-2.5 bg-black/40 backdrop-blur-md border border-white/5 rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center gap-4"
-          >
-            <span
-              class="text-[0.65rem] text-white/90 font-black uppercase tracking-[0.2em] flex items-center gap-2"
-              ><Grip :size="14" class="text-primary" /> Ctrl+滚轮缩放 • Alt+平移</span
-            >
-          </div>
-        </div>
-      </div>
+        </template>
+      </AppCanvasWorkspace>
     </template>
 
     <template #sidebar>
-      <section class="space-y-5">
+      <section class="space-y-4">
         <AppSectionHeader title="裁剪比例" :icon="Scissors" />
-        <div class="space-y-4 px-1">
+        <div class="space-y-3 px-1">
           <AppSegmentedControl
             v-model="currentRatio"
             :options="ratios"
@@ -403,157 +307,191 @@ const buttonText = computed(() => (isProcessing.value ? '正在处理...' : '裁
         </div>
       </section>
 
-      <section class="space-y-5">
+      <section class="space-y-4 pt-2">
+        <AppSectionHeader title="尺寸与位置" :icon="LayoutGrid" />
+        <div class="grid grid-cols-2 gap-x-2 gap-y-3 px-1">
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-muted-foreground uppercase ml-1">X 坐标</label>
+            <AppInput
+              type="number"
+              :model-value="pxCoords.x"
+              @update:model-value="handlePxInputChange('x', $event)"
+              class="h-9 text-xs font-mono"
+            />
+          </div>
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-muted-foreground uppercase ml-1">Y 坐标</label>
+            <AppInput
+              type="number"
+              :model-value="pxCoords.y"
+              @update:model-value="handlePxInputChange('y', $event)"
+              class="h-9 text-xs font-mono"
+            />
+          </div>
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-muted-foreground uppercase ml-1"
+              >宽度 (W)</label
+            >
+            <AppInput
+              type="number"
+              :model-value="pxCoords.w"
+              @update:model-value="handlePxInputChange('w', $event)"
+              class="h-9 text-xs font-mono border-primary/30"
+            />
+          </div>
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-muted-foreground uppercase ml-1"
+              >高度 (H)</label
+            >
+            <AppInput
+              type="number"
+              :model-value="pxCoords.h"
+              @update:model-value="handlePxInputChange('h', $event)"
+              class="h-9 text-xs font-mono border-primary/30"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section class="space-y-4 pt-2">
+        <AppSectionHeader title="画布扩展填充" :icon="Palette" />
+        <div class="px-1 flex items-center gap-2">
+          <button
+            @click="setFillColor('transparent')"
+            class="relative flex-1 h-10 rounded-xl border-2 transition-all flex items-center justify-center gap-2 overflow-hidden"
+            :class="
+              isTransparent
+                ? 'border-primary ring-2 ring-primary/10'
+                : 'border-border grayscale opacity-60 hover:opacity-100 hover:grayscale-0'
+            "
+          >
+            <div class="absolute inset-0 transparency-grid opacity-60"></div>
+            <span class="relative z-10 text-[10px] font-bold uppercase drop-shadow-sm">透明</span>
+          </button>
+          <button
+            @click="setFillColor('#ffffff')"
+            class="w-10 h-10 rounded-xl border-2 transition-all bg-white"
+            :class="
+              !isTransparent && customFillColor === '#ffffff'
+                ? 'border-primary shadow-md'
+                : 'border-border'
+            "
+          ></button>
+          <button
+            @click="setFillColor('#000000')"
+            class="w-10 h-10 rounded-xl border-2 transition-all bg-black"
+            :class="
+              !isTransparent && customFillColor === '#000000'
+                ? 'border-primary shadow-md'
+                : 'border-border'
+            "
+          ></button>
+          <div class="relative w-10 h-10">
+            <input
+              type="color"
+              v-model="customFillColor"
+              @input="isTransparent = false"
+              class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+            />
+            <div
+              class="w-full h-full rounded-xl border-2 flex items-center justify-center overflow-hidden"
+              :style="{ backgroundColor: customFillColor }"
+              :class="
+                !isTransparent && customFillColor !== '#ffffff' && customFillColor !== '#000000'
+                  ? 'border-primary shadow-md'
+                  : 'border-border'
+              "
+            >
+              <div class="w-2 h-2 rounded-full bg-white/50 border border-white/20 shadow-sm"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="space-y-4 pt-2">
+        <AppSectionHeader title="边缘精修 (TRIM)" :icon="Settings2" />
+        <div class="grid grid-cols-2 gap-x-4 gap-y-3 px-1">
+          <AppSlider v-model="trimPx.top" label="上" :min="0" :max="100" unit="px" />
+          <AppSlider v-model="trimPx.bottom" label="下" :min="0" :max="100" unit="px" />
+          <AppSlider v-model="trimPx.left" label="左" :min="0" :max="100" unit="px" />
+          <AppSlider v-model="trimPx.right" label="右" :min="0" :max="100" unit="px" />
+        </div>
+      </section>
+
+      <section class="space-y-4 pt-2">
         <div class="flex items-center justify-between pr-1">
-          <AppSectionHeader title="变换与历史" :icon="History" />
+          <AppSectionHeader title="历史与变换" :icon="History" />
           <button
             @click="handleReset"
-            title="重置当前设置"
-            class="p-1.5 hover:bg-muted rounded-lg transition-colors text-muted-foreground/60 hover:text-primary active:scale-90"
+            class="p-1.5 hover:bg-muted rounded-lg text-muted-foreground/40 hover:text-primary transition-colors"
+            title="重置设置"
           >
             <RotateCcw :size="16" />
           </button>
         </div>
-
         <div class="px-1 space-y-4">
           <div class="grid grid-cols-2 gap-2">
-            <button
-              @click="undo"
+            <AppButton
+              variant="secondary"
+              size="sm"
               :disabled="!canUndo"
-              class="flex items-center justify-center gap-2 py-2.5 rounded-xl border transition-all font-bold text-[11px] uppercase tracking-wider"
-              :class="
-                canUndo
-                  ? 'bg-background border-border text-foreground hover:border-primary/40 hover:bg-primary/5 active:scale-95'
-                  : 'bg-muted/30 border-border/20 text-muted-foreground/30 cursor-not-allowed'
-              "
+              @click="undo"
+              class="rounded-xl h-9 text-[10px] font-bold uppercase"
+              ><Undo2 :size="14" class="mr-1.5" /> 撤销</AppButton
             >
-              <Undo2 :size="14" /> 撤销
-            </button>
-            <button
-              @click="redo"
+            <AppButton
+              variant="secondary"
+              size="sm"
               :disabled="!canRedo"
-              class="flex items-center justify-center gap-2 py-2.5 rounded-xl border transition-all font-bold text-[11px] uppercase tracking-wider"
-              :class="
-                canRedo
-                  ? 'bg-background border-border text-foreground hover:border-primary/40 hover:bg-primary/5 active:scale-95'
-                  : 'bg-muted/30 border-border/20 text-muted-foreground/30 cursor-not-allowed'
-              "
+              @click="redo"
+              class="rounded-xl h-9 text-[10px] font-bold uppercase"
+              ><Redo2 :size="14" class="mr-1.5" /> 重做</AppButton
             >
-              <Redo2 :size="14" /> 重做
-            </button>
           </div>
-
           <div class="grid grid-cols-3 gap-2">
             <button
               @click="handleRotate"
-              class="flex flex-col items-center gap-2 p-3 rounded-2xl bg-muted/20 border border-border/40 hover:bg-primary/5 transition-all group"
+              class="flex flex-col items-center gap-1.5 p-2 rounded-xl border bg-muted/20 hover:bg-primary/5 transition-all"
             >
-              <RotateCw :size="18" class="text-muted-foreground group-hover:text-primary" /><span
-                class="text-[10px] font-bold text-muted-foreground uppercase"
+              <RotateCw :size="18" class="text-muted-foreground" /><span
+                class="text-[9px] font-bold text-muted-foreground uppercase"
                 >旋转</span
               >
             </button>
             <button
               @click="handleFlipH"
-              class="flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all"
+              class="flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all"
               :class="
                 flipH
                   ? 'bg-primary/10 border-primary text-primary'
-                  : 'bg-muted/20 border-border/40 text-muted-foreground'
+                  : 'bg-muted/20 border-border text-muted-foreground'
               "
             >
-              <FlipHorizontal :size="18" /><span class="text-[10px] font-bold uppercase">水平</span>
+              <FlipHorizontal :size="18" /><span class="text-[9px] font-bold uppercase">水平</span>
             </button>
             <button
               @click="handleFlipV"
-              class="flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all"
+              class="flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all"
               :class="
                 flipV
                   ? 'bg-primary/10 border-primary text-primary'
-                  : 'bg-muted/20 border-border/40 text-muted-foreground'
+                  : 'bg-muted/20 border-border text-muted-foreground'
               "
             >
-              <FlipVertical :size="18" /><span class="text-[10px] font-bold uppercase">垂直</span>
+              <FlipVertical :size="18" /><span class="text-[9px] font-bold uppercase">垂直</span>
             </button>
           </div>
         </div>
       </section>
 
-      <section class="space-y-5">
-        <AppSectionHeader title="扩图填充" :icon="Type" />
-        <div class="space-y-6 px-1">
-          <div
-            class="bg-muted/10 rounded-2xl p-4 border border-border/60 flex items-center justify-between"
-          >
-            <label class="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
-              >背景色</label
-            >
-            <div class="flex items-center gap-3">
-              <button
-                @click="handleTransparentToggle"
-                class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase border transition-all"
-                :class="
-                  isTransparent
-                    ? 'bg-primary/10 border-primary text-primary'
-                    : 'bg-muted/20 border-border text-muted-foreground'
-                "
-              >
-                透明
-              </button>
-              <input
-                type="color"
-                v-model="customFillColor"
-                @mousedown="handleColorChange"
-                class="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 p-0"
-                :disabled="isTransparent"
-              />
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <AppSlider
-              v-model="trimPx.top"
-              label="上"
-              :min="0"
-              :max="200"
-              unit="px"
-              @mousedown="handleSliderChange"
-            />
-            <AppSlider
-              v-model="trimPx.bottom"
-              label="下"
-              :min="0"
-              :max="200"
-              unit="px"
-              @mousedown="handleSliderChange"
-            />
-            <AppSlider
-              v-model="trimPx.left"
-              label="左"
-              :min="0"
-              :max="200"
-              unit="px"
-              @mousedown="handleSliderChange"
-            />
-            <AppSlider
-              v-model="trimPx.right"
-              label="右"
-              :min="0"
-              :max="200"
-              unit="px"
-              @mousedown="handleSliderChange"
-            />
-          </div>
-        </div>
-      </section>
-
-      <section class="space-y-5 pb-4">
-        <AppSectionHeader title="保存配置" :icon="RefreshCw" />
-        <div class="space-y-4 px-1">
+      <section class="space-y-4 pt-2 pb-6">
+        <AppSectionHeader title="导出保存" :icon="RefreshCw" />
+        <div class="px-1 space-y-4">
           <AppSelect v-model="outputFormat" :options="formatOptions" />
           <AppSlider
             v-if="outputFormat !== 'original' && outputFormat !== 'image/png'"
             v-model="outputQuality"
-            label="质量"
+            label="导出质量"
             :min="0.1"
             :max="1.0"
             :step="0.05"
@@ -563,15 +501,17 @@ const buttonText = computed(() => (isProcessing.value ? '正在处理...' : '裁
     </template>
 
     <template #footer>
-      <InspectorFooter>
+      <InspectorFooter class="bg-background/95 backdrop-blur-md border-t border-border/60">
         <AppButton
           variant="cta"
-          class="w-full h-12 rounded-xl shadow-xl shadow-primary/10 transition-all active:scale-95"
+          class="w-full h-12 rounded-xl shadow-lg transition-all active:scale-95 group overflow-hidden"
           :loading="isProcessing"
           @click="handleProcess"
         >
           <template #icon><Scissors v-if="!isProcessing" :size="18" class="mr-2" /></template>
-          <span class="font-bold text-sm tracking-tight">{{ buttonText }}</span>
+          <span class="font-bold text-sm uppercase tracking-tight">{{
+            isProcessing ? '导出处理中...' : '裁剪并保存导出'
+          }}</span>
         </AppButton>
       </InspectorFooter>
     </template>
@@ -579,24 +519,17 @@ const buttonText = computed(() => (isProcessing.value ? '正在处理...' : '裁
 </template>
 
 <style scoped>
-.transparency-grid {
-  background-image: conic-gradient(
-    hsl(var(--muted-foreground) / 0.07) 0 25%,
-    transparent 0 50%,
-    hsl(var(--muted-foreground) / 0.07) 0 75%,
-    transparent 0
-  );
-  background-size: 16px 16px;
+section {
+  @apply transition-all duration-300;
 }
-.animate-spin-slow {
-  animation: spin 3s linear infinite;
+
+/* 隐藏输入框上下箭头 */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+input[type='number'] {
+  -moz-appearance: textfield;
 }
 </style>

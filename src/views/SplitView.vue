@@ -1,33 +1,20 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { useImageStore } from '../stores/imageStore'
 import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
+import AppCanvasWorkspace from '../components/common/AppCanvasWorkspace.vue'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import AppSlider from '../components/common/AppSlider.vue'
 import AppSelect from '../components/common/AppSelect.vue'
-import {
-  Scissors,
-  Grid3X3,
-  Layers,
-  FileType,
-  Box,
-  AlignCenter,
-  ZoomIn,
-  ZoomOut,
-  Maximize,
-  Grip,
-  Keyboard,
-  MousePointerSquareDashed,
-  Trash2
-} from 'lucide-vue-next'
+import { Scissors, Grid3X3, Layers, FileType, Box, AlignCenter, Trash2 } from 'lucide-vue-next'
 import { splitEngine } from '../lib/engines/splitEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
-import { useResizeObserver, useElementBounding } from '@vueuse/core'
+import { useResizeObserver } from '@vueuse/core'
 
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
@@ -45,21 +32,15 @@ const outputQuality = ref(0.9)
 const { isProcessing, processSingle } = useImageProcessor(splitEngine)
 const selectedImage = computed(() => store.activeImage)
 
-// 画布交互逻辑
-const containerRef = ref<HTMLDivElement | null>(null)
+// 使用通用 Canvas 逻辑
+const workspaceRef = ref<InstanceType<typeof AppCanvasWorkspace> | null>(null)
+const containerRef = computed(() => workspaceRef.value?.containerRef)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
-const scale = ref(1)
-const offset = ref({ x: 0, y: 0 })
-const isPanning = ref(false)
-const startPanPos = ref({ x: 0, y: 0 })
 
 const editMode = ref<'grid' | 'custom'>('grid')
 const activeAxis = ref<'x' | 'y'>('x')
 const draggingLine = ref<{ axis: 'x' | 'y'; index: number } | null>(null)
 const hoveredLine = ref<{ axis: 'x' | 'y'; index: number } | null>(null)
-const isSnapping = ref(false)
-const mousePos = ref({ x: 0, y: 0 })
-const magnifierPos = ref({ x: 0, y: 0 })
 const isAltPressed = ref(false)
 
 const linesX = ref<number[]>([])
@@ -88,6 +69,7 @@ const updateCachedImage = () => {
     const octx = offscreenCanvas.getContext('2d')
     octx?.drawImage(img, 0, 0)
     requestDraw()
+    nextTick(resetView)
   }
 }
 
@@ -95,42 +77,35 @@ const draw = () => {
   const canvas = canvasRef.value
   const ctx = canvas?.getContext('2d')
   const img = selectedImage.value
+  const scale = workspaceRef.value?.scale || 1
   if (!canvas || !ctx || !offscreenCanvas || !img) return
   canvas.width = img.width!
   canvas.height = img.height!
   ctx.clearRect(0, 0, img.width!, img.height!)
   ctx.drawImage(offscreenCanvas, 0, 0)
 
-  const drawStylizedLine = (
-    pos: number,
-    isVertical: boolean,
-    isHovered: boolean,
-    isPreview: boolean = false
-  ) => {
+  const drawStylizedLine = (pos: number, isVertical: boolean, isHovered: boolean) => {
     ctx.save()
     const colorPrimary = getComputedStyle(document.documentElement)
       .getPropertyValue('--primary')
       .trim()
-    const colorMuted = getComputedStyle(document.documentElement)
-      .getPropertyValue('--muted-foreground')
-      .trim()
-    const activeColor =
-      isAltPressed.value && isPreview ? `hsl(${colorMuted})` : `hsl(${colorPrimary})`
+    const activeColor = `hsl(${colorPrimary})`
+
     ctx.beginPath()
-    ctx.lineWidth = (isPreview ? 1 : 2) / scale.value
-    ctx.strokeStyle = isPreview ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.3)'
+    ctx.lineWidth = 2 / scale
+    ctx.strokeStyle = 'rgba(0,0,0,0.3)'
     if (isVertical) {
-      ctx.moveTo(pos + 1 / scale.value, 0)
-      ctx.lineTo(pos + 1 / scale.value, img.height!)
+      ctx.moveTo(pos + 1 / scale, 0)
+      ctx.lineTo(pos + 1 / scale, img.height!)
     } else {
-      ctx.moveTo(0, pos + 1 / scale.value)
-      ctx.lineTo(img.width!, pos + 1 / scale.value)
+      ctx.moveTo(0, pos + 1 / scale)
+      ctx.lineTo(img.width!, pos + 1 / scale)
     }
     ctx.stroke()
+
     ctx.beginPath()
-    if (isPreview) ctx.setLineDash([5, 5])
-    ctx.lineWidth = (isHovered ? 3 : 1.5) / scale.value
-    ctx.strokeStyle = isPreview ? 'rgba(255,255,255,0.7)' : activeColor
+    ctx.lineWidth = (isHovered ? 3 : 1.5) / scale
+    ctx.strokeStyle = activeColor
     if (isVertical) {
       ctx.moveTo(pos, 0)
       ctx.lineTo(pos, img.height!)
@@ -138,13 +113,14 @@ const draw = () => {
       ctx.moveTo(0, pos)
       ctx.lineTo(img.width!, pos)
     }
-    if (isHovered && !isPreview) {
-      ctx.shadowBlur = 10 / scale.value
+    if (isHovered) {
+      ctx.shadowBlur = 10 / scale
       ctx.shadowColor = activeColor
     }
     ctx.stroke()
     ctx.restore()
   }
+
   linesX.value.forEach((lx, i) =>
     drawStylizedLine(lx, true, hoveredLine.value?.axis === 'x' && hoveredLine.value.index === i)
   )
@@ -163,23 +139,10 @@ const requestDraw = () => {
   }
 }
 
-const {
-  width: containerWidth,
-  height: containerHeight,
-  left: containerLeft,
-  top: containerTop
-} = useElementBounding(containerRef)
-
 const resetView = () => {
-  const container = containerRef.value
   const img = selectedImage.value
-  if (!container || !img) return
-  scale.value = Math.min(
-    (container.clientWidth - 80) / img.width!,
-    (container.clientHeight - 80) / img.height!,
-    1
-  )
-  offset.value = { x: 0, y: 0 }
+  if (!img) return
+  workspaceRef.value?.triggerAutoFit(img.width!, img.height!)
   setTimeout(updateCanvasRect, 100)
 }
 
@@ -218,18 +181,13 @@ watch(
 const getLogicPos = (e: PointerEvent) => {
   if (!cachedCanvasRect) updateCanvasRect()
   const rect = cachedCanvasRect!
-  return { x: (e.clientX - rect.left) / scale.value, y: (e.clientY - rect.top) / scale.value }
+  const scale = workspaceRef.value?.scale || 1
+  return { x: (e.clientX - rect.left) / scale, y: (e.clientY - rect.top) / scale }
 }
 
 const handlePointerDown = (e: PointerEvent) => {
-  if (!containerRef.value) return
+  if (e.button === 1 || e.shiftKey || e.altKey) return
   updateCanvasRect()
-  if (e.button === 1 || e.shiftKey) {
-    isPanning.value = true
-    startPanPos.value = { x: e.clientX - offset.value.x, y: e.clientY - offset.value.y }
-    containerRef.value.setPointerCapture(e.pointerId)
-    return
-  }
   if (hoveredLine.value) {
     draggingLine.value = { ...hoveredLine.value }
     return
@@ -248,13 +206,8 @@ const handlePointerDown = (e: PointerEvent) => {
 }
 
 const handlePointerMove = (e: PointerEvent) => {
-  if (isPanning.value) {
-    offset.value = { x: e.clientX - startPanPos.value.x, y: e.clientY - startPanPos.value.y }
-    return
-  }
+  if (workspaceRef.value?.isPanning) return
   const pos = getLogicPos(e)
-  mousePos.value = pos
-  magnifierPos.value = { x: e.clientX, y: e.clientY }
   isAltPressed.value = e.altKey
   if (draggingLine.value) {
     const { axis, index } = draggingLine.value
@@ -263,7 +216,8 @@ const handlePointerMove = (e: PointerEvent) => {
     saveMeta()
     return
   }
-  const threshold = 12 / scale.value
+  const scale = workspaceRef.value?.scale || 1
+  const threshold = 12 / scale
   let found = false
   for (let i = 0; i < linesX.value.length; i++) {
     if (Math.abs(pos.x - linesX.value[i]!) < threshold) {
@@ -284,42 +238,10 @@ const handlePointerMove = (e: PointerEvent) => {
   if (!found) hoveredLine.value = null
 }
 
-const handlePointerUp = () => {
-  isPanning.value = false
-  draggingLine.value = null
-}
-
-const handleWheel = (e: WheelEvent) => {
-  e.preventDefault()
-  if (!containerRef.value || !selectedImage.value) return
-  const delta = e.deltaY > 0 ? 1 / 1.15 : 1.15
-  const newScale = Math.max(0.05, Math.min(scale.value * delta, 20))
-  const mouseX = e.clientX - containerLeft.value - containerWidth.value / 2
-  const mouseY = e.clientY - containerTop.value - containerHeight.value / 2
-  offset.value = {
-    x: mouseX - (mouseX - offset.value.x) * (newScale / scale.value),
-    y: mouseY - (mouseY - offset.value.y) * (newScale / scale.value)
-  }
-  scale.value = newScale
-  updateCanvasRect()
-}
-
 const clearLines = () => {
   linesX.value = []
   linesY.value = []
   saveMeta()
-}
-
-const handleDownloadCurrent = () => {
-  if (
-    selectedImage.value?.status === 'done' &&
-    (selectedImage.value.processedBlob || selectedImage.value.processedBlobs)
-  )
-    downloadImage(
-      selectedImage.value.processedBlobs || selectedImage.value.processedBlob!,
-      selectedImage.value.file.name,
-      '_Split'
-    )
 }
 
 const handleProcess = async () => {
@@ -333,7 +255,15 @@ const handleProcess = async () => {
     format: outputFormat.value === 'original' ? undefined : outputFormat.value,
     quality: outputQuality.value
   })
-  handleDownloadCurrent()
+  if (
+    selectedImage.value?.status === 'done' &&
+    (selectedImage.value.processedBlob || selectedImage.value.processedBlobs)
+  )
+    downloadImage(
+      selectedImage.value.processedBlobs || selectedImage.value.processedBlob!,
+      selectedImage.value.file.name,
+      '_Split'
+    )
 }
 
 const formatOptions = [
@@ -343,24 +273,7 @@ const formatOptions = [
   { label: 'PNG (无损)', value: 'image/png' }
 ]
 
-watch(
-  [
-    rows,
-    cols,
-    editMode,
-    centerMode,
-    shave,
-    outputFormat,
-    outputQuality,
-    () => [...linesX.value],
-    () => [...linesY.value]
-  ],
-  () => {
-    if (selectedImage.value?.status === 'done')
-      store.updateImage(selectedImage.value.id, { isDirty: true })
-  },
-  { deep: true }
-)
+useResizeObserver(containerRef, resetView)
 
 const buttonText = computed(() =>
   isProcessing.value
@@ -379,27 +292,18 @@ const buttonText = computed(() =>
     /></template>
 
     <template #content>
-      <div class="h-full flex flex-col p-4 md:p-6 overflow-hidden w-full relative">
-        <div
-          ref="containerRef"
-          class="flex-1 bg-muted/10 border border-border/40 rounded-3xl overflow-hidden relative w-full group select-none touch-none"
-          :class="{ 'cursor-grabbing': isPanning }"
-          @wheel="handleWheel"
-          @pointerdown="handlePointerDown"
-          @pointermove="handlePointerMove"
-          @pointerup="handlePointerUp"
-        >
-          <div class="absolute inset-0 transparency-grid opacity-40"></div>
-          <div
-            class="absolute inset-0 flex items-center justify-center"
-            :style="{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})` }"
-          >
-            <div class="relative shadow-2xl">
-              <canvas ref="canvasRef" class="block rounded-sm" />
-            </div>
+      <AppCanvasWorkspace
+        ref="workspaceRef"
+        @reset="resetView"
+        @pointerdown="handlePointerDown"
+        @pointermove="handlePointerMove"
+      >
+        <template #default>
+          <div class="relative shadow-2xl">
+            <canvas ref="canvasRef" class="block rounded-sm" />
           </div>
-        </div>
-      </div>
+        </template>
+      </AppCanvasWorkspace>
     </template>
 
     <template #sidebar>
@@ -478,7 +382,7 @@ const buttonText = computed(() =>
       </section>
 
       <section class="space-y-5 pb-4">
-        <AppSectionHeader title="保存配置" :icon="FileType" />
+        <AppSectionHeader title="导出配置" :icon="FileType" />
         <div class="space-y-4 px-1">
           <AppSelect v-model="outputFormat" :options="formatOptions" />
           <AppSlider
@@ -510,3 +414,5 @@ const buttonText = computed(() =>
     </template>
   </WorkspaceLayout>
 </template>
+
+<style scoped></style>

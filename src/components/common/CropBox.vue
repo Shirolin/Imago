@@ -125,8 +125,9 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
 
     const snap = (val: number) => {
       if (alt) return { val, snapped: false }
-      if (Math.abs(val - 0) < 2.5) return { val: 0, snapped: true }
-      if (Math.abs(val - 100) < 2.5) return { val: 100, snapped: true }
+      // 只有在靠近边缘时才吸附，但不强行限制在 0-100
+      if (Math.abs(val - 0) < 2) return { val: 0, snapped: true }
+      if (Math.abs(val - 100) < 2) return { val: 100, snapped: true }
       return { val, snapped: false }
     }
 
@@ -205,7 +206,7 @@ onMounted(() => {
     <!-- 裁剪交互层 -->
     <div class="absolute inset-0 z-20 pointer-events-none">
       <div
-        class="absolute border-2 border-primary shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] cursor-move pointer-events-auto transition-shadow"
+        class="absolute border-2 border-primary shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] cursor-move pointer-events-auto transition-shadow overflow-hidden"
         :style="{
           left: internalCrop.x + '%',
           top: internalCrop.y + '%',
@@ -214,6 +215,13 @@ onMounted(() => {
         }"
         @mousedown="handleStart($event, 'move')"
       >
+        <!-- 内部透明棋盘格 (仅在填充色为透明时显示) -->
+        <div
+          v-if="props.fillColor === 'transparent'"
+          class="absolute inset-0 transparency-grid pointer-events-none opacity-40"
+          :style="{ backgroundSize: `${20 / props.scale}px ${20 / props.scale}px` }"
+        ></div>
+
         <!-- 网格线 -->
         <div
           v-if="gridMode === 'thirds'"
