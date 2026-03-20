@@ -113,7 +113,7 @@ const buttonState = computed(() => {
       /></template>
 
       <template #content>
-        <div class="h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-6">
+        <div class="h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-8 pt-2 md:pt-3">
           <div
             class="grid transition-all duration-300"
             :class="[
@@ -199,7 +199,7 @@ const buttonState = computed(() => {
           <AppButton
             size="lg"
             variant="cta"
-            class="w-full h-12 rounded-xl shadow-xl shadow-primary/10 transition-all active:scale-95"
+            class="w-full h-12 rounded-xl shadow-lg shadow-primary/5 transition-all active:scale-95"
             :loading="isProcessing"
             :disabled="!store.selectedCount || isProcessing"
             @click="handleCompress"

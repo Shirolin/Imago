@@ -167,7 +167,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 <style scoped>
 .shadow-2xl-up {
-  box-shadow: 0 -20px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 -10px 40px -15px rgba(0, 0, 0, 0.12);
 }
 .fade-enter-active,
 .fade-leave-active {
