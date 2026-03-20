@@ -11,7 +11,7 @@ import ImageCompare from '../components/common/ImageCompare.vue'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppExportSettings from '../components/common/AppExportSettings.vue'
-import { Zap, Info, ArrowRight } from 'lucide-vue-next'
+import { Play, Info, ArrowRight } from 'lucide-vue-next'
 import { compressEngine } from '../lib/engines/compressEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 
@@ -204,7 +204,7 @@ const buttonState = computed(() => {
             :disabled="!store.selectedCount || isProcessing"
             @click="handleCompress"
           >
-            <template #icon><Zap v-if="!isProcessing" :size="18" class="mr-2" /></template>
+            <template #icon><Play v-if="!isProcessing" :size="18" class="mr-2" /></template>
             <div class="flex items-center justify-center gap-1.5 font-bold text-sm tracking-tight">
               <span>{{ buttonState.text }}</span>
               <span v-if="buttonState.progress" class="tabular-nums opacity-70">{{

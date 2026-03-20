@@ -6,7 +6,17 @@ import AppSectionHeader from './AppSectionHeader.vue'
 import AppCheckbox from './AppCheckbox.vue'
 import AppSegmentedControl from './AppSegmentedControl.vue'
 import AppInput from './AppInput.vue'
-import { FileType, Zap, Layers, ChevronDown, ChevronUp } from 'lucide-vue-next'
+import {
+  FileType,
+  Sparkles,
+  Target,
+  Gauge,
+  Palette,
+  Activity,
+  SlidersHorizontal,
+  ChevronDown,
+  ChevronUp
+} from 'lucide-vue-next'
 
 interface Props {
   format: string
@@ -60,7 +70,6 @@ const formatOptions = [
   { label: '保留原格式', value: 'original' },
   { label: 'WebP (推荐)', value: 'image/webp' },
   { label: 'JPEG (最佳兼容)', value: 'image/jpeg-li' },
-  { label: 'JPEG (高兼容)', value: 'image/jpeg' },
   { label: 'PNG (无损/透明)', value: 'image/png' },
   { label: 'AVIF (先进格式)', value: 'image/avif' },
   { label: 'JPEG XL (次世代)', value: 'image/jxl' },
@@ -136,8 +145,8 @@ const showPngOptions = computed(() => {
           :model-value="mode"
           @update:model-value="handleModeChange"
           :options="[
-            { label: '画质优先', value: 'quality', icon: Zap },
-            { label: '指定体积', value: 'target', icon: Zap }
+            { label: '画质优先', value: 'quality', icon: Sparkles },
+            { label: '指定体积', value: 'target', icon: Target }
           ]"
         />
 
@@ -153,7 +162,7 @@ const showPngOptions = computed(() => {
             :min="0.1"
             :max="1.0"
             :step="0.01"
-            :icon="Zap"
+            :icon="Gauge"
             :snap-value="recommendedQualities[format] || 0.8"
           >
             <template #default="{ modelValue }">
@@ -190,7 +199,7 @@ const showPngOptions = computed(() => {
             @update:model-value="emit('update:targetSizeKB', $event)"
             type="number"
             placeholder="500"
-            :icon="Zap"
+            :icon="Target"
             suffix="KB"
           />
         </div>
@@ -207,7 +216,7 @@ const showPngOptions = computed(() => {
             :min="2"
             :max="256"
             :step="1"
-            :icon="Zap"
+            :icon="Palette"
           >
             <template #default="{ modelValue }">
               <span class="font-mono text-xs font-bold text-primary"
@@ -222,7 +231,7 @@ const showPngOptions = computed(() => {
             :min="1"
             :max="9"
             :step="1"
-            :icon="Zap"
+            :icon="Activity"
           >
             <template #default="{ modelValue }">
               <div class="flex items-center gap-1.5">
@@ -245,7 +254,11 @@ const showPngOptions = computed(() => {
         @click="showAdvanced = !showAdvanced"
         class="flex items-center justify-between w-full group transition-colors px-0.5"
       >
-        <AppSectionHeader title="进阶微调" :icon="Layers" class="group-hover:text-primary" />
+        <AppSectionHeader
+          title="进阶微调"
+          :icon="SlidersHorizontal"
+          class="group-hover:text-primary"
+        />
         <div class="flex items-center gap-2">
           <span
             class="text-[0.6rem] font-bold text-muted-foreground/60 uppercase tracking-widest"
