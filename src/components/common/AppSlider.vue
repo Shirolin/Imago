@@ -10,6 +10,7 @@ interface Props {
   step?: number
   unit?: string
   icon?: Component
+  snapValue?: number // 新增：磁吸目标值 (Delight: Snap Feedback)
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -23,12 +24,24 @@ const emit = defineEmits(['update:modelValue'])
 
 const isDragging = ref(false)
 
+// 唯一 ID (Harden: A11y)
+const sliderId = `slider-${Math.random().toString(36).slice(2, 9)}`
+
 const progressPercent = computed(() => {
   return ((props.modelValue - props.min) / (props.max - props.min)) * 100
 })
 
 const handleInput = (e: Event) => {
-  const value = parseFloat((e.target as HTMLInputElement).value)
+  let value = parseFloat((e.target as HTMLInputElement).value)
+
+  // 智能磁吸逻辑 (Delight: Soft Snapping)
+  if (props.snapValue !== undefined) {
+    const threshold = (props.max - props.min) * 0.03 // 3% 的捕捉范围
+    if (Math.abs(value - props.snapValue) < threshold) {
+      value = props.snapValue
+    }
+  }
+
   emit('update:modelValue', value)
 }
 
@@ -52,9 +65,11 @@ const handleNumberInput = (e: Event) => {
           :size="12"
           class="text-muted-foreground/50 group-hover/slider:text-primary transition-colors"
         />
-        <span class="text-[0.6rem] font-bold text-muted-foreground/70 uppercase tracking-widest">{{
-          label
-        }}</span>
+        <label
+          :for="sliderId"
+          class="text-[0.6rem] font-bold text-muted-foreground/70 uppercase tracking-widest cursor-pointer"
+          >{{ label }}</label
+        >
       </div>
 
       <!-- 数值显示/自定义插槽 -->
@@ -64,6 +79,7 @@ const handleNumberInput = (e: Event) => {
         class="flex items-center bg-muted/30 border border-border/20 rounded-lg px-1.5 py-0.5 focus-within:border-primary/40 focus-within:bg-muted/50 transition-all"
       >
         <input
+          :id="sliderId"
           type="number"
           :value="modelValue"
           @input="handleNumberInput"
@@ -79,10 +95,10 @@ const handleNumberInput = (e: Event) => {
     </div>
 
     <!-- 滑块交互区 (Normalize: 增加内边距补偿手柄半宽溢出) -->
-    <div class="relative flex items-center h-5 px-2">
+    <div class="relative flex items-center h-5 px-2.5">
       <!-- 背景轨道 -->
       <div
-        class="absolute left-2 right-2 h-1 bg-muted/60 rounded-full overflow-hidden border border-border/10"
+        class="absolute left-2.5 right-2.5 h-1 bg-muted/60 rounded-full overflow-hidden border border-border/10"
       >
         <!-- 已填充进度条 (Delightful Fill) -->
         <div
@@ -104,7 +120,7 @@ const handleNumberInput = (e: Event) => {
         :max="max"
         :step="step"
         :aria-label="label"
-        class="absolute w-full h-full bg-transparent appearance-none cursor-pointer z-10 outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary [&::-webkit-slider-thumb]:shadow-[0_2px_8px_rgba(0,0,0,0.15)] [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200 hover:[&::-webkit-slider-thumb]:scale-110 hover:[&::-webkit-slider-thumb]:shadow-[0_0_0_4px_hsl(var(--primary)/0.15)] active:[&::-webkit-slider-thumb]:scale-90 active:[&::-webkit-slider-thumb]:bg-primary active:[&::-webkit-slider-thumb]:border-white active:[&::-webkit-slider-thumb]:shadow-[0_0_0_6px_hsl(var(--primary)/0.25)]"
+        class="absolute w-full h-full bg-transparent appearance-none cursor-pointer z-10 outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary [&::-webkit-slider-thumb]:shadow-[0_2px_8px_rgba(0,0,0,0.15)] [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200 hover:[&::-webkit-slider-thumb]:scale-110 hover:[&::-webkit-slider-thumb]:shadow-[0_0_0_4px_hsl(var(--primary)/0.15)] active:[&::-webkit-slider-thumb]:scale-125 active:[&::-webkit-slider-thumb]:bg-primary active:[&::-webkit-slider-thumb]:border-white active:[&::-webkit-slider-thumb]:shadow-[0_0_0_6px_hsl(var(--primary)/0.25)]"
       />
     </div>
   </div>

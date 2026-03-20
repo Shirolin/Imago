@@ -123,13 +123,18 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
       </div>
 
       <!-- 【左上角】：选择框 (z-30) -->
-      <div class="absolute top-3 left-3 z-30 flex items-center gap-2 pointer-events-none">
+      <div
+        class="absolute top-3 left-3 z-30 flex items-center gap-2"
+        role="checkbox"
+        :aria-checked="isSelected"
+        aria-label="选择图片"
+      >
         <div
           class="transition-all duration-300"
           :class="
             isSelected
               ? 'text-primary scale-110'
-              : 'text-white/60 opacity-0 group-hover:opacity-100'
+              : 'text-white/60 opacity-100 md:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
           "
         >
           <CheckSquare v-if="isSelected" :size="20" />
@@ -142,7 +147,7 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
       <!-- 【右上角】：删除按钮 (z-30) -->
       <button
         @click.stop="emit('remove', image.id)"
-        class="absolute top-3 right-3 z-30 bg-black/20 hover:bg-destructive text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 group-focus-within/image:opacity-100 focus:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-white/10 outline-none focus-visible:ring-2 focus-visible:ring-white"
+        class="absolute top-3 right-3 z-30 bg-black/20 hover:bg-destructive text-white p-1.5 rounded-full opacity-100 md:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-white/10 outline-none focus-visible:ring-2 focus-visible:ring-white"
         aria-label="从列表移除图片"
       >
         <X :size="14" />
@@ -209,17 +214,19 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
 
       <!-- 【底部 HUD】：技术参数条 (降级至 z-20，确保不遮挡侧边栏) -->
       <div
-        class="absolute bottom-0 left-0 right-0 h-9 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-20 flex items-end px-3 pb-2 transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100 pointer-events-none"
+        class="absolute bottom-0 left-0 right-0 h-9 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-20 flex items-end px-3 pb-2 transition-all duration-300 md:opacity-0 md:group-hover:opacity-100 pointer-events-none @[200px]:via-black/30"
       >
         <div
           class="flex items-center gap-2 text-[0.65rem] font-bold text-white/90 tabular-nums tracking-tight"
         >
           <span
-            class="px-1.5 py-0.5 bg-white/20 rounded-sm uppercase text-white tracking-widest text-[0.6rem]"
+            class="px-1.5 py-0.5 bg-white/20 rounded-sm uppercase text-white tracking-widest text-[0.55rem] md:text-[0.6rem]"
             >{{ image.format }}</span
           >
-          <span v-if="image.width" class="opacity-90">{{ image.width }} × {{ image.height }}</span>
-          <span class="opacity-30">|</span>
+          <span v-if="image.width" class="opacity-90 hidden @[200px]:inline"
+            >{{ image.width }} × {{ image.height }}</span
+          >
+          <span class="opacity-30 hidden @[200px]:inline">|</span>
           <span class="opacity-90">{{ formatSize(image.originalSize) }}</span>
         </div>
       </div>

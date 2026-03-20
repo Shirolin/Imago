@@ -3,13 +3,38 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { ChevronsLeftRight, Loader2, ZoomIn, ZoomOut, Maximize, Grip } from 'lucide-vue-next'
 
 interface Props {
-  originalUrl: string
-  processedUrl: string
+  originalUrl: string | Blob
+  processedUrl: string | Blob
   originalSize: string
   processedSize: string
 }
 
 const props = defineProps<Props>()
+
+// 渲染用的临时预览 URL (Fix: Type compatibility for <img>)
+const originalViewUrl = ref<string>('')
+const processedViewUrl = ref<string>('')
+
+// 带有容量限制和显式内存释放的全局位图缓存 (Optimize: Memory/VRAM Safety)
+const MAX_CACHE_SIZE = 10
+const bitmapCache = new Map<string | Blob, ImageBitmap>()
+const cacheOrder: (string | Blob)[] = []
+
+const addToCache = (key: string | Blob, bitmap: ImageBitmap) => {
+  if (bitmapCache.has(key)) return
+
+  if (cacheOrder.length >= MAX_CACHE_SIZE) {
+    const oldestKey = cacheOrder.shift()
+    if (oldestKey) {
+      const oldestBitmap = bitmapCache.get(oldestKey)
+      oldestBitmap?.close() // 显式释放显存 (Critical)
+      bitmapCache.delete(oldestKey)
+    }
+  }
+
+  bitmapCache.set(key, bitmap)
+  cacheOrder.push(key)
+}
 
 const sliderPos = ref(50)
 const isResizing = ref(false)
@@ -23,27 +48,43 @@ const offset = ref({ x: 0, y: 0 })
 const lastMousePos = ref({ x: 0, y: 0 })
 const isError = ref(false)
 
+// 辅助函数：将输入转换为 ImageBitmap (Harden: Robust data source)
+const convertToBitmap = async (input: string | Blob): Promise<ImageBitmap> => {
+  if (input instanceof Blob) {
+    return createImageBitmap(input)
+  }
+  // 仅对非 Blob 字符串使用 fetch (通常是远端图片)
+  const response = await fetch(input)
+  const blob = await response.blob()
+  return createImageBitmap(blob)
+}
+
 const preloadImages = async () => {
   isDecoding.value = true
   isError.value = false
   try {
-    const img1 = new Image()
-    const img2 = new Image()
-    img1.src = props.originalUrl
-    img2.src = props.processedUrl
+    // 准备渲染 URL
+    originalViewUrl.value =
+      props.originalUrl instanceof Blob ? URL.createObjectURL(props.originalUrl) : props.originalUrl
+    processedViewUrl.value =
+      props.processedUrl instanceof Blob
+        ? URL.createObjectURL(props.processedUrl)
+        : props.processedUrl
 
-    await Promise.all([
-      new Promise((resolve, reject) => {
-        img1.onload = resolve
-        img1.onerror = reject
-      }),
-      new Promise((resolve, reject) => {
-        img2.onload = resolve
-        img2.onerror = reject
-      })
+    // 检查缓存
+    if (bitmapCache.has(props.originalUrl) && bitmapCache.has(props.processedUrl)) {
+      isDecoding.value = false
+      return
+    }
+
+    const [img1, img2] = await Promise.all([
+      convertToBitmap(props.originalUrl),
+      convertToBitmap(props.processedUrl)
     ])
 
-    await Promise.all([img1.decode(), img2.decode()])
+    addToCache(props.originalUrl, img1)
+    addToCache(props.processedUrl, img2)
+
     isDecoding.value = false
   } catch (err) {
     console.error('Failed to load images for comparison', err)
@@ -119,6 +160,10 @@ onUnmounted(() => {
   window.removeEventListener('pointermove', handlePointerMove)
   window.removeEventListener('pointerup', handlePointerUp)
   window.removeEventListener('wheel', handleWheel)
+
+  // 释放临时渲染 URL
+  if (props.originalUrl instanceof Blob) URL.revokeObjectURL(originalViewUrl.value)
+  if (props.processedUrl instanceof Blob) URL.revokeObjectURL(processedViewUrl.value)
 })
 </script>
 
@@ -178,7 +223,7 @@ onUnmounted(() => {
           @pointerdown.self="handlePointerDown($event, 'pan')"
         >
           <img
-            :src="processedUrl"
+            :src="processedViewUrl"
             class="absolute inset-0 w-full h-full object-contain pointer-events-none"
             style="transform: translateZ(0)"
             alt="After"
@@ -201,7 +246,7 @@ onUnmounted(() => {
             }"
           >
             <img
-              :src="originalUrl"
+              :src="originalViewUrl"
               class="absolute inset-0 w-full h-full object-contain pointer-events-none"
               style="transform: translateZ(0)"
               alt="Before"

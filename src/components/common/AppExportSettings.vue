@@ -78,12 +78,19 @@ const recommendedQualities: Record<string, number> = {
   'image/webp2': 0.65
 }
 
-// 核心联动逻辑：切换格式时，同步推荐质量
+// 核心联动逻辑：切换格式时，智能同步推荐质量
 watch(
   () => props.format,
-  (newFormat) => {
+  (newFormat, oldFormat) => {
     const recommended = recommendedQualities[newFormat] || 0.8
-    emit('update:quality', recommended)
+
+    // 如果没有 oldFormat (初次加载) 或者 当前质量恰好等于旧格式的推荐值 (说明用户没调过)
+    // 则自动跟随新格式的推荐值
+    const oldRecommended = oldFormat ? recommendedQualities[oldFormat] || 0.8 : null
+
+    if (!oldFormat || Math.abs(props.quality - (oldRecommended || 0)) < 0.01) {
+      emit('update:quality', recommended)
+    }
   },
   { immediate: true }
 )
@@ -145,8 +152,9 @@ const showPngOptions = computed(() => {
             label="平衡画质与体积"
             :min="0.1"
             :max="1.0"
-            :step="0.05"
+            :step="0.01"
             :icon="Zap"
+            :snap-value="recommendedQualities[format] || 0.8"
           >
             <template #default="{ modelValue }">
               <div class="flex items-center gap-2">
@@ -154,7 +162,7 @@ const showPngOptions = computed(() => {
                   {{ Math.round(modelValue * 100) }}%
                 </span>
                 <div
-                  v-if="Math.abs(modelValue - (recommendedQualities[format] || 0.8)) < 0.01"
+                  v-if="Math.abs(modelValue - (recommendedQualities[format] || 0.8)) < 0.001"
                   class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"
                   title="推荐值"
                 ></div>
@@ -232,7 +240,7 @@ const showPngOptions = computed(() => {
     </section>
 
     <!-- 2. 进阶微调 (支持 EXIF、宽高限制、智能跳过等) -->
-    <section v-if="showExifOption || allowManualQuality" class="space-y-4">
+    <section v-if="showExifOption || allowManualQuality" class="space-y-4 @container">
       <button
         @click="showAdvanced = !showAdvanced"
         class="flex items-center justify-between w-full group transition-colors px-0.5"
@@ -258,7 +266,7 @@ const showPngOptions = computed(() => {
             class="text-[0.6rem] font-black text-muted-foreground uppercase tracking-widest px-1"
             >分辨率限制 (可选)</label
           >
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 @[240px]:grid-cols-2 gap-3">
             <AppInput
               :model-value="maxWidth"
               @update:model-value="emit('update:maxWidth', $event)"
@@ -282,19 +290,19 @@ const showPngOptions = computed(() => {
             v-if="allowManualQuality"
             :model-value="keepOriginalIfLarger"
             @update:model-value="emit('update:keepOriginalIfLarger', $event)"
-            label="体积变大时保留原图"
+            label="智能跳过变大文件"
           />
           <AppCheckbox
             v-if="showExifOption || allowManualQuality"
             :model-value="preserveExif"
             @update:model-value="handleExifChange"
-            label="保留图片元数据 (EXIF)"
+            label="保留 EXIF 元数据"
           />
           <AppCheckbox
             v-if="allowManualQuality"
             :model-value="showMagnifier"
             @update:model-value="emit('update:showMagnifier', $event)"
-            label="开启智能倍镜对比"
+            label="开启智能对比倍镜"
           />
         </div>
       </div>

@@ -60,7 +60,6 @@ const handleCompare = (id: string) => {
   const item = store.images.find((img) => img.id === id)
   if (!item || !item.processedBlob) return
   comparingImage.value = item
-  processedPreviewUrl.value = URL.createObjectURL(item.processedBlob)
   showCompareModal.value = true
 }
 
@@ -68,10 +67,6 @@ const closeCompare = () => {
   showCompareModal.value = false
 }
 const handleModalLeave = () => {
-  if (processedPreviewUrl.value) {
-    URL.revokeObjectURL(processedPreviewUrl.value)
-    processedPreviewUrl.value = null
-  }
   comparingImage.value = null
 }
 
@@ -82,10 +77,30 @@ const handleDownload = (id: string) => {
 
 watch([quality, outputFormat], () => store.markAllAsDirty(), { deep: true })
 
-const buttonText = computed(() => {
-  if (isProcessing.value) return '正在压缩...'
-  if (store.selectedCount > 0) return `压缩选中的 ${store.selectedCount} 张`
-  return '开始压缩'
+const buttonState = computed(() => {
+  if (isProcessing.value) {
+    const total = store.selectedCount
+    const processed = store.images.filter(
+      (img) => store.selectedIds.has(img.id) && img.status === 'done'
+    ).length
+    return {
+      text: '正在处理',
+      progress: `(${processed}/${total})`,
+      loading: true
+    }
+  }
+  if (store.selectedCount > 0) {
+    return {
+      text: `压缩选中的 ${store.selectedCount} 张`,
+      progress: '',
+      loading: false
+    }
+  }
+  return {
+    text: '开始压缩',
+    progress: '',
+    loading: false
+  }
 })
 </script>
 
@@ -169,7 +184,7 @@ const buttonText = computed(() => {
 
         <section class="pt-2">
           <div
-            class="p-4 bg-primary/[0.03] border border-dashed border-primary/20 rounded-2xl flex gap-3"
+            class="p-4 bg-muted/40 border border-dashed border-primary/30 rounded-2xl flex gap-3 transition-colors hover:bg-muted/60"
           >
             <Info :size="16" class="text-primary shrink-0 mt-0.5" />
             <p class="text-[0.65rem] text-muted-foreground leading-relaxed">
@@ -190,7 +205,12 @@ const buttonText = computed(() => {
             @click="handleCompress"
           >
             <template #icon><Zap v-if="!isProcessing" :size="18" class="mr-2" /></template>
-            <span class="font-bold text-sm tracking-tight">{{ buttonText }}</span>
+            <div class="flex items-center justify-center gap-1.5 font-bold text-sm tracking-tight">
+              <span>{{ buttonState.text }}</span>
+              <span v-if="buttonState.progress" class="tabular-nums opacity-70">{{
+                buttonState.progress
+              }}</span>
+            </div>
           </AppButton>
         </InspectorFooter>
       </template>
@@ -198,9 +218,9 @@ const buttonText = computed(() => {
 
     <AppModal :show="showCompareModal" @close="closeCompare" @after-leave="handleModalLeave">
       <ImageCompare
-        v-if="comparingImage && processedPreviewUrl"
-        :original-url="comparingImage.preview"
-        :processed-url="processedPreviewUrl"
+        v-if="comparingImage"
+        :original-url="comparingImage.file"
+        :processed-url="comparingImage.processedBlob!"
         :original-size="formatSize(comparingImage.originalSize)"
         :processed-size="formatSize(comparingImage.processedSize || 0)"
       />
