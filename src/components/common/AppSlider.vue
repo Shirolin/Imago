@@ -44,59 +44,27 @@ const handleNumberInput = (e: Event) => {
 </script>
 
 <template>
-  <div class="flex flex-col group/slider">
-    <!-- 头部：插槽优先，彻底隔离 -->
-    <div class="mb-3">
-      <slot name="header">
-        <div v-if="label" class="flex items-center justify-between px-0.5">
-          <label
-            :for="sliderId"
-            class="text-[0.65rem] font-bold text-muted-foreground/80 uppercase tracking-widest cursor-pointer truncate"
-            >{{ label }}</label
-          >
-          <div
-            class="flex items-center bg-muted/30 border border-border/20 rounded-lg px-1.5 py-0.5"
-          >
-            <input
-              :id="sliderId"
-              type="number"
-              :value="modelValue"
-              @input="handleNumberInput"
-              :min="min"
-              :max="max"
-              :step="step"
-              class="w-10 bg-transparent border-none outline-none text-[0.65rem] font-black text-foreground tabular-nums text-right"
-            />
-            <span class="text-[0.55rem] font-bold text-muted-foreground/40 ml-1">{{ unit }}</span>
-          </div>
-        </div>
-      </slot>
-    </div>
-
-    <!-- 滑块区：回归标准流，确保动画不受位移干扰 -->
-    <div class="relative h-6 flex items-center px-2">
-      <!-- 轨道 -->
+  <div class="relative h-6 flex items-center group/slider px-2">
+    <!-- 轨道 -->
+    <div
+      class="absolute left-2 right-2 h-1 bg-muted/60 rounded-full border border-border/10 overflow-hidden"
+    >
       <div
-        class="absolute left-2 right-2 h-1 bg-muted/60 rounded-full border border-border/10 overflow-hidden"
-      >
-        <div
-          class="h-full bg-primary/80 transition-[width] duration-75 ease-out shadow-[0_0_12px_hsl(var(--primary)/0.3)]"
-          :style="{ width: progressPercent + '%' }"
-        ></div>
-      </div>
-
-      <!-- 原生滑块：移除所有自作聪明的 z-index 和 translate -->
-      <input
-        type="range"
-        :value="modelValue"
-        @input="handleInput"
-        :min="min"
-        :max="max"
-        :step="step"
-        :aria-label="label || '调节器'"
-        class="absolute inset-0 w-full h-full bg-transparent appearance-none cursor-pointer outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary [&::-webkit-slider-thumb]:shadow-[0_2px_8px_rgba(0,0,0,0.15)] [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200 hover:[&::-webkit-slider-thumb]:scale-110 active:[&::-webkit-slider-thumb]:scale-125 active:[&::-webkit-slider-thumb]:bg-primary active:[&::-webkit-slider-thumb]:border-white"
-      />
+        class="h-full bg-primary/80 transition-[width] duration-75 ease-out shadow-[0_0_12px_hsl(var(--primary)/0.3)]"
+        :style="{ width: progressPercent + '%' }"
+      ></div>
     </div>
+
+    <!-- 原生滑块：纯净交互 -->
+    <input
+      type="range"
+      :value="modelValue"
+      @input="handleInput"
+      :min="min"
+      :max="max"
+      :step="step"
+      class="absolute inset-0 w-full h-full bg-transparent appearance-none cursor-pointer outline-none z-10 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary [&::-webkit-slider-thumb]:shadow-[0_2px_8px_rgba(0,0,0,0.15)] [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200 hover:[&::-webkit-slider-thumb]:scale-110 active:[&::-webkit-slider-thumb]:scale-125 active:[&::-webkit-slider-thumb]:bg-primary active:[&::-webkit-slider-thumb]:border-white"
+    />
   </div>
 </template>
 
