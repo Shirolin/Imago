@@ -21,7 +21,6 @@ import {
 interface Props {
   format: string
   quality: number
-  // 核心功能恢复
   mode?: 'quality' | 'target'
   targetSizeKB?: number
   colors?: number
@@ -30,7 +29,6 @@ interface Props {
   maxHeight?: number
   keepOriginalIfLarger?: boolean
   showMagnifier?: boolean
-  // 基础配置
   preserveExif?: boolean
   allowManualQuality?: boolean
   showExifOption?: boolean
@@ -80,23 +78,17 @@ const recommendedQualities: Record<string, number> = {
   original: 0.8,
   'image/webp': 0.75,
   'image/jpeg-li': 0.75,
-  'image/jpeg': 0.8,
   'image/png': 1.0,
   'image/avif': 0.55,
   'image/jxl': 0.7,
   'image/webp2': 0.65
 }
 
-// 核心联动逻辑：切换格式时，智能同步推荐质量
 watch(
   () => props.format,
   (newFormat, oldFormat) => {
     const recommended = recommendedQualities[newFormat] || 0.8
-
-    // 如果没有 oldFormat (初次加载) 或者 当前质量恰好等于旧格式的推荐值 (说明用户没调过)
-    // 则自动跟随新格式的推荐值
     const oldRecommended = oldFormat ? recommendedQualities[oldFormat] || 0.8 : null
-
     if (!oldFormat || Math.abs(props.quality - (oldRecommended || 0)) < 0.01) {
       emit('update:quality', recommended)
     }
@@ -109,37 +101,29 @@ const handleQualityChange = (val: number) => emit('update:quality', val)
 const handleModeChange = (val: any) => emit('update:mode', val)
 const handleExifChange = (val: boolean) => emit('update:preserveExif', val)
 
-// 计算属性：控制 UI 展示
-const showQualitySlider = computed(() => {
-  return props.allowManualQuality && props.mode === 'quality' && props.format !== 'image/png'
-})
-
-const showTargetSizeInput = computed(() => {
-  return props.allowManualQuality && props.mode === 'target' && props.format !== 'image/png'
-})
-
-const showPngOptions = computed(() => {
-  return props.allowManualQuality && props.format === 'image/png'
-})
+const showQualitySlider = computed(
+  () => props.allowManualQuality && props.mode === 'quality' && props.format !== 'image/png'
+)
+const showTargetSizeInput = computed(
+  () => props.allowManualQuality && props.mode === 'target' && props.format !== 'image/png'
+)
+const showPngOptions = computed(() => props.allowManualQuality && props.format === 'image/png')
 </script>
 
 <template>
   <div class="space-y-6">
-    <!-- 1. 导出/压缩核心配置 -->
+    <!-- 1. 核心配置 -->
     <section class="space-y-4">
       <div class="flex items-center justify-between px-0.5">
         <AppSectionHeader :title="title" :icon="FileType" />
       </div>
 
       <div class="space-y-4 px-1">
-        <!-- 格式选择 -->
         <AppSelect
           :model-value="format"
           @update:model-value="handleFormatChange"
           :options="formatOptions"
         />
-
-        <!-- 策略切换 (仅压缩模式) -->
         <AppSegmentedControl
           v-if="allowManualQuality && format !== 'image/png'"
           :model-value="mode"
@@ -150,14 +134,12 @@ const showPngOptions = computed(() => {
           ]"
         />
 
-        <!-- 配置项容器 -->
+        <!-- 配置卡片容器 -->
         <div
           v-if="showQualitySlider || showTargetSizeInput || showPngOptions"
           class="bg-muted/10 rounded-2xl p-4 border border-border/60 mt-2 space-y-6"
         >
-          <!-- 统一布局：[Icon] [Label] [Value] -->
-
-          <!-- A. 输出质量 (Mode: Quality) -->
+          <!-- A. 输出质量 -->
           <div v-if="showQualitySlider">
             <AppSlider
               :model-value="quality"
@@ -165,16 +147,18 @@ const showPngOptions = computed(() => {
               :min="0.1"
               :max="1.0"
               :step="0.01"
-              :snap-value="recommendedQualities[format] || 0.8"
+              :snap-value="recommendedQualities[format]"
             >
               <template #header>
-                <div class="flex items-center justify-between px-0.5 mb-2">
+                <div class="flex items-center justify-between px-0.5">
                   <div class="flex items-center gap-2">
-                    <div class="flex items-center justify-center w-5 h-5 shrink-0">
-                      <Gauge :size="14" :stroke-width="2.5" class="text-primary/70" />
+                    <div
+                      class="flex items-center justify-center w-5 h-5 shrink-0 bg-primary/5 rounded-full"
+                    >
+                      <Gauge :size="14" :stroke-width="2.5" class="text-primary" />
                     </div>
                     <span
-                      class="text-[0.65rem] font-bold text-muted-foreground/80 uppercase tracking-widest"
+                      class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest"
                       >输出质量</span
                     >
                   </div>
@@ -185,7 +169,6 @@ const showPngOptions = computed(() => {
                     <div
                       v-if="Math.abs(quality - (recommendedQualities[format] || 0.8)) < 0.001"
                       class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"
-                      title="推荐值"
                     ></div>
                   </div>
                 </div>
@@ -193,15 +176,17 @@ const showPngOptions = computed(() => {
             </AppSlider>
           </div>
 
-          <!-- B. 目标体积 (Mode: Target) -->
-          <div v-if="showTargetSizeInput" class="space-y-2.5">
-            <div class="flex items-center justify-between px-0.5 relative z-20">
+          <!-- B. 目标体积 -->
+          <div v-if="showTargetSizeInput" class="space-y-3">
+            <div class="flex items-center justify-between px-0.5">
               <div class="flex items-center gap-2">
-                <div class="flex items-center justify-center w-5 h-5 shrink-0">
-                  <Target :size="14" :stroke-width="2.5" class="text-primary/70" />
+                <div
+                  class="flex items-center justify-center w-5 h-5 shrink-0 bg-primary/5 rounded-full"
+                >
+                  <Target :size="14" :stroke-width="2.5" class="text-primary" />
                 </div>
                 <span
-                  class="text-[0.65rem] font-bold text-muted-foreground/80 uppercase tracking-widest"
+                  class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest"
                   >目标体积</span
                 >
               </div>
@@ -213,105 +198,90 @@ const showPngOptions = computed(() => {
               :model-value="targetSizeKB"
               @update:model-value="emit('update:targetSizeKB', $event)"
               type="number"
-              placeholder="500"
               suffix="KB"
-              class="relative z-10"
             />
           </div>
 
           <!-- C. PNG 选项 -->
           <template v-if="showPngOptions">
-            <!-- 颜色数 -->
-            <div class="space-y-2.5">
-              <AppSlider
-                :model-value="colors"
-                @update:model-value="emit('update:colors', $event)"
-                :min="2"
-                :max="256"
-                :step="1"
-              >
-                <template #header>
-                  <div class="flex items-center justify-between px-0.5 mb-2">
-                    <div class="flex items-center gap-2">
-                      <div class="flex items-center justify-center w-5 h-5 shrink-0">
-                        <Palette :size="14" :stroke-width="2.5" class="text-primary/70" />
-                      </div>
-                      <span
-                        class="text-[0.65rem] font-bold text-muted-foreground/80 uppercase tracking-widest"
-                        >最大颜色数</span
-                      >
+            <AppSlider
+              :model-value="colors"
+              @update:model-value="emit('update:colors', $event)"
+              :min="2"
+              :max="256"
+            >
+              <template #header>
+                <div class="flex items-center justify-between px-0.5">
+                  <div class="flex items-center gap-2">
+                    <div
+                      class="flex items-center justify-center w-5 h-5 shrink-0 bg-primary/5 rounded-full"
+                    >
+                      <Palette :size="14" :stroke-width="2.5" class="text-primary" />
                     </div>
-                    <span class="font-mono text-xs font-bold text-primary"
-                      >{{ colors }} <span class="text-[10px] opacity-60">Colors</span></span
+                    <span
+                      class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest"
+                      >最大颜色数</span
                     >
                   </div>
-                </template>
-              </AppSlider>
-            </div>
-
-            <!-- 编码精细度 -->
-            <div class="space-y-2.5">
-              <AppSlider
-                :model-value="effort"
-                @update:model-value="emit('update:effort', $event)"
-                :min="1"
-                :max="9"
-                :step="1"
-              >
-                <template #header>
-                  <div class="flex items-center justify-between px-0.5 mb-2">
-                    <div class="flex items-center gap-2">
-                      <div class="flex items-center justify-center w-5 h-5 shrink-0">
-                        <Activity :size="14" :stroke-width="2.5" class="text-primary/70" />
-                      </div>
-                      <span
-                        class="text-[0.65rem] font-bold text-muted-foreground/80 uppercase tracking-widest"
-                        >编码精细度</span
-                      >
+                  <span class="font-mono text-xs font-bold text-primary"
+                    >{{ colors }} <span class="text-[10px] opacity-60">Colors</span></span
+                  >
+                </div>
+              </template>
+            </AppSlider>
+            <AppSlider
+              :model-value="effort"
+              @update:model-value="emit('update:effort', $event)"
+              :min="1"
+              :max="9"
+            >
+              <template #header>
+                <div class="flex items-center justify-between px-0.5">
+                  <div class="flex items-center gap-2">
+                    <div
+                      class="flex items-center justify-center w-5 h-5 shrink-0 bg-primary/5 rounded-full"
+                    >
+                      <Activity :size="14" :stroke-width="2.5" class="text-primary" />
                     </div>
-                    <div class="flex items-center gap-1.5">
-                      <span class="font-mono text-xs font-bold text-primary">Lv.{{ effort }}</span>
-                      <span
-                        v-if="effort >= 7"
-                        class="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-sm font-black uppercase tracking-tighter"
-                        >Pro</span
-                      >
-                    </div>
+                    <span
+                      class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest"
+                      >编码精细度</span
+                    >
                   </div>
-                </template>
-              </AppSlider>
-            </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-mono text-xs font-bold text-primary">Lv.{{ effort }}</span>
+                    <span
+                      v-if="effort >= 7"
+                      class="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-sm font-black uppercase"
+                      >Pro</span
+                    >
+                  </div>
+                </div>
+              </template>
+            </AppSlider>
           </template>
         </div>
       </div>
     </section>
 
-    <!-- 2. 进阶微调 (支持 EXIF、宽高限制、智能跳过等) -->
+    <!-- 2. 进阶微调 -->
     <section v-if="showExifOption || allowManualQuality" class="space-y-4 @container">
       <button
         @click="showAdvanced = !showAdvanced"
-        class="flex items-center justify-between w-full group transition-colors px-0.5"
+        class="flex items-center justify-between w-full group px-0.5"
       >
         <AppSectionHeader
           title="进阶微调"
           :icon="SlidersHorizontal"
           class="group-hover:text-primary"
         />
-        <div class="flex items-center gap-2">
-          <span
-            class="text-[0.6rem] font-bold text-muted-foreground/60 uppercase tracking-widest"
-            >{{ showAdvanced ? '收起' : '展开' }}</span
-          >
-          <component
-            :is="showAdvanced ? ChevronUp : ChevronDown"
-            :size="14"
-            class="text-muted-foreground/40 group-hover:text-primary transition-all"
-          />
-        </div>
+        <component
+          :is="showAdvanced ? ChevronUp : ChevronDown"
+          :size="14"
+          class="text-muted-foreground/40 group-hover:text-primary"
+        />
       </button>
-
       <div v-if="showAdvanced" class="space-y-6 px-1 animate-in fade-in slide-in-from-top-2">
-        <!-- 分辨率限制 (仅 Pro Mode) -->
         <div v-if="allowManualQuality" class="space-y-3">
           <label
             class="text-[0.6rem] font-black text-muted-foreground uppercase tracking-widest px-1"
@@ -334,8 +304,6 @@ const showPngOptions = computed(() => {
             />
           </div>
         </div>
-
-        <!-- 各种开关 -->
         <div class="space-y-3">
           <AppCheckbox
             v-if="allowManualQuality"
