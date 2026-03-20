@@ -85,13 +85,15 @@ const handleNumberInput = (e: Event) => {
     </div>
 
     <!-- 插槽：由外部定义更复杂的 Header -->
-    <slot name="header"></slot>
+    <div class="relative z-10">
+      <slot name="header"></slot>
+    </div>
 
     <!-- 滑块交互区 (Normalize: 增加内边距补偿手柄半宽溢出) -->
-    <div class="relative flex items-center h-5 px-2.5">
+    <div class="relative flex items-center h-5 px-2.5 z-0">
       <!-- 背景轨道 -->
       <div
-        class="absolute left-2.5 right-2.5 h-1 bg-muted/60 rounded-full overflow-hidden border border-border/10"
+        class="absolute left-2.5 right-2.5 top-1/2 -translate-y-1/2 h-1 bg-muted/60 rounded-full overflow-hidden border border-border/10"
       >
         <!-- 已填充进度条 (Delightful Fill) -->
         <div
@@ -113,7 +115,7 @@ const handleNumberInput = (e: Event) => {
         :max="max"
         :step="step"
         :aria-label="label || '调节器'"
-        class="absolute w-full h-full bg-transparent appearance-none cursor-pointer z-10 outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary [&::-webkit-slider-thumb]:shadow-[0_2px_8px_rgba(0,0,0,0.15)] [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200 hover:[&::-webkit-slider-thumb]:scale-110 hover:[&::-webkit-slider-thumb]:shadow-[0_0_0_4px_hsl(var(--primary)/0.15)] active:[&::-webkit-slider-thumb]:scale-125 active:[&::-webkit-slider-thumb]:bg-primary active:[&::-webkit-slider-thumb]:border-white active:[&::-webkit-slider-thumb]:shadow-[0_0_0_6px_hsl(var(--primary)/0.25)]"
+        class="absolute inset-x-0 top-1/2 -translate-y-1/2 w-full h-full bg-transparent appearance-none cursor-pointer z-10 outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary [&::-webkit-slider-thumb]:shadow-[0_2px_8px_rgba(0,0,0,0.15)] [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200 hover:[&::-webkit-slider-thumb]:scale-110 hover:[&::-webkit-slider-thumb]:shadow-[0_0_0_4px_hsl(var(--primary)/0.15)] active:[&::-webkit-slider-thumb]:scale-125 active:[&::-webkit-slider-thumb]:bg-primary active:[&::-webkit-slider-thumb]:border-white active:[&::-webkit-slider-thumb]:shadow-[0_0_0_6px_hsl(var(--primary)/0.25)]"
       />
     </div>
   </div>

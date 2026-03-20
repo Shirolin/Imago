@@ -5,7 +5,7 @@ import {
   Trash2,
   SortAsc,
   Clock,
-  Zap,
+  Timer,
   CheckCircle2,
   AlertCircle,
   Loader2,
