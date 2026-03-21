@@ -17,9 +17,7 @@ import {
   RotateCcw,
   Undo2,
   Redo2,
-  History,
   Settings2,
-  Palette,
   LayoutGrid
 } from 'lucide-vue-next'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
@@ -282,197 +280,240 @@ const ratios = [
     </template>
 
     <template #sidebar>
+      <!-- 第一分区：核心裁剪控制 -->
       <section class="space-y-4">
         <AppSectionHeader title="裁剪比例" :icon="Scissors" />
-        <div class="space-y-3 px-1">
+        <div class="bg-muted/10 rounded-2xl p-3 border border-border/60 space-y-4">
           <AppSegmentedControl
             v-model="currentRatio"
             :options="ratios"
             @update:model-value="handleRatioChange"
           />
-          <AppSegmentedControl
-            v-model="gridMode"
-            :options="[
-              { label: '无参考', value: 'none', icon: Maximize2 },
-              { label: '三分法', value: 'thirds', icon: Grid3X3 }
-            ]"
-          />
-        </div>
-      </section>
-
-      <section class="space-y-4 pt-2">
-        <AppSectionHeader title="尺寸与位置" :icon="LayoutGrid" />
-        <div class="grid grid-cols-2 gap-x-2 gap-y-3 px-1">
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-muted-foreground uppercase ml-1">X 坐标</label>
-            <AppInput
-              type="number"
-              :model-value="pxCoords.x"
-              @update:model-value="handlePxInputChange('x', $event)"
-              class="h-9 text-xs font-mono"
-            />
-          </div>
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-muted-foreground uppercase ml-1">Y 坐标</label>
-            <AppInput
-              type="number"
-              :model-value="pxCoords.y"
-              @update:model-value="handlePxInputChange('y', $event)"
-              class="h-9 text-xs font-mono"
-            />
-          </div>
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-muted-foreground uppercase ml-1"
-              >宽度 (W)</label
-            >
-            <AppInput
-              type="number"
-              :model-value="pxCoords.w"
-              @update:model-value="handlePxInputChange('w', $event)"
-              class="h-9 text-xs font-mono border-primary/30"
-            />
-          </div>
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-muted-foreground uppercase ml-1"
-              >高度 (H)</label
-            >
-            <AppInput
-              type="number"
-              :model-value="pxCoords.h"
-              @update:model-value="handlePxInputChange('h', $event)"
-              class="h-9 text-xs font-mono border-primary/30"
+          <div class="pt-1">
+            <AppSegmentedControl
+              v-model="gridMode"
+              size="sm"
+              :options="[
+                { label: '无参考', value: 'none', icon: Maximize2 },
+                { label: '三分法', value: 'thirds', icon: Grid3X3 }
+              ]"
             />
           </div>
         </div>
       </section>
 
+      <!-- 第二分区：精确坐标与填充 -->
       <section class="space-y-4 pt-2">
-        <AppSectionHeader title="画布扩展填充" :icon="Palette" />
-        <div class="px-1 flex items-center gap-2">
-          <button
-            @click="setFillColor('transparent')"
-            class="relative flex-1 h-10 rounded-xl border-2 transition-all flex items-center justify-center gap-2 overflow-hidden"
-            :class="
-              isTransparent
-                ? 'border-primary ring-2 ring-primary/10'
-                : 'border-border grayscale opacity-60 hover:opacity-100 hover:grayscale-0'
-            "
-          >
-            <div class="absolute inset-0 transparency-grid opacity-60"></div>
-            <span class="relative z-10 text-[10px] font-bold uppercase drop-shadow-sm">透明</span>
-          </button>
-          <button
-            @click="setFillColor('#ffffff')"
-            class="w-10 h-10 rounded-xl border-2 transition-all bg-white"
-            :class="
-              !isTransparent && customFillColor === '#ffffff'
-                ? 'border-primary shadow-md'
-                : 'border-border'
-            "
-          ></button>
-          <button
-            @click="setFillColor('#000000')"
-            class="w-10 h-10 rounded-xl border-2 transition-all bg-black"
-            :class="
-              !isTransparent && customFillColor === '#000000'
-                ? 'border-primary shadow-md'
-                : 'border-border'
-            "
-          ></button>
-          <div class="relative w-10 h-10">
-            <input
-              type="color"
-              v-model="customFillColor"
-              @input="isTransparent = false"
-              class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-            />
+        <AppSectionHeader title="精确构图" :icon="LayoutGrid" />
+        <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-5">
+          <div class="grid grid-cols-2 gap-x-3 gap-y-4">
+            <div class="space-y-1.5">
+              <label
+                class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest"
+                >X 坐标</label
+              >
+              <AppInput
+                type="number"
+                :model-value="Math.round(pxCoords.x)"
+                @update:model-value="handlePxInputChange('x', $event)"
+                class="h-10 text-xs font-mono bg-background/50"
+              />
+            </div>
+            <div class="space-y-1.5">
+              <label
+                class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest"
+                >Y 坐标</label
+              >
+              <AppInput
+                type="number"
+                :model-value="Math.round(pxCoords.y)"
+                @update:model-value="handlePxInputChange('y', $event)"
+                class="h-10 text-xs font-mono bg-background/50"
+              />
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-[10px] font-black text-primary uppercase ml-1 tracking-widest"
+                >宽度 (W)</label
+              >
+              <AppInput
+                type="number"
+                :model-value="Math.round(pxCoords.w)"
+                @update:model-value="handlePxInputChange('w', $event)"
+                class="h-10 text-xs font-mono border-primary/30 bg-primary/[0.02]"
+              />
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-[10px] font-black text-primary uppercase ml-1 tracking-widest"
+                >高度 (H)</label
+              >
+              <AppInput
+                type="number"
+                :model-value="Math.round(pxCoords.h)"
+                @update:model-value="handlePxInputChange('h', $event)"
+                class="h-10 text-xs font-mono border-primary/30 bg-primary/[0.02]"
+              />
+            </div>
+          </div>
+
+          <!-- 画布填充 -->
+          <div class="space-y-3 pt-1">
             <div
-              class="w-full h-full rounded-xl border-2 flex items-center justify-center overflow-hidden"
-              :style="{ backgroundColor: customFillColor }"
-              :class="
-                !isTransparent && customFillColor !== '#ffffff' && customFillColor !== '#000000'
-                  ? 'border-primary shadow-md'
-                  : 'border-border'
-              "
+              class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest"
             >
-              <div class="w-2 h-2 rounded-full bg-white/50 border border-white/20 shadow-sm"></div>
+              画布填充颜色
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                @click="setFillColor('transparent')"
+                class="relative flex-1 h-10 rounded-xl border-2 transition-all flex items-center justify-center gap-2 overflow-hidden group"
+                :class="
+                  isTransparent
+                    ? 'border-primary ring-2 ring-primary/10'
+                    : 'border-border grayscale opacity-60 hover:opacity-100 hover:grayscale-0'
+                "
+              >
+                <div class="absolute inset-0 transparency-grid opacity-60"></div>
+                <span
+                  class="relative z-10 text-[10px] font-black uppercase drop-shadow-sm group-hover:scale-110 transition-transform"
+                  >透明</span
+                >
+              </button>
+              <button
+                @click="setFillColor('#ffffff')"
+                class="w-10 h-10 rounded-xl border-2 transition-all bg-white hover:scale-110 active:scale-95"
+                :class="
+                  !isTransparent && customFillColor === '#ffffff'
+                    ? 'border-primary shadow-md'
+                    : 'border-border'
+                "
+              ></button>
+              <button
+                @click="setFillColor('#000000')"
+                class="w-10 h-10 rounded-xl border-2 transition-all bg-black hover:scale-110 active:scale-95"
+                :class="
+                  !isTransparent && customFillColor === '#000000'
+                    ? 'border-primary shadow-md'
+                    : 'border-border'
+                "
+              ></button>
+              <div class="relative w-10 h-10 group">
+                <input
+                  type="color"
+                  v-model="customFillColor"
+                  @input="isTransparent = false"
+                  class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                />
+                <div
+                  class="w-full h-full rounded-xl border-2 flex items-center justify-center overflow-hidden transition-all group-hover:scale-110 active:scale-95"
+                  :style="{ backgroundColor: customFillColor }"
+                  :class="
+                    !isTransparent && customFillColor !== '#ffffff' && customFillColor !== '#000000'
+                      ? 'border-primary shadow-md'
+                      : 'border-border'
+                  "
+                >
+                  <div
+                    class="w-2 h-2 rounded-full bg-white/50 border border-white/20 shadow-sm"
+                  ></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
+      <!-- 第三分区：边缘精修与变换 -->
       <section class="space-y-4 pt-2">
-        <AppSectionHeader title="边缘精修 (TRIM)" :icon="Settings2" />
-        <div class="grid grid-cols-2 gap-x-4 gap-y-3 px-1">
-          <AppSlider v-model="trimPx.top" label="上" :min="0" :max="100" unit="px" />
-          <AppSlider v-model="trimPx.bottom" label="下" :min="0" :max="100" unit="px" />
-          <AppSlider v-model="trimPx.left" label="左" :min="0" :max="100" unit="px" />
-          <AppSlider v-model="trimPx.right" label="右" :min="0" :max="100" unit="px" />
-        </div>
-      </section>
-
-      <section class="space-y-4 pt-2">
-        <div class="flex items-center justify-between pr-1">
-          <AppSectionHeader title="历史与变换" :icon="History" />
-          <button
-            @click="handleReset"
-            class="p-1.5 hover:bg-muted rounded-lg text-muted-foreground/40 hover:text-primary transition-colors"
-            title="重置设置"
-          >
-            <RotateCcw :size="16" />
-          </button>
-        </div>
-        <div class="px-1 space-y-4">
-          <div class="grid grid-cols-2 gap-2">
-            <AppButton
-              variant="secondary"
-              size="sm"
-              :disabled="!canUndo"
-              @click="undo"
-              class="rounded-xl h-9 text-[10px] font-bold uppercase"
-              ><Undo2 :size="14" class="mr-1.5" /> 撤销</AppButton
+        <AppSectionHeader title="高级变换" :icon="Settings2" />
+        <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-6">
+          <!-- TRIM -->
+          <div class="space-y-4">
+            <div
+              class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest"
             >
-            <AppButton
-              variant="secondary"
-              size="sm"
-              :disabled="!canRedo"
-              @click="redo"
-              class="rounded-xl h-9 text-[10px] font-bold uppercase"
-              ><Redo2 :size="14" class="mr-1.5" /> 重做</AppButton
-            >
+              边缘微调 (TRIM)
+            </div>
+            <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+              <AppSlider v-model="trimPx.top" label="上" :min="0" :max="100" unit="px" />
+              <AppSlider v-model="trimPx.bottom" label="下" :min="0" :max="100" unit="px" />
+              <AppSlider v-model="trimPx.left" label="左" :min="0" :max="100" unit="px" />
+              <AppSlider v-model="trimPx.right" label="右" :min="0" :max="100" unit="px" />
+            </div>
           </div>
-          <div class="grid grid-cols-3 gap-2">
-            <button
-              @click="handleRotate"
-              class="flex flex-col items-center gap-1.5 p-2 rounded-xl border bg-muted/20 hover:bg-primary/5 transition-all"
-            >
-              <RotateCw :size="18" class="text-muted-foreground" /><span
-                class="text-[9px] font-bold text-muted-foreground uppercase"
-                >旋转</span
+
+          <!-- 变换按钮 -->
+          <div class="pt-2 border-t border-border/40 space-y-4">
+            <div class="grid grid-cols-3 gap-2">
+              <button
+                @click="handleRotate"
+                class="flex flex-col items-center gap-2 p-3 rounded-xl border bg-background/50 hover:bg-primary/5 hover:border-primary/30 transition-all group"
               >
-            </button>
-            <button
-              @click="handleFlipH"
-              class="flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all"
-              :class="
-                flipH
-                  ? 'bg-primary/10 border-primary text-primary'
-                  : 'bg-muted/20 border-border text-muted-foreground'
-              "
-            >
-              <FlipHorizontal :size="18" /><span class="text-[9px] font-bold uppercase">水平</span>
-            </button>
-            <button
-              @click="handleFlipV"
-              class="flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all"
-              :class="
-                flipV
-                  ? 'bg-primary/10 border-primary text-primary'
-                  : 'bg-muted/20 border-border text-muted-foreground'
-              "
-            >
-              <FlipVertical :size="18" /><span class="text-[9px] font-bold uppercase">垂直</span>
-            </button>
+                <RotateCw
+                  :size="18"
+                  class="text-muted-foreground group-hover:text-primary transition-colors"
+                /><span
+                  class="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter"
+                  >顺时针旋转</span
+                >
+              </button>
+              <button
+                @click="handleFlipH"
+                class="flex flex-col items-center gap-2 p-3 rounded-xl border transition-all group"
+                :class="
+                  flipH
+                    ? 'bg-primary/10 border-primary text-primary'
+                    : 'bg-background/50 border-border text-muted-foreground hover:bg-primary/5 hover:border-primary/30'
+                "
+              >
+                <FlipHorizontal
+                  :size="18"
+                  class="group-hover:text-primary transition-colors"
+                /><span class="text-[9px] font-bold uppercase tracking-tighter">水平翻转</span>
+              </button>
+              <button
+                @click="handleFlipV"
+                class="flex flex-col items-center gap-2 p-3 rounded-xl border transition-all group"
+                :class="
+                  flipV
+                    ? 'bg-primary/10 border-primary text-primary'
+                    : 'bg-background/50 border-border text-muted-foreground hover:bg-primary/5 hover:border-primary/30'
+                "
+              >
+                <FlipVertical :size="18" class="group-hover:text-primary transition-colors" /><span
+                  class="text-[9px] font-bold uppercase tracking-tighter"
+                  >垂直翻转</span
+                >
+              </button>
+            </div>
+
+            <!-- 历史记录 -->
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex-1 grid grid-cols-2 gap-2">
+                <AppButton
+                  variant="secondary"
+                  size="sm"
+                  :disabled="!canUndo"
+                  @click="undo"
+                  class="rounded-xl h-9 text-[10px] font-bold uppercase"
+                  ><Undo2 :size="14" class="mr-1.5" /> 撤销</AppButton
+                >
+                <AppButton
+                  variant="secondary"
+                  size="sm"
+                  :disabled="!canRedo"
+                  @click="redo"
+                  class="rounded-xl h-9 text-[10px] font-bold uppercase"
+                  ><Redo2 :size="14" class="mr-1.5" /> 重做</AppButton
+                >
+              </div>
+              <button
+                @click="handleReset"
+                class="w-9 h-9 flex items-center justify-center hover:bg-muted rounded-xl text-muted-foreground/40 hover:text-primary transition-all active:scale-90 border border-transparent hover:border-border"
+                title="重置所有设置"
+              >
+                <RotateCcw :size="16" />
+              </button>
+            </div>
           </div>
         </div>
       </section>

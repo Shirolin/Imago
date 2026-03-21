@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onUnmounted, onMounted, watch, computed, type CSSProperties } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 
 interface Props {
   aspectRatio?: number
@@ -22,8 +22,7 @@ const imgRef = ref<HTMLImageElement | null>(null)
 const containerRef = ref<HTMLDivElement | null>(null)
 const imgRenderedRect = ref({ left: 0, top: 0, width: 0, height: 0 })
 
-const internalCrop = ref({ x: 0, y: 0, w: 100, h: 100 })
-const mouseRawPos = ref({ x: 0, y: 0 })
+const internalCropPx = ref({ x: 0, y: 0, w: 0, h: 0 })
 const isSnapping = ref(false)
 const isDragging = ref(false)
 const dragMode = ref<'move' | 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'w' | 'e' | null>(null)
@@ -45,50 +44,95 @@ const updateRenderedRect = () => {
   }
 }
 
-watch(
-  () => props.aspectRatio,
-  (ar) => {
-    if (!ar || ar <= 0 || !imgRef.value) return
-    const n = { ...internalCrop.value }
-    const imgRatio = imgRef.value.naturalWidth / imgRef.value.naturalHeight
-    const targetPercentRatio = ar / imgRatio
-    n.h = n.w / targetPercentRatio
-    if (n.h > 100) {
-      n.h = 100
-      n.w = n.h * targetPercentRatio
-    }
-    if (n.w > 100) {
-      n.w = 100
-      n.h = n.w / targetPercentRatio
-    }
-    n.x = (100 - n.w) / 2
-    n.y = (100 - n.h) / 2
-    updateCrop(n)
+// 转换工具：百分比 -> 像素
+const toPx = (p: { x: number; y: number; w: number; h: number }) => {
+  if (!imgRef.value) return { x: 0, y: 0, w: 0, h: 0 }
+  const { naturalWidth: nw, naturalHeight: nh } = imgRef.value
+  return {
+    x: (p.x / 100) * nw,
+    y: (p.y / 100) * nh,
+    w: (p.w / 100) * nw,
+    h: (p.h / 100) * nh
   }
-)
+}
 
+// 转换工具：像素 -> 百分比
+const toPercent = (px: { x: number; y: number; w: number; h: number }) => {
+  if (!imgRef.value) return { x: 0, y: 0, w: 100, h: 100 }
+  const { naturalWidth: nw, naturalHeight: nh } = imgRef.value
+  return {
+    x: (px.x / nw) * 100,
+    y: (px.y / nh) * 100,
+    w: (px.w / nw) * 100,
+    h: (px.h / nh) * 100
+  }
+}
+
+// 监听外部 modelValue 变化
 watch(
   () => props.modelValue,
   (v) => {
-    if (v && JSON.stringify(v) !== JSON.stringify(internalCrop.value)) internalCrop.value = { ...v }
+    if (v && imgRef.value) {
+      const targetPx = toPx(v)
+      if (JSON.stringify(targetPx) !== JSON.stringify(internalCropPx.value)) {
+        internalCropPx.value = targetPx
+      }
+    }
   },
   { deep: true, immediate: true }
 )
 
-const updateCrop = (n: typeof internalCrop.value) => {
-  n.x = Number(n.x.toFixed(4))
-  n.y = Number(n.y.toFixed(4))
-  n.w = Number(n.w.toFixed(4))
-  n.h = Number(n.h.toFixed(4))
-  internalCrop.value = { ...n }
-  emit('update:modelValue', { ...n })
+const updateCrop = (newPx: typeof internalCropPx.value) => {
+  if (!imgRef.value) return
+  const { naturalWidth: nw, naturalHeight: nh } = imgRef.value
+
+  // 严格边界约束
+  newPx.w = Math.max(10, Math.min(newPx.w, nw))
+  newPx.h = Math.max(10, Math.min(newPx.h, nh))
+  newPx.x = Math.max(0, Math.min(newPx.x, nw - newPx.w))
+  newPx.y = Math.max(0, Math.min(newPx.y, nh - newPx.h))
+
+  internalCropPx.value = { ...newPx }
+  const percent = toPercent(newPx)
+  emit('update:modelValue', percent)
   emit('change', {
-    ...n,
+    ...percent,
     usePercentage: true,
     isDragging: isDragging.value,
     isSnapping: isSnapping.value
   })
 }
+
+const handleReset = () => {
+  if (!imgRef.value) return
+  updateCrop({
+    x: 0,
+    y: 0,
+    w: imgRef.value.naturalWidth,
+    h: imgRef.value.naturalHeight
+  })
+}
+
+// 处理比例锁定
+watch(
+  () => props.aspectRatio,
+  (ar) => {
+    if (!ar || ar <= 0 || !imgRef.value) return
+    const { naturalWidth: nw, naturalHeight: nh } = imgRef.value
+    const n = { ...internalCropPx.value }
+
+    if (nw / nh > ar) {
+      n.h = nh
+      n.w = nh * ar
+    } else {
+      n.w = nw
+      n.h = nw / ar
+    }
+    n.x = (nw - n.w) / 2
+    n.y = (nh - n.h) / 2
+    updateCrop(n)
+  }
+)
 
 const handleStart = (e: MouseEvent | TouchEvent, mode: typeof dragMode.value) => {
   if (e.cancelable) e.preventDefault()
@@ -97,7 +141,7 @@ const handleStart = (e: MouseEvent | TouchEvent, mode: typeof dragMode.value) =>
   const t = 'touches' in e ? e.touches[0] : e
   startX = t?.clientX ?? 0
   startY = t?.clientY ?? 0
-  startCrop = { ...internalCrop.value }
+  startCropPx = { ...internalCropPx.value }
   window.addEventListener('mousemove', handleMove)
   window.addEventListener('mouseup', handleEnd)
   window.addEventListener('touchmove', handleMove, { passive: false })
@@ -106,11 +150,11 @@ const handleStart = (e: MouseEvent | TouchEvent, mode: typeof dragMode.value) =>
 
 let startX = 0,
   startY = 0,
-  startCrop = { x: 0, y: 0, w: 0, h: 0 },
+  startCropPx = { x: 0, y: 0, w: 0, h: 0 },
   rafId: number | null = null
 
 const handleMove = (e: MouseEvent | TouchEvent) => {
-  if (!isDragging.value || !imgRenderedRect.value.width) return
+  if (!isDragging.value || !imgRef.value) return
   if (e.cancelable) e.preventDefault()
   const t = 'touches' in e ? e.touches[0] : e,
     cx = t?.clientX ?? 0,
@@ -120,53 +164,53 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
   if (rafId) cancelAnimationFrame(rafId)
   rafId = requestAnimationFrame(() => {
     const rect = imgRef.value!.getBoundingClientRect()
-    const dx = ((cx - startX) / rect.width) * 100
-    const dy = ((cy - startY) / rect.height) * 100
+    const zoom = rect.width / imgRef.value!.naturalWidth
+    const dx = (cx - startX) / zoom
+    const dy = (cy - startY) / zoom
 
-    const snap = (val: number) => {
+    const { naturalWidth: nw, naturalHeight: nh } = imgRef.value!
+    const snap = (val: number, limit: number) => {
       if (alt) return { val, snapped: false }
-      // 只有在靠近边缘时才吸附，但不强行限制在 0-100
-      if (Math.abs(val - 0) < 2) return { val: 0, snapped: true }
-      if (Math.abs(val - 100) < 2) return { val: 100, snapped: true }
+      if (Math.abs(val - 0) < 10 / zoom) return { val: 0, snapped: true }
+      if (Math.abs(val - limit) < 10 / zoom) return { val: limit, snapped: true }
       return { val, snapped: false }
     }
 
-    const n = { ...startCrop }
+    const n = { ...startCropPx }
     let snapActive = false
 
     if (dragMode.value === 'move') {
-      n.x = startCrop.x + dx
-      n.y = startCrop.y + dy
+      n.x = startCropPx.x + dx
+      n.y = startCropPx.y + dy
     } else {
       const mode = dragMode.value!
       if (mode.includes('n')) {
-        const s = snap(startCrop.y + dy)
+        const s = snap(startCropPx.y + dy, nh)
         n.y = s.val
-        n.h = startCrop.h - (n.y - startCrop.y)
+        n.h = startCropPx.h - (n.y - startCropPx.y)
         if (s.snapped) snapActive = true
       }
       if (mode.includes('s')) {
-        const s = snap(startCrop.y + startCrop.h + dy)
+        const s = snap(startCropPx.y + startCropPx.h + dy, nh)
         n.h = s.val - n.y
         if (s.snapped) snapActive = true
       }
       if (mode.includes('w')) {
-        const s = snap(startCrop.x + dx)
+        const s = snap(startCropPx.x + dx, nw)
         n.x = s.val
-        n.w = startCrop.w - (n.x - startCrop.x)
+        n.w = startCropPx.w - (n.x - startCropPx.x)
         if (s.snapped) snapActive = true
       }
       if (mode.includes('e')) {
-        const s = snap(startCrop.x + startCrop.w + dx)
+        const s = snap(startCropPx.x + startCropPx.w + dx, nw)
         n.w = s.val - n.x
         if (s.snapped) snapActive = true
       }
 
+      // 处理比例锁定
       if (props.aspectRatio) {
-        const imgRatio = imgRef.value!.naturalWidth / imgRef.value!.naturalHeight
-        const targetPercentRatio = props.aspectRatio / imgRatio
-        if (mode === 'n' || mode === 's') n.w = n.h * targetPercentRatio
-        else n.h = n.w / targetPercentRatio
+        if (mode === 'n' || mode === 's') n.w = n.h * props.aspectRatio
+        else n.h = n.w / props.aspectRatio
       }
     }
     isSnapping.value = snapActive
@@ -182,7 +226,7 @@ const handleEnd = () => {
   window.removeEventListener('mouseup', handleEnd)
   window.removeEventListener('touchmove', handleMove)
   window.removeEventListener('touchend', handleEnd)
-  updateCrop(internalCrop.value)
+  updateCrop(internalCropPx.value)
 }
 
 onMounted(() => {
@@ -206,28 +250,49 @@ onMounted(() => {
     <!-- 裁剪交互层 -->
     <div class="absolute inset-0 z-20 pointer-events-none">
       <div
-        class="absolute border-2 border-primary shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] cursor-move pointer-events-auto transition-shadow overflow-hidden"
+        class="absolute border-2 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] cursor-move pointer-events-auto transition-all overflow-hidden"
+        :class="[
+          isDragging ? 'border-primary scale-[1.002]' : 'border-primary/80',
+          isSnapping ? 'ring-2 ring-primary ring-offset-0 animate-pulse-subtle' : ''
+        ]"
         :style="{
-          left: internalCrop.x + '%',
-          top: internalCrop.y + '%',
-          width: internalCrop.w + '%',
-          height: internalCrop.h + '%'
+          left: (internalCropPx.x / (imgRef?.naturalWidth || 1)) * 100 + '%',
+          top: (internalCropPx.y / (imgRef?.naturalHeight || 1)) * 100 + '%',
+          width: (internalCropPx.w / (imgRef?.naturalWidth || 1)) * 100 + '%',
+          height: (internalCropPx.h / (imgRef?.naturalHeight || 1)) * 100 + '%'
         }"
         @mousedown="handleStart($event, 'move')"
+        @dblclick="handleReset"
       >
+        <!-- 动态跟随 HUD (仅拖拽显示) -->
+        <div
+          v-if="isDragging"
+          class="absolute top-2 right-2 z-40 px-2 py-1 bg-primary text-white text-[10px] font-black rounded-md shadow-2xl flex items-center gap-1.5 animate-in fade-in zoom-in duration-200"
+          :style="reverseScaleStyle"
+        >
+          <span class="tabular-nums">{{ Math.round(internalCropPx.w) }}</span>
+          <span class="opacity-40">×</span>
+          <span class="tabular-nums">{{ Math.round(internalCropPx.h) }}</span>
+        </div>
+
         <!-- 内部透明棋盘格 (仅在填充色为透明时显示) -->
         <div
           v-if="props.fillColor === 'transparent'"
-          class="absolute inset-0 transparency-grid pointer-events-none opacity-40"
+          class="absolute inset-0 transparency-grid pointer-events-none opacity-20"
           :style="{ backgroundSize: `${20 / props.scale}px ${20 / props.scale}px` }"
         ></div>
 
-        <!-- 网格线 -->
+        <!-- 动态强化网格线 -->
         <div
           v-if="gridMode === 'thirds'"
-          class="absolute inset-0 grid grid-cols-3 grid-rows-3 opacity-40"
+          class="absolute inset-0 grid grid-cols-3 grid-rows-3 transition-opacity duration-300"
+          :class="isDragging ? 'opacity-80' : 'opacity-30'"
         >
-          <div v-for="i in 9" :key="i" class="border-[0.5px] border-white/50"></div>
+          <div
+            v-for="i in 9"
+            :key="i"
+            class="border-[0.5px] border-white/40 mix-blend-difference"
+          ></div>
         </div>
 
         <!-- 角点手柄 (逆向缩放以保持尺寸) -->
