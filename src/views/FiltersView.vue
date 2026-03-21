@@ -89,14 +89,17 @@ const resetFilters = () => {
   if (preset) applyPreset(preset)
 }
 
-// 滤镜预设定义
+// 滤镜预设定义 (基于工业级开源项目 CSSgram 调校)
 const presets = [
   { name: '原图', values: { brightness: 100, contrast: 100, saturation: 100, blur: 0, sepia: 0 } },
-  { name: '复古', values: { brightness: 110, contrast: 90, saturation: 80, blur: 0, sepia: 40 } },
-  { name: '黑白', values: { brightness: 100, contrast: 120, saturation: 0, blur: 0, sepia: 0 } },
-  { name: '胶片', values: { brightness: 95, contrast: 110, saturation: 110, blur: 0, sepia: 10 } },
-  { name: '通透', values: { brightness: 120, contrast: 110, saturation: 130, blur: 0, sepia: 0 } },
-  { name: '柔和', values: { brightness: 105, contrast: 85, saturation: 90, blur: 2, sepia: 15 } }
+  {
+    name: '克拉伦登',
+    values: { brightness: 110, contrast: 120, saturation: 135, blur: 0, sepia: 0 }
+  }, // Clarendon: 高对比高饱和，通透明亮
+  { name: '1977', values: { brightness: 110, contrast: 110, saturation: 130, blur: 0, sepia: 30 } }, // 1977: 经典高曝复古胶片感
+  { name: '雷耶斯', values: { brightness: 110, contrast: 85, saturation: 75, blur: 0, sepia: 22 } }, // Reyes: 褪色、低对比度的温暖老照片
+  { name: '水墨', values: { brightness: 110, contrast: 120, saturation: 0, blur: 0, sepia: 10 } }, // Inkwell: 高对比度质感黑白
+  { name: '云雀', values: { brightness: 105, contrast: 90, saturation: 115, blur: 0, sepia: 0 } } // Lark: 降对比提饱和，适合静物风景
 ]
 
 const applyPreset = (preset: (typeof presets)[0]) => {
