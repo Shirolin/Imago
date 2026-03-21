@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useImageStore } from '../stores/imageStore'
 import { useLayoutStore } from '../stores/layoutStore'
 import { useFileHelpers } from '../composables/useFileHelpers'
@@ -11,7 +11,19 @@ import ImageCard from '../components/common/ImageCard.vue'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppExportSettings from '../components/common/AppExportSettings.vue'
-import { Settings2, Sparkles, Check } from 'lucide-vue-next'
+import {
+  Settings2,
+  Sparkles,
+  Check,
+  Sun,
+  Contrast,
+  Droplets,
+  Layers,
+  Wind,
+  RotateCcw,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-vue-next'
 import { filterEngine } from '../lib/engines/filterEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 
@@ -30,10 +42,95 @@ const sepia = ref(0)
 const outputFormat = ref<string>('original')
 const outputQuality = ref(0.9)
 const isDirty = ref(false)
+const activePresetName = ref<string>('原图')
+
+// 滚动控制
+const scrollContainer = ref<HTMLElement | null>(null)
+const canScrollLeft = ref(false)
+const canScrollRight = ref(false)
+
+const checkScroll = () => {
+  const el = scrollContainer.value
+  if (el) {
+    canScrollLeft.value = el.scrollLeft > 5
+    canScrollRight.value = el.scrollLeft < el.scrollWidth - el.clientWidth - 5
+  }
+}
+
+const scrollPresets = (direction: 'left' | 'right') => {
+  const el = scrollContainer.value
+  if (el) {
+    const scrollAmount = el.clientWidth * 0.6
+    el.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth'
+    })
+  }
+}
+
+const handleWheel = (e: WheelEvent) => {
+  const el = scrollContainer.value
+  if (el && Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+    e.preventDefault()
+    el.scrollLeft += e.deltaY
+    checkScroll()
+  }
+}
+
+onMounted(() => {
+  setTimeout(checkScroll, 100)
+})
 
 const { isProcessing, processSelected } = useImageProcessor(filterEngine)
 
+const resetFilters = () => {
+  brightness.value = 100
+  contrast.value = 100
+  saturation.value = 100
+  blur.value = 0
+  sepia.value = 0
+  activePresetName.value = '原图'
+}
+
+// 滤镜预设定义
+const presets = [
+  { name: '原图', values: { brightness: 100, contrast: 100, saturation: 100, blur: 0, sepia: 0 } },
+  { name: '复古', values: { brightness: 110, contrast: 90, saturation: 80, blur: 0, sepia: 40 } },
+  { name: '黑白', values: { brightness: 100, contrast: 120, saturation: 0, blur: 0, sepia: 0 } },
+  { name: '胶片', values: { brightness: 95, contrast: 110, saturation: 110, blur: 0, sepia: 10 } },
+  { name: '通透', values: { brightness: 120, contrast: 110, saturation: 130, blur: 0, sepia: 0 } },
+  { name: '柔和', values: { brightness: 105, contrast: 85, saturation: 90, blur: 2, sepia: 15 } }
+]
+
+const applyPreset = (preset: (typeof presets)[0]) => {
+  brightness.value = preset.values.brightness
+  contrast.value = preset.values.contrast
+  saturation.value = preset.values.saturation
+  blur.value = preset.values.blur
+  sepia.value = preset.values.sepia
+  activePresetName.value = preset.name
+}
+
 const displayImages = computed(() => [...store.images].reverse())
+
+// 实时预览滤镜字符串
+const previewFilterStyle = computed(() => {
+  return {
+    backdropFilter: `brightness(${brightness.value}%) contrast(${contrast.value}%) saturate(${saturation.value}%) blur(${blur.value}px) sepia(${sepia.value}%)`,
+    WebkitBackdropFilter: `brightness(${brightness.value}%) contrast(${contrast.value}%) saturate(${saturation.value}%) blur(${blur.value}px) sepia(${sepia.value}%)`
+  }
+})
+
+// 预设栏动态遮罩样式
+const presetsMaskStyle = computed(() => {
+  const left = canScrollLeft.value ? 'transparent' : 'black'
+  const right = canScrollRight.value ? 'transparent' : 'black'
+  const mask = `linear-gradient(to right, ${left}, black 20px, black calc(100% - 20px), ${right})`
+  return {
+    maskImage: mask,
+    WebkitMaskImage: mask
+  }
+})
 
 const handleApplyFilters = async () => {
   await processSelected({
@@ -101,31 +198,240 @@ const buttonText = computed(() => {
               @toggle="store.toggleSelection"
               @remove="store.removeImage"
               @download="handleDownload"
-            />
+            >
+              <template #visual-effects>
+                <div
+                  v-if="img.status !== 'done' || isDirty"
+                  class="absolute inset-0 w-full h-full z-10 pointer-events-none transition-all duration-300 rounded-[inherit] overflow-hidden"
+                  :style="previewFilterStyle"
+                ></div>
+              </template>
+            </ImageCard>
           </div>
         </div>
       </template>
 
       <template #sidebar>
-        <section class="space-y-5">
-          <AppSectionHeader title="调整参数" :icon="Settings2" />
-          <div class="space-y-6 px-1">
-            <AppSlider v-model="brightness" label="亮度" :min="0" :max="200" :step="1" unit="%" />
-            <AppSlider v-model="contrast" label="对比度" :min="0" :max="200" :step="1" unit="%" />
-            <AppSlider v-model="saturation" label="饱和度" :min="0" :max="200" :step="1" unit="%" />
-            <AppSlider v-model="blur" label="模糊" :min="0" :max="20" :step="1" unit="px" />
-            <AppSlider v-model="sepia" label="褐色" :min="0" :max="100" :step="1" unit="%" />
+        <section class="space-y-4">
+          <AppSectionHeader title="快速预设" :icon="Sparkles" />
+          <div class="relative group/presets">
+            <!-- 左导航箭头 -->
+            <button
+              v-if="canScrollLeft"
+              @click="scrollPresets('left')"
+              class="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-background/80 border border-border/40 rounded-full shadow-lg flex items-center justify-center text-muted-foreground hover:text-primary transition-all md:opacity-0 md:group-hover/presets:opacity-100 backdrop-blur-sm -ml-2"
+              aria-label="向左滚动"
+            >
+              <ChevronLeft :size="16" />
+            </button>
+
+            <!-- 右导航箭头 -->
+            <button
+              v-if="canScrollRight"
+              @click="scrollPresets('right')"
+              class="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-background/80 border border-border/40 rounded-full shadow-lg flex items-center justify-center text-muted-foreground hover:text-primary transition-all md:opacity-0 md:group-hover/presets:opacity-100 backdrop-blur-sm -mr-2"
+              aria-label="向右滚动"
+            >
+              <ChevronRight :size="16" />
+            </button>
+
+            <div
+              ref="scrollContainer"
+              class="flex gap-2 overflow-x-auto pb-2 no-scrollbar -mx-1 px-1 scroll-smooth"
+              @scroll="checkScroll"
+              @wheel="handleWheel"
+              :style="presetsMaskStyle"
+            >
+              <button
+                v-for="preset in presets"
+                :key="preset.name"
+                @click="applyPreset(preset)"
+                class="flex-shrink-0 px-4 py-2.5 rounded-xl border transition-all active:scale-95 flex flex-col items-center gap-1.5 min-w-[70px] group"
+                :class="[
+                  activePresetName === preset.name
+                    ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20'
+                    : 'border-border/60 bg-muted/5 hover:bg-primary/5 hover:border-primary/30'
+                ]"
+                :aria-pressed="activePresetName === preset.name"
+              >
+                <div
+                  class="w-8 h-8 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform"
+                  :class="[activePresetName === preset.name ? 'bg-primary/20' : 'bg-primary/10']"
+                >
+                  <Sparkles
+                    :size="14"
+                    class="text-primary"
+                    :fill="activePresetName === preset.name ? 'currentColor' : 'none'"
+                  />
+                </div>
+                <span
+                  class="text-[0.65rem] font-bold uppercase tracking-widest"
+                  :class="[
+                    activePresetName === preset.name ? 'text-primary' : 'text-muted-foreground'
+                  ]"
+                  >{{ preset.name }}</span
+                >
+              </button>
+            </div>
           </div>
         </section>
 
-        <section class="pt-4">
+        <section class="space-y-4 pt-2">
+          <div class="flex items-center justify-between">
+            <AppSectionHeader title="精细调整" :icon="Settings2" />
+            <button
+              @click="resetFilters"
+              class="p-1.5 hover:bg-muted rounded-lg transition-all text-muted-foreground hover:text-primary active:scale-90"
+              title="重置参数"
+              aria-label="重置参数"
+            >
+              <RotateCcw :size="14" />
+            </button>
+          </div>
+
+          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-6">
+            <!-- 亮度 -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between px-0.5 h-6">
+                <div class="flex items-center gap-2.5">
+                  <div class="bg-primary/5 p-1 rounded-full flex items-center justify-center">
+                    <Sun :size="15" :stroke-width="2.5" class="text-primary" />
+                  </div>
+                  <span
+                    class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none"
+                    >亮度</span
+                  >
+                </div>
+                <span class="font-mono text-sm font-black text-primary tabular-nums"
+                  >{{ brightness }}%</span
+                >
+              </div>
+              <AppSlider
+                v-model="brightness"
+                :min="0"
+                :max="200"
+                :step="1"
+                @update:model-value="activePresetName = ''"
+              />
+            </div>
+
+            <!-- 对比度 -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between px-0.5 h-6">
+                <div class="flex items-center gap-2.5">
+                  <div class="bg-primary/5 p-1 rounded-full flex items-center justify-center">
+                    <Contrast :size="15" :stroke-width="2.5" class="text-primary" />
+                  </div>
+                  <span
+                    class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none"
+                    >对比度</span
+                  >
+                </div>
+                <span class="font-mono text-sm font-black text-primary tabular-nums"
+                  >{{ contrast }}%</span
+                >
+              </div>
+              <AppSlider
+                v-model="contrast"
+                :min="0"
+                :max="200"
+                :step="1"
+                @update:model-value="activePresetName = ''"
+              />
+            </div>
+
+            <!-- 饱和度 -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between px-0.5 h-6">
+                <div class="flex items-center gap-2.5">
+                  <div class="bg-primary/5 p-1 rounded-full flex items-center justify-center">
+                    <Droplets :size="15" :stroke-width="2.5" class="text-primary" />
+                  </div>
+                  <span
+                    class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none"
+                    >饱和度</span
+                  >
+                </div>
+                <span class="font-mono text-sm font-black text-primary tabular-nums"
+                  >{{ saturation }}%</span
+                >
+              </div>
+              <AppSlider
+                v-model="saturation"
+                :min="0"
+                :max="200"
+                :step="1"
+                @update:model-value="activePresetName = ''"
+              />
+            </div>
+
+            <!-- 模糊 -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between px-0.5 h-6">
+                <div class="flex items-center gap-2.5">
+                  <div class="bg-primary/5 p-1 rounded-full flex items-center justify-center">
+                    <Layers :size="15" :stroke-width="2.5" class="text-primary" />
+                  </div>
+                  <span
+                    class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none"
+                    >模糊</span
+                  >
+                </div>
+                <span class="font-mono text-sm font-black text-primary tabular-nums"
+                  >{{ blur }}px</span
+                >
+              </div>
+              <AppSlider
+                v-model="blur"
+                :min="0"
+                :max="20"
+                :step="1"
+                @update:model-value="activePresetName = ''"
+              />
+            </div>
+
+            <!-- 褐色 -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between px-0.5 h-6">
+                <div class="flex items-center gap-2.5">
+                  <div class="bg-primary/5 p-1 rounded-full flex items-center justify-center">
+                    <Wind :size="15" :stroke-width="2.5" class="text-primary" />
+                  </div>
+                  <span
+                    class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none"
+                    >褐色</span
+                  >
+                </div>
+                <span class="font-mono text-sm font-black text-primary tabular-nums"
+                  >{{ sepia }}%</span
+                >
+              </div>
+              <AppSlider
+                v-model="sepia"
+                :min="0"
+                :max="100"
+                :step="1"
+                @update:model-value="activePresetName = ''"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section class="relative">
           <div
-            class="p-4 bg-primary/[0.03] border border-dashed border-primary/20 rounded-2xl flex gap-3"
+            class="p-4 bg-muted/20 border border-border/40 rounded-2xl flex items-start gap-3 transition-all group hover:bg-muted/30"
           >
-            <Sparkles :size="16" class="text-primary shrink-0 mt-0.5" />
-            <p class="text-[0.65rem] text-muted-foreground leading-relaxed">
-              实时预览滤镜效果，所有处理均在浏览器本地完成。
-            </p>
+            <div class="bg-primary/10 p-2 rounded-xl group-hover:scale-110 transition-transform">
+              <Sparkles :size="16" class="text-primary" />
+            </div>
+            <div class="space-y-1">
+              <div class="text-[0.65rem] font-black text-primary uppercase tracking-widest">
+                实时滤镜
+              </div>
+              <p class="text-[0.65rem] text-muted-foreground leading-relaxed font-medium">
+                拖动滑块即可实时预览效果，处理过程完全本地化，无需担心隐私。
+              </p>
+            </div>
           </div>
         </section>
 
