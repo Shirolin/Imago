@@ -68,13 +68,21 @@ const toPercent = (px: { x: number; y: number; w: number; h: number }) => {
   }
 }
 
-// 监听外部 modelValue 变化
+// 监听外部 modelValue 变化 (优化：字段显式比对，避免频繁序列化)
 watch(
   () => props.modelValue,
   (v) => {
     if (v && imgRef.value) {
       const targetPx = toPx(v)
-      if (JSON.stringify(targetPx) !== JSON.stringify(internalCropPx.value)) {
+      const current = internalCropPx.value
+      // 显式比对核心字段
+      const isChanged =
+        Math.abs(targetPx.x - current.x) > 0.0001 ||
+        Math.abs(targetPx.y - current.y) > 0.0001 ||
+        Math.abs(targetPx.w - current.w) > 0.0001 ||
+        Math.abs(targetPx.h - current.h) > 0.0001
+
+      if (isChanged) {
         internalCropPx.value = targetPx
       }
     }

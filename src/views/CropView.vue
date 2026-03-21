@@ -18,7 +18,9 @@ import {
   Undo2,
   Redo2,
   Settings2,
-  LayoutGrid
+  LayoutGrid,
+  Link as LinkIcon,
+  Unlink
 } from 'lucide-vue-next'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
@@ -306,7 +308,8 @@ const ratios = [
       <section class="space-y-4 pt-2">
         <AppSectionHeader title="精确构图" :icon="LayoutGrid" />
         <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-5">
-          <div class="grid grid-cols-2 gap-x-3 gap-y-4">
+          <!-- 坐标设置 -->
+          <div class="grid grid-cols-2 gap-x-3 gap-y-4 relative">
             <div class="space-y-1.5">
               <label
                 class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest"
@@ -331,27 +334,62 @@ const ratios = [
                 class="h-10 text-xs font-mono bg-background/50"
               />
             </div>
-            <div class="space-y-1.5">
-              <label class="text-[10px] font-black text-primary uppercase ml-1 tracking-widest"
-                >宽度 (W)</label
+
+            <!-- 尺寸设置 (带联动锁定图标) -->
+            <div class="col-span-2 grid grid-cols-2 gap-x-3 relative mt-1">
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] font-black uppercase ml-1 tracking-widest transition-colors"
+                  :class="currentRatio > 0 ? 'text-primary' : 'text-muted-foreground'"
+                  >宽度 (W)</label
+                >
+                <AppInput
+                  type="number"
+                  :model-value="Math.round(pxCoords.w)"
+                  @update:model-value="handlePxInputChange('w', $event)"
+                  class="h-10 text-xs font-mono transition-all"
+                  :class="
+                    currentRatio > 0
+                      ? 'border-primary/40 bg-primary/[0.03] ring-1 ring-primary/10'
+                      : 'border-border bg-background/50'
+                  "
+                />
+              </div>
+
+              <!-- 核心：联动指示器 -->
+              <div
+                class="absolute left-1/2 top-[2.1rem] -translate-x-1/2 -translate-y-1/2 z-10 flex items-center justify-center"
               >
-              <AppInput
-                type="number"
-                :model-value="Math.round(pxCoords.w)"
-                @update:model-value="handlePxInputChange('w', $event)"
-                class="h-10 text-xs font-mono border-primary/30 bg-primary/[0.02]"
-              />
-            </div>
-            <div class="space-y-1.5">
-              <label class="text-[10px] font-black text-primary uppercase ml-1 tracking-widest"
-                >高度 (H)</label
-              >
-              <AppInput
-                type="number"
-                :model-value="Math.round(pxCoords.h)"
-                @update:model-value="handlePxInputChange('h', $event)"
-                class="h-10 text-xs font-mono border-primary/30 bg-primary/[0.02]"
-              />
+                <div
+                  class="bg-background border rounded-full p-1 shadow-sm transition-all duration-500"
+                  :class="
+                    currentRatio > 0
+                      ? 'border-primary/40 text-primary scale-110 shadow-primary/10 rotate-0'
+                      : 'border-border text-muted-foreground/40 scale-90 rotate-[-45deg]'
+                  "
+                >
+                  <component :is="currentRatio > 0 ? LinkIcon : Unlink" :size="12" />
+                </div>
+              </div>
+
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] font-black uppercase ml-1 tracking-widest transition-colors"
+                  :class="currentRatio > 0 ? 'text-primary' : 'text-muted-foreground'"
+                  >高度 (H)</label
+                >
+                <AppInput
+                  type="number"
+                  :model-value="Math.round(pxCoords.h)"
+                  @update:model-value="handlePxInputChange('h', $event)"
+                  class="h-10 text-xs font-mono transition-all"
+                  :class="
+                    currentRatio > 0
+                      ? 'border-primary/40 bg-primary/[0.03] ring-1 ring-primary/10'
+                      : 'border-border bg-background/50'
+                  "
+                />
+              </div>
             </div>
           </div>
 
@@ -429,15 +467,16 @@ const ratios = [
           <!-- TRIM -->
           <div class="space-y-4">
             <div
-              class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest"
+              class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest flex items-center justify-between"
             >
-              边缘微调 (TRIM)
+              <span>边缘微调 (TRIM)</span>
+              <span class="text-[9px] opacity-40 font-mono italic">UNIT: PX</span>
             </div>
             <div class="grid grid-cols-2 gap-x-6 gap-y-4">
-              <AppSlider v-model="trimPx.top" label="上" :min="0" :max="100" unit="px" />
-              <AppSlider v-model="trimPx.bottom" label="下" :min="0" :max="100" unit="px" />
-              <AppSlider v-model="trimPx.left" label="左" :min="0" :max="100" unit="px" />
-              <AppSlider v-model="trimPx.right" label="右" :min="0" :max="100" unit="px" />
+              <AppSlider v-model="trimPx.top" label="上" :min="0" :max="100" />
+              <AppSlider v-model="trimPx.bottom" label="下" :min="0" :max="100" />
+              <AppSlider v-model="trimPx.left" label="左" :min="0" :max="100" />
+              <AppSlider v-model="trimPx.right" label="右" :min="0" :max="100" />
             </div>
           </div>
 
