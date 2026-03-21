@@ -95,11 +95,21 @@ const presets = [
   {
     name: '克拉伦登',
     values: { brightness: 110, contrast: 120, saturation: 135, blur: 0, sepia: 0 }
-  }, // Clarendon: 高对比高饱和，通透明亮
-  { name: '1977', values: { brightness: 110, contrast: 110, saturation: 130, blur: 0, sepia: 30 } }, // 1977: 经典高曝复古胶片感
-  { name: '雷耶斯', values: { brightness: 110, contrast: 85, saturation: 75, blur: 0, sepia: 22 } }, // Reyes: 褪色、低对比度的温暖老照片
-  { name: '水墨', values: { brightness: 110, contrast: 120, saturation: 0, blur: 0, sepia: 10 } }, // Inkwell: 高对比度质感黑白
-  { name: '云雀', values: { brightness: 105, contrast: 90, saturation: 115, blur: 0, sepia: 0 } } // Lark: 降对比提饱和，适合静物风景
+  }, // Clarendon: 万能通透
+  {
+    name: '高保真',
+    values: { brightness: 100, contrast: 150, saturation: 110, blur: 0, sepia: 0 }
+  }, // Lo-fi: 浓郁扫街感
+  {
+    name: '瓦伦西亚',
+    values: { brightness: 108, contrast: 108, saturation: 100, blur: 0, sepia: 15 }
+  }, // Valencia: 暖阳复古
+  { name: '银座', values: { brightness: 105, contrast: 90, saturation: 100, blur: 0, sepia: 10 } }, // Gingham: 日系柔美
+  { name: '1977', values: { brightness: 110, contrast: 110, saturation: 130, blur: 0, sepia: 30 } }, // 1977: 经典胶片
+  { name: '浅梦', values: { brightness: 120, contrast: 90, saturation: 85, blur: 0, sepia: 0 } }, // Aden: 梦幻马卡龙
+  { name: '雷耶斯', values: { brightness: 110, contrast: 85, saturation: 75, blur: 0, sepia: 22 } }, // Reyes: 古旧照片
+  { name: '水墨', values: { brightness: 110, contrast: 120, saturation: 0, blur: 0, sepia: 10 } }, // Inkwell: 质感黑白
+  { name: '云雀', values: { brightness: 105, contrast: 90, saturation: 115, blur: 0, sepia: 0 } } // Lark: 风景专用
 ]
 
 const applyPreset = (preset: (typeof presets)[0]) => {
