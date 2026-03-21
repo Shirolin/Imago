@@ -43,6 +43,7 @@ const outputFormat = ref<string>('original')
 const outputQuality = ref(0.9)
 const isDirty = ref(false)
 const activePresetName = ref<string>('原图')
+const lastPresetName = ref<string>('原图')
 
 // 滚动控制
 const scrollContainer = ref<HTMLElement | null>(null)
@@ -84,12 +85,8 @@ onMounted(() => {
 const { isProcessing, processSelected } = useImageProcessor(filterEngine)
 
 const resetFilters = () => {
-  brightness.value = 100
-  contrast.value = 100
-  saturation.value = 100
-  blur.value = 0
-  sepia.value = 0
-  activePresetName.value = '原图'
+  const preset = presets.find((p) => p.name === lastPresetName.value) || presets[0]
+  if (preset) applyPreset(preset)
 }
 
 // 滤镜预设定义
@@ -109,6 +106,7 @@ const applyPreset = (preset: (typeof presets)[0]) => {
   blur.value = preset.values.blur
   sepia.value = preset.values.sepia
   activePresetName.value = preset.name
+  lastPresetName.value = preset.name
 }
 
 const displayImages = computed(() => [...store.images].reverse())
