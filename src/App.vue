@@ -88,10 +88,10 @@ const routeNameMap: Record<string, string> = {
   Resize: '调整尺寸',
   crop: '裁剪图片',
   Crop: '裁剪图片',
-  exif: '清除 EXIF',
-  Exif: '清除 EXIF',
   split: '图片分割',
   Split: '图片分割',
+  exif: '清除 EXIF',
+  Exif: '清除 EXIF',
   combine: '拼接合并',
   Combine: '拼接合并',
   filters: '色彩滤镜',
@@ -110,8 +110,8 @@ const menuGroups = [
     label: '编辑工具',
     items: [
       { name: '裁剪图片', path: '/crop', icon: Scissors },
-      { name: '清除 EXIF', path: '/exif', icon: Trash2 },
-      { name: '图片分割', path: '/split', icon: Split }
+      { name: '图片分割', path: '/split', icon: Split },
+      { name: '清除 EXIF', path: '/exif', icon: Trash2 }
     ]
   },
   {

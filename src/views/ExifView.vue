@@ -49,26 +49,40 @@ const { isProcessing, processSelected } = useImageProcessor(clearExifEngine)
 const displayImages = computed(() => [...store.images].reverse())
 
 const scanAllImages = async () => {
-  for (const img of store.images) {
-    if (img.exifCount === undefined) {
-      try {
-        const data = await readExif(img.file)
-        if (data) {
-          store.updateImage(img.id, { exifCount: data.metaCount })
-          exifDataMap.value[img.id] = data
-        } else {
+  const pendingImages = store.images.filter((img) => img.exifCount === undefined)
+  if (pendingImages.length === 0) return
+
+  // 并发控制：每组处理 5 张图片，避免主线程长时间阻塞
+  const CHUNK_SIZE = 5
+  for (let i = 0; i < pendingImages.length; i += CHUNK_SIZE) {
+    const chunk = pendingImages.slice(i, i + CHUNK_SIZE)
+    await Promise.all(
+      chunk.map(async (img) => {
+        try {
+          const data = await readExif(img.file)
+          if (data) {
+            store.updateImage(img.id, { exifCount: data.metaCount })
+            exifDataMap.value[img.id] = data
+          } else {
+            store.updateImage(img.id, { exifCount: 0 })
+          }
+        } catch {
           store.updateImage(img.id, { exifCount: 0 })
         }
-      } catch {
-        store.updateImage(img.id, { exifCount: 0 })
-      }
-    }
+      })
+    )
   }
 }
 
+let scanTimeout: ReturnType<typeof setTimeout>
 watch(
   () => store.images.length,
-  () => scanAllImages(),
+  () => {
+    clearTimeout(scanTimeout)
+    scanTimeout = setTimeout(() => {
+      scanAllImages()
+    }, 300)
+  },
   { immediate: true }
 )
 
@@ -129,10 +143,15 @@ const handleCardClick = (id: string) => {
       <div class="h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-6">
         <div
           v-if="store.images.length === 0"
-          class="flex flex-col items-center justify-center py-32 opacity-20"
+          class="flex flex-col items-center justify-center py-32 animate-in fade-in duration-700"
         >
-          <FileSearch :size="64" />
-          <p class="mt-4 font-bold uppercase tracking-widest text-sm">暂无图片</p>
+          <div class="bg-muted/30 p-8 rounded-full mb-6">
+            <FileSearch :size="48" class="text-muted-foreground/40" />
+          </div>
+          <p class="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground/60 mb-2">
+            暂无图片
+          </p>
+          <p class="text-[11px] font-medium text-muted-foreground/40">上传图片以开始隐私风险分析</p>
         </div>
         <div
           v-else
@@ -167,7 +186,7 @@ const handleCardClick = (id: string) => {
             <template #meta="{ image }">
               <div
                 v-if="image.exifCount !== undefined"
-                class="flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border"
+                class="flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest leading-none border"
                 :class="[
                   image.exifCount > 0
                     ? 'bg-destructive/5 text-destructive border-destructive/20'
@@ -211,34 +230,40 @@ const handleCardClick = (id: string) => {
             含有 {{ activeExifData.metaCount }} 条隐私数据
           </div>
         </div>
-        <div v-if="activeExifData?.metaCount" class="space-y-4 px-1">
-          <div v-if="activeExifData?.model" class="flex flex-col gap-1">
-            <div class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+        <div v-if="activeExifData?.metaCount" class="space-y-5 px-1">
+          <div v-if="activeExifData?.model" class="flex flex-col gap-1.5">
+            <div
+              class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none"
+            >
               拍摄设备
             </div>
-            <div class="flex items-center gap-2 text-sm font-medium text-foreground">
+            <div class="flex items-center gap-2 text-sm font-semibold text-foreground">
               <Smartphone
                 v-if="activeExifData.model.includes('iPhone')"
                 :size="14"
-                class="text-muted-foreground"
-              /><Camera v-else :size="14" class="text-muted-foreground" /> {{ activeExifData.make }}
+                class="text-primary"
+              /><Camera v-else :size="14" class="text-primary" /> {{ activeExifData.make }}
               {{ activeExifData.model }}
             </div>
           </div>
-          <div v-if="activeExifData?.dateTime" class="flex flex-col gap-1">
-            <div class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+          <div v-if="activeExifData?.dateTime" class="flex flex-col gap-1.5">
+            <div
+              class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none"
+            >
               拍摄时间
             </div>
-            <div class="flex items-center gap-2 text-sm font-medium text-foreground">
-              <Calendar :size="14" class="text-muted-foreground" /> {{ activeExifData.dateTime }}
+            <div class="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Calendar :size="14" class="text-primary" /> {{ activeExifData.dateTime }}
             </div>
           </div>
-          <div v-if="activeExifData?.latitude !== undefined" class="flex flex-col gap-1">
-            <div class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+          <div v-if="activeExifData?.latitude !== undefined" class="flex flex-col gap-1.5">
+            <div
+              class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none"
+            >
               地理位置
             </div>
-            <div class="flex items-center gap-2 text-sm font-medium text-foreground font-mono">
-              <MapPin :size="14" class="text-muted-foreground" />
+            <div class="flex items-center gap-2 text-sm font-bold text-foreground font-mono">
+              <MapPin :size="14" class="text-primary" />
               {{ activeExifData.latitude.toFixed(4) }}°, {{ activeExifData.longitude?.toFixed(4) }}°
             </div>
           </div>
@@ -246,23 +271,37 @@ const handleCardClick = (id: string) => {
         <div v-if="activeExifData?.all && Object.keys(activeExifData.all).length > 0">
           <button
             @click="isAllTagsExpanded = !isAllTagsExpanded"
-            class="flex items-center justify-between w-full text-muted-foreground hover:text-primary transition-colors mb-3"
+            class="flex items-center justify-between w-full text-muted-foreground hover:text-primary transition-all mb-3 px-1 group"
+            :aria-expanded="isAllTagsExpanded"
+            aria-controls="exif-tags-details"
           >
-            <span class="text-[11px] font-bold uppercase tracking-widest">所有标记详情</span
-            ><component :is="isAllTagsExpanded ? ChevronUp : ChevronDown" :size="14" />
+            <span class="text-[0.65rem] font-bold uppercase tracking-widest leading-none"
+              >所有标记详情</span
+            >
+            <component
+              :is="isAllTagsExpanded ? ChevronUp : ChevronDown"
+              :size="14"
+              class="transition-transform group-hover:scale-110"
+            />
           </button>
-          <div v-if="isAllTagsExpanded" class="flex flex-wrap gap-1 animate-in slide-in-from-top-1">
+          <div
+            v-if="isAllTagsExpanded"
+            id="exif-tags-details"
+            class="flex flex-wrap gap-1.5 animate-in slide-in-from-top-1"
+          >
             <div
               v-for="(val, key) in activeExifData.all"
               :key="key"
-              class="px-2 py-1 bg-muted/40 border border-border/50 rounded text-[9px] text-muted-foreground font-medium"
+              class="px-2 py-1 bg-muted/30 border border-border/40 rounded-lg text-[10px] text-muted-foreground font-medium transition-colors hover:bg-muted/50"
             >
               {{ key }}
             </div>
           </div>
         </div>
         <div v-if="!activeExifData?.metaCount" class="py-10 text-center space-y-3">
-          <ShieldCheck :size="32" class="text-primary/40 mx-auto" />
+          <div class="bg-primary/5 w-12 h-12 rounded-full flex items-center justify-center mx-auto">
+            <ShieldCheck :size="24" class="text-primary" />
+          </div>
           <div class="text-xs font-bold text-muted-foreground">未检测到敏感数据，隐私安全</div>
         </div>
       </div>
