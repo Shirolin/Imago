@@ -167,6 +167,7 @@ const handleCardClick = (id: string) => {
             :key="img.id"
             :image="img"
             :is-selected="store.selectedIds.has(img.id)"
+            :allow-magnifier="false"
             @toggle="handleCardClick"
             @remove="store.removeImage"
             :class="[

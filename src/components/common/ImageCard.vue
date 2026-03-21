@@ -24,11 +24,13 @@ interface Props {
   image: ImageItem
   isSelected?: boolean
   imageStyle?: CSSProperties
+  allowMagnifier?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   isSelected: false,
-  imageStyle: () => ({})
+  imageStyle: () => ({}),
+  allowMagnifier: true
 })
 const emit = defineEmits(['toggle', 'remove', 'download', 'compare'])
 
@@ -59,7 +61,7 @@ onUnmounted(() => {
 })
 
 const handleMouseMove = (e: MouseEvent) => {
-  if (!showMagnifier.value || !imageRef.value) return
+  if (!props.allowMagnifier || !showMagnifier.value || !imageRef.value) return
 
   // 使用 RAF 确保每一帧同步渲染，解决“不跟手”问题
   if (rafId.value) cancelAnimationFrame(rafId.value)
@@ -73,7 +75,9 @@ const handleMouseMove = (e: MouseEvent) => {
 }
 
 const enterMagnifier = () => {
-  if (props.image.status === 'done' && store.showMagnifier) showMagnifier.value = true
+  if (props.allowMagnifier && props.image.status === 'done' && store.showMagnifier) {
+    showMagnifier.value = true
+  }
 }
 
 const leaveMagnifier = () => {
@@ -92,6 +96,14 @@ const innerImageStyle = computed<CSSProperties>(() => ({
 }))
 
 const isDirtyDone = computed(() => props.image.isDirty && props.image.status === 'done')
+
+// 自动切换处理前后预览图
+const displayUrl = computed(() => {
+  if (props.image.status === 'done' && props.image.processedPreview) {
+    return props.image.processedPreview
+  }
+  return props.image.preview
+})
 </script>
 
 <template>
@@ -155,7 +167,7 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
 
       <!-- 主预览图 -->
       <img
-        :src="image.preview"
+        :src="displayUrl"
         alt="Preview"
         class="w-full h-full object-contain transition-all duration-700"
         :class="{
@@ -175,7 +187,9 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
 
       <!-- 智能倍镜组件 (z-30) -->
       <div
-        v-if="showMagnifier && processedUrl && originalHDUrl && store.showMagnifier"
+        v-if="
+          allowMagnifier && showMagnifier && processedUrl && originalHDUrl && store.showMagnifier
+        "
         class="absolute inset-0 z-30 pointer-events-none overflow-hidden"
       >
         <!-- 倍镜容器 -->
@@ -306,7 +320,7 @@ const isDirtyDone = computed(() => props.image.isDirty && props.image.status ===
             <RotateCcw :size="layoutStore.cardSizeMode === 'compact' ? 12 : 16" />
           </button>
           <button
-            v-if="image.status === 'done'"
+            v-if="allowMagnifier && image.status === 'done'"
             @click.stop="emit('compare', image.id)"
             class="flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-secondary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
             :class="layoutStore.cardSizeMode === 'compact' ? 'w-6 h-6' : 'w-8 h-8'"

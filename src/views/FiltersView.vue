@@ -206,6 +206,8 @@ const buttonText = computed(() => {
               :key="img.id"
               :image="img"
               :is-selected="store.selectedIds.has(img.id)"
+              :image-style="{ filter: 'none' }"
+              :allow-magnifier="false"
               @toggle="store.toggleSelection"
               @remove="store.removeImage"
               @download="handleDownload"

@@ -12,6 +12,7 @@ export interface ImageItem {
   format: string
   processedSize?: number
   processedBlob?: Blob
+  processedPreview?: string
   processedBlobs?: Blob[]
   processedWidth?: number
   processedHeight?: number
@@ -102,8 +103,12 @@ export const useImageStore = defineStore('image', () => {
       if (img.abortController) {
         img.abortController.abort()
       }
+      if (img.processedPreview) {
+        URL.revokeObjectURL(img.processedPreview)
+      }
       img.status = 'idle'
       img.processedBlob = undefined
+      img.processedPreview = undefined
       img.processedSize = undefined
       img.error = undefined
       img.isDirty = false

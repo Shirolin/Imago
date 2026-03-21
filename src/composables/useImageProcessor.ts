@@ -24,13 +24,23 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
       const isArray = Array.isArray(result)
       const blobs = isArray ? (result as unknown as Blob[]) : typedResult.blobs
       const singleBlob = !isArray ? typedResult.blob || (result as unknown as Blob) : undefined
+      const finalBlob = singleBlob instanceof Blob ? singleBlob : blobs ? blobs[0] : undefined
+
+      // 如果已有处理后的预览，先释放旧的
+      if (item.processedPreview) {
+        URL.revokeObjectURL(item.processedPreview)
+      }
+
+      // 生成新的预览 URL
+      const processedPreview = finalBlob ? URL.createObjectURL(finalBlob) : undefined
 
       store.updateImage(id, {
         status: 'done',
         processedSize: isArray
           ? (result as unknown as Blob[]).reduce((sum, b) => sum + b.size, 0)
           : typedResult.size,
-        processedBlob: singleBlob instanceof Blob ? singleBlob : blobs ? blobs[0] : undefined,
+        processedBlob: finalBlob,
+        processedPreview,
         processedBlobs: blobs,
         processedWidth: typedResult.width,
         processedHeight: typedResult.height,
