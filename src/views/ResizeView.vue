@@ -50,6 +50,7 @@ const resetDimensions = () => {
   height.value = 1080
 }
 
+let debounceTimeout: ReturnType<typeof setTimeout>
 watch(
   [
     resizeMode,
@@ -62,7 +63,10 @@ watch(
     preserveExif
   ],
   () => {
-    store.markAllAsDirty()
+    clearTimeout(debounceTimeout)
+    debounceTimeout = setTimeout(() => {
+      store.markAllAsDirty()
+    }, 150)
   },
   { deep: true }
 )
@@ -240,7 +244,7 @@ const buttonText = computed(() => {
                   type="number"
                   placeholder="宽度"
                   suffix="W"
-                  aria-label="宯度"
+                  aria-label="宽度"
                 />
                 <AppInput
                   v-model.number="height"
