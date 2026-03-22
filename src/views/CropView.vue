@@ -121,6 +121,12 @@ const handleRatioChange = (val: any) => {
   currentRatio.value = val
 }
 
+const handleFillImage = () => {
+  recordBeforeAction()
+  currentRatio.value = 0
+  internalCrop.value = { x: 0, y: 0, w: 100, h: 100 }
+}
+
 const setFillColor = (color: string | 'transparent') => {
   recordBeforeAction()
   if (color === 'transparent') {
@@ -285,19 +291,40 @@ const ratios = [
       <!-- 第一分区：核心裁剪控制 -->
       <section class="space-y-4">
         <AppSectionHeader title="裁剪比例" :icon="Scissors" />
-        <div class="bg-muted/10 rounded-2xl p-3 border border-border/60 space-y-4">
+        <div class="bg-muted/10 rounded-2xl p-3 border border-border/60 space-y-3">
+          <!-- 铺满全图主操作 -->
+          <AppButton
+            variant="secondary"
+            class="w-full h-10 rounded-xl bg-background/50 border-dashed border-border hover:border-primary/50 hover:bg-primary/[0.02] group transition-all"
+            @click="handleFillImage"
+          >
+            <Maximize2
+              :size="16"
+              class="mr-2 text-muted-foreground group-hover:text-primary transition-colors"
+            />
+            <span class="text-xs font-bold uppercase tracking-wider">铺满全图区域</span>
+          </AppButton>
+
           <AppSegmentedControl
             v-model="currentRatio"
             :options="ratios"
             @update:model-value="handleRatioChange"
           />
-          <div class="pt-1">
+          <div class="space-y-3 pt-1">
+            <div class="flex items-center justify-between ml-1">
+              <span class="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
+                >构图参考线</span
+              >
+              <span class="text-[9px] text-muted-foreground/40 italic">拖动时显现</span>
+            </div>
             <AppSegmentedControl
               v-model="gridMode"
               size="sm"
+              grid-cols="2"
               :options="[
                 { label: '无参考', value: 'none', icon: Maximize2 },
-                { label: '三分法', value: 'thirds', icon: Grid3X3 }
+                { label: '三分法', value: 'thirds', icon: Grid3X3 },
+                { label: '黄金分割', value: 'golden', icon: LayoutGrid }
               ]"
             />
           </div>
