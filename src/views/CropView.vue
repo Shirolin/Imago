@@ -23,7 +23,8 @@ import {
   Unlink,
   Pipette,
   Palette,
-  History
+  History,
+  Download
 } from 'lucide-vue-next'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
@@ -34,9 +35,11 @@ import { cropEngine } from '../lib/engines/cropEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useResizeObserver, useDebounceFn } from '@vueuse/core'
 import { useHistory } from '../composables/useHistory'
+import { useFileHelpers } from '../composables/useFileHelpers'
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
 const store = useImageStore()
+const { downloadImage } = useFileHelpers()
 
 const createRatioIcon = (width: number, height: number) => {
   return () =>
@@ -255,24 +258,55 @@ watch(
   { immediate: true }
 )
 
-const handleProcess = async () => {
+const ctaState = computed(() => {
+  const img = selectedImage.value
+  if (!img) return { text: '请选择图片', icon: Scissors, action: 'none', disabled: true }
+
+  if (isProcessing.value) {
+    return { text: '渲染处理中...', icon: Scissors, action: 'none', disabled: true }
+  }
+
+  if (img.status === 'done' && img.processedBlob && !img.isDirty) {
+    return { text: '下载此图片', icon: Download, action: 'download', disabled: false }
+  }
+
+  return {
+    text: img.isDirty ? '重新应用裁剪' : '应用裁剪并生成',
+    icon: Scissors,
+    action: 'process',
+    disabled: false
+  }
+})
+
+const handleCtaClick = async () => {
+  const state = ctaState.value
+  if (state.action === 'none') return
+
   const img = selectedImage.value
   if (!img) return
-  await processSingle(img.id, {
-    x: internalCrop.value.x,
-    y: internalCrop.value.y,
-    width: internalCrop.value.w,
-    height: internalCrop.value.h,
-    usePercentage: true,
-    rotation: rotation.value,
-    flipH: flipH.value,
-    flipV: flipV.value,
-    fillColor: finalFillColor.value,
-    trimPx: trimPx.value,
-    format: outputFormat.value === 'original' ? undefined : outputFormat.value,
-    quality: outputQuality.value,
-    preserveExif: preserveExif.value
-  })
+
+  if (state.action === 'download' && img.processedBlob) {
+    downloadImage(img.processedBlob, img.file.name, '_Cropped')
+    return
+  }
+
+  if (state.action === 'process') {
+    await processSingle(img.id, {
+      x: internalCrop.value.x,
+      y: internalCrop.value.y,
+      width: internalCrop.value.w,
+      height: internalCrop.value.h,
+      usePercentage: true,
+      rotation: rotation.value,
+      flipH: flipH.value,
+      flipV: flipV.value,
+      fillColor: finalFillColor.value,
+      trimPx: trimPx.value,
+      format: outputFormat.value === 'original' ? undefined : outputFormat.value,
+      quality: outputQuality.value,
+      preserveExif: preserveExif.value
+    })
+  }
 }
 
 // 亮度检测工具 (Polish: 确保对比度)
@@ -717,12 +751,13 @@ const ratios = [
           variant="cta"
           class="w-full h-12 rounded-xl shadow-lg transition-all active:scale-95 group overflow-hidden"
           :loading="isProcessing"
-          @click="handleProcess"
+          :disabled="ctaState.disabled"
+          @click="handleCtaClick"
         >
-          <template #icon><Scissors v-if="!isProcessing" :size="18" class="mr-2" /></template>
-          <span class="font-bold text-sm uppercase tracking-tight">{{
-            isProcessing ? '导出处理中...' : '裁剪并保存导出'
-          }}</span>
+          <template #icon>
+            <component :is="ctaState.icon" v-if="!isProcessing" :size="18" class="mr-2" />
+          </template>
+          <span class="font-bold text-sm uppercase tracking-tight">{{ ctaState.text }}</span>
         </AppButton>
       </InspectorFooter>
     </template>
