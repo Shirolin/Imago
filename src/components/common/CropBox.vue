@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onUnmounted, watch, computed } from 'vue'
+import { ref, onUnmounted, onMounted, watch, computed } from 'vue'
 
 interface Props {
   aspectRatio?: number
@@ -26,7 +26,7 @@ const emit = defineEmits(['update:modelValue', 'change'])
 const imgRef = ref<HTMLImageElement | null>(null)
 const containerRef = ref<HTMLDivElement | null>(null)
 
-// --- 状态归位 ---
+// --- 状态 ---
 const internalCrop = ref({ x: 0, y: 0, w: 100, h: 100 })
 const activePercent = ref({ x: 0, y: 0 })
 const contentBounds = ref<{ x: number; y: number; w: number; h: number } | null>(null)
@@ -34,54 +34,65 @@ const isSnapping = ref(false)
 const isDragging = ref(false)
 const dragMode = ref<'move' | 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'w' | 'e' | null>(null)
 
-// 基础变换计算
+// 记录图片原始尺寸
+const imgNaturalSize = ref({ w: 0, h: 0 })
+
+// 基础变换样式
 const transformStyle = computed(() => ({
   transform: `rotate(${props.rotation}deg) scaleX(${props.flipH ? -1 : 1}) scaleY(${props.flipV ? -1 : 1})`,
   transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
 }))
 
-// --- 坐标转换逻辑 (核心修复：解决旋转后的拖拽错乱) ---
+// 物理容器：交换宽高以适应旋转后的形状，消除阴影残留
+const containerStyle = computed(() => {
+  const isRotated = props.rotation % 180 !== 0
+  const nw = imgNaturalSize.value.w || 100
+  const nh = imgNaturalSize.value.h || 100
+  return {
+    width: (isRotated ? nh : nw) + 'px',
+    height: (isRotated ? nw : nh) + 'px',
+    transition: 'width 0.4s, height 0.4s'
+  }
+})
+
+// 内部旋转层：保持原始比例，围绕中心旋转
+const innerWrapStyle = computed(() => ({
+  width: (imgNaturalSize.value.w || 100) + 'px',
+  height: (imgNaturalSize.value.h || 100) + 'px',
+  position: 'absolute' as const,
+  top: '50%',
+  left: '50%',
+  transform: `translate(-50%, -50%) ${transformStyle.value.transform}`,
+  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+  transformOrigin: 'center center'
+}))
+
+// --- 坐标转换逻辑 (逆向矩阵) ---
 const getRotatedDelta = (dx: number, dy: number) => {
   const rad = (props.rotation * Math.PI) / 180
-  const cos = Math.cos(rad)
-  const sin = Math.sin(rad)
-  // 应用反向旋转矩阵
+  const cos = Math.cos(rad),
+    sin = Math.sin(rad)
   let rDx = dx * cos + dy * sin
   let rDy = dy * cos - dx * sin
-  // 处理镜像
   if (props.flipH) rDx = -rDx
   if (props.flipV) rDy = -rDy
   return { dx: rDx, dy: rDy }
 }
 
-// --- 还原：吸附线状态 (百分比) ---
-const snapLines = ref({
-  x: null as number | null,
-  y: null as number | null,
-  cx: null as number | null,
-  cy: null as number | null
-})
+// 吸附线状态
+const snapLines = ref({ x: null as number | null, y: null as number | null })
 
-// 适配：图片自然尺寸
-const imgNaturalSize = ref({ w: 0, h: 0 })
-
-// --- 核心：高精度放大镜算法 (极致对齐补丁) ---
+// 放大镜算法
 const magnifierBgPos = computed(() => {
   const { x, y } = activePercent.value
-  const zoom = 2
-  const zw = imgNaturalSize.value.w * zoom
-  const zh = imgNaturalSize.value.h * zoom
-
-  // 物理补偿：160px (w-40) - 8px (左右 border 共 4px*2) = 152px 净尺寸
+  const zw = imgNaturalSize.value.w * 2,
+    zh = imgNaturalSize.value.h * 2
   const innerSize = 152
-  const posX = -(x / 100) * zw + innerSize / 2
-  const posY = -(y / 100) * zh + innerSize / 2
-  return `${posX}px ${posY}px`
+  return `${-(x / 100) * zw + innerSize / 2}px ${-(y / 100) * zh + innerSize / 2}px`
 })
 
 const showMagnifier = computed(() => isDragging.value && dragMode.value !== 'move')
 
-// 还原并增强：放大镜内红线 (更细、更高对比度)
 const magnifierCropLines = computed(() => {
   if (!dragMode.value || dragMode.value === 'move') return null
   const style: any = {
@@ -116,7 +127,6 @@ const magnifierCropLines = computed(() => {
   return style
 })
 
-// --- 逻辑逻辑逻辑 ---
 watch(
   () => props.modelValue,
   (v) => {
@@ -124,11 +134,6 @@ watch(
   },
   { deep: true, immediate: true }
 )
-
-const pixelSize = computed(() => ({
-  w: Math.round((internalCrop.value.w / 100) * imgNaturalSize.value.w),
-  h: Math.round((internalCrop.value.h / 100) * imgNaturalSize.value.h)
-}))
 
 const updateCrop = (n: typeof internalCrop.value) => {
   n.x = Number(n.x.toFixed(4))
@@ -147,10 +152,9 @@ const updateCrop = (n: typeof internalCrop.value) => {
 
 const handleImageLoad = () => {
   const img = imgRef.value
-  if (!img) return
+  if (!img || img.naturalWidth === 0) return
   imgNaturalSize.value = { w: img.naturalWidth, h: img.naturalHeight }
 
-  // 还原：像素检测逻辑
   const canvas = document.createElement('canvas'),
     ctx = canvas.getContext('2d', { willReadFrequently: true })
   if (!ctx) return
@@ -196,7 +200,6 @@ const handleImageLoad = () => {
         ? a < 128
         : Math.abs(r - bg.r) + Math.abs(g - bg.g) + Math.abs(b - bg.b) < 40 &&
           Math.abs(a - bg.a) < 40
-
     let minX = w,
       minY = h,
       maxX = 0,
@@ -238,7 +241,6 @@ const handleStart = (e: MouseEvent | TouchEvent, mode: typeof dragMode.value) =>
   startX = t?.clientX ?? 0
   startY = t?.clientY ?? 0
   startCrop = { ...internalCrop.value }
-
   window.addEventListener('mousemove', handleMove)
   window.addEventListener('mouseup', handleEnd)
   window.addEventListener('touchmove', handleMove, { passive: false })
@@ -255,38 +257,22 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
   if (rafId) cancelAnimationFrame(rafId)
   rafId = requestAnimationFrame(() => {
     const rect = containerRef.value!.getBoundingClientRect()
-    const nw = imgNaturalSize.value.w
-    const nh = imgNaturalSize.value.h
-
-    // 计算鼠标相对于容器中心的物理像素偏移
-    const cxOffset = (cx - rect.left - rect.width / 2) / props.scale
-    const cyOffset = (cy - rect.top - rect.height / 2) / props.scale
-
-    // 将偏移逆向映射回图片 0 度的原始空间
+    const nw = imgNaturalSize.value.w,
+      nh = imgNaturalSize.value.h
+    const cxOffset = (cx - rect.left - rect.width / 2) / props.scale,
+      cyOffset = (cy - rect.top - rect.height / 2) / props.scale
     const { dx: rX, dy: rY } = getRotatedDelta(cxOffset, cyOffset)
-
-    // 换算为 0-100 的绝对百分比坐标
-    const px = Math.max(0, Math.min(100, (rX / nw + 0.5) * 100))
-    const py = Math.max(0, Math.min(100, (rY / nh + 0.5) * 100))
-
-    // 计算拖拽增量的百分比
-    const dxRaw = (cx - startX) / props.scale
-    const dyRaw = (cy - startY) / props.scale
+    const px = Math.max(0, Math.min(100, (rX / nw + 0.5) * 100)),
+      py = Math.max(0, Math.min(100, (rY / nh + 0.5) * 100))
+    const dxRaw = (cx - startX) / props.scale,
+      dyRaw = (cy - startY) / props.scale
     const { dx: deltaX, dy: deltaY } = getRotatedDelta(dxRaw, dyRaw)
-    const dxPercent = (deltaX / nw) * 100
-    const dyPercent = (deltaY / nh) * 100
-
+    const dxPercent = (deltaX / nw) * 100,
+      dyPercent = (deltaY / nh) * 100
     const n = { ...startCrop }
     let sH = false,
       sV = false
-
-    const currentLines = {
-      x: null as number | null,
-      y: null as number | null,
-      cx: null as number | null,
-      cy: null as number | null
-    }
-    // 吸附在百分比空间进行，阈值需换算
+    const currentLines = { x: null as number | null, y: null as number | null }
     const snap = (val: number, target: number) =>
       !alt &&
       contentBounds.value &&
@@ -298,31 +284,6 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
       n.x = Math.max(-50, Math.min(150 - n.w, startCrop.x + dxPercent))
       n.y = Math.max(-50, Math.min(150 - n.h, startCrop.y + dyPercent))
       activePercent.value = { x: px, y: py }
-
-      // 移动模式吸附线判定
-      if (contentBounds.value) {
-        const threshold = (15 / props.scale / Math.max(nw, nh)) * 100
-        if (Math.abs(n.x - contentBounds.value.x) < threshold) {
-          n.x = contentBounds.value.x
-          currentLines.x = contentBounds.value.x
-          sH = true
-        }
-        if (Math.abs(n.y - contentBounds.value.y) < threshold) {
-          n.y = contentBounds.value.y
-          currentLines.y = contentBounds.value.y
-          sV = true
-        }
-        if (Math.abs(n.x + n.w - (contentBounds.value.x + contentBounds.value.w)) < threshold) {
-          n.x = contentBounds.value.x + contentBounds.value.w - n.w
-          currentLines.x = contentBounds.value.x + contentBounds.value.w
-          sH = true
-        }
-        if (Math.abs(n.y + n.h - (contentBounds.value.y + contentBounds.value.h)) < threshold) {
-          n.y = contentBounds.value.y + contentBounds.value.h - n.h
-          currentLines.y = contentBounds.value.y + contentBounds.value.h
-          sV = true
-        }
-      }
     } else {
       const mode = dragMode.value!
       if (mode.includes('n')) {
@@ -362,15 +323,12 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
         }
       }
       if (props.aspectRatio) {
-        const ar = props.aspectRatio
-        // 根据图片自然尺寸的宽高比修正百分比换算
-        const imgRatio = nw / nh
-        const visualRatio = ar / imgRatio
+        const ar = props.aspectRatio,
+          imgRatio = nw / nh,
+          visualRatio = ar / imgRatio
         if (mode === 'n' || mode === 's') n.w = n.h * visualRatio
         else n.h = n.w / visualRatio
       }
-
-      // 更新放大镜追踪点：如果是拉动角点，放大镜锁定在角点上
       activePercent.value = {
         x: mode.includes('w') ? n.x : mode.includes('e') ? n.x + n.w : px,
         y: mode.includes('n') ? n.y : mode.includes('s') ? n.y + n.h : py
@@ -386,36 +344,38 @@ const handleEnd = () => {
   isDragging.value = false
   isSnapping.value = false
   dragMode.value = null
-  snapLines.value = { x: null, y: null, cx: null, cy: null }
+  snapLines.value = { x: null, y: null }
   window.removeEventListener('mousemove', handleMove)
   window.removeEventListener('mouseup', handleEnd)
   window.removeEventListener('touchmove', handleMove)
   window.removeEventListener('touchend', handleEnd)
 }
 
-const handleReset = () => updateCrop({ x: 0, y: 0, w: 100, h: 100 })
+onMounted(() => {
+  if (imgRef.value?.complete) handleImageLoad()
+})
 onUnmounted(handleEnd)
 </script>
 
 <template>
-  <div ref="containerRef" class="relative select-none touch-none flex items-center justify-center">
-    <!-- 变换包裹层：将图片和交互层全部打包旋转 -->
-    <div class="relative w-full h-full" :style="transformStyle">
-      <!-- 【视觉填充层】：仅在非透明时渲染，作为图片的衬底 -->
+  <div
+    ref="containerRef"
+    class="relative select-none touch-none flex items-center justify-center shadow-2xl rounded-sm overflow-visible"
+    :style="containerStyle"
+  >
+    <div :style="innerWrapStyle">
       <div
         v-if="props.fillColor !== 'transparent'"
-        class="absolute inset-[-100%] z-0 pointer-events-none transition-colors duration-500"
+        class="absolute inset-[-100%] z-0 pointer-events-none"
         :style="{ backgroundColor: props.fillColor }"
       ></div>
-
       <img
         ref="imgRef"
         :src="imageUrl"
-        class="relative z-10 block rounded-sm shadow-sm pointer-events-none max-w-none"
+        class="relative z-10 block rounded-sm pointer-events-none w-full h-full"
         @load="handleImageLoad"
       />
 
-      <!-- 吸附辅助线层 -->
       <div class="absolute inset-0 pointer-events-none z-10 overflow-hidden">
         <div
           v-if="snapLines.x !== null"
@@ -430,7 +390,6 @@ onUnmounted(handleEnd)
       </div>
 
       <div v-if="imgNaturalSize.w > 0" class="absolute inset-0 z-20 pointer-events-none">
-        <!-- 【工业级遮罩系统】：通过四个区块围合，消除大阴影导致的缩放锯齿 -->
         <div class="absolute inset-0 z-0">
           <div
             class="absolute top-0 left-0 w-full bg-black/50"
@@ -468,22 +427,19 @@ onUnmounted(handleEnd)
             willChange: 'left, top, width, height'
           }"
           @mousedown="handleStart($event, 'move')"
-          @dblclick="handleReset"
+          @dblclick="updateCrop({ x: 0, y: 0, w: 100, h: 100 })"
         >
-          <!-- 旗舰级构图引导系统 (增强可见度版) -->
           <div
             v-if="gridMode !== 'none'"
-            class="absolute inset-0 pointer-events-none transition-all duration-500 ease-out"
-            :class="isDragging ? 'opacity-100 scale-100' : 'opacity-20 scale-[0.99]'"
+            class="absolute inset-0 pointer-events-none transition-all duration-500"
+            :class="isDragging ? 'opacity-100' : 'opacity-20'"
           >
-            <!-- 三分法网格 -->
             <div v-if="gridMode === 'thirds'" class="absolute inset-0 grid grid-cols-3 grid-rows-3">
               <div
                 v-for="i in 9"
                 :key="i"
                 class="relative border-[0.5px] border-white/60 shadow-[0_0_1px_rgba(0,0,0,0.5)]"
               >
-                <!-- 视觉焦点锚点 (带 Halo 效果) -->
                 <div
                   v-if="[1, 2, 4, 5].includes(i)"
                   class="absolute -right-1.5 -bottom-1.5 w-3 h-3 flex items-center justify-center"
@@ -491,12 +447,9 @@ onUnmounted(handleEnd)
                   <div
                     class="w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_4px_rgba(0,0,0,0.8)]"
                   ></div>
-                  <div class="absolute inset-0 border border-white/20 rounded-full"></div>
                 </div>
               </div>
             </div>
-
-            <!-- 黄金分割网格 (Phidias Grid) -->
             <div v-if="gridMode === 'golden'" class="absolute inset-0">
               <div
                 v-for="y in ['38.2%', '61.8%']"
@@ -510,25 +463,9 @@ onUnmounted(handleEnd)
                 class="absolute h-full w-[1px] bg-white/60 shadow-[0.5px_0_1px_rgba(0,0,0,0.5)]"
                 :style="{ left: x }"
               ></div>
-              <div
-                v-for="pos in [
-                  'top:38.2%;left:38.2%',
-                  'top:38.2%;left:61.8%',
-                  'top:61.8%;left:38.2%',
-                  'top:61.8%;left:61.8%'
-                ]"
-                :key="pos"
-                :style="pos"
-                class="absolute -translate-x-1/2 -translate-y-1/2 w-3 h-3 flex items-center justify-center"
-              >
-                <div
-                  class="w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_4px_rgba(0,0,0,0.8)]"
-                ></div>
-              </div>
             </div>
           </div>
 
-          <!-- 手柄系统 (逆向缩放) -->
           <div
             v-for="pos in ['nw', 'ne', 'sw', 'se']"
             :key="pos"
@@ -568,10 +505,10 @@ onUnmounted(handleEnd)
       </div>
     </div>
 
-    <!-- 专业大号放大镜 (放置在旋转层之外，确保文字正向且绝对定位准确) -->
+    <!-- 放大镜 (放在包裹层外) -->
     <div
       v-if="showMagnifier"
-      class="absolute z-50 w-40 h-40 rounded-full border-[4px] border-white shadow-[0_20px_50px_rgba(0,0,0,0.4)] pointer-events-none overflow-hidden bg-black flex flex-col"
+      class="absolute z-50 w-40 h-40 rounded-full border-[4px] border-white shadow-2xl pointer-events-none overflow-hidden bg-black flex flex-col"
       :style="{
         left: activePercent.x + '%',
         top: activePercent.y + '%',
@@ -579,7 +516,6 @@ onUnmounted(handleEnd)
       }"
     >
       <div class="relative flex-1">
-        <!-- 核心高清采样层 (对其应用旋转，以确保放大镜内的画面也是正对的) -->
         <div
           class="absolute inset-0"
           :style="{
@@ -588,14 +524,10 @@ onUnmounted(handleEnd)
             backgroundSize: `${imgNaturalSize.w * 2}px ${imgNaturalSize.h * 2}px`,
             backgroundRepeat: 'no-repeat',
             transform: `rotate(${props.rotation}deg) scaleX(${props.flipH ? -1 : 1}) scaleY(${props.flipV ? -1 : 1})`,
-            transformOrigin: 'center'
+            transformOrigin: 'center center'
           }"
         ></div>
-
-        <!-- 局部裁剪辅助线 -->
         <div v-if="magnifierCropLines" :style="magnifierCropLines"></div>
-
-        <!-- 工业级精密准星 -->
         <div class="absolute inset-0 flex items-center justify-center z-20">
           <div
             class="w-2.5 h-2.5 border-[1.5px] border-primary rounded-full shadow-[0_0_0_1px_rgba(255,255,255,0.8)] bg-primary/5"
@@ -607,8 +539,6 @@ onUnmounted(handleEnd)
             class="absolute h-full w-[0.5px] bg-primary/90 shadow-[0.5px_0_0_rgba(255,255,255,0.5)]"
           ></div>
         </div>
-
-        <!-- 内部浮动状态胶囊 -->
         <div
           class="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 px-2 py-0.5 bg-black/70 backdrop-blur-md rounded-full border border-white/20 flex items-center gap-1.5 shadow-xl"
         >
@@ -616,9 +546,9 @@ onUnmounted(handleEnd)
             class="w-1 h-1 rounded-full"
             :class="isSnapping ? 'bg-primary animate-pulse' : 'bg-white/20'"
           ></div>
-          <span class="text-[8px] text-white font-black tracking-widest uppercase italic">
-            {{ isSnapping ? 'Magnetic' : 'Precision' }}
-          </span>
+          <span class="text-[8px] text-white font-black tracking-widest uppercase italic">{{
+            isSnapping ? 'Magnetic' : 'Precision'
+          }}</span>
         </div>
       </div>
     </div>

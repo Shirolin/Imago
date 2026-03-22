@@ -284,7 +284,7 @@ const ratios = [
     <template #content>
       <AppCanvasWorkspace ref="workspaceRef" @reset="resetView">
         <template #default="{ scale }">
-          <div v-if="selectedImage" class="relative z-10 shadow-xl">
+          <div v-if="selectedImage" class="relative z-10">
             <CropBox
               :image-url="selectedImage.preview"
               :aspect-ratio="currentRatio"
