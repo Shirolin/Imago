@@ -11,6 +11,7 @@ interface Props {
   rotation?: number
   flipH?: boolean
   flipV?: boolean
+  isHandMode?: boolean // 鏂板锛氭姄鎵嬫ā寮忕姸鎬
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -19,7 +20,8 @@ const props = withDefaults(defineProps<Props>(), {
   scale: 1,
   rotation: 0,
   flipH: false,
-  flipV: false
+  flipV: false,
+  isHandMode: false
 })
 const emit = defineEmits(['update:modelValue', 'change'])
 
@@ -40,8 +42,7 @@ const imgNaturalSize = ref({ w: 0, h: 0 })
 // 基础变换样式 (应用在根容器上)
 const transformStyle = computed(() => ({
   transform: `rotate(${props.rotation}deg) scaleX(${props.flipH ? -1 : 1}) scaleY(${props.flipV ? -1 : 1})`,
-  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-  willChange: 'transform'
+  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
 }))
 
 // 物理容器：承载物理尺寸与变换
@@ -246,11 +247,17 @@ const handleImageLoad = () => {
 
 let startX = 0,
   startY = 0,
-  startCrop = { x: 0, y: 0, w: 0, h: 0 },
-  rafId: number | null = null,
-  cachedRect: DOMRect | null = null // 性能优化：缓存容器矩形
+  startCrop = { x: 0, y: 0, w: 100, h: 100 },
+  rafId: number | null = null
 
 const handleStart = (e: MouseEvent | TouchEvent, mode: typeof dragMode.value) => {
+  // 濡傛灉鏄姄鎵嬫ā寮忥紝绂佹瑁佸壀浜や簰
+  if (props.isHandMode) return
+
+  // 銆愭牳績淇銆戯細蹇界暐闈為紶鏍囧乏閿紙濡備腑閿€佸彸閿級浠ュ強鎸変綇浜 Alt 閿殑鎷栨嫿
+  if ('button' in e && e.button !== 0) return
+  if ('altKey' in e && e.altKey) return
+
   if (e.cancelable) e.preventDefault()
   isDragging.value = true
   dragMode.value = mode
@@ -259,11 +266,6 @@ const handleStart = (e: MouseEvent | TouchEvent, mode: typeof dragMode.value) =>
   startY = t?.clientY ?? 0
   startCrop = { ...internalCrop.value }
 
-  // 【性能优化】：在拖拽开始时一次性读取并缓存容器位置，避免 handleMove 中的 Layout Thrashing
-  if (containerRef.value) {
-    cachedRect = containerRef.value.getBoundingClientRect()
-  }
-
   window.addEventListener('mousemove', handleMove)
   window.addEventListener('mouseup', handleEnd)
   window.addEventListener('touchmove', handleMove, { passive: false })
@@ -271,7 +273,7 @@ const handleStart = (e: MouseEvent | TouchEvent, mode: typeof dragMode.value) =>
 }
 
 const handleMove = (e: MouseEvent | TouchEvent) => {
-  if (!isDragging.value || !imgRef.value || !cachedRect) return
+  if (!isDragging.value || !imgRef.value || !containerRef.value) return
   if (e.cancelable) e.preventDefault()
   const t = 'touches' in e ? e.touches[0] : e,
     cx = t?.clientX ?? 0,
@@ -279,8 +281,11 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
   const alt = 'altKey' in e ? (e as MouseEvent).altKey : false
   if (rafId) cancelAnimationFrame(rafId)
   rafId = requestAnimationFrame(() => {
-    const rect = cachedRect! // 使用缓存的矩形
-    // 基础坐标计算...
+    // 銆愭牳績淇銆戯細鍦ㄦ嫋鎷藉眰绾ц繘琛屽疄鏃 getBoundingClientRect 璇诲彇
+    // 铏界劧鏈 Layout Thrashing 椋庨櫓锛屼絾鍦ㄥ浘鐗囧钩绉伙紙Panning锛夊満鏅笅锛岃繖鏄繚璇佹暟瀛﹀潗鏍囩郴缁濆鍚屾鐨勫敮涓€鏂规硶
+    const rect = containerRef.value!.getBoundingClientRect()
+
+    // 鍩虹鍧愭爣璁＄畻...
     const rawDx = (cx - rect.left) / props.scale
     const rawDy = (cy - rect.top) / props.scale
     const centerX = rect.width / 2 / props.scale
@@ -479,8 +484,7 @@ onUnmounted(() => {
             left: internalCrop.x + '%',
             top: internalCrop.y + '%',
             width: internalCrop.w + '%',
-            height: internalCrop.h + '%',
-            willChange: 'left, top, width, height'
+            height: internalCrop.h + '%'
           }"
           @mousedown="handleStart($event, 'move')"
           @dblclick="updateCrop({ x: 0, y: 0, w: 100, h: 100 })"
