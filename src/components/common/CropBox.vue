@@ -618,12 +618,23 @@ onUnmounted(() => {
 .relative {
   transition-property: transform, width, height;
 }
-:not(.is-dragging) > .relative {
-  transition-duration: 400ms;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+
+/* 仅在非拖拽状态下开启弹性过渡，使比例切换更有质感 */
+:not(.is-dragging) > .relative,
+:not(.is-dragging).absolute {
+  transition-duration: 500ms;
+  transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
 .is-dragging .relative,
 .is-dragging .absolute {
   transition: none !important;
+}
+
+/* 性能优化：强制开启 GPU 加速层 */
+img,
+.absolute {
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
 }
 </style>

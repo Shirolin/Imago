@@ -37,6 +37,8 @@ const workspaceRef = ref<InstanceType<typeof AppCanvasWorkspace> | null>(null)
 const containerRef = computed(() => workspaceRef.value?.containerRef)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
+const isHandMode = computed(() => workspaceRef.value?.isHandMode || false)
+
 const editMode = ref<'grid' | 'custom'>('grid')
 const activeAxis = ref<'x' | 'y'>('x')
 const draggingLine = ref<{ axis: 'x' | 'y'; index: number } | null>(null)
@@ -46,9 +48,8 @@ const isAltPressed = ref(false)
 const linesX = ref<number[]>([])
 const linesY = ref<number[]>([])
 
-let cachedCanvasRect: DOMRect | null = null
 const updateCanvasRect = () => {
-  if (canvasRef.value) cachedCanvasRect = canvasRef.value.getBoundingClientRect()
+  // 銆愭牳績淇銆戯細移除 cachedCanvasRect锛屾敼涓哄湪闇€瑕佹椂瀹炴椂璇诲彇锛屼互瀵瑰啿鐢诲竷骞崇Щ
 }
 
 let offscreenCanvas: HTMLCanvasElement | null = null
@@ -143,7 +144,6 @@ const resetView = () => {
   const img = selectedImage.value
   if (!img) return
   workspaceRef.value?.triggerAutoFit(img.width!, img.height!)
-  setTimeout(updateCanvasRect, 100)
 }
 
 const saveMeta = () => {
@@ -179,15 +179,16 @@ watch(
 )
 
 const getLogicPos = (e: PointerEvent) => {
-  if (!cachedCanvasRect) updateCanvasRect()
-  const rect = cachedCanvasRect!
+  if (!canvasRef.value) return { x: 0, y: 0 }
+  const rect = canvasRef.value.getBoundingClientRect()
   const scale = workspaceRef.value?.scale || 1
   return { x: (e.clientX - rect.left) / scale, y: (e.clientY - rect.top) / scale }
 }
 
 const handlePointerDown = (e: PointerEvent) => {
-  if (e.button === 1 || e.shiftKey || e.altKey) return
-  updateCanvasRect()
+  // 銆愭牳績淇銆戯細寮哄埗闅旂銆傛姄鎵嬫ā寮忋€佷腑閿€丄lt 閿嫋鎷濇椂锛岀姝㈠鍔犲垏鍒嗙嚎
+  if (isHandMode.value || workspaceRef.value?.isPanning || e.button !== 0 || e.altKey) return
+
   if (hoveredLine.value) {
     draggingLine.value = { ...hoveredLine.value }
     return
@@ -206,7 +207,10 @@ const handlePointerDown = (e: PointerEvent) => {
 }
 
 const handlePointerMove = (e: PointerEvent) => {
-  if (workspaceRef.value?.isPanning) return
+  if (workspaceRef.value?.isPanning || isHandMode.value) {
+    hoveredLine.value = null
+    return
+  }
   const pos = getLogicPos(e)
   isAltPressed.value = e.altKey
   if (draggingLine.value) {

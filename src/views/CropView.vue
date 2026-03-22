@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, h } from 'vue'
+import { ref, computed, watch, h, onMounted, onUnmounted } from 'vue'
 import { useImageStore } from '../stores/imageStore'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
@@ -225,6 +225,27 @@ const handleReset = () => {
   resetView()
 }
 
+// --- 快捷键管理 ---
+const handleKeyDown = (e: KeyboardEvent) => {
+  const isUndo = (e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey
+  const isRedo = (e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'Z' && e.shiftKey))
+
+  // 确保不在输入框内触发
+  const isInput = ['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)
+  if (isInput) return
+
+  if (isUndo && canUndo.value) {
+    e.preventDefault()
+    undo()
+  } else if (isRedo && canRedo.value) {
+    e.preventDefault()
+    redo()
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', handleKeyDown))
+onUnmounted(() => window.removeEventListener('keydown', handleKeyDown))
+
 // 【核心优化】：图片切换时强制重置所有参数，确保状态隔离
 watch(
   () => store.activeId,
@@ -302,7 +323,7 @@ const ratios = [
 
         <template #floating>
           <div
-            class="absolute bottom-20 left-1/2 -translate-x-1/2 pointer-events-none flex flex-col items-center gap-2 z-40 transition-opacity duration-300"
+            class="absolute bottom-20 left-1/2 -translate-x-1/2 pointer-events-none flex flex-col items-center gap-3 z-40 transition-opacity duration-300"
             :class="isDragging ? 'opacity-100' : 'opacity-0'"
           >
             <div
@@ -311,10 +332,21 @@ const ratios = [
             >
               已吸附 (Alt停用)
             </div>
-            <div
-              class="px-4 py-2 bg-black/80 text-white rounded-xl border border-white/10 text-xs font-mono font-bold shadow-xl"
-            >
-              {{ pxCoords.w }} × {{ pxCoords.h }} PX
+
+            <div class="flex flex-col items-center gap-1.5">
+              <div
+                class="px-4 py-2 bg-black/80 text-white rounded-xl border border-white/10 text-xs font-mono font-bold shadow-xl backdrop-blur-md tabular-nums"
+              >
+                {{ pxCoords.w }} × {{ pxCoords.h }} PX
+              </div>
+
+              <!-- 下沉式功能提示：在这里显示双击重置，不遮挡拉手 -->
+              <div
+                class="px-2.5 py-1 bg-white/5 backdrop-blur-sm rounded-lg border border-white/5 text-[9px] text-white/40 font-medium tracking-tight flex items-center gap-1.5 shadow-sm"
+              >
+                <div class="w-1 h-1 rounded-full bg-white/20"></div>
+                双击选区快速重置全图
+              </div>
             </div>
           </div>
         </template>
