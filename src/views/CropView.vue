@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, h } from 'vue'
+import { ref, computed, watch, h } from 'vue'
 import { useImageStore } from '../stores/imageStore'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
@@ -29,7 +29,6 @@ import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
-import AppSlider from '../components/common/AppSlider.vue'
 import AppInput from '../components/common/AppInput.vue'
 import { cropEngine } from '../lib/engines/cropEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
@@ -322,245 +321,8 @@ const ratios = [
     </template>
 
     <template #sidebar>
-      <!-- 第一分区：核心裁剪控制 -->
+      <!-- 第一分区：基础变换 (地基校准) -->
       <section class="space-y-4">
-        <AppSectionHeader title="裁剪比例" :icon="Scissors" />
-        <div class="bg-muted/10 rounded-2xl p-3 border border-border/60 space-y-3">
-          <!-- 铺满全图主操作 -->
-          <AppButton
-            variant="secondary"
-            class="w-full h-10 rounded-xl bg-background/50 border-dashed border-border hover:border-primary/50 hover:bg-primary/[0.02] group transition-all"
-            @click="handleFillImage"
-          >
-            <Maximize2
-              :size="16"
-              class="mr-2 text-muted-foreground group-hover:text-primary transition-colors"
-            />
-            <span class="text-xs font-bold uppercase tracking-wider">铺满全图区域</span>
-          </AppButton>
-
-          <AppSegmentedControl
-            v-model="currentRatio"
-            :options="ratios"
-            @update:model-value="handleRatioChange"
-          />
-          <div class="space-y-3 pt-1">
-            <div class="flex items-center justify-between ml-1">
-              <span class="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
-                >构图参考线</span
-              >
-              <span class="text-[9px] text-muted-foreground/40 italic">拖动时显现</span>
-            </div>
-            <AppSegmentedControl
-              v-model="gridMode"
-              size="sm"
-              grid-cols="2"
-              :options="[
-                { label: '无参考', value: 'none', icon: Maximize2 },
-                { label: '三分法', value: 'thirds', icon: Grid3X3 },
-                { label: '黄金分割', value: 'golden', icon: LayoutGrid }
-              ]"
-            />
-          </div>
-        </div>
-      </section>
-
-      <!-- 第二分区：精确坐标与填充 -->
-      <section class="space-y-4 pt-2">
-        <AppSectionHeader title="精确构图" :icon="LayoutGrid" />
-        <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-5">
-          <!-- 坐标设置 -->
-          <div class="grid grid-cols-2 gap-x-3 gap-y-4 relative">
-            <div class="space-y-1.5">
-              <label
-                class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest"
-                >X 坐标</label
-              >
-              <AppInput
-                type="number"
-                :model-value="Math.round(pxCoords.x)"
-                @update:model-value="handlePxInputChange('x', $event)"
-                class="h-10 text-xs font-mono transition-all"
-                :class="[
-                  pxCoords.x < 0 || pxCoords.x + pxCoords.w > (selectedImage?.width || 0)
-                    ? 'border-amber-500/40 bg-amber-500/[0.02] ring-1 ring-amber-500/10'
-                    : 'bg-background/50'
-                ]"
-              />
-            </div>
-            <div class="space-y-1.5">
-              <label
-                class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest"
-                >Y 坐标</label
-              >
-              <AppInput
-                type="number"
-                :model-value="Math.round(pxCoords.y)"
-                @update:model-value="handlePxInputChange('y', $event)"
-                class="h-10 text-xs font-mono transition-all"
-                :class="[
-                  pxCoords.y < 0 || pxCoords.y + pxCoords.h > (selectedImage?.height || 0)
-                    ? 'border-amber-500/40 bg-amber-500/[0.02] ring-1 ring-amber-500/10'
-                    : 'bg-background/50'
-                ]"
-              />
-            </div>
-
-            <!-- 尺寸设置 (带联动锁定图标) -->
-            <div class="col-span-2 grid grid-cols-2 gap-x-3 relative mt-1">
-              <div class="space-y-1.5">
-                <label
-                  class="text-[10px] font-black uppercase ml-1 tracking-widest transition-colors"
-                  :class="currentRatio > 0 ? 'text-primary' : 'text-muted-foreground'"
-                  >宽度 (W)</label
-                >
-                <AppInput
-                  type="number"
-                  :model-value="Math.round(pxCoords.w)"
-                  @update:model-value="handlePxInputChange('w', $event)"
-                  class="h-10 text-xs font-mono transition-all"
-                  :class="[
-                    currentRatio > 0
-                      ? 'border-primary/40 bg-primary/[0.03] ring-1 ring-primary/10'
-                      : 'border-border bg-background/50',
-                    pxCoords.w > (selectedImage?.width || 0)
-                      ? 'border-amber-500/40 ring-1 ring-amber-500/10'
-                      : ''
-                  ]"
-                />
-              </div>
-
-              <!-- 核心：联动指示器 -->
-              <div
-                class="absolute left-1/2 top-[2.1rem] -translate-x-1/2 -translate-y-1/2 z-10 flex items-center justify-center"
-              >
-                <div
-                  class="bg-background border rounded-full p-1 shadow-sm transition-all duration-500"
-                  :class="
-                    currentRatio > 0
-                      ? 'border-primary/40 text-primary scale-110 shadow-primary/10 rotate-0'
-                      : 'border-border text-muted-foreground/40 scale-90 rotate-[-45deg]'
-                  "
-                >
-                  <component :is="currentRatio > 0 ? LinkIcon : Unlink" :size="12" />
-                </div>
-              </div>
-
-              <div class="space-y-1.5">
-                <label
-                  class="text-[10px] font-black uppercase ml-1 tracking-widest transition-colors"
-                  :class="currentRatio > 0 ? 'text-primary' : 'text-muted-foreground'"
-                  >高度 (H)</label
-                >
-                <AppInput
-                  type="number"
-                  :model-value="Math.round(pxCoords.h)"
-                  @update:model-value="handlePxInputChange('h', $event)"
-                  class="h-10 text-xs font-mono transition-all"
-                  :class="[
-                    currentRatio > 0
-                      ? 'border-primary/40 bg-primary/[0.03] ring-1 ring-primary/10'
-                      : 'border-border bg-background/50',
-                    pxCoords.h > (selectedImage?.height || 0)
-                      ? 'border-amber-500/40 ring-1 ring-amber-500/10'
-                      : ''
-                  ]"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 第三分区：画布外观 -->
-      <section class="space-y-4 pt-2">
-        <AppSectionHeader title="画布外观" :icon="Palette" />
-        <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-3">
-          <div class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest">
-            背景填充色
-          </div>
-          <div class="flex items-center gap-3">
-            <!-- 透明 (棋盘格) -->
-            <button
-              @click="setFillColor('transparent')"
-              class="relative w-10 h-10 rounded-xl border-2 transition-all overflow-hidden hover:scale-110 active:scale-95 group shrink-0"
-              :class="
-                isTransparent
-                  ? 'border-primary ring-2 ring-primary/10'
-                  : 'border-border grayscale opacity-60'
-              "
-              title="透明背景"
-            >
-              <div class="absolute inset-0 transparency-grid"></div>
-            </button>
-
-            <!-- 白色 -->
-            <button
-              @click="setFillColor('#ffffff')"
-              class="w-10 h-10 rounded-xl border-2 transition-all bg-white hover:scale-110 active:scale-95 shrink-0"
-              :class="
-                !isTransparent && customFillColor === '#ffffff'
-                  ? 'border-primary shadow-md'
-                  : 'border-border'
-              "
-              title="纯白填充"
-            ></button>
-
-            <!-- 黑色 -->
-            <button
-              @click="setFillColor('#000000')"
-              class="w-10 h-10 rounded-xl border-2 transition-all bg-black hover:scale-110 active:scale-95 shrink-0"
-              :class="
-                !isTransparent && customFillColor === '#000000'
-                  ? 'border-primary shadow-md'
-                  : 'border-border'
-              "
-              title="纯黑填充"
-            ></button>
-
-            <!-- 自定义 (拾色器) -->
-            <div class="relative w-10 h-10 group shrink-0">
-              <input
-                type="color"
-                v-model="customFillColor"
-                @input="isTransparent = false"
-                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-              />
-              <div
-                class="w-full h-full rounded-xl border-2 flex items-center justify-center transition-all group-hover:scale-110 active:scale-95 overflow-hidden"
-                :style="{
-                  background:
-                    !isTransparent && customFillColor !== '#ffffff' && customFillColor !== '#000000'
-                      ? customFillColor
-                      : 'conic-gradient(from 0deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)'
-                }"
-                :class="
-                  !isTransparent && customFillColor !== '#ffffff' && customFillColor !== '#000000'
-                    ? 'border-primary shadow-md'
-                    : 'border-border opacity-80'
-                "
-              >
-                <!-- 永远显示的吸管图标，暗示功能 -->
-                <Pipette
-                  :size="14"
-                  class="drop-shadow-sm transition-colors duration-300"
-                  :class="
-                    !isTransparent &&
-                    customFillColor !== '#ffffff' &&
-                    customFillColor !== '#000000' &&
-                    isCustomColorLight
-                      ? 'text-black/70'
-                      : 'text-white'
-                  "
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 第四分区：基础变换 -->
-      <section class="space-y-4 pt-2">
         <AppSectionHeader title="基础变换" :icon="RotateCw" />
         <div class="bg-muted/10 rounded-2xl p-3 border border-border/60">
           <div class="grid grid-cols-3 gap-2">
@@ -610,18 +372,252 @@ const ratios = [
         </div>
       </section>
 
-      <!-- 第五分区：边缘精修 (TRIM) - 复用 AppInput 内置步进器 -->
+      <!-- 第二分区：裁剪比例 (定形阶段) -->
+      <section class="space-y-4 pt-2">
+        <AppSectionHeader title="裁剪比例" :icon="Scissors" />
+        <div class="bg-muted/10 rounded-2xl p-3 border border-border/60 space-y-3">
+          <AppButton
+            variant="secondary"
+            class="w-full h-10 rounded-xl bg-background/50 border-dashed border-border hover:border-primary/50 hover:bg-primary/[0.02] group transition-all"
+            @click="handleFillImage"
+          >
+            <Maximize2
+              :size="16"
+              class="mr-2 text-muted-foreground group-hover:text-primary transition-colors"
+            />
+            <span class="text-xs font-bold uppercase tracking-wider">铺满全图区域</span>
+          </AppButton>
+
+          <AppSegmentedControl
+            v-model="currentRatio"
+            :options="ratios"
+            @update:model-value="handleRatioChange"
+          />
+          <div class="space-y-3 pt-1">
+            <div class="flex items-center justify-between ml-1">
+              <span class="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
+                >构图参考线</span
+              >
+              <span class="text-[9px] text-muted-foreground/40 italic">拖动时显现</span>
+            </div>
+            <AppSegmentedControl
+              v-model="gridMode"
+              size="sm"
+              grid-cols="2"
+              :options="[
+                { label: '无参考', value: 'none', icon: Maximize2 },
+                { label: '三分法', value: 'thirds', icon: Grid3X3 },
+                { label: '黄金分割', value: 'golden', icon: LayoutGrid }
+              ]"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- 第三分区：精确构图 (精度微调) -->
+      <section class="space-y-4 pt-2">
+        <AppSectionHeader title="精确构图" :icon="LayoutGrid" />
+        <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-5">
+          <div class="grid grid-cols-2 gap-x-3 gap-y-4 relative">
+            <div class="space-y-1.5">
+              <label
+                class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest"
+                >X 坐标</label
+              >
+              <AppInput
+                type="number"
+                :model-value="Math.round(pxCoords.x)"
+                @update:model-value="handlePxInputChange('x', $event)"
+                class="h-10 text-xs font-mono transition-all"
+                :class="[
+                  pxCoords.x < 0 || pxCoords.x + pxCoords.w > (selectedImage?.width || 0)
+                    ? 'border-amber-500/40 bg-amber-500/[0.02] ring-1 ring-amber-500/10'
+                    : 'bg-background/50'
+                ]"
+              />
+            </div>
+            <div class="space-y-1.5">
+              <label
+                class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest"
+                >Y 坐标</label
+              >
+              <AppInput
+                type="number"
+                :model-value="Math.round(pxCoords.y)"
+                @update:model-value="handlePxInputChange('y', $event)"
+                class="h-10 text-xs font-mono transition-all"
+                :class="[
+                  pxCoords.y < 0 || pxCoords.y + pxCoords.h > (selectedImage?.height || 0)
+                    ? 'border-amber-500/40 bg-amber-500/[0.02] ring-1 ring-amber-500/10'
+                    : 'bg-background/50'
+                ]"
+              />
+            </div>
+
+            <div class="col-span-2 grid grid-cols-2 gap-x-3 relative mt-1">
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] font-black uppercase ml-1 tracking-widest transition-colors"
+                  :class="currentRatio > 0 ? 'text-primary' : 'text-muted-foreground'"
+                  >宽度 (W)</label
+                >
+                <AppInput
+                  type="number"
+                  :model-value="Math.round(pxCoords.w)"
+                  @update:model-value="handlePxInputChange('w', $event)"
+                  class="h-10 text-xs font-mono transition-all"
+                  :class="[
+                    currentRatio > 0
+                      ? 'border-primary/40 bg-primary/[0.03] ring-1 ring-primary/10'
+                      : 'border-border bg-background/50',
+                    pxCoords.w > (selectedImage?.width || 0)
+                      ? 'border-amber-500/40 ring-1 ring-amber-500/10'
+                      : ''
+                  ]"
+                />
+              </div>
+
+              <div
+                class="absolute left-1/2 top-[2.1rem] -translate-x-1/2 -translate-y-1/2 z-10 flex items-center justify-center"
+              >
+                <div
+                  class="bg-background border rounded-full p-1 shadow-sm transition-all duration-500"
+                  :class="
+                    currentRatio > 0
+                      ? 'border-primary/40 text-primary scale-110 shadow-primary/10 rotate-0'
+                      : 'border-border text-muted-foreground/40 scale-90 rotate-[-45deg]'
+                  "
+                >
+                  <component :is="currentRatio > 0 ? LinkIcon : Unlink" :size="12" />
+                </div>
+              </div>
+
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] font-black uppercase ml-1 tracking-widest transition-colors"
+                  :class="currentRatio > 0 ? 'text-primary' : 'text-muted-foreground'"
+                  >高度 (H)</label
+                >
+                <AppInput
+                  type="number"
+                  :model-value="Math.round(pxCoords.h)"
+                  @update:model-value="handlePxInputChange('h', $event)"
+                  class="h-10 text-xs font-mono transition-all"
+                  :class="[
+                    currentRatio > 0
+                      ? 'border-primary/40 bg-primary/[0.03] ring-1 ring-primary/10'
+                      : 'border-border bg-background/50',
+                    pxCoords.h > (selectedImage?.height || 0)
+                      ? 'border-amber-500/40 ring-1 ring-amber-500/10'
+                      : ''
+                  ]"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 第四分区：画布外观 (环境配置) -->
+      <section class="space-y-4 pt-2">
+        <AppSectionHeader title="画布外观" :icon="Palette" />
+        <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-3">
+          <div class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest">
+            背景填充色
+          </div>
+          <div class="flex items-center gap-3">
+            <button
+              @click="setFillColor('transparent')"
+              class="relative w-10 h-10 rounded-xl border-2 transition-all overflow-hidden hover:scale-110 active:scale-95 group shrink-0"
+              :class="
+                isTransparent
+                  ? 'border-primary ring-2 ring-primary/10'
+                  : 'border-border grayscale opacity-60'
+              "
+              title="透明背景"
+            >
+              <div class="absolute inset-0 transparency-grid"></div>
+            </button>
+
+            <button
+              @click="setFillColor('#ffffff')"
+              class="w-10 h-10 rounded-xl border-2 transition-all bg-white hover:scale-110 active:scale-95 shrink-0"
+              :class="
+                !isTransparent && customFillColor === '#ffffff'
+                  ? 'border-primary shadow-md'
+                  : 'border-border'
+              "
+              title="纯白填充"
+            ></button>
+
+            <button
+              @click="setFillColor('#000000')"
+              class="w-10 h-10 rounded-xl border-2 transition-all bg-black hover:scale-110 active:scale-95 shrink-0"
+              :class="
+                !isTransparent && customFillColor === '#000000'
+                  ? 'border-primary shadow-md'
+                  : 'border-border'
+              "
+              title="纯黑填充"
+            ></button>
+
+            <div class="relative w-10 h-10 group shrink-0">
+              <input
+                type="color"
+                v-model="customFillColor"
+                @input="isTransparent = false"
+                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              />
+              <div
+                class="w-full h-full rounded-xl border-2 flex items-center justify-center transition-all group-hover:scale-110 active:scale-95 overflow-hidden"
+                :style="{
+                  background:
+                    !isTransparent && customFillColor !== '#ffffff' && customFillColor !== '#000000'
+                      ? customFillColor
+                      : 'conic-gradient(from 0deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)'
+                }"
+                :class="
+                  !isTransparent && customFillColor !== '#ffffff' && customFillColor !== '#000000'
+                    ? 'border-primary shadow-md'
+                    : 'border-border opacity-80'
+                "
+              >
+                <Pipette
+                  :size="14"
+                  class="drop-shadow-sm transition-colors duration-300"
+                  :class="
+                    !isTransparent &&
+                    customFillColor !== '#ffffff' &&
+                    customFillColor !== '#000000' &&
+                    isCustomColorLight
+                      ? 'text-black/70'
+                      : 'text-white'
+                  "
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 第五分区：边缘精修 (TRIM) - 后处理阶段 -->
       <section class="space-y-4 pt-2">
         <div class="flex items-center justify-between pr-1">
           <AppSectionHeader title="边缘精修" :icon="Settings2" />
-          <div class="text-[9px] text-primary/60 font-black uppercase tracking-widest italic">
-            Pixel Trim
+          <div class="text-[9px] text-amber-500 font-black uppercase tracking-widest italic">
+            Post-Process
           </div>
         </div>
-        <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-5">
-          <p class="text-[10px] text-muted-foreground/70 leading-relaxed px-1">
-            在选框基础上精准扣除边缘像素。
-          </p>
+        <div class="bg-amber-500/5 rounded-2xl p-4 border border-amber-500/20 space-y-4">
+          <div class="flex gap-3 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20">
+            <div class="shrink-0 text-amber-500 mt-0.5">
+              <Settings2 :size="14" />
+            </div>
+            <p class="text-[10px] text-amber-700/80 leading-relaxed font-medium">
+              该功能属于<span class="font-bold text-amber-600">导出后处理</span
+              >。调整后的数值不会实时反映在预览选框上，而是在最终导出时从选定区域内侧扣除像素。
+            </p>
+          </div>
 
           <div class="grid grid-cols-2 gap-3">
             <div v-for="dir in ['top', 'bottom', 'left', 'right']" :key="dir" class="space-y-2">
@@ -633,14 +629,14 @@ const ratios = [
                 v-model.number="trimPx[dir as keyof typeof trimPx]"
                 :min="0"
                 :max="100"
-                class="bg-background/50 border-border/60"
+                class="bg-background/50 border-border/60 focus:border-amber-500/50"
               />
             </div>
           </div>
         </div>
       </section>
 
-      <!-- 第六分区：操作管理 -->
+      <!-- 第六分区：操作管理 (终结阶段) -->
       <section class="space-y-4 pt-2 pb-4">
         <AppSectionHeader title="操作管理" :icon="History" />
         <div class="flex items-center justify-between gap-3">

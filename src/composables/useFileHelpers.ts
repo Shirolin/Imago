@@ -99,13 +99,22 @@ export function useFileHelpers() {
 
   /**
    * 打包下载所有已处理图片为 ZIP
-   * 逻辑：遍历所有图片，如果图片产生多个切片，则在 ZIP 内创建文件夹存储
+   * 优化：如果只有一张图且不是切片图，则直接触发单图下载，不进行打包
    */
   const downloadAllAsZip = async (tag = '_Imago_Processed') => {
     const doneImages = store.images.filter(
       (img) => img.status === 'done' && (img.processedBlob || img.processedBlobs)
     )
     if (doneImages.length === 0) return
+
+    // 【智能优化】：如果只有一张图且该图只有一个 Blob，直接触发单图下载，不用打包
+    if (doneImages.length === 1) {
+      const img = doneImages[0]!
+      if (img.processedBlob && (!img.processedBlobs || img.processedBlobs.length <= 1)) {
+        await downloadImage(img.processedBlob, img.file.name, tag)
+        return
+      }
+    }
 
     isDownloadingAll.value = true
     try {

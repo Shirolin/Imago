@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onUnmounted, onMounted, watch, computed } from 'vue'
+import { ref, onUnmounted, watch, computed } from 'vue'
 
 interface Props {
   aspectRatio?: number
@@ -37,34 +37,18 @@ const dragMode = ref<'move' | 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'w' | 'e' 
 // 记录图片原始尺寸
 const imgNaturalSize = ref({ w: 0, h: 0 })
 
-// 基础变换样式
+// 基础变换样式 (应用在根容器上)
 const transformStyle = computed(() => ({
   transform: `rotate(${props.rotation}deg) scaleX(${props.flipH ? -1 : 1}) scaleY(${props.flipV ? -1 : 1})`,
-  transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+  willChange: 'transform'
 }))
 
-// 物理容器：交换宽高以适应旋转后的形状，消除阴影残留
-const containerStyle = computed(() => {
-  const isRotated = props.rotation % 180 !== 0
-  const nw = imgNaturalSize.value.w || 100
-  const nh = imgNaturalSize.value.h || 100
-  return {
-    width: (isRotated ? nh : nw) + 'px',
-    height: (isRotated ? nw : nh) + 'px',
-    transition: 'width 0.4s, height 0.4s'
-  }
-})
-
-// 内部旋转层：保持原始比例，围绕中心旋转
-const innerWrapStyle = computed(() => ({
+// 物理容器：承载物理尺寸与变换
+const containerStyle = computed(() => ({
   width: (imgNaturalSize.value.w || 100) + 'px',
   height: (imgNaturalSize.value.h || 100) + 'px',
-  position: 'absolute' as const,
-  top: '50%',
-  left: '50%',
-  transform: `translate(-50%, -50%) ${transformStyle.value.transform}`,
-  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-  transformOrigin: 'center center'
+  ...transformStyle.value
 }))
 
 // --- 坐标转换逻辑 (逆向矩阵) ---
@@ -79,10 +63,8 @@ const getRotatedDelta = (dx: number, dy: number) => {
   return { dx: rDx, dy: rDy }
 }
 
-// 吸附线状态
 const snapLines = ref({ x: null as number | null, y: null as number | null })
 
-// 放大镜算法
 const magnifierBgPos = computed(() => {
   const { x, y } = activePercent.value
   const zw = imgNaturalSize.value.w * 2,
@@ -126,6 +108,40 @@ const magnifierCropLines = computed(() => {
   }
   return style
 })
+
+watch(
+  () => props.aspectRatio,
+  (ar) => {
+    if (!ar || ar <= 0 || !imgNaturalSize.value.w) return
+    const nw = imgNaturalSize.value.w,
+      nh = imgNaturalSize.value.h
+    const imgRatio = nw / nh
+    // 视觉比例：在百分比坐标系下的宽度比
+    const visualRatio = ar / imgRatio
+
+    const n = { ...internalCrop.value }
+    // 以中心点为基准调整比例
+    const centerX = n.x + n.w / 2
+    const centerY = n.y + n.h / 2
+
+    // 优先保持当前宽度，调整高度
+    n.h = n.w / visualRatio
+    if (n.h > 100) {
+      n.h = 100
+      n.w = n.h * visualRatio
+    }
+    // 如果宽度也溢出了，按比例缩小
+    if (n.w > 100) {
+      n.w = 100
+      n.h = n.w / visualRatio
+    }
+
+    n.x = Math.max(0, Math.min(100 - n.w, centerX - n.w / 2))
+    n.y = Math.max(0, Math.min(100 - n.h, centerY - n.h / 2))
+
+    updateCrop(n)
+  }
+)
 
 watch(
   () => props.modelValue,
@@ -231,7 +247,8 @@ const handleImageLoad = () => {
 let startX = 0,
   startY = 0,
   startCrop = { x: 0, y: 0, w: 0, h: 0 },
-  rafId: number | null = null
+  rafId: number | null = null,
+  cachedRect: DOMRect | null = null // 性能优化：缓存容器矩形
 
 const handleStart = (e: MouseEvent | TouchEvent, mode: typeof dragMode.value) => {
   if (e.cancelable) e.preventDefault()
@@ -241,6 +258,12 @@ const handleStart = (e: MouseEvent | TouchEvent, mode: typeof dragMode.value) =>
   startX = t?.clientX ?? 0
   startY = t?.clientY ?? 0
   startCrop = { ...internalCrop.value }
+
+  // 【性能优化】：在拖拽开始时一次性读取并缓存容器位置，避免 handleMove 中的 Layout Thrashing
+  if (containerRef.value) {
+    cachedRect = containerRef.value.getBoundingClientRect()
+  }
+
   window.addEventListener('mousemove', handleMove)
   window.addEventListener('mouseup', handleEnd)
   window.addEventListener('touchmove', handleMove, { passive: false })
@@ -248,7 +271,7 @@ const handleStart = (e: MouseEvent | TouchEvent, mode: typeof dragMode.value) =>
 }
 
 const handleMove = (e: MouseEvent | TouchEvent) => {
-  if (!isDragging.value || !imgRef.value || !containerRef.value) return
+  if (!isDragging.value || !imgRef.value || !cachedRect) return
   if (e.cancelable) e.preventDefault()
   const t = 'touches' in e ? e.touches[0] : e,
     cx = t?.clientX ?? 0,
@@ -256,19 +279,27 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
   const alt = 'altKey' in e ? (e as MouseEvent).altKey : false
   if (rafId) cancelAnimationFrame(rafId)
   rafId = requestAnimationFrame(() => {
-    const rect = containerRef.value!.getBoundingClientRect()
+    const rect = cachedRect! // 使用缓存的矩形
+    // 基础坐标计算...
+    const rawDx = (cx - rect.left) / props.scale
+    const rawDy = (cy - rect.top) / props.scale
+    const centerX = rect.width / 2 / props.scale
+    const centerY = rect.height / 2 / props.scale
+    const offX = rawDx - centerX,
+      offY = rawDy - centerY
+    const { dx: rx, dy: ry } = getRotatedDelta(offX, offY)
+
     const nw = imgNaturalSize.value.w,
       nh = imgNaturalSize.value.h
-    const cxOffset = (cx - rect.left - rect.width / 2) / props.scale,
-      cyOffset = (cy - rect.top - rect.height / 2) / props.scale
-    const { dx: rX, dy: rY } = getRotatedDelta(cxOffset, cyOffset)
-    const px = Math.max(0, Math.min(100, (rX / nw + 0.5) * 100)),
-      py = Math.max(0, Math.min(100, (rY / nh + 0.5) * 100))
-    const dxRaw = (cx - startX) / props.scale,
-      dyRaw = (cy - startY) / props.scale
+    const px = Math.max(0, Math.min(100, (rx / nw + 0.5) * 100))
+    const py = Math.max(0, Math.min(100, (ry / nh + 0.5) * 100))
+
+    const dxRaw = (cx - startX) / props.scale
+    const dyRaw = (cy - startY) / props.scale
     const { dx: deltaX, dy: deltaY } = getRotatedDelta(dxRaw, dyRaw)
     const dxPercent = (deltaX / nw) * 100,
       dyPercent = (deltaY / nh) * 100
+
     const n = { ...startCrop }
     let sH = false,
       sV = false
@@ -322,6 +353,7 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
           currentLines.x = target
         }
       }
+
       if (props.aspectRatio) {
         const ar = props.aspectRatio,
           imgRatio = nw / nh,
@@ -340,7 +372,26 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
   })
 }
 
+// 避让算法样式计算
+const magnifierStyle = computed(() => {
+  if (!showMagnifier.value) return {}
+  const { x, y } = activePercent.value
+
+  // 核心优化：智能避让鼠标
+  // 规则：如果在右上象限，放大镜移动到左下，以此类推
+  const translateX = x > 50 ? '-125%' : '25%'
+  const translateY = y < 50 ? '25%' : '-125%'
+
+  return {
+    left: x + '%',
+    top: y + '%',
+    transform: `translate(${translateX}, ${translateY}) scale(${1 / props.scale})`,
+    transition: 'transform 0.15s ease-out' // 增加微量平滑感
+  }
+})
+
 const handleEnd = () => {
+  if (rafId) cancelAnimationFrame(rafId)
   isDragging.value = false
   isSnapping.value = false
   dragMode.value = null
@@ -351,10 +402,10 @@ const handleEnd = () => {
   window.removeEventListener('touchend', handleEnd)
 }
 
-onMounted(() => {
-  if (imgRef.value?.complete) handleImageLoad()
+onUnmounted(() => {
+  if (rafId) cancelAnimationFrame(rafId)
+  handleEnd()
 })
-onUnmounted(handleEnd)
 </script>
 
 <template>
@@ -363,12 +414,15 @@ onUnmounted(handleEnd)
     class="relative select-none touch-none flex items-center justify-center shadow-2xl rounded-sm overflow-visible"
     :style="containerStyle"
   >
-    <div :style="innerWrapStyle">
+    <div class="relative w-full h-full">
+      <!-- 填充层 -->
       <div
         v-if="props.fillColor !== 'transparent'"
         class="absolute inset-[-100%] z-0 pointer-events-none"
         :style="{ backgroundColor: props.fillColor }"
       ></div>
+
+      <!-- 图片层 -->
       <img
         ref="imgRef"
         :src="imageUrl"
@@ -376,6 +430,7 @@ onUnmounted(handleEnd)
         @load="handleImageLoad"
       />
 
+      <!-- 吸附辅助线层 -->
       <div class="absolute inset-0 pointer-events-none z-10 overflow-hidden">
         <div
           v-if="snapLines.x !== null"
@@ -390,6 +445,7 @@ onUnmounted(handleEnd)
       </div>
 
       <div v-if="imgNaturalSize.w > 0" class="absolute inset-0 z-20 pointer-events-none">
+        <!-- 工业级遮罩系统 -->
         <div class="absolute inset-0 z-0">
           <div
             class="absolute top-0 left-0 w-full bg-black/50"
@@ -429,6 +485,7 @@ onUnmounted(handleEnd)
           @mousedown="handleStart($event, 'move')"
           @dblclick="updateCrop({ x: 0, y: 0, w: 100, h: 100 })"
         >
+          <!-- 构图参考线 -->
           <div
             v-if="gridMode !== 'none'"
             class="absolute inset-0 pointer-events-none transition-all duration-500"
@@ -466,6 +523,7 @@ onUnmounted(handleEnd)
             </div>
           </div>
 
+          <!-- 手柄 (逆向缩放) -->
           <div
             v-for="pos in ['nw', 'ne', 'sw', 'se']"
             :key="pos"
@@ -505,15 +563,11 @@ onUnmounted(handleEnd)
       </div>
     </div>
 
-    <!-- 放大镜 (放在包裹层外) -->
+    <!-- 专业放大镜 (应用避让样式) -->
     <div
       v-if="showMagnifier"
       class="absolute z-50 w-40 h-40 rounded-full border-[4px] border-white shadow-2xl pointer-events-none overflow-hidden bg-black flex flex-col"
-      :style="{
-        left: activePercent.x + '%',
-        top: activePercent.y + '%',
-        transform: `translate(${activePercent.x > 70 ? '-125%' : '25%'}, ${activePercent.y < 25 ? '25%' : '-125%'}) scale(${1 / props.scale})`
-      }"
+      :style="magnifierStyle"
     >
       <div class="relative flex-1">
         <div
@@ -554,3 +608,18 @@ onUnmounted(handleEnd)
     </div>
   </div>
 </template>
+
+<style scoped>
+/* 核心修复：消除拖拽时的果冻效应 (位移延迟) */
+.relative {
+  transition-property: transform, width, height;
+}
+:not(.is-dragging) > .relative {
+  transition-duration: 400ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+.is-dragging .relative,
+.is-dragging .absolute {
+  transition: none !important;
+}
+</style>
