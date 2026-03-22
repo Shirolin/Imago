@@ -78,7 +78,7 @@ const showMagnifier = computed(() => isDragging.value && dragMode.value !== 'mov
 
 const magnifierCropLines = computed(() => {
   if (!dragMode.value || dragMode.value === 'move') return null
-  const style: any = {
+  const style: Record<string, string | number> = {
     position: 'absolute',
     borderStyle: 'solid',
     borderColor: 'hsl(var(--primary))',

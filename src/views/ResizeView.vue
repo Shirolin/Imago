@@ -56,7 +56,11 @@ watch(resizeMode, (newMode) => {
 
 // 宽度联动高度
 watch(width, (newWidth) => {
-  if (resizeMode.value === 'dimensions' && maintainAspectRatio.value && !isUpdatingFromRatio.value) {
+  if (
+    resizeMode.value === 'dimensions' &&
+    maintainAspectRatio.value &&
+    !isUpdatingFromRatio.value
+  ) {
     isUpdatingFromRatio.value = true
     height.value = Math.round(newWidth / currentRatio.value)
     setTimeout(() => {
@@ -67,7 +71,11 @@ watch(width, (newWidth) => {
 
 // 高度联动宽度
 watch(height, (newHeight) => {
-  if (resizeMode.value === 'dimensions' && maintainAspectRatio.value && !isUpdatingFromRatio.value) {
+  if (
+    resizeMode.value === 'dimensions' &&
+    maintainAspectRatio.value &&
+    !isUpdatingFromRatio.value
+  ) {
     isUpdatingFromRatio.value = true
     width.value = Math.round(newHeight * currentRatio.value)
     setTimeout(() => {

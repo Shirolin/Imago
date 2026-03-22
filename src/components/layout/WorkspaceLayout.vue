@@ -16,11 +16,7 @@ interface Props {
   showAssetsTray?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  showSidebar: false,
-  noScroll: false,
-  showAssetsTray: false
-})
+defineProps<Props>()
 </script>
 
 <template>

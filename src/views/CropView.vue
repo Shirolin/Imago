@@ -294,6 +294,7 @@ const ratios = [
               :rotation="rotation"
               :flip-h="flipH"
               :flip-v="flipV"
+              :is-hand-mode="workspaceRef?.isHandMode"
               @change="onCropChange"
             />
           </div>
@@ -373,7 +374,7 @@ const ratios = [
       </section>
 
       <!-- 第二分区：裁剪比例 (定形阶段) -->
-      <section class="space-y-4 pt-2">
+      <section class="space-y-4 pt-6 border-t border-border/40">
         <AppSectionHeader title="裁剪比例" :icon="Scissors" />
         <div class="bg-muted/10 rounded-2xl p-3 border border-border/60 space-y-3">
           <AppButton
@@ -415,7 +416,7 @@ const ratios = [
       </section>
 
       <!-- 第三分区：精确构图 (精度微调) -->
-      <section class="space-y-4 pt-2">
+      <section class="space-y-4 pt-6 border-t border-border/40">
         <AppSectionHeader title="精确构图" :icon="LayoutGrid" />
         <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-5">
           <div class="grid grid-cols-2 gap-x-3 gap-y-4 relative">
@@ -519,7 +520,7 @@ const ratios = [
       </section>
 
       <!-- 第四分区：画布外观 (环境配置) -->
-      <section class="space-y-4 pt-2">
+      <section class="space-y-4 pt-6 border-t border-border/40">
         <AppSectionHeader title="画布外观" :icon="Palette" />
         <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-3">
           <div class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest">

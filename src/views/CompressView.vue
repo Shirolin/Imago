@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useImageStore } from '../stores/imageStore'
+import { ImageItem, useImageStore } from '../stores/imageStore'
 import { useLayoutStore } from '../stores/layoutStore'
 import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
@@ -34,8 +34,7 @@ const maxWidth = ref<number | undefined>(undefined)
 const maxHeight = ref<number | undefined>(undefined)
 
 const showCompareModal = ref(false)
-const comparingImage = ref<any>(null)
-const processedPreviewUrl = ref<string | null>(null)
+const comparingImage = ref<ImageItem | null>(null)
 
 const { isProcessing, processSelected } = useImageProcessor(compressEngine)
 

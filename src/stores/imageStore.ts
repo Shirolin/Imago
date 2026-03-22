@@ -28,8 +28,8 @@ export interface ImageItem {
   isDirty?: boolean
   exifCount?: number
   history?: {
-    past: any[]
-    future: any[]
+    past: Record<string, any>[]
+    future: Record<string, any>[]
   }
 }
 
