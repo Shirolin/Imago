@@ -11,7 +11,7 @@ import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import AppSlider from '../components/common/AppSlider.vue'
 import AppExportSettings from '../components/common/AppExportSettings.vue'
-import { Scissors, Grid3X3, Layers, Box, AlignCenter, Trash2 } from 'lucide-vue-next'
+import { Scissors, Grid3X3, Layers, Box, AlignCenter, Trash2, Download } from 'lucide-vue-next'
 import { splitEngine } from '../lib/engines/splitEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useResizeObserver } from '@vueuse/core'
@@ -147,7 +147,7 @@ const resetView = () => {
 }
 
 const saveMeta = () => {
-  if (selectedImage.value)
+  if (selectedImage.value) {
     store.updateImage(selectedImage.value.id, {
       splitMeta: {
         linesX: [...linesX.value],
@@ -157,6 +157,8 @@ const saveMeta = () => {
         cols: cols.value
       }
     })
+    store.markDirty(selectedImage.value.id)
+  }
 }
 
 watch(() => selectedImage.value?.id, updateCachedImage, { immediate: true })
@@ -186,7 +188,7 @@ const getLogicPos = (e: PointerEvent) => {
 }
 
 const handlePointerDown = (e: PointerEvent) => {
-  // 銆愭牳績淇銆戯細寮哄埗闅旂銆傛姄鎵嬫ā寮忋€佷腑閿€丄lt 閿嫋鎷濇椂锛岀姝㈠鍔犲垏鍒嗙嚎
+  // 【核心修复】：强制隔离。抓手模式、中键、Alt 键拖拽时，禁止增加切分线
   if (isHandMode.value || workspaceRef.value?.isPanning || e.button !== 0 || e.altKey) return
 
   if (hoveredLine.value) {
@@ -248,7 +250,15 @@ const clearLines = () => {
   saveMeta()
 }
 
-const handleProcess = async () => {
+watch(
+  [rows, cols, editMode, centerMode, shave, outputFormat, outputQuality],
+  () => {
+    if (selectedImage.value) store.markDirty(selectedImage.value.id)
+  },
+  { deep: true }
+)
+
+const handleApplyProcess = async () => {
   if (!selectedImage.value) return
   await processSingle(selectedImage.value.id, {
     rows: linesY.value.length + 1,
@@ -259,26 +269,46 @@ const handleProcess = async () => {
     format: outputFormat.value === 'original' ? undefined : outputFormat.value,
     quality: outputQuality.value
   })
-  if (
-    selectedImage.value?.status === 'done' &&
-    (selectedImage.value.processedBlob || selectedImage.value.processedBlobs)
-  )
-    downloadImage(
-      selectedImage.value.processedBlobs || selectedImage.value.processedBlob!,
-      selectedImage.value.file.name,
-      '_Split'
-    )
 }
 
 useResizeObserver(containerRef, resetView)
 
-const buttonText = computed(() =>
-  isProcessing.value
-    ? '正在处理...'
-    : selectedImage.value?.isDirty
-      ? '重新切分并下载'
-      : '切分并下载'
-)
+const ctaState = computed(() => {
+  const img = selectedImage.value
+  if (!img) return { text: '请选择图片', icon: Scissors, action: 'none', disabled: true }
+
+  if (isProcessing.value) {
+    return { text: '渲染中...', icon: Scissors, action: 'none', disabled: true }
+  }
+
+  if (img.status === 'done' && (img.processedBlob || img.processedBlobs) && !img.isDirty) {
+    return { text: '下载切片', icon: Download, action: 'download', disabled: false }
+  }
+
+  return {
+    text: img.isDirty ? '更新切分' : '切分图片',
+    icon: Scissors,
+    action: 'process',
+    disabled: false
+  }
+})
+
+const handleCtaClick = async () => {
+  const state = ctaState.value
+  if (state.action === 'none') return
+
+  if (state.action === 'download') {
+    const img = selectedImage.value
+    if (img && (img.processedBlob || img.processedBlobs)) {
+      downloadImage(img.processedBlobs || img.processedBlob!, img.file.name, '_Split')
+    }
+    return
+  }
+
+  if (state.action === 'process') {
+    await handleApplyProcess()
+  }
+}
 </script>
 
 <template>
@@ -391,13 +421,20 @@ const buttonText = computed(() =>
         <AppButton
           size="lg"
           variant="cta"
-          class="w-full h-12 rounded-xl shadow-xl shadow-primary/10 active:scale-95 transition-all"
+          class="w-full h-12 rounded-xl shadow-xl transition-all duration-500 active:scale-95 group overflow-hidden"
+          :class="[
+            ctaState.action === 'download'
+              ? 'bg-emerald-500 hover:bg-emerald-400 border-emerald-400/20 shadow-emerald-500/20 text-white'
+              : 'shadow-primary/10'
+          ]"
           :loading="isProcessing"
-          :disabled="!store.images.length"
-          @click="handleProcess"
+          :disabled="ctaState.disabled"
+          @click="handleCtaClick"
         >
-          <template #icon><Scissors v-if="!isProcessing" :size="18" class="mr-2" /></template>
-          <span class="font-bold text-sm tracking-tight">{{ buttonText }}</span>
+          <template #icon>
+            <component :is="ctaState.icon" v-if="!isProcessing" :size="18" class="mr-2" />
+          </template>
+          <span class="font-bold text-sm tracking-tight">{{ ctaState.text }}</span>
         </AppButton>
       </InspectorFooter>
     </template>

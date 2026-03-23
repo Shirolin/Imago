@@ -16,7 +16,15 @@ import ImageCompare from '../components/common/ImageCompare.vue'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppExportSettings from '../components/common/AppExportSettings.vue'
-import { Settings2, Maximize2, Percent, RotateCcw, ArrowRight, RefreshCw } from 'lucide-vue-next'
+import {
+  Settings2,
+  Maximize2,
+  Percent,
+  RotateCcw,
+  ArrowRight,
+  RefreshCw,
+  Download
+} from 'lucide-vue-next'
 import { resizeEngine } from '../lib/engines/resizeEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 
@@ -24,7 +32,7 @@ import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
-const { downloadImage } = useFileHelpers()
+const { downloadImage, downloadAllAsZip } = useFileHelpers()
 
 // 状态
 const resizeMode = ref<'percentage' | 'dimensions'>('percentage')
@@ -98,44 +106,6 @@ const resetDimensions = () => {
   height.value = 1080
 }
 
-let debounceTimeout: ReturnType<typeof setTimeout>
-watch(
-  [
-    resizeMode,
-    width,
-    height,
-    percentage,
-    maintainAspectRatio,
-    outputFormat,
-    outputQuality,
-    preserveExif
-  ],
-  () => {
-    clearTimeout(debounceTimeout)
-    debounceTimeout = setTimeout(() => {
-      store.markAllAsDirty()
-    }, 150)
-  },
-  { deep: true }
-)
-
-const handleProcess = async () => {
-  if (store.selectedCount === 0) return
-  await Array.from(store.selectedIds).reduce(async (p, id) => {
-    await p
-    await processSingle(id, {
-      mode: resizeMode.value === 'dimensions' ? 'pixels' : 'percentage',
-      width: width.value,
-      height: height.value,
-      percentage: percentage.value,
-      maintainAspectRatio: maintainAspectRatio.value,
-      format: outputFormat.value === 'original' ? undefined : outputFormat.value,
-      quality: outputQuality.value,
-      preserveExif: preserveExif.value
-    })
-  }, Promise.resolve())
-}
-
 const showCompareModal = ref(false)
 const comparingImage = ref<ImageItem | null>(null)
 const processedPreviewUrl = ref<string | null>(null)
@@ -163,14 +133,84 @@ const handleModalLeave = () => {
 
 const handleDownload = (id: string) => {
   const item = store.images.find((img) => img.id === id)
-  if (item?.processedBlob) downloadImage(item.processedBlob, item.file.name, '_Imago_Resized')
+  if (item?.processedBlob) downloadImage(item.processedBlob, item.file.name, '_Resized')
 }
 
-const buttonText = computed(() => {
-  if (isProcessing.value) return '正在处理...'
-  if (store.selectedCount > 0) return `调整选中的 ${store.selectedCount} 张`
-  return '开始调整尺寸'
+let debounceTimeout: ReturnType<typeof setTimeout>
+watch(
+  [
+    resizeMode,
+    width,
+    height,
+    percentage,
+    maintainAspectRatio,
+    outputFormat,
+    outputQuality,
+    preserveExif
+  ],
+  () => {
+    clearTimeout(debounceTimeout)
+    debounceTimeout = setTimeout(() => {
+      store.markAllAsDirty()
+    }, 150)
+  },
+  { deep: true }
+)
+
+const ctaState = computed(() => {
+  if (store.selectedCount === 0)
+    return { text: '请选择图片', icon: RefreshCw, action: 'none', disabled: true }
+  if (isProcessing.value)
+    return { text: '渲染中...', icon: RefreshCw, action: 'none', disabled: true }
+
+  const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
+  const allDoneAndClean =
+    selectedImages.length > 0 &&
+    selectedImages.every((img) => img.status === 'done' && img.processedBlob && !img.isDirty)
+
+  if (allDoneAndClean) {
+    return {
+      text: `下载成果 (${store.selectedCount})`,
+      icon: Download,
+      action: 'download',
+      disabled: false
+    }
+  }
+
+  const anyDirty = selectedImages.some((img) => img.status === 'done' && img.isDirty)
+  return {
+    text: anyDirty ? `更新尺寸 (${store.selectedCount})` : `调整尺寸 (${store.selectedCount})`,
+    icon: RefreshCw,
+    action: 'process',
+    disabled: false
+  }
 })
+
+const handleCtaClick = async () => {
+  const state = ctaState.value
+  if (state.action === 'none') return
+
+  if (state.action === 'download') {
+    await downloadAllAsZip('_Resized')
+    return
+  }
+
+  if (state.action === 'process') {
+    await Array.from(store.selectedIds).reduce(async (p, id) => {
+      await p
+      await processSingle(id, {
+        mode: resizeMode.value === 'dimensions' ? 'pixels' : 'percentage',
+        width: width.value,
+        height: height.value,
+        percentage: percentage.value,
+        maintainAspectRatio: maintainAspectRatio.value,
+        format: outputFormat.value === 'original' ? undefined : outputFormat.value,
+        quality: outputQuality.value,
+        preserveExif: preserveExif.value
+      })
+    }, Promise.resolve())
+  }
+}
 </script>
 
 <template>
@@ -330,13 +370,20 @@ const buttonText = computed(() => {
           <AppButton
             size="lg"
             variant="cta"
-            class="w-full h-12 rounded-xl shadow-xl shadow-primary/10 transition-all active:scale-95"
+            class="w-full h-12 rounded-xl shadow-xl transition-all duration-500 active:scale-95 group overflow-hidden"
+            :class="[
+              ctaState.action === 'download'
+                ? 'bg-emerald-500 hover:bg-emerald-400 border-emerald-400/20 shadow-emerald-500/20 text-white'
+                : 'shadow-primary/10'
+            ]"
             :loading="isProcessing"
-            :disabled="!store.selectedCount || isProcessing"
-            @click="handleProcess"
+            :disabled="ctaState.disabled"
+            @click="handleCtaClick"
           >
-            <template #icon><RefreshCw v-if="!isProcessing" :size="18" class="mr-2" /></template>
-            <span class="font-bold text-sm tracking-tight">{{ buttonText }}</span>
+            <template #icon>
+              <component :is="ctaState.icon" v-if="!isProcessing" :size="18" class="mr-2" />
+            </template>
+            <span class="font-bold text-sm tracking-tight">{{ ctaState.text }}</span>
           </AppButton>
         </InspectorFooter>
       </template>

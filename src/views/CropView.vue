@@ -258,20 +258,33 @@ watch(
   { immediate: true }
 )
 
+// 【状态驱动】：监听所有配置变化，自动标记为“脏数据”以激活“更新裁剪”按钮
+watch(
+  () => allSettings.value,
+  () => {
+    if (store.activeId) {
+      store.markDirty(store.activeId)
+    }
+  },
+  { deep: true }
+)
+
 const ctaState = computed(() => {
   const img = selectedImage.value
   if (!img) return { text: '请选择图片', icon: Scissors, action: 'none', disabled: true }
 
   if (isProcessing.value) {
-    return { text: '渲染处理中...', icon: Scissors, action: 'none', disabled: true }
+    return { text: '渲染中...', icon: Scissors, action: 'none', disabled: true }
   }
 
+  // 如果已经处理完成且没有新改动 -> 显示下载 (绿色)
   if (img.status === 'done' && img.processedBlob && !img.isDirty) {
-    return { text: '下载此图片', icon: Download, action: 'download', disabled: false }
+    return { text: '下载图片', icon: Download, action: 'download', disabled: false }
   }
 
+  // 默认 -> 应用裁剪 (蓝色)
   return {
-    text: img.isDirty ? '重新应用裁剪' : '应用裁剪并生成',
+    text: img.isDirty ? '更新裁剪' : '应用裁剪',
     icon: Scissors,
     action: 'process',
     disabled: false
@@ -749,7 +762,12 @@ const ratios = [
       <InspectorFooter class="bg-background/95 backdrop-blur-md border-t border-border/60">
         <AppButton
           variant="cta"
-          class="w-full h-12 rounded-xl shadow-lg transition-all active:scale-95 group overflow-hidden"
+          class="w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden"
+          :class="[
+            ctaState.action === 'download'
+              ? 'bg-emerald-500 hover:bg-emerald-400 border-emerald-400/20 shadow-emerald-500/20 text-white'
+              : ''
+          ]"
           :loading="isProcessing"
           :disabled="ctaState.disabled"
           @click="handleCtaClick"

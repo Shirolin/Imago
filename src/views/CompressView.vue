@@ -12,7 +12,7 @@ import ImageCompare from '../components/common/ImageCompare.vue'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppExportSettings from '../components/common/AppExportSettings.vue'
-import { Play, Info, ArrowRight } from 'lucide-vue-next'
+import { Play, Info, ArrowRight, Download } from 'lucide-vue-next'
 import { compressEngine } from '../lib/engines/compressEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 
@@ -20,7 +20,7 @@ import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
-const { formatSize, downloadImage } = useFileHelpers()
+const { formatSize, downloadImage, downloadAllAsZip } = useFileHelpers()
 
 // 状态
 const compressionMode = ref<'quality' | 'target'>('quality')
@@ -41,21 +41,6 @@ const { isProcessing, processSelected } = useImageProcessor(compressEngine)
 
 const displayImages = computed(() => [...store.images].reverse())
 
-const handleCompress = async () => {
-  await processSelected({
-    quality: quality.value,
-    format: (outputFormat.value === 'original' ? undefined : outputFormat.value) as any,
-    mode: compressionMode.value,
-    maxSizeMB: compressionMode.value === 'target' ? targetSizeKB.value / 1024 : undefined,
-    colors: outputFormat.value === 'image/png' ? pngColors.value : undefined,
-    effort: outputFormat.value === 'image/png' ? pngEffort.value : undefined,
-    keepOriginalIfLarger: keepOriginalIfLarger.value,
-    preserveExif: preserveExif.value,
-    maxWidth: maxWidth.value,
-    maxHeight: maxHeight.value
-  })
-}
-
 const handleCompare = (id: string) => {
   const item = store.images.find((img) => img.id === id)
   if (!item || !item.processedBlob) return
@@ -75,33 +60,90 @@ const handleDownload = (id: string) => {
   if (item?.processedBlob) downloadImage(item.processedBlob, item.file.name, '_Compressed')
 }
 
-watch([quality, outputFormat], () => store.markAllAsDirty(), { deep: true })
+watch(
+  [
+    quality,
+    outputFormat,
+    compressionMode,
+    targetSizeKB,
+    pngColors,
+    pngEffort,
+    maxWidth,
+    maxHeight,
+    keepOriginalIfLarger,
+    preserveExif
+  ],
+  () => store.markAllAsDirty(),
+  { deep: true }
+)
 
-const buttonState = computed(() => {
+const ctaState = computed(() => {
+  if (store.selectedCount === 0)
+    return { text: '请选择图片', progress: '', icon: Play, action: 'none', disabled: true }
+
   if (isProcessing.value) {
     const total = store.selectedCount
     const processed = store.images.filter(
       (img) => store.selectedIds.has(img.id) && img.status === 'done'
     ).length
     return {
-      text: '正在处理',
+      text: '渲染中',
       progress: `(${processed}/${total})`,
-      loading: true
+      icon: Play,
+      action: 'none',
+      disabled: true
     }
   }
-  if (store.selectedCount > 0) {
+
+  const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
+  const allDoneAndClean =
+    selectedImages.length > 0 &&
+    selectedImages.every((img) => img.status === 'done' && img.processedBlob && !img.isDirty)
+
+  if (allDoneAndClean) {
     return {
-      text: `压缩选中的 ${store.selectedCount} 张`,
-      progress: '',
-      loading: false
+      text: `下载成果`,
+      progress: `(${store.selectedCount})`,
+      icon: Download,
+      action: 'download',
+      disabled: false
     }
   }
+
+  const anyDirty = selectedImages.some((img) => img.status === 'done' && img.isDirty)
   return {
-    text: '开始压缩',
-    progress: '',
-    loading: false
+    text: anyDirty ? '更新压缩' : '开始压缩',
+    progress: `(${store.selectedCount})`,
+    icon: Play,
+    action: 'process',
+    disabled: false
   }
 })
+
+const handleCtaClick = async () => {
+  const state = ctaState.value
+  if (state.action === 'none') return
+
+  if (state.action === 'download') {
+    await downloadAllAsZip('_Compressed')
+    return
+  }
+
+  if (state.action === 'process') {
+    await processSelected({
+      quality: quality.value,
+      format: (outputFormat.value === 'original' ? undefined : outputFormat.value) as any,
+      mode: compressionMode.value,
+      maxSizeMB: compressionMode.value === 'target' ? targetSizeKB.value / 1024 : undefined,
+      colors: outputFormat.value === 'image/png' ? pngColors.value : undefined,
+      effort: outputFormat.value === 'image/png' ? pngEffort.value : undefined,
+      keepOriginalIfLarger: keepOriginalIfLarger.value,
+      preserveExif: preserveExif.value,
+      maxWidth: maxWidth.value,
+      maxHeight: maxHeight.value
+    })
+  }
+}
 </script>
 
 <template>
@@ -199,16 +241,23 @@ const buttonState = computed(() => {
           <AppButton
             size="lg"
             variant="cta"
-            class="w-full h-12 rounded-xl shadow-lg shadow-primary/5 transition-all active:scale-95"
+            class="w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden"
+            :class="[
+              ctaState.action === 'download'
+                ? 'bg-emerald-500 hover:bg-emerald-400 border-emerald-400/20 shadow-emerald-500/20 text-white'
+                : 'shadow-primary/5'
+            ]"
             :loading="isProcessing"
-            :disabled="!store.selectedCount || isProcessing"
-            @click="handleCompress"
+            :disabled="ctaState.disabled"
+            @click="handleCtaClick"
           >
-            <template #icon><Play v-if="!isProcessing" :size="18" class="mr-2" /></template>
+            <template #icon>
+              <component :is="ctaState.icon" v-if="!isProcessing" :size="18" class="mr-2" />
+            </template>
             <div class="flex items-center justify-center gap-1.5 font-bold text-sm tracking-tight">
-              <span>{{ buttonState.text }}</span>
-              <span v-if="buttonState.progress" class="tabular-nums opacity-70">{{
-                buttonState.progress
+              <span>{{ ctaState.text }}</span>
+              <span v-if="ctaState.progress" class="tabular-nums opacity-70">{{
+                ctaState.progress
               }}</span>
             </div>
           </AppButton>

@@ -89,6 +89,13 @@ export const useImageStore = defineStore('image', () => {
   })
 
   // 脏数据管理
+  const markDirty = (id: string) => {
+    const img = images.value.find((img) => img.id === id)
+    if (img && img.status === 'done') {
+      img.isDirty = true
+    }
+  }
+
   const markAllAsDirty = () => {
     images.value.forEach((img) => {
       if (img.status === 'done') {
@@ -269,6 +276,7 @@ export const useImageStore = defineStore('image', () => {
     deselectAll,
     toggleAll,
     updateImage,
+    markDirty,
     showMagnifier,
     setShowMagnifier,
     markAllAsDirty,

@@ -20,18 +20,21 @@ import {
   ChevronDown,
   ChevronUp,
   FileSearch,
-  Eye
+  Eye,
+  Download
 } from 'lucide-vue-next'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import { clearExifEngine, readExif, type ExifData } from '../lib/engines/exifEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
+import { useFileHelpers } from '../composables/useFileHelpers'
 
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
+const { downloadAllAsZip } = useFileHelpers()
 
 const activeImageId = ref<string | null>(null)
 const exifDataMap = ref<Record<string, ExifData>>({})
@@ -131,6 +134,51 @@ const handleClearExif = async () => {
 const handleCardClick = (id: string) => {
   activeImageId.value = id
   if (!store.selectedIds.has(id)) store.toggleSelection(id)
+}
+
+watch([outputFormat, outputQuality], () => store.markAllAsDirty(), { deep: true })
+
+const ctaState = computed(() => {
+  if (store.selectedCount === 0)
+    return { text: '请选择图片', icon: Trash2, action: 'none', disabled: true }
+  if (isProcessing.value)
+    return { text: '正在清理...', icon: Trash2, action: 'none', disabled: true }
+
+  const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
+  const allDoneAndClean =
+    selectedImages.length > 0 &&
+    selectedImages.every((img) => img.status === 'done' && img.processedBlob && !img.isDirty)
+
+  if (allDoneAndClean) {
+    return {
+      text: `下载安全图片 (${store.selectedCount})`,
+      icon: Download,
+      action: 'download',
+      disabled: false
+    }
+  }
+
+  const anyDirty = selectedImages.some((img) => img.status === 'done' && img.isDirty)
+  return {
+    text: anyDirty ? `重新清理 (${store.selectedCount})` : `清除隐私数据 (${store.selectedCount})`,
+    icon: Trash2,
+    action: 'process',
+    disabled: false
+  }
+})
+
+const handleCtaClick = async () => {
+  const state = ctaState.value
+  if (state.action === 'none') return
+
+  if (state.action === 'download') {
+    await downloadAllAsZip('_Safe')
+    return
+  }
+
+  if (state.action === 'process') {
+    await handleClearExif()
+  }
 }
 </script>
 
@@ -333,13 +381,20 @@ const handleCardClick = (id: string) => {
         <AppButton
           size="lg"
           variant="cta"
-          class="w-full h-12 rounded-xl shadow-xl shadow-primary/10 transition-all active:scale-95"
+          class="w-full h-12 rounded-xl shadow-xl transition-all duration-500 active:scale-95 group overflow-hidden"
+          :class="[
+            ctaState.action === 'download'
+              ? 'bg-emerald-500 hover:bg-emerald-400 border-emerald-400/20 shadow-emerald-500/20 text-white'
+              : 'shadow-primary/10'
+          ]"
           :loading="isProcessing"
-          :disabled="!store.selectedCount || isProcessing"
-          @click="handleClearExif"
+          :disabled="ctaState.disabled"
+          @click="handleCtaClick"
         >
-          <template #icon><Trash2 v-if="!isProcessing" :size="18" class="mr-2" /></template>
-          <span class="font-bold text-sm">清除隐私元数据 ({{ store.selectedCount }})</span>
+          <template #icon>
+            <component :is="ctaState.icon" v-if="!isProcessing" :size="18" class="mr-2" />
+          </template>
+          <span class="font-bold text-sm tracking-tight">{{ ctaState.text }}</span>
         </AppButton>
       </InspectorFooter>
     </template>
