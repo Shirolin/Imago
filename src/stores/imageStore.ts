@@ -68,7 +68,7 @@ export const useImageStore = defineStore('image', () => {
   // 排序逻辑
   const sortedImages = computed(() => {
     const list = [...images.value]
-    if (sortMode.value === 'upload') return list.reverse()
+    if (sortMode.value === 'upload') return list
     if (sortMode.value === 'name')
       return list.sort((a, b) => a.file.name.localeCompare(b.file.name))
     if (sortMode.value === 'status') {
@@ -253,6 +253,16 @@ export const useImageStore = defineStore('image', () => {
     }
   }
 
+  const reorderImage = (fromId: string, toId: string) => {
+    const fromIndex = images.value.findIndex((img) => img.id === fromId)
+    const toIndex = images.value.findIndex((img) => img.id === toId)
+
+    if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
+      const [movedItem] = images.value.splice(fromIndex, 1)
+      images.value.splice(toIndex, 0, movedItem!)
+    }
+  }
+
   return {
     images,
     activeId,
@@ -276,6 +286,7 @@ export const useImageStore = defineStore('image', () => {
     deselectAll,
     toggleAll,
     updateImage,
+    reorderImage,
     markDirty,
     showMagnifier,
     setShowMagnifier,

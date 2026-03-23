@@ -148,7 +148,7 @@ const hasEnoughImages = computed(() => store.images.length >= 2)
 
 <template>
   <WorkspaceLayout show-sidebar no-scroll show-assets-tray>
-    <template #header-left><ImageSelectionStatus /></template>
+    <template #header-left><ImageSelectionStatus :show-card-size="false" /></template>
     <template #header-actions
       ><ImageActionsToolbar :is-processing="isProcessing" show-clear-all
     /></template>

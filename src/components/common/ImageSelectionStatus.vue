@@ -9,6 +9,14 @@ const store = useImageStore()
 const layoutStore = useLayoutStore()
 const { isPC } = useBreakpoints()
 
+interface Props {
+  showCardSize?: boolean
+}
+
+withDefaults(defineProps<Props>(), {
+  showCardSize: true
+})
+
 const isAllDone = computed(() => {
   return store.images.length > 0 && store.images.every((img) => img.status === 'done')
 })
@@ -93,6 +101,7 @@ const isAllDone = computed(() => {
 
     <!-- 卡片切换按钮 -->
     <button
+      v-if="showCardSize"
       @click="layoutStore.toggleCardSize"
       class="flex items-center justify-center hover:bg-muted rounded-xl transition-all active:scale-95 border border-transparent hover:border-border text-muted-foreground hover:text-primary group/size relative"
       :class="isPC ? 'w-11 h-11' : 'w-10 h-10'"

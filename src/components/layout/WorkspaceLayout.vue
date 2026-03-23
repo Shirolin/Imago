@@ -34,9 +34,10 @@ defineProps<Props>()
       <!-- A. 左侧核心区域 (画布 + 资源托盘) -->
       <main
         class="flex-1 flex flex-col min-w-0 min-h-0 relative z-10 bg-background overflow-hidden"
+        :class="{ 'pb-11 md:pb-0': isMobile && showSidebar }"
       >
         <header
-          class="h-14 bg-card/80 backdrop-blur-md border-b border-border/50 flex items-center px-4 md:px-6 justify-between gap-4 shrink-0 z-30"
+          class="h-14 bg-card border-b border-border/50 flex items-center px-4 md:px-6 justify-between gap-4 shrink-0 z-30"
         >
           <div class="flex items-center gap-4 md:gap-6 shrink-0">
             <slot name="header-left"></slot>
@@ -46,7 +47,8 @@ defineProps<Props>()
             <button
               v-if="showSidebar"
               @click="layoutStore.toggleInspector"
-              class="hidden md:flex p-2 hover:bg-muted rounded-lg transition-all text-muted-foreground/60 hover:text-primary active:scale-95"
+              class="hidden md:flex p-2 hover:bg-muted rounded-lg transition-all text-muted-foreground/60 hover:text-primary active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[44px] min-w-[44px] items-center justify-center"
+              aria-label="Toggle Inspector Panel"
             >
               <PanelRightOpen v-if="layoutStore.isInspectorCollapsed" :size="18" />
               <PanelRightClose v-else :size="18" />
@@ -77,17 +79,57 @@ defineProps<Props>()
           <slot v-else name="content"></slot>
         </div>
 
-        <!-- 全局资源托盘 -->
+        <!-- 全局资源托盘 (智能感应与折叠) -->
         <div
-          v-if="showAssetsTray"
-          class="shrink-0 w-0 min-w-full border-t border-border/40 z-20 bg-card/30 transition-all duration-500"
+          v-if="showAssetsTray && store.images.length > 1"
+          class="shrink-0 w-0 min-w-full border-t border-border/40 z-20 bg-card/30 transition-all duration-500 ease-apple overflow-hidden"
           :class="[
-            showSidebar && isMobile && layoutStore.isInspectorCollapsed
-              ? 'h-[148px] pb-[44px]'
-              : 'h-24 md:h-28'
+            layoutStore.isAssetsTrayCollapsed && isPC
+              ? 'h-0 border-t-0'
+              : showSidebar && isMobile && layoutStore.isInspectorCollapsed
+                ? 'h-[148px]'
+                : 'h-24 md:h-28'
           ]"
         >
-          <div class="h-full w-full overflow-hidden"><AssetsTray /></div>
+          <div
+            class="h-full w-full relative group/tray-outer"
+            @dblclick="layoutStore.toggleAssetsTray"
+          >
+            <!-- 极简把手 (仅在 PC 悬停或折叠时可见，提示可折叠) -->
+            <div
+              class="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-muted-foreground/10 rounded-full mt-1 opacity-0 group-hover/tray-outer:opacity-100 transition-opacity cursor-ns-resize z-50 pointer-events-none"
+            ></div>
+            <AssetsTray />
+          </div>
+        </div>
+
+        <!-- 3. 资产托盘折叠提示条 (仅限 PC 端且已折叠时) -->
+        <div
+          v-if="
+            isPC && showAssetsTray && store.images.length > 1 && layoutStore.isAssetsTrayCollapsed
+          "
+          @click="layoutStore.toggleAssetsTray"
+          class="h-8 bg-muted/10 hover:bg-primary/[0.03] backdrop-blur-md cursor-pointer transition-all border-t border-border/10 shrink-0 group flex items-center justify-between px-6"
+          title="展开资源托盘 (Tab)"
+        >
+          <div class="flex-1"></div>
+          <div class="flex items-center gap-2">
+            <ChevronUp
+              :size="14"
+              class="text-primary/40 group-hover:text-primary transition-all group-hover:-translate-y-0.5"
+            />
+            <span
+              class="text-[0.65rem] font-bold text-muted-foreground/40 group-hover:text-primary/60 uppercase tracking-[0.2em] transition-colors"
+              >Show Assets</span
+            >
+          </div>
+          <div class="flex-1 flex justify-end">
+            <div
+              class="px-2 py-0.5 rounded-full bg-primary/5 border border-primary/10 text-[0.6rem] font-mono font-bold text-primary/40 group-hover:text-primary/60 transition-colors"
+            >
+              {{ store.images.length }}
+            </div>
+          </div>
         </div>
       </main>
 
@@ -146,7 +188,7 @@ defineProps<Props>()
           <!-- 工作流工具栏 (如 Undo/Redo，独立于滚动，紧贴按钮区) -->
           <div
             v-if="(!layoutStore.isInspectorCollapsed || isPC) && $slots.toolbar"
-            class="shrink-0 px-4 md:px-5 py-2 border-t border-border/20 bg-card/50 backdrop-blur-sm"
+            class="shrink-0 px-4 md:px-5 py-2 border-t border-border/20 bg-card"
           >
             <slot name="toolbar"></slot>
           </div>
