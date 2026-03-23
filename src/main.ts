@@ -4,7 +4,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import './style.css'
 import App from './App.vue'
 
-// 基础路由配置
+import { useImageStore } from './stores/imageStore'
+
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -29,9 +30,9 @@ const router = createRouter({
       component: () => import('./views/CropView.vue')
     },
     {
-      path: '/exif',
-      name: 'exif',
-      component: () => import('./views/ExifView.vue')
+      path: '/filters',
+      name: 'filters',
+      component: () => import('./views/FiltersView.vue')
     },
     {
       path: '/split',
@@ -44,14 +45,26 @@ const router = createRouter({
       component: () => import('./views/CombineView.vue')
     },
     {
-      path: '/filters',
-      name: 'filters',
-      component: () => import('./views/FiltersView.vue')
+      path: '/exif',
+      name: 'exif',
+      component: () => import('./views/ExifView.vue')
     }
   ]
 })
 
+// --- [方案 A] 工具箱隔离模式核心逻辑 ---
+router.beforeEach((to, from) => {
+  // 仅在功能页面之间切换时触发重置（如果只是回主页或进入功能，也执行重置以保安全）
+  if (to.name !== from.name) {
+    const store = useImageStore()
+    // 强制重置所有图片的临时处理状态和预览 URL，防止跨页面污染并释放内存
+    store.resetAll()
+  }
+})
+
 const app = createApp(App)
-app.use(createPinia())
+const pinia = createPinia()
+
+app.use(pinia)
 app.use(router)
 app.mount('#app')
