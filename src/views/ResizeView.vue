@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import { useImageStore, type ImageItem } from '../stores/imageStore'
+import type { ImageItem } from '../stores/imageStore'
+import { useImageStore } from '../stores/imageStore'
 import { useLayoutStore } from '../stores/layoutStore'
 import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'

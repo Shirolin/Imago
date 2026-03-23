@@ -48,11 +48,8 @@ const isAltPressed = ref(false)
 const linesX = ref<number[]>([])
 const linesY = ref<number[]>([])
 
-const updateCanvasRect = () => {
-  // 銆愭牳績淇銆戯細移除 cachedCanvasRect锛屾敼涓哄湪闇€瑕佹椂瀹炴椂璇诲彇锛屼互瀵瑰啿鐢诲竷骞崇Щ
-}
-
 let offscreenCanvas: HTMLCanvasElement | null = null
+
 let isDrawingRaf = false
 
 const updateCachedImage = () => {

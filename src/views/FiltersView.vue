@@ -14,7 +14,6 @@ import AppExportSettings from '../components/common/AppExportSettings.vue'
 import {
   Settings2,
   Sparkles,
-  Check,
   Sun,
   Contrast,
   Droplets,
