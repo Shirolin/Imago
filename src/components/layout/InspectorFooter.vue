@@ -23,23 +23,10 @@ withDefaults(defineProps<Props>(), {
 <template>
   <footer
     class="shrink-0 z-20 transition-all duration-300 relative"
-    :class="[
-      glass ? 'bg-card/95 backdrop-blur-md' : 'bg-card',
-      showBorder ? 'border-t border-border/40' : '',
-      padding,
-      // 增加向上的精致投影，明确层级关系
-      'shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.1)]'
-    ]"
+    :class="[glass ? 'bg-card/95' : 'bg-card', showBorder ? 'border-t border-border' : '', padding]"
   >
     <div class="flex items-center gap-3 w-full">
       <slot></slot>
     </div>
   </footer>
 </template>
-
-<style scoped>
-/* 深色模式下的阴影适配 */
-[data-theme='dark'] footer {
-  box-shadow: 0 -12px 40px -18px rgba(0, 0, 0, 0.4);
-}
-</style>

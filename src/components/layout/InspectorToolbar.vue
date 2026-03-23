@@ -17,7 +17,8 @@ const emit = defineEmits(['undo', 'redo'])
         @click="emit('undo')"
         :disabled="!canUndo"
         title="撤销 (Ctrl+Z)"
-        class="flex items-center justify-center w-8 h-8 rounded-lg transition-all"
+        aria-label="撤销"
+        class="flex items-center justify-center w-8 h-8 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         :class="
           canUndo
             ? 'text-foreground hover:bg-muted active:scale-90'
@@ -31,7 +32,8 @@ const emit = defineEmits(['undo', 'redo'])
         @click="emit('redo')"
         :disabled="!canRedo"
         title="重做 (Ctrl+Y)"
-        class="flex items-center justify-center w-8 h-8 rounded-lg transition-all"
+        aria-label="重做"
+        class="flex items-center justify-center w-8 h-8 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         :class="
           canRedo
             ? 'text-foreground hover:bg-muted active:scale-90'

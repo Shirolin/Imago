@@ -263,6 +263,29 @@ export const useImageStore = defineStore('image', () => {
     }
   }
 
+  const selectRange = (id: string) => {
+    // 如果没有活动图片，则退化为普通切换
+    if (!activeId.value) {
+      toggleSelection(id)
+      return
+    }
+
+    const list = sortedImages.value
+    const startIdx = list.findIndex((img) => img.id === activeId.value)
+    const endIdx = list.findIndex((img) => img.id === id)
+
+    if (startIdx === -1 || endIdx === -1) return
+
+    const min = Math.min(startIdx, endIdx)
+    const max = Math.max(startIdx, endIdx)
+
+    // 批量添加到选中集合
+    for (let i = min; i <= max; i++) {
+      const item = list[i]
+      if (item) selectedIds.value.add(item.id)
+    }
+  }
+
   return {
     images,
     activeId,
@@ -282,6 +305,7 @@ export const useImageStore = defineStore('image', () => {
     removeSelected,
     clearImages,
     toggleSelection,
+    selectRange,
     selectAll,
     deselectAll,
     toggleAll,

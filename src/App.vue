@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import {
   Image,
   Minimize2,
@@ -57,26 +57,16 @@ onMounted(() => {
   if (saved) theme.value = saved
   applyTheme()
 
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+  const handleThemeChange = () => {
     if (theme.value === 'system') applyTheme()
-  })
-
-  // 调试脚本：排查移动端阴影截断
-  if (window.innerWidth < 768) {
-    console.group('Mobile Shadow Debug')
-    let el = document.getElementById('inspector-panel')
-    while (el) {
-      const style = window.getComputedStyle(el)
-      if (style.overflow !== 'visible' || style.transform !== 'none') {
-        console.log(`[Layer] ${el.tagName}.${el.className.split(' ').join('.')}`)
-        console.log(` - Overflow: ${style.overflow}`)
-        console.log(` - Transform: ${style.transform}`)
-        console.log(` - Z-Index: ${style.zIndex}`)
-      }
-      el = el.parentElement
-    }
-    console.groupEnd()
   }
+
+  mediaQuery.addEventListener('change', handleThemeChange)
+
+  onBeforeUnmount(() => {
+    mediaQuery.removeEventListener('change', handleThemeChange)
+  })
 })
 
 const routeNameMap: Record<string, string> = {
@@ -354,19 +344,20 @@ const menuGroups = [
       v-if="store.processingCount > 0"
     >
       <div
-        class="h-full bg-primary transition-all duration-300 ease-out shadow-[0_0_10px_var(--primary)]"
-        :style="{ width: store.globalProgress + '%' }"
+        class="h-full bg-primary transition-transform duration-300 ease-out origin-left"
+        :style="{ transform: `scaleX(${store.globalProgress / 100})` }"
       ></div>
     </div>
 
     <main class="flex-1 min-h-0 flex flex-col relative z-20">
       <!-- Toolbar (Header) -->
       <header
-        class="shrink-0 flex items-center justify-between px-4 md:px-8 bg-background/80 backdrop-blur-xl border-b border-border z-0 md:z-10 sticky top-0 h-16"
+        class="shrink-0 flex items-center justify-between px-4 md:px-8 bg-background border-b border-border z-0 md:z-10 sticky top-0 h-16"
       >
         <div class="flex items-center gap-3">
           <button
-            class="md:hidden text-foreground hover:text-primary p-2 -ml-2 transition-colors"
+            class="md:hidden text-foreground hover:text-primary p-2 -ml-2 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
+            aria-label="Toggle Mobile Menu"
             @click="toggleMobileSidebar"
           >
             <Menu :size="20" />
@@ -398,7 +389,7 @@ const menuGroups = [
           >
             <span
               v-if="store.processingCount === 0"
-              class="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--primary)]"
+              class="w-2 h-2 rounded-full bg-primary/70"
             ></span>
             <Loader2 v-else class="animate-spin" :size="12" />
             <span v-if="store.processingCount === 0">本地处理</span>
@@ -410,7 +401,8 @@ const menuGroups = [
           <a
             href="https://github.com/Shirolin/Imago"
             target="_blank"
-            class="text-muted-foreground hover:text-primary hover:-translate-y-0.5 transition-all"
+            class="text-muted-foreground hover:text-primary hover:-translate-y-0.5 transition-all min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
+            aria-label="GitHub Repository"
           >
             <svg
               viewBox="0 0 24 24"
