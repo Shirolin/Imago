@@ -481,16 +481,20 @@ onUnmounted(() => {
 
       <!-- 吸附辅助线层 -->
       <div class="absolute inset-0 pointer-events-none z-10 overflow-hidden">
-        <div
-          v-if="snapLines.x !== null"
-          class="absolute h-full w-[1px] bg-primary shadow-[0_0_4px_rgba(255,255,255,0.8)]"
-          :style="{ left: snapLines.x + '%' }"
-        ></div>
-        <div
-          v-if="snapLines.y !== null"
-          class="absolute w-full h-[1px] bg-primary shadow-[0_0_4px_rgba(255,255,255,0.8)]"
-          :style="{ top: snapLines.y + '%' }"
-        ></div>
+        <Transition name="fade-fast">
+          <div
+            v-if="snapLines.x !== null"
+            class="absolute h-full w-[1px] bg-primary shadow-[0_0_4px_rgba(255,255,255,0.8)]"
+            :style="{ left: snapLines.x + '%' }"
+          ></div>
+        </Transition>
+        <Transition name="fade-fast">
+          <div
+            v-if="snapLines.y !== null"
+            class="absolute w-full h-[1px] bg-primary shadow-[0_0_4px_rgba(255,255,255,0.8)]"
+            :style="{ top: snapLines.y + '%' }"
+          ></div>
+        </Transition>
       </div>
 
       <div v-if="imgNaturalSize.w > 0" class="absolute inset-0 z-20 pointer-events-none">
@@ -523,12 +527,16 @@ onUnmounted(() => {
         </div>
 
         <div
-          class="absolute border-2 border-primary cursor-move pointer-events-auto"
+          class="absolute border-2 border-primary cursor-move pointer-events-auto transition-colors duration-200"
+          :class="{
+            'border-primary/80 shadow-[0_0_15px_rgba(var(--primary-rgb),0.4)]': isSnapping
+          }"
           :style="{
             left: internalCrop.x + '%',
             top: internalCrop.y + '%',
             width: internalCrop.w + '%',
-            height: internalCrop.h + '%'
+            height: internalCrop.h + '%',
+            willChange: isDragging ? 'left, top, width, height' : 'auto'
           }"
           @mousedown="handleStart($event, 'move')"
           @dblclick="updateCrop({ x: 0, y: 0, w: 100, h: 100 })"
@@ -680,5 +688,14 @@ img,
 .absolute {
   backface-visibility: hidden;
   transform-style: preserve-3d;
+}
+
+.fade-fast-enter-active,
+.fade-fast-leave-active {
+  transition: opacity 0.15s ease-out;
+}
+.fade-fast-enter-from,
+.fade-fast-leave-to {
+  opacity: 0;
 }
 </style>

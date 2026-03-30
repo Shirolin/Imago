@@ -63,6 +63,9 @@ defineProps<Props>()
         <!-- 内容画布 -->
         <div
           class="flex-1 relative min-h-0 w-full"
+          :style="{
+            overscrollBehavior: isMobile && !layoutStore.isInspectorCollapsed ? 'contain' : 'auto'
+          }"
           :class="[
             noScroll
               ? 'overflow-hidden'
@@ -200,7 +203,7 @@ defineProps<Props>()
 
 <style scoped>
 .shadow-2xl-up {
-  box-shadow: 0 -10px 40px -15px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 -10px 40px -15px hsl(var(--foreground) / 0.1);
 }
 .ease-apple {
   transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);

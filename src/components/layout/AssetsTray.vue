@@ -235,6 +235,14 @@ const onDragEnd = () => {
 
     <!-- 列表容器 -->
     <div class="flex-1 flex items-center relative group/tray overflow-hidden min-w-0">
+      <!-- 无障碍实时播报区域 -->
+      <div class="sr-only" aria-live="polite" aria-atomic="true">
+        {{
+          store.activeId
+            ? `当前选中第 ${store.sortedImages.findIndex((i) => i.id === store.activeId) + 1} 张图片，共 ${store.images.length} 张`
+            : '未选中图片'
+        }}
+      </div>
       <button
         v-if="canScrollLeft"
         @click="scroll('left')"
