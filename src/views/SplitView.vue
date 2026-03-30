@@ -15,11 +15,13 @@ import { Scissors, Grid3X3, Layers, Box, AlignCenter, Trash2, Download } from 'l
 import { splitEngine } from '../lib/engines/splitEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useResizeObserver } from '@vueuse/core'
+import { useBreakpoints } from '../composables/useBreakpoints'
 
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
 const store = useImageStore()
 const { downloadImage } = useFileHelpers()
+const { isMobile } = useBreakpoints()
 
 // 状态
 const rows = ref(3)
@@ -246,6 +248,24 @@ const snapLine = (pos: number, axis: 'x' | 'y') => {
 const handlePointerDown = (e: PointerEvent) => {
   if (isHandMode.value || workspaceRef.value?.isPanning || e.button !== 0 || e.altKey) return
 
+  const img = selectedImage.value
+  if (!img) return
+
+  // 【核心增强】：如果是 Grid 模式且悬停在线上，先执行转换
+  if (editMode.value === 'grid' && hoveredLine.value) {
+    // 将网格转换为真实的坐标点
+    const newLinesX: number[] = []
+    const newLinesY: number[] = []
+    for (let i = 1; i < cols.value; i++) newLinesX.push((img.width! / cols.value) * i)
+    for (let i = 1; i < rows.value; i++) newLinesY.push((img.height! / rows.value) * i)
+
+    linesX.value = newLinesX
+    linesY.value = newLinesY
+    editMode.value = 'custom'
+    srMessage.value = '已自动切换至自由编辑模式'
+    // 继续执行后续的 draggingLine 逻辑
+  }
+
   if (hoveredLine.value) {
     draggingLine.value = { ...hoveredLine.value }
     return
@@ -280,29 +300,56 @@ const handlePointerMove = (e: PointerEvent) => {
     const { axis, index } = draggingLine.value
     if (axis === 'x') linesX.value[index] = snapLine(pos.x, 'x')
     else linesY.value[index] = snapLine(pos.y, 'y')
-    // 【性能优化】：不再在 pointermove 中保存状态，改到 pointerup 中
     return
   }
 
   const scale = workspaceRef.value?.scale || 1
   const threshold = 12 / scale
+  const img = selectedImage.value
   let found = false
-  for (let i = 0; i < linesX.value.length; i++) {
-    if (Math.abs(pos.x - linesX.value[i]!) < threshold) {
+
+  // 【核心增强】：支持检测 Grid 模式下的虚拟线
+  const checkLinesX =
+    editMode.value === 'custom'
+      ? linesX.value
+      : img
+        ? Array.from({ length: cols.value - 1 }, (_, i) => (img.width! / cols.value) * (i + 1))
+        : []
+
+  const checkLinesY =
+    editMode.value === 'custom'
+      ? linesY.value
+      : img
+        ? Array.from({ length: rows.value - 1 }, (_, i) => (img.height! / rows.value) * (i + 1))
+        : []
+
+  for (let i = 0; i < checkLinesX.length; i++) {
+    if (Math.abs(pos.x - checkLinesX[i]!) < threshold) {
       hoveredLine.value = { axis: 'x', index: i }
       found = true
       break
     }
   }
   if (!found) {
-    for (let i = 0; i < linesY.value.length; i++) {
-      if (Math.abs(pos.y - linesY.value[i]!) < threshold) {
+    for (let i = 0; i < checkLinesY.length; i++) {
+      if (Math.abs(pos.y - checkLinesY[i]!) < threshold) {
         hoveredLine.value = { axis: 'y', index: i }
         found = true
         break
       }
     }
   }
+
+  // 更新光标反馈
+  if (workspaceRef.value?.containerRef) {
+    const container = workspaceRef.value.containerRef
+    if (found) {
+      container.style.cursor = hoveredLine.value?.axis === 'x' ? 'col-resize' : 'row-resize'
+    } else {
+      container.style.cursor = ''
+    }
+  }
+
   if (!found) hoveredLine.value = null
 }
 
@@ -420,16 +467,25 @@ const handleCtaClick = async () => {
         <template #default>
           <div class="relative shadow-2xl">
             <canvas ref="canvasRef" class="block rounded-sm" />
-
-            <!-- 交互提示浮层 (仅自由模式) -->
-            <div
-              v-if="editMode === 'custom'"
-              class="absolute -top-12 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full text-white text-xs font-medium border border-white/10 pointer-events-none transition-opacity duration-300 whitespace-nowrap"
-              :class="draggingLine ? 'opacity-0' : 'opacity-100'"
-            >
-              点击画布添加{{ activeAxis === 'x' ? '垂直' : '水平' }}线 · 拖拽线条移动
-            </div>
           </div>
+        </template>
+
+        <!-- 【优化】：调整位置到底部中心，避开图片主体，并适配移动端托盘高度 -->
+        <template #floating>
+          <Transition name="fade-fast">
+            <div
+              v-if="editMode === 'custom' && !draggingLine"
+              class="absolute left-1/2 -translate-x-1/2 bg-background/60 backdrop-blur-md px-4 py-2 rounded-2xl text-foreground text-[10px] font-bold border border-border/40 pointer-events-none shadow-lg z-50 whitespace-nowrap tracking-wider flex items-center gap-2 transition-all duration-500"
+              :class="[isMobile ? 'bottom-[140px]' : 'bottom-24']"
+            >
+              <div
+                class="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary"
+              >
+                <Scissors :size="12" />
+              </div>
+              <span>点击画布添加线 <span class="mx-1 opacity-40">·</span> 拖拽线条移动</span>
+            </div>
+          </Transition>
         </template>
       </AppCanvasWorkspace>
     </template>
@@ -449,13 +505,24 @@ const handleCtaClick = async () => {
             v-if="editMode === 'grid'"
             class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-6"
           >
-            <AppSlider v-model="rows" label="垂直行数" :min="1" :max="10" :step="1" /><AppSlider
-              v-model="cols"
-              label="水平列数"
-              :min="1"
-              :max="10"
-              :step="1"
-            />
+            <div class="space-y-1">
+              <div class="flex justify-between items-center px-1">
+                <span class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider"
+                  >垂直行数</span
+                >
+                <span class="text-xs font-mono font-bold text-primary">{{ rows }}</span>
+              </div>
+              <AppSlider v-model="rows" :min="1" :max="10" :step="1" />
+            </div>
+            <div class="space-y-1">
+              <div class="flex justify-between items-center px-1">
+                <span class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider"
+                  >水平列数</span
+                >
+                <span class="text-xs font-mono font-bold text-primary">{{ cols }}</span>
+              </div>
+              <AppSlider v-model="cols" :min="1" :max="10" :step="1" />
+            </div>
           </div>
           <div
             v-else
@@ -487,14 +554,13 @@ const handleCtaClick = async () => {
             </div>
             <button
               @click="clearLines"
-              class="w-full py-2 rounded-lg border border-border hover:border-destructive hover:text-destructive transition-all text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-2"
+              class="w-full py-2.5 rounded-xl border border-border/40 bg-muted/5 hover:bg-destructive/5 hover:border-destructive hover:text-destructive transition-all text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 text-muted-foreground/60"
             >
-              <Trash2 :size="12" /> 清空所有线
+              <Trash2 :size="13" /> 清空所有线
             </button>
           </div>
         </div>
       </section>
-
       <section class="space-y-5">
         <AppSectionHeader title="增强处理" :icon="Layers" />
         <div class="space-y-4 px-1">
@@ -542,4 +608,16 @@ const handleCtaClick = async () => {
   </WorkspaceLayout>
 </template>
 
-<style scoped></style>
+<style scoped>
+.fade-fast-enter-active,
+.fade-fast-leave-active {
+  transition:
+    opacity 0.2s ease-out,
+    transform 0.2s ease-out;
+}
+.fade-fast-enter-from,
+.fade-fast-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -10px);
+}
+</style>

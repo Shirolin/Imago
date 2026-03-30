@@ -88,18 +88,23 @@ export function useCanvasView(containerRef: Ref<HTMLElement | null>) {
     offset.value = { x: 0, y: 0 }
   }
 
+  const fitScale = ref(1)
+
   const getAutoFitScale = (imgW: number, imgH: number, padding = 80) => {
     if (!containerRef.value) return 1
     const availableW = containerRef.value.clientWidth - padding
     const availableH = containerRef.value.clientHeight - padding
-    return Math.min(availableW / imgW, availableH / imgH, 1)
+    const s = Math.min(availableW / imgW, availableH / imgH, 1)
+    fitScale.value = s
+    return s
   }
 
   return {
     scale,
     offset,
     isPanning,
-    isHandMode: isSpacePressed, // 鎻愪緵缁 UI 鐨勬姄鎵嬫ā寮忕姸鎬
+    fitScale,
+    isHandMode: isSpacePressed, // 提供给 UI 的抓手模式状态
     handleWheel,
     handlePointerDown,
     handlePointerMove,

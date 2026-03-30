@@ -6,11 +6,13 @@ import { useCanvasView } from '../../composables/useCanvasView'
 interface Props {
   transformDuration?: string
   showControls?: boolean
+  hideDefaultHint?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   transformDuration: 'duration-75',
-  showControls: true
+  showControls: true,
+  hideDefaultHint: false
 })
 
 const emit = defineEmits<{
@@ -29,6 +31,7 @@ const {
   scale,
   offset,
   isPanning,
+  fitScale,
   isHandMode,
   handleWheel,
   handlePointerDown,
@@ -66,6 +69,7 @@ defineExpose({
   scale,
   offset,
   isPanning,
+  fitScale,
   isHandMode,
   zoomIn,
   zoomOut,
@@ -109,7 +113,7 @@ defineExpose({
 
       <!-- 智能引导提示 (强化版) -->
       <div
-        v-if="isHovered || scale > 1.05"
+        v-if="!hideDefaultHint && (isHovered || scale > fitScale * 1.05)"
         class="absolute top-6 left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-all duration-500"
         :class="isHandMode ? 'opacity-0 scale-95' : 'opacity-100 scale-100'"
       >
@@ -147,7 +151,7 @@ defineExpose({
             <div class="w-px h-3 bg-white/10 mx-1"></div>
           </div>
           <span class="text-[10px] text-white/70 font-bold tracking-wide">
-            {{ scale > 1.05 ? '按住空格拖拽平移' : '上帝视角预览' }}
+            {{ scale > fitScale * 1.05 ? '按住空格拖拽平移' : '完整视图预览' }}
           </span>
         </div>
       </div>
