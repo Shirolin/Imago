@@ -309,54 +309,98 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
     let sH = false,
       sV = false
     const currentLines = { x: null as number | null, y: null as number | null }
-    const snap = (val: number, target: number) =>
-      !alt &&
-      contentBounds.value &&
-      Math.abs(val - target) < (15 / props.scale / Math.max(nw, nh)) * 100
-        ? target
-        : val
+
+    // 增强的吸附函数：支持多个目标，并自动更新辅助线状态
+    const snap = (val: number, targets: (number | undefined)[], axis: 'x' | 'y') => {
+      if (alt) return val
+      const threshold = (15 / props.scale / Math.max(nw, nh)) * 100
+      for (const t of targets) {
+        if (t === undefined) continue
+        if (Math.abs(val - t) < threshold) {
+          if (axis === 'x') {
+            sH = true
+            currentLines.x = t
+          } else {
+            sV = true
+            currentLines.y = t
+          }
+          return t
+        }
+      }
+      return val
+    }
 
     if (dragMode.value === 'move') {
-      n.x = Math.max(-50, Math.min(150 - n.w, startCrop.x + dxPercent))
-      n.y = Math.max(-50, Math.min(150 - n.h, startCrop.y + dyPercent))
+      // 移动模式吸附：左/右/上/下边缘均可吸附到图片边界或内容边界
+      const targetsX = [
+        0,
+        100,
+        contentBounds.value?.x,
+        (contentBounds.value?.x ?? 0) + (contentBounds.value?.w ?? 0)
+      ]
+      const targetsY = [
+        0,
+        100,
+        contentBounds.value?.y,
+        (contentBounds.value?.y ?? 0) + (contentBounds.value?.h ?? 0)
+      ]
+
+      // 尝试吸附左边缘
+      const nx = snap(startCrop.x + dxPercent, targetsX, 'x')
+      if (sH) {
+        n.x = nx
+      } else {
+        // 如果左边缘没吸附，尝试右边缘吸附
+        const nr = snap(startCrop.x + startCrop.w + dxPercent, targetsX, 'x')
+        n.x = nr - n.w
+      }
+
+      // 尝试吸附上边缘
+      const ny = snap(startCrop.y + dyPercent, targetsY, 'y')
+      if (sV) {
+        n.y = ny
+      } else {
+        // 如果上边缘没吸附，尝试下边缘吸附
+        const nb = snap(startCrop.y + startCrop.h + dyPercent, targetsY, 'y')
+        n.y = nb - n.h
+      }
+
+      // 最终边界限制（允许稍微超出一点以便操作，但通常会被吸附拉回）
+      n.x = Math.max(-50, Math.min(150 - n.w, n.x))
+      n.y = Math.max(-50, Math.min(150 - n.h, n.y))
       activePercent.value = { x: px, y: py }
     } else {
       const mode = dragMode.value!
+      const targetsX = [
+        0,
+        100,
+        contentBounds.value?.x,
+        (contentBounds.value?.x ?? 0) + (contentBounds.value?.w ?? 0)
+      ]
+      const targetsY = [
+        0,
+        100,
+        contentBounds.value?.y,
+        (contentBounds.value?.y ?? 0) + (contentBounds.value?.h ?? 0)
+      ]
+
       if (mode.includes('n')) {
-        const ny = snap(startCrop.y + dyPercent, contentBounds.value?.y ?? -999)
-        n.y = Math.min(ny, startCrop.y + startCrop.h - 0.5)
+        n.y = snap(startCrop.y + dyPercent, targetsY, 'y')
+        n.y = Math.min(n.y, startCrop.y + startCrop.h - 0.5)
         n.h = startCrop.h - (n.y - startCrop.y)
-        if (ny === contentBounds.value?.y) {
-          sV = true
-          currentLines.y = ny
-        }
       }
       if (mode.includes('s')) {
-        const target = (contentBounds.value?.y ?? 0) + (contentBounds.value?.h ?? 0)
-        const nb = snap(startCrop.y + startCrop.h + dyPercent, target)
+        const nb = snap(startCrop.y + startCrop.h + dyPercent, targetsY, 'y')
         n.h = Math.max(0.5, nb - n.y)
-        if (nb === target) {
-          sV = true
-          currentLines.y = target
-        }
       }
       if (mode.includes('w')) {
-        const nx = snap(startCrop.x + dxPercent, contentBounds.value?.x ?? -999)
-        n.x = Math.min(nx, startCrop.x + startCrop.w - 0.5)
+        n.x = snap(startCrop.x + dxPercent, targetsX, 'x')
+        n.x = Math.min(n.x, startCrop.x + startCrop.w - 0.5)
         n.w = startCrop.w - (n.x - startCrop.x)
-        if (nx === contentBounds.value?.x) {
-          sH = true
-          currentLines.x = nx
-        }
       }
       if (mode.includes('e')) {
-        const target = (contentBounds.value?.x ?? 0) + (contentBounds.value?.w ?? 0)
-        const nr = snap(startCrop.x + startCrop.w + dxPercent, target)
+        const nr = snap(startCrop.x + startCrop.w + dxPercent, targetsX, 'x')
         n.w = Math.max(0.5, nr - n.x)
-        if (nr === target) {
-          sH = true
-          currentLines.x = target
-        }
       }
 
       if (props.aspectRatio) {

@@ -33,8 +33,12 @@ defineProps<Props>()
     >
       <!-- A. 左侧核心区域 (画布 + 资源托盘) -->
       <main
-        class="flex-1 flex flex-col min-w-0 min-h-0 relative z-10 bg-background overflow-hidden"
-        :class="{ 'pb-11 md:pb-0': isMobile && showSidebar }"
+        class="flex-1 flex flex-col min-w-0 min-h-0 relative z-10 bg-background overflow-hidden transition-all duration-500 ease-apple"
+        :class="[
+          isMobile && showSidebar && !layoutStore.isInspectorCollapsed ? 'pb-[40vh]' : '',
+          isMobile && showSidebar && layoutStore.isInspectorCollapsed ? 'pb-11' : '',
+          !isMobile ? 'pb-0' : ''
+        ]"
       >
         <header
           class="h-14 bg-card border-b border-border/50 flex items-center px-4 md:px-6 justify-between gap-4 shrink-0 z-30"
@@ -82,21 +86,21 @@ defineProps<Props>()
         <!-- 全局资源托盘 (智能感应与折叠) -->
         <div
           v-if="showAssetsTray && store.images.length > 1"
-          class="shrink-0 w-0 min-w-full border-t border-border/40 z-20 bg-card/30 transition-all duration-500 ease-apple overflow-hidden"
+          class="shrink-0 w-0 min-w-full z-20 bg-card/30 transition-all duration-500 ease-apple overflow-hidden"
           :class="[
-            layoutStore.isAssetsTrayCollapsed && isPC
+            (layoutStore.isAssetsTrayCollapsed && isPC) ||
+            (isMobile && showSidebar && !layoutStore.isInspectorCollapsed)
               ? 'h-0 border-t-0'
-              : showSidebar && isMobile && layoutStore.isInspectorCollapsed
-                ? 'h-[148px]'
-                : 'h-24 md:h-28'
+              : 'h-32 md:h-28 border-t border-border/40'
           ]"
         >
           <div
             class="h-full w-full relative group/tray-outer"
-            @dblclick="layoutStore.toggleAssetsTray"
+            @dblclick="isPC && layoutStore.toggleAssetsTray"
           >
             <!-- 极简把手 (仅在 PC 悬停或折叠时可见，提示可折叠) -->
             <div
+              v-if="isPC"
               class="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-muted-foreground/10 rounded-full mt-1 opacity-0 group-hover/tray-outer:opacity-100 transition-opacity cursor-ns-resize z-50 pointer-events-none"
             ></div>
             <AssetsTray />
@@ -133,25 +137,16 @@ defineProps<Props>()
         </div>
       </main>
 
-      <!-- 移动端背景遮罩 -->
-      <Transition name="fade">
-        <div
-          v-if="showSidebar && !layoutStore.isInspectorCollapsed"
-          @click="layoutStore.toggleInspector"
-          class="fixed inset-0 bg-background/60 backdrop-blur-sm z-[150] md:hidden"
-        ></div>
-      </Transition>
-
       <!-- C. 右侧侧边栏 (Inspector) -->
-      <!-- 物理锁定：侧边栏必须是一个独立的垂直 Flex 容器，InspectorFooter 放在其底部 -->
       <aside
         v-if="showSidebar"
         id="inspector-panel"
-        class="bg-card md:border-l border-border flex flex-col shrink-0 transition-all duration-500 ease-apple z-[200] md:z-[60] fixed bottom-0 left-0 right-0 md:static w-full md:h-auto rounded-t-[2.5rem] md:rounded-none shadow-2xl-up md:shadow-none overflow-visible"
+        class="bg-card md:border-l border-border flex flex-col shrink-0 transition-all duration-500 ease-apple z-[200] md:z-[60] fixed bottom-0 left-0 right-0 md:static w-full rounded-t-[2.5rem] md:rounded-none shadow-2xl-up md:shadow-none overflow-visible"
         :class="[
+          'h-[40vh] md:h-auto',
           layoutStore.isInspectorCollapsed
             ? 'translate-y-[calc(100%-44px)] md:w-0'
-            : 'translate-y-0 md:w-[320px] xl:w-[360px] top-16 md:top-auto'
+            : 'translate-y-0 md:w-[320px] xl:w-[360px]'
         ]"
       >
         <div
@@ -175,7 +170,7 @@ defineProps<Props>()
             </div>
           </div>
 
-          <!-- 核心内容滚动区 (flex-1 确保其占据剩余空间并独立滚动) -->
+          <!-- 核心内容滚动区 -->
           <div
             class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar w-full"
             :class="{ 'opacity-0': layoutStore.isInspectorCollapsed && !isPC }"
@@ -185,7 +180,7 @@ defineProps<Props>()
             </div>
           </div>
 
-          <!-- 工作流工具栏 (如 Undo/Redo，独立于滚动，紧贴按钮区) -->
+          <!-- 工作流工具栏 -->
           <div
             v-if="(!layoutStore.isInspectorCollapsed || isPC) && $slots.toolbar"
             class="shrink-0 px-4 md:px-5 py-2 border-t border-border/20 bg-card"
@@ -193,7 +188,7 @@ defineProps<Props>()
             <slot name="toolbar"></slot>
           </div>
 
-          <!-- 核心操作按钮区 (物理隔离，永不随内容滚动) -->
+          <!-- 核心操作按钮区 -->
           <div v-if="!layoutStore.isInspectorCollapsed || isPC" class="shrink-0 z-30">
             <slot name="footer"></slot>
           </div>
@@ -206,14 +201,6 @@ defineProps<Props>()
 <style scoped>
 .shadow-2xl-up {
   box-shadow: 0 -10px 40px -15px rgba(0, 0, 0, 0.12);
-}
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
 }
 .ease-apple {
   transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
