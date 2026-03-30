@@ -48,6 +48,9 @@ const isAltPressed = ref(false)
 const linesX = ref<number[]>([])
 const linesY = ref<number[]>([])
 
+// 无障碍播报
+const srMessage = ref('')
+
 let offscreenCanvas: HTMLCanvasElement | null = null
 
 let isDrawingRaf = false
@@ -82,15 +85,21 @@ const draw = () => {
   ctx.clearRect(0, 0, img.width!, img.height!)
   ctx.drawImage(offscreenCanvas, 0, 0)
 
-  const drawStylizedLine = (pos: number, isVertical: boolean, isHovered: boolean) => {
+  const drawStylizedLine = (
+    pos: number,
+    isVertical: boolean,
+    isHovered: boolean,
+    isDragging: boolean
+  ) => {
     ctx.save()
     const colorPrimary = getComputedStyle(document.documentElement)
       .getPropertyValue('--primary')
       .trim()
     const activeColor = `hsl(${colorPrimary})`
 
+    // 辅助阴影
     ctx.beginPath()
-    ctx.lineWidth = 2 / scale
+    ctx.lineWidth = (isHovered || isDragging ? 3 : 2) / scale
     ctx.strokeStyle = 'rgba(0,0,0,0.3)'
     if (isVertical) {
       ctx.moveTo(pos + 1 / scale, 0)
@@ -101,9 +110,11 @@ const draw = () => {
     }
     ctx.stroke()
 
+    // 主线条
     ctx.beginPath()
-    ctx.lineWidth = (isHovered ? 3 : 1.5) / scale
-    ctx.strokeStyle = activeColor
+    ctx.lineWidth = (isHovered || isDragging ? 2.5 : 1.5) / scale
+    ctx.strokeStyle = isDragging ? activeColor : isHovered ? activeColor : 'rgba(255,255,255,0.8)'
+
     if (isVertical) {
       ctx.moveTo(pos, 0)
       ctx.lineTo(pos, img.height!)
@@ -111,20 +122,42 @@ const draw = () => {
       ctx.moveTo(0, pos)
       ctx.lineTo(img.width!, pos)
     }
-    if (isHovered) {
-      ctx.shadowBlur = 10 / scale
+
+    if (isHovered || isDragging) {
+      ctx.shadowBlur = 12 / scale
       ctx.shadowColor = activeColor
     }
     ctx.stroke()
     ctx.restore()
   }
 
-  linesX.value.forEach((lx, i) =>
-    drawStylizedLine(lx, true, hoveredLine.value?.axis === 'x' && hoveredLine.value.index === i)
-  )
-  linesY.value.forEach((ly, i) =>
-    drawStylizedLine(ly, false, hoveredLine.value?.axis === 'y' && hoveredLine.value.index === i)
-  )
+  // 绘制网格线 (均分模式)
+  if (editMode.value === 'grid') {
+    for (let i = 1; i < cols.value; i++) {
+      drawStylizedLine((img.width! / cols.value) * i, true, false, false)
+    }
+    for (let i = 1; i < rows.value; i++) {
+      drawStylizedLine((img.height! / rows.value) * i, false, false, false)
+    }
+  } else {
+    // 绘制自定义线 (自由模式)
+    linesX.value.forEach((lx, i) =>
+      drawStylizedLine(
+        lx,
+        true,
+        hoveredLine.value?.axis === 'x' && hoveredLine.value.index === i,
+        draggingLine.value?.axis === 'x' && draggingLine.value.index === i
+      )
+    )
+    linesY.value.forEach((ly, i) =>
+      drawStylizedLine(
+        ly,
+        false,
+        hoveredLine.value?.axis === 'y' && hoveredLine.value.index === i,
+        draggingLine.value?.axis === 'y' && draggingLine.value.index === i
+      )
+    )
+  }
 }
 
 const requestDraw = () => {
@@ -136,6 +169,11 @@ const requestDraw = () => {
     })
   }
 }
+
+// 监听绘制相关的状态
+watch([rows, cols, editMode, linesX, linesY, hoveredLine, draggingLine], requestDraw, {
+  deep: true
+})
 
 const resetView = () => {
   const img = selectedImage.value
@@ -171,6 +209,10 @@ watch(
       cols.value = m.cols
       linesX.value = [...m.linesX]
       linesY.value = [...m.linesY]
+    } else {
+      // 默认清空
+      linesX.value = []
+      linesY.value = []
     }
     nextTick(resetView)
   },
@@ -184,22 +226,43 @@ const getLogicPos = (e: PointerEvent) => {
   return { x: (e.clientX - rect.left) / scale, y: (e.clientY - rect.top) / scale }
 }
 
+const snapLine = (pos: number, axis: 'x' | 'y') => {
+  const img = selectedImage.value
+  if (!img) return pos
+  const max = axis === 'x' ? img.width! : img.height!
+  const scale = workspaceRef.value?.scale || 1
+  const threshold = 15 / scale
+
+  // 吸附到边缘
+  if (pos < threshold) return 0
+  if (Math.abs(pos - max) < threshold) return max
+
+  // 吸附到中点
+  if (Math.abs(pos - max / 2) < threshold) return max / 2
+
+  return pos
+}
+
 const handlePointerDown = (e: PointerEvent) => {
-  // 【核心修复】：强制隔离。抓手模式、中键、Alt 键拖拽时，禁止增加切分线
   if (isHandMode.value || workspaceRef.value?.isPanning || e.button !== 0 || e.altKey) return
 
   if (hoveredLine.value) {
     draggingLine.value = { ...hoveredLine.value }
     return
   }
+
   if (editMode.value === 'custom') {
     const pos = getLogicPos(e)
     if (activeAxis.value === 'x') {
-      linesX.value.push(pos.x)
+      const snappedX = snapLine(pos.x, 'x')
+      linesX.value.push(snappedX)
       linesX.value.sort((a, b) => a - b)
+      srMessage.value = `已在垂直方向 ${Math.round(snappedX)} 像素处添加切分线`
     } else {
-      linesY.value.push(pos.y)
+      const snappedY = snapLine(pos.y, 'y')
+      linesY.value.push(snappedY)
       linesY.value.sort((a, b) => a - b)
+      srMessage.value = `已在水平方向 ${Math.round(snappedY)} 像素处添加切分线`
     }
     saveMeta()
   }
@@ -212,13 +275,15 @@ const handlePointerMove = (e: PointerEvent) => {
   }
   const pos = getLogicPos(e)
   isAltPressed.value = e.altKey
+
   if (draggingLine.value) {
     const { axis, index } = draggingLine.value
-    if (axis === 'x') linesX.value[index] = pos.x
-    else linesY.value[index] = pos.y
-    saveMeta()
+    if (axis === 'x') linesX.value[index] = snapLine(pos.x, 'x')
+    else linesY.value[index] = snapLine(pos.y, 'y')
+    // 【性能优化】：不再在 pointermove 中保存状态，改到 pointerup 中
     return
   }
+
   const scale = workspaceRef.value?.scale || 1
   const threshold = 12 / scale
   let found = false
@@ -241,9 +306,32 @@ const handlePointerMove = (e: PointerEvent) => {
   if (!found) hoveredLine.value = null
 }
 
+const handlePointerUp = (e: PointerEvent) => {
+  if (draggingLine.value) {
+    const { axis, index } = draggingLine.value
+    const pos = getLogicPos(e)
+    const img = selectedImage.value
+    if (img) {
+      const max = axis === 'x' ? img.width! : img.height!
+      const val = axis === 'x' ? pos.x : pos.y
+      const scale = workspaceRef.value?.scale || 1
+      const outThreshold = 30 / scale // 拖离边界 30 像素则删除
+
+      if (val < -outThreshold || val > max + outThreshold) {
+        if (axis === 'x') linesX.value.splice(index, 1)
+        else linesY.value.splice(index, 1)
+        srMessage.value = `已删除第 ${index + 1} 条${axis === 'x' ? '垂直' : '水平'}线`
+      }
+    }
+    draggingLine.value = null
+    saveMeta()
+  }
+}
+
 const clearLines = () => {
   linesX.value = []
   linesY.value = []
+  srMessage.value = '已清空所有自定义切分线'
   saveMeta()
 }
 
@@ -258,9 +346,11 @@ watch(
 const handleApplyProcess = async () => {
   if (!selectedImage.value) return
   await processSingle(selectedImage.value.id, {
-    rows: linesY.value.length + 1,
-    cols: linesX.value.length + 1,
+    rows: editMode.value === 'custom' ? linesY.value.length + 1 : rows.value,
+    cols: editMode.value === 'custom' ? linesX.value.length + 1 : cols.value,
     mode: editMode.value,
+    customLines:
+      editMode.value === 'custom' ? { x: [...linesX.value], y: [...linesY.value] } : undefined,
     centerMode: centerMode.value,
     shave: shave.value,
     format: outputFormat.value === 'original' ? undefined : outputFormat.value,
@@ -316,15 +406,29 @@ const handleCtaClick = async () => {
     /></template>
 
     <template #content>
+      <!-- 无障碍实时播报 -->
+      <div class="sr-only" aria-live="polite">{{ srMessage }}</div>
       <AppCanvasWorkspace
         ref="workspaceRef"
         @reset="resetView"
         @pointerdown="handlePointerDown"
         @pointermove="handlePointerMove"
+        @pointerup="handlePointerUp"
+        @pointerleave="handlePointerUp"
+        @pointercancel="handlePointerUp"
       >
         <template #default>
           <div class="relative shadow-2xl">
             <canvas ref="canvasRef" class="block rounded-sm" />
+
+            <!-- 交互提示浮层 (仅自由模式) -->
+            <div
+              v-if="editMode === 'custom'"
+              class="absolute -top-12 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full text-white text-xs font-medium border border-white/10 pointer-events-none transition-opacity duration-300 whitespace-nowrap"
+              :class="draggingLine ? 'opacity-0' : 'opacity-100'"
+            >
+              点击画布添加{{ activeAxis === 'x' ? '垂直' : '水平' }}线 · 拖拽线条移动
+            </div>
           </div>
         </template>
       </AppCanvasWorkspace>

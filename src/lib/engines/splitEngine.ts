@@ -4,6 +4,7 @@ export interface SplitOptions {
   rows: number
   cols: number
   mode: 'grid' | 'custom'
+  customLines?: { x: number[]; y: number[] }
   centerMode?: 'none' | 'center' | 'square'
   shave?: number
   format?: string
@@ -24,25 +25,46 @@ export const splitEngine: ImageProcessor<SplitOptions> = async (file, options) =
       const {
         rows,
         cols,
+        mode,
+        customLines,
         centerMode = 'none',
         shave = 0,
         format = file.type,
         quality = 0.9
       } = options
 
-      const tileWidth = img.width / cols
-      const tileHeight = img.height / rows
+      // 计算切分边界
+      let boundariesX: number[] = []
+      let boundariesY: number[] = []
 
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
+      if (mode === 'custom' && customLines) {
+        boundariesX = [0, ...customLines.x.sort((a, b) => a - b), img.width]
+        boundariesY = [0, ...customLines.y.sort((a, b) => a - b), img.height]
+      } else {
+        const tileW = img.width / cols
+        const tileH = img.height / rows
+        for (let i = 0; i <= cols; i++) boundariesX.push(i * tileW)
+        for (let i = 0; i <= rows; i++) boundariesY.push(i * tileH)
+      }
+
+      const actualRows = boundariesY.length - 1
+      const actualCols = boundariesX.length - 1
+
+      for (let r = 0; r < actualRows; r++) {
+        for (let c = 0; c < actualCols; c++) {
           const canvas = document.createElement('canvas')
           const ctx = canvas.getContext('2d')
           if (!ctx) continue
 
-          const sourceX = c * tileWidth + shave
-          const sourceY = r * tileHeight + shave
-          const sourceW = tileWidth - shave * 2
-          const sourceH = tileHeight - shave * 2
+          const startX = boundariesX[c]!
+          const startY = boundariesY[r]!
+          const endX = boundariesX[c + 1]!
+          const endY = boundariesY[r + 1]!
+
+          const sourceX = startX + shave
+          const sourceY = startY + shave
+          const sourceW = endX - startX - shave * 2
+          const sourceH = endY - startY - shave * 2
 
           if (sourceW <= 0 || sourceH <= 0) continue
 
