@@ -132,7 +132,7 @@ const handleCtaClick = async () => {
   if (state.action === 'process') {
     await processSelected({
       quality: quality.value,
-      format: (outputFormat.value === 'original' ? undefined : outputFormat.value) as any,
+      format: (outputFormat.value === 'original' ? undefined : outputFormat.value) as any, // 暂用 any 避开复杂的引擎格式联合类型校验，后续应提取通用 Format 类型
       mode: compressionMode.value,
       maxSizeMB: compressionMode.value === 'target' ? targetSizeKB.value / 1024 : undefined,
       colors: outputFormat.value === 'image/png' ? pngColors.value : undefined,

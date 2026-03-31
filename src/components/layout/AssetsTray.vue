@@ -69,7 +69,7 @@ const handleWheel = (e: WheelEvent) => {
 
 const handleSortChange = () => {
   const modes = ['upload', 'name', 'status'] as const
-  const currentIndex = modes.indexOf(store.sortMode as any)
+  const currentIndex = modes.indexOf(store.sortMode)
   const nextMode = modes[(currentIndex + 1) % modes.length]
   if (nextMode) store.sortMode = nextMode
 }

@@ -75,7 +75,22 @@ const internalCrop = ref({ x: 0, y: 0, w: 100, h: 100 })
 const gridMode = ref<'none' | 'thirds' | 'golden' | 'cross'>('thirds')
 const trimPx = ref({ top: 0, bottom: 0, left: 0, right: 0 })
 
-const allSettings = computed({
+interface CropSettings {
+  rotation: number
+  flipH: boolean
+  flipV: boolean
+  currentRatio: number
+  outputQuality: number
+  outputFormat: string
+  preserveExif: boolean
+  customFillColor: string
+  isTransparent: boolean
+  internalCrop: { x: number; y: number; w: number; h: number }
+  gridMode: 'none' | 'thirds' | 'golden' | 'cross'
+  trimPx: { top: number; bottom: number; left: number; right: number }
+}
+
+const allSettings = computed<CropSettings>({
   get: () => ({
     rotation: rotation.value,
     flipH: flipH.value,
@@ -202,7 +217,14 @@ const handlePxInputChange = (key: 'x' | 'y' | 'w' | 'h', val: number) => {
   pxCoords.value = newCoords
 }
 
-const onCropChange = (data: any) => {
+const onCropChange = (data: {
+  x: number
+  y: number
+  w: number
+  h: number
+  isDragging: boolean
+  isSnapping: boolean
+}) => {
   // 核心优化：仅在拖拽开始和结束时记录
   if (data.isDragging && !isDragging.value) {
     recordImmediate() // 记录动作前的原始状态
