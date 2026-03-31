@@ -5,6 +5,7 @@ import type { ImageProcessor, MultiImageProcessor, ProcessResult } from '../lib/
 export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImageProcessor<T>) {
   const store = useImageStore()
   const isProcessing = ref(false)
+  const progress = ref(0)
 
   const processSingle = async (id: string, options: T) => {
     const item = store.images.find((img) => img.id === id)
@@ -12,11 +13,15 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
 
     const abortController = new AbortController()
     store.updateImage(id, { status: 'processing', abortController })
+    progress.value = 0
 
     try {
       const result = await (processor as ImageProcessor<T>)(item.file, {
         ...options,
-        signal: abortController.signal
+        signal: abortController.signal,
+        onProgress: (p: number) => {
+          progress.value = p
+        }
       })
 
       // 智能识别返回结果：可能是单个 Blob，也可能是 Blob[]，或者是包含这些属性的对象
@@ -119,6 +124,7 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
 
   return {
     isProcessing,
+    progress,
     processSingle,
     processAll,
     processSelected,

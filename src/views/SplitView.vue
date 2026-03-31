@@ -11,7 +11,16 @@ import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import AppSlider from '../components/common/AppSlider.vue'
 import AppExportSettings from '../components/common/AppExportSettings.vue'
-import { Scissors, Grid3X3, Layers, Box, AlignCenter, Trash2, Download } from 'lucide-vue-next'
+import {
+  Scissors,
+  Grid3X3,
+  Layers,
+  Box,
+  AlignCenter,
+  Trash2,
+  Download,
+  RotateCcw
+} from 'lucide-vue-next'
 import { splitEngine } from '../lib/engines/splitEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useResizeObserver } from '@vueuse/core'
@@ -23,6 +32,12 @@ const store = useImageStore()
 const { downloadImage } = useFileHelpers()
 const { isMobile } = useBreakpoints()
 
+interface ViewSettings {
+  lineWidth: number
+  lineColor: 'white' | 'primary' | 'blue' | 'red'
+  lineOpacity: number
+}
+
 // 状态
 const rows = ref(3)
 const cols = ref(3)
@@ -31,9 +46,31 @@ const shave = ref(0)
 const outputFormat = ref<string>('original')
 const outputQuality = ref(0.9)
 
+const viewSettings = ref<ViewSettings>({
+  lineWidth: 1.5,
+  lineColor: 'white',
+  lineOpacity: 0.95
+})
+
+const colorOptions = [
+  { value: 'white', label: '高亮白 (默认)', color: '#ffffff' },
+  { value: 'primary', label: '品牌主色', color: 'primary' },
+  { value: 'blue', label: '科技蓝', color: '#3b82f6' },
+  { value: 'red', label: '警示红', color: '#ef4444' }
+] as const
+
+const resetViewSettings = () => {
+  viewSettings.value = {
+    lineWidth: 1.5,
+    lineColor: 'white',
+    lineOpacity: 0.95
+  }
+  srMessage.value = '已恢复默认视图设置'
+}
+
 let lastLoadId = 0
 
-const { isProcessing, processSingle } = useImageProcessor(splitEngine)
+const { isProcessing, progress, processSingle } = useImageProcessor(splitEngine)
 const selectedImage = computed(() => store.activeImage)
 
 // 使用通用 Canvas 逻辑
@@ -62,12 +99,17 @@ let cachedPrimaryColor = 'hsl(215, 100%, 50%)' // 默认值
 
 let isDrawingRaf = false
 
+let themeObserver: MutationObserver | null = null
+
 const updateThemeColor = () => {
-  const colorPrimary = getComputedStyle(document.documentElement)
-    .getPropertyValue('--primary')
-    .trim()
+  const root = document.documentElement
+  const colorPrimary = getComputedStyle(root).getPropertyValue('--primary').trim()
   if (colorPrimary) {
-    cachedPrimaryColor = `hsl(${colorPrimary})`
+    const newColor = colorPrimary.includes('hsl') ? colorPrimary : `hsl(${colorPrimary})`
+    if (newColor !== cachedPrimaryColor) {
+      cachedPrimaryColor = newColor
+      requestDraw()
+    }
   }
 }
 
@@ -87,6 +129,8 @@ const updateCachedImage = () => {
     offscreenCanvas.height = imgData.height!
     const octx = offscreenCanvas.getContext('2d')
     octx?.drawImage(img, 0, 0)
+
+    updateThemeColor()
     requestDraw()
     nextTick(resetView)
   }
@@ -98,6 +142,7 @@ const draw = () => {
   const img = selectedImage.value
   const scale = workspaceRef.value?.scale || 1
   if (!canvas || !ctx || !offscreenCanvas || !img) return
+
   canvas.width = img.width!
   canvas.height = img.height!
   ctx.clearRect(0, 0, img.width!, img.height!)
@@ -112,25 +157,13 @@ const draw = () => {
   ) => {
     ctx.save()
     const activeColor = cachedPrimaryColor
+    const isActive = isHovered || isDragging || isSelected
+    const { lineWidth, lineColor, lineOpacity } = viewSettings.value
 
-    // 辅助阴影
+    // 1. 绘制底层：高对比度黑边 (确保在浅色背景可见)
     ctx.beginPath()
-    ctx.lineWidth = (isHovered || isDragging || isSelected ? 3 : 2) / scale
-    ctx.strokeStyle = 'rgba(0,0,0,0.3)'
-    if (isVertical) {
-      ctx.moveTo(pos + 1 / scale, 0)
-      ctx.lineTo(pos + 1 / scale, img.height!)
-    } else {
-      ctx.moveTo(0, pos + 1 / scale)
-      ctx.lineTo(img.width!, pos + 1 / scale)
-    }
-    ctx.stroke()
-
-    // 主线条
-    ctx.beginPath()
-    ctx.lineWidth = (isHovered || isDragging ? 2.5 : isSelected ? 3 : 1.5) / scale
-    ctx.strokeStyle =
-      isDragging || isSelected ? activeColor : isHovered ? activeColor : 'rgba(255,255,255,0.8)'
+    ctx.lineWidth = (isActive ? lineWidth * 2.5 : lineWidth * 2) / scale
+    ctx.strokeStyle = `rgba(0, 0, 0, ${lineOpacity * 0.4})`
 
     if (isVertical) {
       ctx.moveTo(pos, 0)
@@ -139,12 +172,40 @@ const draw = () => {
       ctx.moveTo(0, pos)
       ctx.lineTo(img.width!, pos)
     }
+    ctx.stroke()
 
-    if (isHovered || isDragging || isSelected) {
-      ctx.shadowBlur = 12 / scale
-      ctx.shadowColor = activeColor
+    // 2. 绘制顶层：核心线
+    ctx.beginPath()
+    ctx.lineWidth = (isActive ? lineWidth * 1.5 : lineWidth) / scale
+
+    // 颜色映射逻辑
+    let coreColor = 'rgba(255, 255, 255, 0.95)'
+    if (isActive) {
+      coreColor = activeColor
+    } else {
+      if (lineColor === 'primary') coreColor = activeColor
+      else if (lineColor === 'blue') coreColor = '#3b82f6'
+      else if (lineColor === 'red') coreColor = '#ef4444'
+      else coreColor = `rgba(255, 255, 255, ${lineOpacity})`
+    }
+
+    ctx.strokeStyle = coreColor
+
+    // 激活态增加外发光
+    if (isActive) {
+      ctx.shadowBlur = 10 / scale
+      ctx.shadowColor = isDragging || isSelected ? activeColor : 'rgba(0, 0, 0, 0.5)'
+    }
+
+    if (isVertical) {
+      ctx.moveTo(pos, 0)
+      ctx.lineTo(pos, img.height!)
+    } else {
+      ctx.moveTo(0, pos)
+      ctx.lineTo(img.width!, pos)
     }
     ctx.stroke()
+
     ctx.restore()
   }
 
@@ -189,13 +250,18 @@ const requestDraw = () => {
   }
 }
 
-// 监听绘制相关的状态
+// 监听绘制相关的状态 (细化监听以提升性能)
 watch(
   [rows, cols, editMode, linesX, linesY, hoveredLine, draggingLine, selectedLine],
   requestDraw,
-  {
-    deep: true
-  }
+  { deep: true }
+)
+
+// 【优化】：针对视图设置单独监听，不再使用 deep: true
+watch(
+  () => ({ ...viewSettings.value }),
+  () => requestDraw(),
+  { deep: false }
 )
 
 const resetView = () => {
@@ -223,6 +289,18 @@ const handleKeyDown = (e: KeyboardEvent) => {
   if (!selectedLine.value || !selectedImage.value) return
 
   const { axis, index } = selectedLine.value
+
+  // 【新】：支持 Delete/Backspace 删除选中的线
+  if (e.key === 'Delete' || e.key === 'Backspace') {
+    if (axis === 'x') linesX.value.splice(index, 1)
+    else linesY.value.splice(index, 1)
+    srMessage.value = `已通过键盘删除第 ${index + 1} 条${axis === 'x' ? '垂直' : '水平'}线`
+    selectedLine.value = null
+    saveMeta()
+    e.preventDefault()
+    return
+  }
+
   const step = e.shiftKey ? 10 : 1
   const max = axis === 'x' ? selectedImage.value.width! : selectedImage.value.height!
 
@@ -244,10 +322,23 @@ const handleKeyDown = (e: KeyboardEvent) => {
 onMounted(() => {
   updateThemeColor()
   window.addEventListener('keydown', handleKeyDown)
+
+  // 【极致性能优化】：被动观察主题变化，而非在渲染循环中轮询 DOM
+  themeObserver = new MutationObserver(() => {
+    updateThemeColor()
+  })
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class', 'style', 'data-theme']
+  })
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyDown)
+  if (themeObserver) {
+    themeObserver.disconnect()
+    themeObserver = null
+  }
 })
 
 watch(() => selectedImage.value?.id, updateCachedImage, { immediate: true })
@@ -490,7 +581,9 @@ const ctaState = computed(() => {
   if (!img) return { text: '请选择图片', icon: Scissors, action: 'none', disabled: true }
 
   if (isProcessing.value) {
-    return { text: '渲染中...', icon: Scissors, action: 'none', disabled: true }
+    const progressText =
+      progress.value > 0 ? `渲染中 ${Math.round(progress.value * 100)}%` : '渲染中...'
+    return { text: progressText, icon: Scissors, action: 'none', disabled: true }
   }
 
   if (img.status === 'done' && (img.processedBlob || img.processedBlobs) && !img.isDirty) {
@@ -545,6 +638,32 @@ const handleCtaClick = async () => {
         <template #default>
           <div class="relative shadow-2xl">
             <canvas ref="canvasRef" class="block rounded-sm" />
+
+            <!-- 【无障碍层】：物理焦点锚点 -->
+            <div class="absolute inset-0 pointer-events-none overflow-hidden">
+              <!-- 垂直线焦点 -->
+              <button
+                v-for="(lx, i) in linesX"
+                :key="`focus-x-${i}`"
+                class="absolute top-0 bottom-0 w-4 -ml-2 pointer-events-auto opacity-0 focus:opacity-100 focus:bg-primary/20 focus:ring-2 focus:ring-primary/40 focus:outline-none transition-all z-20 cursor-col-resize"
+                :style="{ left: `${lx}px` }"
+                tabindex="0"
+                @focus="selectedLine = { axis: 'x', index: i }"
+                @blur="selectedLine = null"
+                :aria-label="`垂直切分线 ${i + 1}，当前位置 ${Math.round(lx)} 像素`"
+              />
+              <!-- 水平线焦点 -->
+              <button
+                v-for="(ly, i) in linesY"
+                :key="`focus-y-${i}`"
+                class="absolute left-0 right-0 h-4 -mt-2 pointer-events-auto opacity-0 focus:opacity-100 focus:bg-primary/20 focus:ring-2 focus:ring-primary/40 focus:outline-none transition-all z-20 cursor-row-resize"
+                :style="{ top: `${ly}px` }"
+                tabindex="0"
+                @focus="selectedLine = { axis: 'y', index: i }"
+                @blur="selectedLine = null"
+                :aria-label="`水平切分线 ${i + 1}，当前位置 ${Math.round(ly)} 像素`"
+              />
+            </div>
           </div>
         </template>
 
@@ -609,7 +728,7 @@ const handleCtaClick = async () => {
             <div class="grid grid-cols-2 gap-2.5">
               <button
                 @click="activeAxis = 'x'"
-                class="py-2.5 rounded-xl border-2 transition-all font-bold text-xs"
+                class="py-2.5 rounded-xl border-2 transition-all font-bold text-xs active:scale-95"
                 :class="
                   activeAxis === 'x'
                     ? 'bg-primary border-primary text-white shadow-md'
@@ -620,7 +739,7 @@ const handleCtaClick = async () => {
               </button>
               <button
                 @click="activeAxis = 'y'"
-                class="py-2.5 rounded-xl border-2 transition-all font-bold text-xs"
+                class="py-2.5 rounded-xl border-2 transition-all font-bold text-xs active:scale-95"
                 :class="
                   activeAxis === 'y'
                     ? 'bg-primary border-primary text-white shadow-md'
@@ -633,14 +752,14 @@ const handleCtaClick = async () => {
             <div class="flex gap-2">
               <button
                 @click="handleResetToGrid"
-                class="flex-1 py-2.5 rounded-xl border border-border/40 bg-muted/5 hover:bg-primary/5 hover:border-primary/40 transition-all text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 text-muted-foreground/60"
-                title="根据左侧滑块数值重置线条"
+                class="flex-1 py-2.5 rounded-xl border border-border/40 bg-muted/5 hover:bg-primary/5 hover:border-primary/40 active:scale-95 transition-all text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 text-muted-foreground/60"
+                title="根据网格设置数值重置线条"
               >
                 <Grid3X3 :size="13" /> 同步网格
               </button>
               <button
                 @click="clearLines"
-                class="flex-1 py-2.5 rounded-xl border border-border/40 bg-muted/5 hover:bg-destructive/5 hover:border-destructive hover:text-destructive transition-all text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 text-muted-foreground/60"
+                class="flex-1 py-2.5 rounded-xl border border-border/40 bg-muted/5 hover:bg-destructive/5 hover:border-destructive hover:text-destructive active:scale-95 transition-all text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 text-muted-foreground/60"
               >
                 <Trash2 :size="13" /> 全部清空
               </button>
@@ -648,6 +767,81 @@ const handleCtaClick = async () => {
           </div>
         </div>
       </section>
+
+      <section class="space-y-5">
+        <div class="flex items-center justify-between pr-1">
+          <AppSectionHeader title="视图设置" :icon="Box" />
+          <button
+            @click="resetViewSettings"
+            class="p-1.5 rounded-lg hover:bg-muted/40 text-muted-foreground/40 hover:text-primary active:scale-90 transition-all"
+            title="恢复默认视图"
+          >
+            <RotateCcw :size="14" />
+          </button>
+        </div>
+        <div class="space-y-4 px-1">
+          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-6">
+            <div class="space-y-1">
+              <div class="flex justify-between items-center px-1">
+                <span class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider"
+                  >线宽 (px)</span
+                >
+                <span class="text-xs font-mono font-bold text-primary">{{
+                  viewSettings.lineWidth
+                }}</span>
+              </div>
+              <AppSlider v-model="viewSettings.lineWidth" :min="0.5" :max="5" :step="0.1" />
+            </div>
+
+            <div class="space-y-3">
+              <span
+                class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block px-1"
+                >线条颜色</span
+              >
+              <div class="grid grid-cols-4 gap-2">
+                <button
+                  v-for="c in ['white', 'primary', 'blue', 'red']"
+                  :key="c"
+                  @click="viewSettings.lineColor = c"
+                  class="h-8 rounded-lg border-2 transition-all flex items-center justify-center"
+                  :class="
+                    viewSettings.lineColor === c
+                      ? 'border-primary ring-2 ring-primary/20'
+                      : 'border-transparent bg-muted/20 hover:bg-muted/40'
+                  "
+                >
+                  <div
+                    class="w-4 h-4 rounded-full border border-black/10"
+                    :style="{
+                      backgroundColor:
+                        c === 'primary'
+                          ? cachedPrimaryColor
+                          : c === 'blue'
+                            ? '#3b82f6'
+                            : c === 'red'
+                              ? '#ef4444'
+                              : '#ffffff'
+                    }"
+                  ></div>
+                </button>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between items-center px-1">
+                <span class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider"
+                  >不透明度</span
+                >
+                <span class="text-xs font-mono font-bold text-primary"
+                  >{{ Math.round(viewSettings.lineOpacity * 100) }}%</span
+                >
+              </div>
+              <AppSlider v-model="viewSettings.lineOpacity" :min="0.1" :max="1" :step="0.05" />
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="space-y-5">
         <AppSectionHeader title="增强处理" :icon="Layers" />
         <div class="space-y-4 px-1">

@@ -1,15 +1,4 @@
-import type { ImageProcessor, ProcessResult } from './types'
-
-export interface SplitOptions {
-  rows: number
-  cols: number
-  mode: 'grid' | 'custom'
-  customLines?: { x: number[]; y: number[] }
-  centerMode?: 'none' | 'center' | 'square'
-  shave?: number
-  format?: string
-  quality?: number
-}
+import type { ImageProcessor, ProcessResult, SplitOptions } from './types'
 
 /**
  * 智能切图引擎 (Web Canvas 版)
@@ -30,7 +19,8 @@ export const splitEngine: ImageProcessor<SplitOptions> = async (file, options) =
         centerMode = 'none',
         shave = 0,
         format = file.type,
-        quality = 0.9
+        quality = 0.9,
+        onProgress
       } = options
 
       // 计算切分边界
@@ -49,9 +39,18 @@ export const splitEngine: ImageProcessor<SplitOptions> = async (file, options) =
 
       const actualRows = boundariesY.length - 1
       const actualCols = boundariesX.length - 1
+      let processedCount = 0
 
       for (let r = 0; r < actualRows; r++) {
         for (let c = 0; c < actualCols; c++) {
+          processedCount++
+          if (processedCount % 10 === 0) {
+            await new Promise((res) => setTimeout(res, 0))
+          }
+
+          // 上报进度 (0 to 1)
+          onProgress?.(processedCount / (actualRows * actualCols))
+
           const canvas = document.createElement('canvas')
           const ctx = canvas.getContext('2d')
           if (!ctx) continue
@@ -148,8 +147,13 @@ function getContentBounds(ctx: CanvasRenderingContext2D, bgPixel: Uint8ClampedAr
     maxX = 0,
     maxY = 0
   const threshold = 30
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
+
+  // 【优化】：分级扫描策略
+  // 第一步：粗略扫描 (步长为 4)，确定初步边界
+  const step = width * height > 1000000 ? 4 : 1 // 超过 100万像素时启用跳行扫描
+
+  for (let y = 0; y < height; y += step) {
+    for (let x = 0; x < width; x += step) {
       const i = (y * width + x) * 4
       const rDiff = Math.abs((data[i] ?? 0) - (bgPixel[0] ?? 0))
       const gDiff = Math.abs((data[i + 1] ?? 0) - (bgPixel[1] ?? 0))
@@ -162,6 +166,15 @@ function getContentBounds(ctx: CanvasRenderingContext2D, bgPixel: Uint8ClampedAr
       }
     }
   }
+
+  // 第二步：如果初步边界有效，在其周边进行精细微调 (仅当 step > 1 时)
+  if (step > 1 && maxX >= minX) {
+    minX = Math.max(0, minX - step)
+    minY = Math.max(0, minY - step)
+    maxX = Math.min(width - 1, maxX + step)
+    maxY = Math.min(height - 1, maxY + step)
+  }
+
   if (maxX < minX || maxY < minY) return null
   return { x: minX, y: minY, width: maxX - minX + 1, height: maxY - minY + 1 }
 }

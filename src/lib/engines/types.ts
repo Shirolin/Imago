@@ -9,7 +9,19 @@ export interface ProcessResult {
 
 export interface ProcessingOptions {
   signal?: AbortSignal
+  onProgress?: (progress: number) => void // 0 to 1
   [key: string]: unknown
+}
+
+export interface SplitOptions {
+  rows: number
+  cols: number
+  mode: 'grid' | 'custom'
+  customLines?: { x: number[]; y: number[] }
+  centerMode?: 'none' | 'center' | 'square'
+  shave?: number
+  format?: string
+  quality?: number
 }
 
 export type ImageProcessor<T = unknown> = (
