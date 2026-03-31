@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useImageStore } from '../stores/imageStore'
 import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
@@ -31,6 +31,8 @@ const shave = ref(0)
 const outputFormat = ref<string>('original')
 const outputQuality = ref(0.9)
 
+let lastLoadId = 0
+
 const { isProcessing, processSingle } = useImageProcessor(splitEngine)
 const selectedImage = computed(() => store.activeImage)
 
@@ -45,6 +47,8 @@ const editMode = ref<'grid' | 'custom'>('grid')
 const activeAxis = ref<'x' | 'y'>('x')
 const draggingLine = ref<{ axis: 'x' | 'y'; index: number } | null>(null)
 const hoveredLine = ref<{ axis: 'x' | 'y'; index: number } | null>(null)
+// 【新】：选中的线，用于键盘操作
+const selectedLine = ref<{ axis: 'x' | 'y'; index: number } | null>(null)
 const isAltPressed = ref(false)
 
 const linesX = ref<number[]>([])
@@ -54,8 +58,18 @@ const linesY = ref<number[]>([])
 const srMessage = ref('')
 
 let offscreenCanvas: HTMLCanvasElement | null = null
+let cachedPrimaryColor = 'hsl(215, 100%, 50%)' // 默认值
 
 let isDrawingRaf = false
+
+const updateThemeColor = () => {
+  const colorPrimary = getComputedStyle(document.documentElement)
+    .getPropertyValue('--primary')
+    .trim()
+  if (colorPrimary) {
+    cachedPrimaryColor = `hsl(${colorPrimary})`
+  }
+}
 
 const updateCachedImage = () => {
   const imgData = selectedImage.value
@@ -63,9 +77,11 @@ const updateCachedImage = () => {
     offscreenCanvas = null
     return
   }
+  const loadId = ++lastLoadId
   const img = new Image()
   img.src = imgData.preview
   img.onload = () => {
+    if (loadId !== lastLoadId) return
     offscreenCanvas = document.createElement('canvas')
     offscreenCanvas.width = imgData.width!
     offscreenCanvas.height = imgData.height!
@@ -91,17 +107,15 @@ const draw = () => {
     pos: number,
     isVertical: boolean,
     isHovered: boolean,
-    isDragging: boolean
+    isDragging: boolean,
+    isSelected: boolean
   ) => {
     ctx.save()
-    const colorPrimary = getComputedStyle(document.documentElement)
-      .getPropertyValue('--primary')
-      .trim()
-    const activeColor = `hsl(${colorPrimary})`
+    const activeColor = cachedPrimaryColor
 
     // 辅助阴影
     ctx.beginPath()
-    ctx.lineWidth = (isHovered || isDragging ? 3 : 2) / scale
+    ctx.lineWidth = (isHovered || isDragging || isSelected ? 3 : 2) / scale
     ctx.strokeStyle = 'rgba(0,0,0,0.3)'
     if (isVertical) {
       ctx.moveTo(pos + 1 / scale, 0)
@@ -114,8 +128,9 @@ const draw = () => {
 
     // 主线条
     ctx.beginPath()
-    ctx.lineWidth = (isHovered || isDragging ? 2.5 : 1.5) / scale
-    ctx.strokeStyle = isDragging ? activeColor : isHovered ? activeColor : 'rgba(255,255,255,0.8)'
+    ctx.lineWidth = (isHovered || isDragging ? 2.5 : isSelected ? 3 : 1.5) / scale
+    ctx.strokeStyle =
+      isDragging || isSelected ? activeColor : isHovered ? activeColor : 'rgba(255,255,255,0.8)'
 
     if (isVertical) {
       ctx.moveTo(pos, 0)
@@ -125,7 +140,7 @@ const draw = () => {
       ctx.lineTo(img.width!, pos)
     }
 
-    if (isHovered || isDragging) {
+    if (isHovered || isDragging || isSelected) {
       ctx.shadowBlur = 12 / scale
       ctx.shadowColor = activeColor
     }
@@ -136,10 +151,10 @@ const draw = () => {
   // 绘制网格线 (均分模式)
   if (editMode.value === 'grid') {
     for (let i = 1; i < cols.value; i++) {
-      drawStylizedLine((img.width! / cols.value) * i, true, false, false)
+      drawStylizedLine((img.width! / cols.value) * i, true, false, false, false)
     }
     for (let i = 1; i < rows.value; i++) {
-      drawStylizedLine((img.height! / rows.value) * i, false, false, false)
+      drawStylizedLine((img.height! / rows.value) * i, false, false, false, false)
     }
   } else {
     // 绘制自定义线 (自由模式)
@@ -148,7 +163,8 @@ const draw = () => {
         lx,
         true,
         hoveredLine.value?.axis === 'x' && hoveredLine.value.index === i,
-        draggingLine.value?.axis === 'x' && draggingLine.value.index === i
+        draggingLine.value?.axis === 'x' && draggingLine.value.index === i,
+        selectedLine.value?.axis === 'x' && selectedLine.value.index === i
       )
     )
     linesY.value.forEach((ly, i) =>
@@ -156,7 +172,8 @@ const draw = () => {
         ly,
         false,
         hoveredLine.value?.axis === 'y' && hoveredLine.value.index === i,
-        draggingLine.value?.axis === 'y' && draggingLine.value.index === i
+        draggingLine.value?.axis === 'y' && draggingLine.value.index === i,
+        selectedLine.value?.axis === 'y' && selectedLine.value.index === i
       )
     )
   }
@@ -173,9 +190,13 @@ const requestDraw = () => {
 }
 
 // 监听绘制相关的状态
-watch([rows, cols, editMode, linesX, linesY, hoveredLine, draggingLine], requestDraw, {
-  deep: true
-})
+watch(
+  [rows, cols, editMode, linesX, linesY, hoveredLine, draggingLine, selectedLine],
+  requestDraw,
+  {
+    deep: true
+  }
+)
 
 const resetView = () => {
   const img = selectedImage.value
@@ -198,6 +219,37 @@ const saveMeta = () => {
   }
 }
 
+const handleKeyDown = (e: KeyboardEvent) => {
+  if (!selectedLine.value || !selectedImage.value) return
+
+  const { axis, index } = selectedLine.value
+  const step = e.shiftKey ? 10 : 1
+  const max = axis === 'x' ? selectedImage.value.width! : selectedImage.value.height!
+
+  if (axis === 'x') {
+    if (e.key === 'ArrowLeft') linesX.value[index] = Math.max(0, linesX.value[index]! - step)
+    else if (e.key === 'ArrowRight')
+      linesX.value[index] = Math.min(max, linesX.value[index]! + step)
+    else return
+  } else {
+    if (e.key === 'ArrowUp') linesY.value[index] = Math.max(0, linesY.value[index]! - step)
+    else if (e.key === 'ArrowDown') linesY.value[index] = Math.min(max, linesY.value[index]! + step)
+    else return
+  }
+
+  e.preventDefault()
+  saveMeta()
+}
+
+onMounted(() => {
+  updateThemeColor()
+  window.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown)
+})
+
 watch(() => selectedImage.value?.id, updateCachedImage, { immediate: true })
 watch(
   () => selectedImage.value?.id,
@@ -216,6 +268,7 @@ watch(
       linesX.value = []
       linesY.value = []
     }
+    selectedLine.value = null
     nextTick(resetView)
   },
   { immediate: true }
@@ -251,38 +304,49 @@ const handlePointerDown = (e: PointerEvent) => {
   const img = selectedImage.value
   if (!img) return
 
-  // 【核心增强】：如果是 Grid 模式且悬停在线上，先执行转换
-  if (editMode.value === 'grid' && hoveredLine.value) {
-    // 将网格转换为真实的坐标点
-    const newLinesX: number[] = []
-    const newLinesY: number[] = []
-    for (let i = 1; i < cols.value; i++) newLinesX.push((img.width! / cols.value) * i)
-    for (let i = 1; i < rows.value; i++) newLinesY.push((img.height! / rows.value) * i)
+  // 【优化】：检测点击。移动端增加判定范围（24px），桌面端保持 12px
+  const scale = workspaceRef.value?.scale || 1
+  const hitThreshold = (e.pointerType === 'touch' ? 24 : 12) / scale
+  const pos = getLogicPos(e)
 
-    linesX.value = newLinesX
-    linesY.value = newLinesY
-    editMode.value = 'custom'
-    srMessage.value = '已自动切换至自由编辑模式'
-    // 继续执行后续的 draggingLine 逻辑
-  }
-
+  // 无论在什么模式，只要点中了线，就准备拖拽
   if (hoveredLine.value) {
+    // 如果是在 Grid 模式点中的，先执行转换
+    if (editMode.value === 'grid') {
+      const newLinesX: number[] = []
+      const newLinesY: number[] = []
+      for (let i = 1; i < cols.value; i++) newLinesX.push((img.width! / cols.value) * i)
+      for (let i = 1; i < rows.value; i++) newLinesY.push((img.height! / rows.value) * i)
+      linesX.value = newLinesX
+      linesY.value = newLinesY
+      editMode.value = 'custom'
+      srMessage.value = '已切换至自由编辑模式'
+    }
     draggingLine.value = { ...hoveredLine.value }
+    selectedLine.value = { ...hoveredLine.value } // 选中线以支持键盘操作
     return
   }
 
+  // 没点中线，取消选中
+  selectedLine.value = null
+
   if (editMode.value === 'custom') {
-    const pos = getLogicPos(e)
     if (activeAxis.value === 'x') {
       const snappedX = snapLine(pos.x, 'x')
       linesX.value.push(snappedX)
       linesX.value.sort((a, b) => a - b)
       srMessage.value = `已在垂直方向 ${Math.round(snappedX)} 像素处添加切分线`
+      // 自动选中新添加的线
+      const newIndex = linesX.value.indexOf(snappedX)
+      selectedLine.value = { axis: 'x', index: newIndex }
     } else {
       const snappedY = snapLine(pos.y, 'y')
       linesY.value.push(snappedY)
       linesY.value.sort((a, b) => a - b)
       srMessage.value = `已在水平方向 ${Math.round(snappedY)} 像素处添加切分线`
+      // 自动选中新添加的线
+      const newIndex = linesY.value.indexOf(snappedY)
+      selectedLine.value = { axis: 'y', index: newIndex }
     }
     saveMeta()
   }
@@ -304,7 +368,8 @@ const handlePointerMove = (e: PointerEvent) => {
   }
 
   const scale = workspaceRef.value?.scale || 1
-  const threshold = 12 / scale
+  // 【优化】：移动端判定半径扩大
+  const threshold = (e.pointerType === 'touch' ? 20 : 12) / scale
   const img = selectedImage.value
   let found = false
 
@@ -373,6 +438,19 @@ const handlePointerUp = (e: PointerEvent) => {
     draggingLine.value = null
     saveMeta()
   }
+}
+
+const handleResetToGrid = () => {
+  const img = selectedImage.value
+  if (!img) return
+  const newLinesX: number[] = []
+  const newLinesY: number[] = []
+  for (let i = 1; i < cols.value; i++) newLinesX.push((img.width! / cols.value) * i)
+  for (let i = 1; i < rows.value; i++) newLinesY.push((img.height! / rows.value) * i)
+  linesX.value = newLinesX
+  linesY.value = newLinesY
+  srMessage.value = '已根据当前网格重置线条位置'
+  saveMeta()
 }
 
 const clearLines = () => {
@@ -552,12 +630,21 @@ const handleCtaClick = async () => {
                 水平线
               </button>
             </div>
-            <button
-              @click="clearLines"
-              class="w-full py-2.5 rounded-xl border border-border/40 bg-muted/5 hover:bg-destructive/5 hover:border-destructive hover:text-destructive transition-all text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 text-muted-foreground/60"
-            >
-              <Trash2 :size="13" /> 清空所有线
-            </button>
+            <div class="flex gap-2">
+              <button
+                @click="handleResetToGrid"
+                class="flex-1 py-2.5 rounded-xl border border-border/40 bg-muted/5 hover:bg-primary/5 hover:border-primary/40 transition-all text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 text-muted-foreground/60"
+                title="根据左侧滑块数值重置线条"
+              >
+                <Grid3X3 :size="13" /> 同步网格
+              </button>
+              <button
+                @click="clearLines"
+                class="flex-1 py-2.5 rounded-xl border border-border/40 bg-muted/5 hover:bg-destructive/5 hover:border-destructive hover:text-destructive transition-all text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 text-muted-foreground/60"
+              >
+                <Trash2 :size="13" /> 全部清空
+              </button>
+            </div>
           </div>
         </div>
       </section>

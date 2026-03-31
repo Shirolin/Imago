@@ -113,14 +113,22 @@ export const splitEngine: ImageProcessor<SplitOptions> = async (file, options) =
             ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, 0, 0, sourceW, sourceH)
           }
 
-          const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, format, quality))
+          const blob = await new Promise<Blob | null>((res) => {
+            try {
+              canvas.toBlob((b) => res(b), format, quality)
+            } catch (e) {
+              res(null)
+            }
+          })
           if (blob) results.push(blob)
+          // 清理 Canvas 尺寸以释放显存
+          canvas.width = canvas.height = 0
         }
       }
       resolve({
         blobs: results,
         size: results.reduce((acc, b) => acc + b.size, 0)
-      }) // 强制适配 ProcessResult 联合类型
+      })
     }
 
     img.onerror = () => {
