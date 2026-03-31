@@ -6,12 +6,23 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
   const store = useImageStore()
   const isProcessing = ref(false)
   const progress = ref(0)
+  let currentController: AbortController | null = null
+
+  const abortProcessing = () => {
+    if (currentController) {
+      currentController.abort()
+      currentController = null
+      isProcessing.value = false
+      progress.value = 0
+    }
+  }
 
   const processSingle = async (id: string, options: T) => {
     const item = store.images.find((img) => img.id === id)
     if (!item) return
 
     const abortController = new AbortController()
+    currentController = abortController
     store.updateImage(id, { status: 'processing', abortController })
     progress.value = 0
 
@@ -52,10 +63,19 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
         abortController: undefined,
         isDirty: false
       })
+      currentController = null
+      progress.value = 0
       return result
     } catch (error) {
+      progress.value = 0
+      currentController = null
       const err = error as Error
-      if (err.name === 'AbortError' || err.message?.includes('abort')) {
+      if (
+        err.name === 'AbortError' ||
+        err.message?.includes('AbortError') ||
+        err.message?.includes('abort')
+      ) {
+        store.updateImage(id, { status: 'idle', abortController: undefined })
         return
       }
       console.error('Processing failed for image:', id, error)
@@ -71,6 +91,7 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
     isProcessing.value = true
     const files = store.images.map((img) => img.file)
     const abortController = new AbortController()
+    currentController = abortController
 
     try {
       const result = await (processor as MultiImageProcessor<T>)(files, {
@@ -78,9 +99,11 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
         signal: abortController.signal
       })
       isProcessing.value = false
+      currentController = null
       return result
     } catch (error) {
       isProcessing.value = false
+      currentController = null
       console.error('Combine failed:', error)
       throw error
     }
@@ -128,6 +151,7 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
     processSingle,
     processAll,
     processSelected,
-    processCombine
+    processCombine,
+    abortProcessing
   }
 }

@@ -22,6 +22,7 @@ import {
   RotateCcw
 } from 'lucide-vue-next'
 import { splitEngine } from '../lib/engines/splitEngine'
+import type { ViewSettings } from '../lib/engines/types'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useResizeObserver } from '@vueuse/core'
 import { useBreakpoints } from '../composables/useBreakpoints'
@@ -31,12 +32,6 @@ import InspectorFooter from '../components/layout/InspectorFooter.vue'
 const store = useImageStore()
 const { downloadImage } = useFileHelpers()
 const { isMobile } = useBreakpoints()
-
-interface ViewSettings {
-  lineWidth: number
-  lineColor: 'white' | 'primary' | 'blue' | 'red'
-  lineOpacity: number
-}
 
 // 状态
 const rows = ref(3)
@@ -68,10 +63,33 @@ const resetViewSettings = () => {
   srMessage.value = '已恢复默认视图设置'
 }
 
+const handleColorKeydown = (e: KeyboardEvent) => {
+  const index = colorOptions.findIndex((c) => c.value === viewSettings.value.lineColor)
+  let nextIndex = index
+
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+    nextIndex = (index + 1) % colorOptions.length
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    nextIndex = (index - 1 + colorOptions.length) % colorOptions.length
+  } else {
+    return
+  }
+
+  e.preventDefault()
+  viewSettings.value.lineColor = colorOptions[nextIndex]!.value
+  // 自动将焦点移到新选中的按钮 (使用更稳健的专用属性选择器)
+  nextTick(() => {
+    const buttons = document.querySelectorAll('[data-color-option]')
+    ;(buttons[nextIndex] as HTMLElement)?.focus()
+  })
+}
+
 let lastLoadId = 0
 
-const { isProcessing, progress, processSingle } = useImageProcessor(splitEngine)
+const { isProcessing, progress, processSingle, abortProcessing } = useImageProcessor(splitEngine)
 const selectedImage = computed(() => store.activeImage)
+
+const isAborting = ref(false)
 
 // 使用通用 Canvas 逻辑
 const workspaceRef = ref<InstanceType<typeof AppCanvasWorkspace> | null>(null)
@@ -286,6 +304,8 @@ const saveMeta = () => {
 }
 
 const handleKeyDown = (e: KeyboardEvent) => {
+  const target = e.target as HTMLElement
+  if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
   if (!selectedLine.value || !selectedImage.value) return
 
   const { axis, index } = selectedLine.value
@@ -338,6 +358,11 @@ onUnmounted(() => {
   if (themeObserver) {
     themeObserver.disconnect()
     themeObserver = null
+  }
+  // 【性能优化】：显式释放离屏 Canvas 显存
+  if (offscreenCanvas) {
+    offscreenCanvas.width = offscreenCanvas.height = 0
+    offscreenCanvas = null
   }
 })
 
@@ -395,9 +420,6 @@ const handlePointerDown = (e: PointerEvent) => {
   const img = selectedImage.value
   if (!img) return
 
-  // 【优化】：检测点击。移动端增加判定范围（24px），桌面端保持 12px
-  const scale = workspaceRef.value?.scale || 1
-  const hitThreshold = (e.pointerType === 'touch' ? 24 : 12) / scale
   const pos = getLogicPos(e)
 
   // 无论在什么模式，只要点中了线，就准备拖拽
@@ -540,7 +562,7 @@ const handleResetToGrid = () => {
   for (let i = 1; i < rows.value; i++) newLinesY.push((img.height! / rows.value) * i)
   linesX.value = newLinesX
   linesY.value = newLinesY
-  srMessage.value = '已根据当前网格重置线条位置'
+  srMessage.value = '已根据网格设置数值重置线条位置'
   saveMeta()
 }
 
@@ -580,10 +602,19 @@ const ctaState = computed(() => {
   const img = selectedImage.value
   if (!img) return { text: '请选择图片', icon: Scissors, action: 'none', disabled: true }
 
+  if (isAborting.value) {
+    return { text: '已中止', icon: RotateCcw, action: 'none', disabled: true }
+  }
+
   if (isProcessing.value) {
     const progressText =
       progress.value > 0 ? `渲染中 ${Math.round(progress.value * 100)}%` : '渲染中...'
-    return { text: progressText, icon: Scissors, action: 'none', disabled: true }
+    return {
+      text: `${progressText} (点击中止)`,
+      icon: Trash2,
+      action: 'abort',
+      disabled: false
+    }
   }
 
   if (img.status === 'done' && (img.processedBlob || img.processedBlobs) && !img.isDirty) {
@@ -601,6 +632,16 @@ const ctaState = computed(() => {
 const handleCtaClick = async () => {
   const state = ctaState.value
   if (state.action === 'none') return
+
+  if (state.action === 'abort') {
+    isAborting.value = true
+    abortProcessing()
+    srMessage.value = '已中止渲染任务'
+    setTimeout(() => {
+      isAborting.value = false
+    }, 800)
+    return
+  }
 
   if (state.action === 'download') {
     const img = selectedImage.value
@@ -795,32 +836,37 @@ const handleCtaClick = async () => {
 
             <div class="space-y-3">
               <span
+                id="line-color-label"
                 class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block px-1"
                 >线条颜色</span
               >
-              <div class="grid grid-cols-4 gap-2">
+              <div
+                class="grid grid-cols-4 gap-2"
+                role="radiogroup"
+                aria-labelledby="line-color-label"
+                @keydown="handleColorKeydown"
+              >
                 <button
-                  v-for="c in ['white', 'primary', 'blue', 'red']"
-                  :key="c"
-                  @click="viewSettings.lineColor = c"
-                  class="h-8 rounded-lg border-2 transition-all flex items-center justify-center"
+                  v-for="c in colorOptions"
+                  :key="c.value"
+                  @click="viewSettings.lineColor = c.value"
+                  class="h-8 rounded-lg border-2 transition-all flex items-center justify-center focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background outline-none active:scale-95"
                   :class="
-                    viewSettings.lineColor === c
-                      ? 'border-primary ring-2 ring-primary/20'
+                    viewSettings.lineColor === c.value
+                      ? 'border-primary ring-2 ring-primary/20 shadow-sm'
                       : 'border-transparent bg-muted/20 hover:bg-muted/40'
                   "
+                  :title="c.label"
+                  role="radio"
+                  :aria-checked="viewSettings.lineColor === c.value"
+                  :aria-label="c.label"
+                  :tabindex="viewSettings.lineColor === c.value ? 0 : -1"
+                  data-color-option
                 >
                   <div
                     class="w-4 h-4 rounded-full border border-black/10"
                     :style="{
-                      backgroundColor:
-                        c === 'primary'
-                          ? cachedPrimaryColor
-                          : c === 'blue'
-                            ? '#3b82f6'
-                            : c === 'red'
-                              ? '#ef4444'
-                              : '#ffffff'
+                      backgroundColor: c.value === 'primary' ? cachedPrimaryColor : c.color
                     }"
                   ></div>
                 </button>

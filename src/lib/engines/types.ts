@@ -24,6 +24,12 @@ export interface SplitOptions {
   quality?: number
 }
 
+export interface ViewSettings {
+  lineWidth: number
+  lineColor: 'white' | 'primary' | 'blue' | 'red'
+  lineOpacity: number
+}
+
 export type ImageProcessor<T = unknown> = (
   file: File,
   options: T & ProcessingOptions

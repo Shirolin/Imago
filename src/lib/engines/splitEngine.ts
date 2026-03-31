@@ -43,6 +43,11 @@ export const splitEngine: ImageProcessor<SplitOptions> = async (file, options) =
 
       for (let r = 0; r < actualRows; r++) {
         for (let c = 0; c < actualCols; c++) {
+          // 【核心加固】：检查中止信号
+          if (options.signal?.aborted) {
+            throw new Error('AbortError')
+          }
+
           processedCount++
           if (processedCount % 10 === 0) {
             await new Promise((res) => setTimeout(res, 0))
@@ -115,10 +120,11 @@ export const splitEngine: ImageProcessor<SplitOptions> = async (file, options) =
           const blob = await new Promise<Blob | null>((res) => {
             try {
               canvas.toBlob((b) => res(b), format, quality)
-            } catch (e) {
+            } catch {
               res(null)
             }
           })
+
           if (blob) results.push(blob)
           // 清理 Canvas 尺寸以释放显存
           canvas.width = canvas.height = 0
