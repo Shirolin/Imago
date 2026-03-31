@@ -141,7 +141,7 @@ const handleFlipV = () => {
   recordImmediate()
   flipV.value = !flipV.value
 }
-const handleRatioChange = (val: any) => {
+const handleRatioChange = (val: number) => {
   if (currentRatio.value === val) return
   recordImmediate()
   currentRatio.value = val
