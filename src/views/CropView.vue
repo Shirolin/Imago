@@ -21,8 +21,6 @@ import {
   LayoutGrid,
   Link as LinkIcon,
   Unlink,
-  Pipette,
-  Palette,
   History,
   Download
 } from 'lucide-vue-next'
@@ -31,6 +29,7 @@ import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import AppInput from '../components/common/AppInput.vue'
+import AppColorPicker from '../components/common/AppColorPicker.vue'
 import { cropEngine } from '../lib/engines/cropEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useResizeObserver, useDebounceFn } from '@vueuse/core'
@@ -69,8 +68,7 @@ const currentRatio = ref<number>(0)
 const outputQuality = ref(0.92)
 const outputFormat = ref<string>('original')
 const preserveExif = ref(false)
-const customFillColor = ref('#ffffff')
-const isTransparent = ref(true)
+const fillColor = ref('transparent')
 const internalCrop = ref({ x: 0, y: 0, w: 100, h: 100 })
 const gridMode = ref<'none' | 'thirds' | 'golden' | 'cross'>('thirds')
 const trimPx = ref({ top: 0, bottom: 0, left: 0, right: 0 })
@@ -83,8 +81,7 @@ interface CropSettings {
   outputQuality: number
   outputFormat: string
   preserveExif: boolean
-  customFillColor: string
-  isTransparent: boolean
+  fillColor: string
   internalCrop: { x: number; y: number; w: number; h: number }
   gridMode: 'none' | 'thirds' | 'golden' | 'cross'
   trimPx: { top: number; bottom: number; left: number; right: number }
@@ -99,8 +96,7 @@ const allSettings = computed<CropSettings>({
     outputQuality: outputQuality.value,
     outputFormat: outputFormat.value,
     preserveExif: preserveExif.value,
-    customFillColor: customFillColor.value,
-    isTransparent: isTransparent.value,
+    fillColor: fillColor.value,
     internalCrop: { ...internalCrop.value },
     gridMode: gridMode.value,
     trimPx: { ...trimPx.value }
@@ -113,8 +109,7 @@ const allSettings = computed<CropSettings>({
     outputQuality.value = v.outputQuality
     outputFormat.value = v.outputFormat
     preserveExif.value = v.preserveExif
-    customFillColor.value = v.customFillColor
-    isTransparent.value = v.isTransparent
+    fillColor.value = v.fillColor
     internalCrop.value = { ...v.internalCrop }
     gridMode.value = v.gridMode
     trimPx.value = { ...v.trimPx }
@@ -153,20 +148,6 @@ const handleFillImage = () => {
   internalCrop.value = { x: 0, y: 0, w: 100, h: 100 }
 }
 
-const setFillColor = (color: string | 'transparent') => {
-  if (color === 'transparent' && isTransparent.value) return
-  if (color !== 'transparent' && !isTransparent.value && customFillColor.value === color) return
-
-  recordImmediate()
-  if (color === 'transparent') {
-    isTransparent.value = true
-  } else {
-    isTransparent.value = false
-    customFillColor.value = color
-  }
-}
-
-const finalFillColor = computed(() => (isTransparent.value ? 'transparent' : customFillColor.value))
 const isDragging = ref(false)
 const isSnapping = ref(false)
 
@@ -245,7 +226,7 @@ const handleReset = () => {
   currentRatio.value = 0
   internalCrop.value = { x: 0, y: 0, w: 100, h: 100 }
   trimPx.value = { top: 0, bottom: 0, left: 0, right: 0 }
-  isTransparent.value = true
+  fillColor.value = 'transparent'
   clearHistory()
   resetView()
 }
@@ -335,7 +316,7 @@ const handleCtaClick = async () => {
       rotation: rotation.value,
       flipH: flipH.value,
       flipV: flipV.value,
-      fillColor: finalFillColor.value,
+      fillColor: fillColor.value,
       trimPx: trimPx.value,
       format: outputFormat.value === 'original' ? undefined : outputFormat.value,
       quality: outputQuality.value,
@@ -343,16 +324,6 @@ const handleCtaClick = async () => {
     })
   }
 }
-
-// 亮度检测工具 (Polish: 确保对比度)
-const getBrightness = (hex: string) => {
-  const rgb = hex
-    .replace('#', '')
-    .match(/.{2}/g)
-    ?.map((x) => parseInt(x, 16)) || [255, 255, 255]
-  return (rgb[0]! * 299 + rgb[1]! * 587 + rgb[2]! * 114) / 1000
-}
-const isCustomColorLight = computed(() => getBrightness(customFillColor.value) > 180)
 
 const ratios = [
   { label: '自由', value: 0, icon: Scissors },
@@ -379,7 +350,7 @@ const ratios = [
               :aspect-ratio="currentRatio"
               v-model="internalCrop"
               :grid-mode="gridMode"
-              :fill-color="finalFillColor"
+              :fill-color="fillColor"
               :scale="scale"
               :rotation="rotation"
               :flip-h="flipH"
@@ -622,83 +593,9 @@ const ratios = [
 
       <!-- 第四分区：画布外观 (环境配置) -->
       <section class="space-y-4 pt-6 border-t border-border/40">
-        <AppSectionHeader title="画布外观" :icon="Palette" />
-        <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-3">
-          <div class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest">
-            背景填充色
-          </div>
-          <div class="flex items-center gap-3">
-            <button
-              @click="setFillColor('transparent')"
-              class="relative w-10 h-10 rounded-xl border-2 transition-all overflow-hidden hover:scale-110 active:scale-95 group shrink-0"
-              :class="
-                isTransparent
-                  ? 'border-primary ring-2 ring-primary/10'
-                  : 'border-border grayscale opacity-60'
-              "
-              title="透明背景"
-            >
-              <div class="absolute inset-0 transparency-grid"></div>
-            </button>
-
-            <button
-              @click="setFillColor('#ffffff')"
-              class="w-10 h-10 rounded-xl border-2 transition-all bg-white hover:scale-110 active:scale-95 shrink-0"
-              :class="
-                !isTransparent && customFillColor === '#ffffff'
-                  ? 'border-primary shadow-md'
-                  : 'border-border'
-              "
-              title="纯白填充"
-            ></button>
-
-            <button
-              @click="setFillColor('#000000')"
-              class="w-10 h-10 rounded-xl border-2 transition-all bg-black hover:scale-110 active:scale-95 shrink-0"
-              :class="
-                !isTransparent && customFillColor === '#000000'
-                  ? 'border-primary shadow-md'
-                  : 'border-border'
-              "
-              title="纯黑填充"
-            ></button>
-
-            <div class="relative w-10 h-10 group shrink-0">
-              <input
-                type="color"
-                v-model="customFillColor"
-                @input="isTransparent = false"
-                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-              />
-              <div
-                class="w-full h-full rounded-xl border-2 flex items-center justify-center transition-all group-hover:scale-110 active:scale-95 overflow-hidden"
-                :style="{
-                  background:
-                    !isTransparent && customFillColor !== '#ffffff' && customFillColor !== '#000000'
-                      ? customFillColor
-                      : 'conic-gradient(from 0deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)'
-                }"
-                :class="
-                  !isTransparent && customFillColor !== '#ffffff' && customFillColor !== '#000000'
-                    ? 'border-primary shadow-md'
-                    : 'border-border opacity-80'
-                "
-              >
-                <Pipette
-                  :size="14"
-                  class="drop-shadow-sm transition-colors duration-300"
-                  :class="
-                    !isTransparent &&
-                    customFillColor !== '#ffffff' &&
-                    customFillColor !== '#000000' &&
-                    isCustomColorLight
-                      ? 'text-black/70'
-                      : 'text-white'
-                  "
-                />
-              </div>
-            </div>
-          </div>
+        <AppSectionHeader title="画布外观" :icon="Settings2" />
+        <div class="bg-muted/10 rounded-2xl p-4 border border-border/60">
+          <AppColorPicker v-model="fillColor" label="背景填充色" />
         </div>
       </section>
 

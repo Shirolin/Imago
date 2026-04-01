@@ -28,6 +28,7 @@ import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import AppSlider from '../components/common/AppSlider.vue'
+import AppColorPicker from '../components/common/AppColorPicker.vue'
 import { combineEngine } from '../lib/engines/combineEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useFileHelpers } from '../composables/useFileHelpers'
@@ -62,7 +63,7 @@ const spacing = ref(0)
 const columns = ref(3)
 const padding = ref(0)
 const borderRadius = ref(0)
-const backgroundColor = ref('#00000000')
+const backgroundColor = ref('transparent')
 const outputFormat = ref<string>('image/png')
 const outputQuality = ref(0.9)
 
@@ -191,7 +192,7 @@ const drawPreview = async () => {
   }
 
   ctx.clearRect(0, 0, finalW, finalH)
-  if (backgroundColor.value !== '#00000000') {
+  if (backgroundColor.value !== 'transparent') {
     ctx.fillStyle = backgroundColor.value
     ctx.fillRect(0, 0, finalW, finalH)
   }
@@ -256,11 +257,12 @@ watch(
       return
     }
 
-    // 只有在方向、模式、对齐、背景重置或图片增删时触发较明显的振动
+    // 只有在关键参数变化时触发震动
     if (
       newValues[0] !== oldValues[0] ||
       newValues[1] !== oldValues[1] ||
       newValues[2] !== oldValues[2] ||
+      newValues[7] !== oldValues[7] ||
       newValues[8] !== oldValues[8]
     ) {
       triggerHaptic(10)
@@ -330,8 +332,7 @@ const handleCombine = async () => {
       columns: columns.value,
       padding: padding.value,
       borderRadius: borderRadius.value,
-      backgroundColor:
-        backgroundColor.value === '#00000000' ? 'transparent' : backgroundColor.value,
+      backgroundColor: backgroundColor.value,
       alignment: alignment.value,
       format: outputFormat.value,
       quality: outputQuality.value
@@ -367,16 +368,6 @@ const handleRemoveImage = (id: string, name: string) => {
   store.removeImage(id)
   triggerHaptic(12) // 删除反馈
   srMessage.value = `已从拼接列表中移除图片: ${name}`
-}
-
-const resetBackgroundColor = () => {
-  backgroundColor.value = '#00000000'
-  triggerHaptic(12)
-}
-
-const selectPresetColor = (color: string) => {
-  backgroundColor.value = color
-  triggerHaptic(5)
 }
 
 const hasEnoughImages = computed(() => store.images.length >= 2)
@@ -548,47 +539,9 @@ useResizeObserver(containerRef, resetView)
             </div>
 
             <div
-              class="bg-muted/10 rounded-2xl p-4 border border-border/60 flex items-center gap-4 hover:border-border transition-colors"
+              class="bg-muted/10 rounded-2xl p-4 border border-border/60 hover:border-border transition-colors"
             >
-              <div class="relative group">
-                <input
-                  type="color"
-                  v-model="backgroundColor"
-                  class="w-12 h-12 rounded-xl cursor-pointer border-2 border-border/40 p-0.5 bg-background transition-all hover:scale-105 active:scale-95"
-                  title="选择背景颜色"
-                />
-                <div
-                  class="absolute -bottom-1 -right-1 w-4 h-4 bg-primary text-white rounded-full flex items-center justify-center shadow-sm pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Plus :size="10" />
-                </div>
-              </div>
-
-              <div class="flex flex-col flex-1 gap-1.5">
-                <div class="flex items-center justify-between">
-                  <span class="text-xs font-mono font-bold text-primary tracking-wider">{{
-                    backgroundColor.toUpperCase()
-                  }}</span>
-                  <AppButton
-                    v-if="backgroundColor !== '#00000000'"
-                    variant="ghost"
-                    size="sm"
-                    @click="resetBackgroundColor"
-                    class="h-6 px-2 text-[9px] font-bold uppercase tracking-tighter text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
-                  >
-                    设为透明
-                  </AppButton>
-                </div>
-                <div class="flex gap-1">
-                  <div
-                    v-for="preset in ['#000000', '#FFFFFF', '#F3F4F6']"
-                    :key="preset"
-                    @click="selectPresetColor(preset)"
-                    class="w-5 h-5 rounded-md border border-border/40 cursor-pointer hover:scale-110 active:scale-90 transition-all"
-                    :style="{ backgroundColor: preset }"
-                  ></div>
-                </div>
-              </div>
+              <AppColorPicker v-model="backgroundColor" :label="undefined" />
             </div>
           </div>
 
