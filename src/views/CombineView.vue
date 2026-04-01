@@ -358,10 +358,9 @@ useResizeObserver(containerRef, resetView)
             在排序列表中，使用键盘方向键左/右移动图片顺序，使用 Delete 键从拼接列表中移除图片。
           </div>
 
-          <Transition name="preview-layout" mode="out-in">
+          <Transition name="preview-layout">
             <div
               v-if="store.images.length > 0"
-              :key="combineDirection + alignment"
               class="relative shadow-2xl transition-shadow will-change-transform"
             >
               <canvas ref="canvasRef" class="block rounded-sm" />
