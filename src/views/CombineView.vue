@@ -520,21 +520,22 @@ useResizeObserver(containerRef, resetView)
           />
         </section>
 
-        <div
-          class="space-y-6 px-1 animate-in fade-in slide-in-from-right-4 duration-500"
-          style="--stagger: 4"
-        >
-          <AppSlider
-            v-if="combineDirection === 'grid'"
-            v-model="columns"
-            label="网格列数"
-            :min="1"
-            :max="10"
-            unit="列"
-          />
-          <AppSlider v-model="spacing" label="图片间距" :min="0" :max="200" unit="px" />
-          <AppSlider v-model="padding" label="外边距" :min="0" :max="200" unit="px" />
-          <AppSlider v-model="borderRadius" label="图片圆角" :min="0" :max="100" unit="px" />
+        <div class="space-y-8 px-1">
+          <div v-if="combineDirection === 'grid'" class="space-y-3">
+            <AppSlider v-model="columns" label="网格列数" :min="1" :max="10" unit="列" />
+          </div>
+
+          <div class="space-y-3">
+            <AppSlider v-model="spacing" label="图片间距" :min="0" :max="200" unit="px" />
+          </div>
+
+          <div class="space-y-3">
+            <AppSlider v-model="padding" label="外边距" :min="0" :max="200" unit="px" />
+          </div>
+
+          <div class="space-y-3">
+            <AppSlider v-model="borderRadius" label="图片圆角" :min="0" :max="100" unit="px" />
+          </div>
 
           <div class="space-y-4">
             <div class="flex flex-col gap-1 px-1">
