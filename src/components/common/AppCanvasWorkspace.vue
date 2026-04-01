@@ -105,13 +105,17 @@ defineExpose({
     >
       <div class="absolute inset-0 transparency-grid opacity-20"></div>
 
-      <!-- 核心修复：交互期间 (isPanning) 禁用 transition 以防止坐标计算滞后 -->
+      <!-- 核心修复：重构坐标系 -->
+      <!-- 使用 top-1/2 left-1/2 锚点配合 translate(-50%, -50%) -->
+      <!-- 这样无论子元素 (Canvas) 原始尺寸多大，其中点始终对齐工作区中心 -->
       <div
-        class="absolute inset-0 flex items-center justify-center"
+        class="absolute top-1/2 left-1/2 will-change-transform isolate"
         :class="[isPanning ? 'transition-none' : transformDuration]"
-        :style="{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})` }"
+        :style="{
+          transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px)) scale(${scale})`
+        }"
       >
-        <div class="flex-shrink-0">
+        <div class="flex-shrink-0 backface-hidden">
           <slot :scale="scale" :offset="offset" :is-panning="isPanning"></slot>
         </div>
       </div>

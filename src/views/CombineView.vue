@@ -385,9 +385,12 @@ useResizeObserver(containerRef, resetView)
           <Transition name="preview-layout">
             <div
               v-if="store.images.length > 0"
-              class="relative shadow-2xl transition-shadow will-change-transform"
+              class="relative shadow-2xl transition-shadow will-change-transform isolate"
             >
-              <canvas ref="canvasRef" class="block rounded-sm" />
+              <canvas
+                ref="canvasRef"
+                class="block rounded-sm will-change-contents backface-hidden"
+              />
 
               <!-- 【无障碍层】：逻辑排序层 -->
               <div class="sr-only" role="list" aria-label="拼接图片排序列表">
