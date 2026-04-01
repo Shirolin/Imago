@@ -52,12 +52,13 @@ const triggerHaptic = (intensity = 5) => {
 const workspaceRef = ref<InstanceType<typeof AppCanvasWorkspace> | null>(null)
 const containerRef = computed(() => workspaceRef.value?.containerRef)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
+const isInitialLoad = ref(true)
 
 const { isProcessing, processCombine } = useImageProcessor(combineEngine)
 
 // 配置状态
 const combineDirection = ref<'vertical' | 'horizontal' | 'grid'>('vertical')
-const layoutMode = ref<'original' | 'smart'>('smart')
+const layoutMode = ref<'smart' | 'original'>('smart')
 const alignment = ref<'start' | 'center' | 'end'>('center')
 const spacing = ref(0)
 const columns = ref(3)
@@ -183,12 +184,18 @@ const drawPreview = async () => {
   const finalW = totalWidth + padding.value * 2
   const finalH = totalHeight + padding.value * 2
 
-  if (canvas.width !== finalW || canvas.height !== finalH) {
+  const sizeChanged = canvas.width !== finalW || canvas.height !== finalH
+  if (sizeChanged) {
     canvas.width = finalW
     canvas.height = finalH
-    nextTick(() => {
-      workspaceRef.value?.triggerAutoFit(finalW, finalH)
-    })
+
+    // 【核心修复】：如果是初始加载或重大属性变化，执行 AutoFit
+    if (isInitialLoad.value) {
+      nextTick(() => {
+        workspaceRef.value?.triggerAutoFit(finalW, finalH, 80, false)
+        isInitialLoad.value = false
+      })
+    }
   }
 
   ctx.clearRect(0, 0, finalW, finalH)
@@ -239,38 +246,16 @@ onMounted(() => {
   requestDraw()
 })
 
-watch(
-  [
-    combineDirection,
-    layoutMode,
-    alignment,
-    spacing,
-    columns,
-    padding,
-    borderRadius,
-    backgroundColor,
-    () => store.images.length
-  ],
-  (newValues, oldValues) => {
-    if (!oldValues) {
-      requestDraw()
-      return
-    }
+// 分离 Watch 逻辑：重大变化触发 AutoFit，微调触发重绘
+watch([() => store.images.length, combineDirection, layoutMode], (newValues, oldValues) => {
+  isInitialLoad.value = true
+  if (oldValues) triggerHaptic(10)
+  requestDraw()
+})
 
-    // 只有在关键参数变化时触发震动
-    if (
-      newValues[0] !== oldValues[0] ||
-      newValues[1] !== oldValues[1] ||
-      newValues[2] !== oldValues[2] ||
-      newValues[7] !== oldValues[7] ||
-      newValues[8] !== oldValues[8]
-    ) {
-      triggerHaptic(10)
-    }
-    requestDraw()
-  },
-  { deep: true }
-)
+watch([alignment, spacing, columns, padding, borderRadius, backgroundColor], () => {
+  requestDraw()
+})
 
 watch(
   () => store.images.map((img) => img.id),

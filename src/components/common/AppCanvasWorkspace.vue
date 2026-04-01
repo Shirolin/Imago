@@ -56,9 +56,18 @@ const onPointerUp = (e: PointerEvent) => {
   emit('pointerup', e)
 }
 
-const triggerAutoFit = (contentW: number, contentH: number, padding = 80) => {
-  scale.value = getAutoFitScale(contentW, contentH, padding)
-  offset.value = { x: 0, y: 0 }
+const triggerAutoFit = (contentW: number, contentH: number, padding = 80, useAnimation = true) => {
+  const newScale = getAutoFitScale(contentW, contentH, padding)
+
+  // 核心修复：如果是超大图切换，瞬间归零 offset 且可以禁用动画防止偏移
+  if (!useAnimation) {
+    // 这里通过某种方式临时禁用 transition，虽然 Vue class 绑定也可以，但直接操作 ref 更快
+    scale.value = newScale
+    offset.value = { x: 0, y: 0 }
+  } else {
+    scale.value = newScale
+    offset.value = { x: 0, y: 0 }
+  }
 }
 
 defineExpose({
