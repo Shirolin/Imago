@@ -4,12 +4,24 @@ import type { ImageProcessor, ProcessResult, SplitOptions } from './types'
  * 智能切图引擎 (Web Canvas 版)
  */
 export const splitEngine: ImageProcessor<SplitOptions> = async (file, options) => {
+  // 1. 基础预检
+  if (!file || file.size === 0) {
+    throw new Error('无效的图片文件')
+  }
+
   return new Promise<ProcessResult>((resolve, reject) => {
     const img = new Image()
     const url = URL.createObjectURL(file)
 
     img.onload = async () => {
       URL.revokeObjectURL(url)
+
+      // 2. 尺寸合法性检查
+      if (img.width === 0 || img.height === 0) {
+        reject(new Error('图片尺寸无效'))
+        return
+      }
+
       const results: Blob[] = []
       const {
         rows,
@@ -23,7 +35,7 @@ export const splitEngine: ImageProcessor<SplitOptions> = async (file, options) =
         onProgress
       } = options
 
-      // 计算切分边界
+      // 计算切分边界 (保持原逻辑)
       let boundariesX: number[] = []
       let boundariesY: number[] = []
 
@@ -39,106 +51,120 @@ export const splitEngine: ImageProcessor<SplitOptions> = async (file, options) =
 
       const actualRows = boundariesY.length - 1
       const actualCols = boundariesX.length - 1
+      const totalTiles = actualRows * actualCols
+
+      if (totalTiles <= 0) {
+        reject(new Error('切分参数导致无有效切片生成'))
+        return
+      }
+
       let processedCount = 0
 
-      for (let r = 0; r < actualRows; r++) {
-        for (let c = 0; c < actualCols; c++) {
-          // 【核心加固】：检查中止信号
-          if (options.signal?.aborted) {
-            throw new Error('AbortError')
-          }
+      try {
+        for (let r = 0; r < actualRows; r++) {
+          for (let c = 0; c < actualCols; c++) {
+            if (options.signal?.aborted) {
+              throw new Error('AbortError')
+            }
 
-          processedCount++
-          if (processedCount % 10 === 0) {
-            await new Promise((res) => setTimeout(res, 0))
-          }
+            processedCount++
+            if (processedCount % 10 === 0) {
+              await new Promise((res) => setTimeout(res, 0))
+            }
 
-          // 上报进度 (0 to 1)
-          onProgress?.(processedCount / (actualRows * actualCols))
+            onProgress?.(processedCount / totalTiles)
 
-          const canvas = document.createElement('canvas')
-          const ctx = canvas.getContext('2d')
-          if (!ctx) continue
+            const canvas = document.createElement('canvas')
+            const ctx = canvas.getContext('2d', { willReadFrequently: centerMode !== 'none' })
+            if (!ctx) {
+              throw new Error('无法初始化 Canvas 绘图上下文')
+            }
 
-          const startX = boundariesX[c]!
-          const startY = boundariesY[r]!
-          const endX = boundariesX[c + 1]!
-          const endY = boundariesY[r + 1]!
+            const startX = boundariesX[c]!
+            const startY = boundariesY[r]!
+            const endX = boundariesX[c + 1]!
+            const endY = boundariesY[r + 1]!
 
-          const sourceX = startX + shave
-          const sourceY = startY + shave
-          const sourceW = endX - startX - shave * 2
-          const sourceH = endY - startY - shave * 2
+            const sourceX = startX + shave
+            const sourceY = startY + shave
+            const sourceW = endX - startX - shave * 2
+            const sourceH = endY - startY - shave * 2
 
-          if (sourceW <= 0 || sourceH <= 0) continue
+            if (sourceW <= 0 || sourceH <= 0) continue
 
-          if (centerMode !== 'none') {
-            const tempCanvas = document.createElement('canvas')
-            tempCanvas.width = sourceW
-            tempCanvas.height = sourceH
-            const tempCtx = tempCanvas.getContext('2d')
-            if (tempCtx) {
-              tempCtx.drawImage(img, sourceX, sourceY, sourceW, sourceH, 0, 0, sourceW, sourceH)
-              const bgPixel = tempCtx.getImageData(0, 0, 1, 1).data
-              const bounds = getContentBounds(tempCtx, bgPixel)
+            if (centerMode !== 'none') {
+              const tempCanvas = document.createElement('canvas')
+              tempCanvas.width = sourceW
+              tempCanvas.height = sourceH
+              const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true })
+              if (tempCtx) {
+                tempCtx.drawImage(img, sourceX, sourceY, sourceW, sourceH, 0, 0, sourceW, sourceH)
+                const bgPixel = tempCtx.getImageData(0, 0, 1, 1).data
+                const bounds = getContentBounds(tempCtx, bgPixel)
 
-              if (bounds && bgPixel) {
-                let finalW = sourceW
-                let finalH = sourceH
-                if (centerMode === 'square') {
-                  finalW = finalH = Math.max(sourceW, sourceH)
+                if (bounds && bgPixel) {
+                  let finalW = sourceW
+                  let finalH = sourceH
+                  if (centerMode === 'square') {
+                    finalW = finalH = Math.max(sourceW, sourceH)
+                  }
+                  canvas.width = finalW
+                  canvas.height = finalH
+                  ctx.fillStyle = `rgba(${bgPixel[0]}, ${bgPixel[1]}, ${bgPixel[2]}, ${bgPixel[3]! / 255})`
+                  ctx.fillRect(0, 0, finalW, finalH)
+                  const destX = (finalW - bounds.width) / 2
+                  const destY = (finalH - bounds.height) / 2
+                  ctx.drawImage(
+                    tempCanvas,
+                    bounds.x,
+                    bounds.y,
+                    bounds.width,
+                    bounds.height,
+                    destX,
+                    destY,
+                    bounds.width,
+                    bounds.height
+                  )
+                } else {
+                  canvas.width = sourceW
+                  canvas.height = sourceH
+                  ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, 0, 0, sourceW, sourceH)
                 }
-                canvas.width = finalW
-                canvas.height = finalH
-                ctx.fillStyle = `rgba(${bgPixel[0]}, ${bgPixel[1]}, ${bgPixel[2]}, ${bgPixel[3]! / 255})`
-                ctx.fillRect(0, 0, finalW, finalH)
-                const destX = (finalW - bounds.width) / 2
-                const destY = (finalH - bounds.height) / 2
-                ctx.drawImage(
-                  tempCanvas,
-                  bounds.x,
-                  bounds.y,
-                  bounds.width,
-                  bounds.height,
-                  destX,
-                  destY,
-                  bounds.width,
-                  bounds.height
-                )
-              } else {
-                canvas.width = sourceW
-                canvas.height = sourceH
-                ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, 0, 0, sourceW, sourceH)
+                tempCanvas.width = tempCanvas.height = 0
               }
+            } else {
+              canvas.width = sourceW
+              canvas.height = sourceH
+              ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, 0, 0, sourceW, sourceH)
             }
-          } else {
-            canvas.width = sourceW
-            canvas.height = sourceH
-            ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, 0, 0, sourceW, sourceH)
+
+            const blob = await new Promise<Blob | null>((res) => {
+              try {
+                canvas.toBlob((b) => res(b), format, quality)
+              } catch (e) {
+                console.error('Blob generation failed:', e)
+                res(null)
+              }
+            })
+
+            if (blob) {
+              results.push(blob)
+            }
+            canvas.width = canvas.height = 0
           }
-
-          const blob = await new Promise<Blob | null>((res) => {
-            try {
-              canvas.toBlob((b) => res(b), format, quality)
-            } catch {
-              res(null)
-            }
-          })
-
-          if (blob) results.push(blob)
-          // 清理 Canvas 尺寸以释放显存
-          canvas.width = canvas.height = 0
         }
+        resolve({
+          blobs: results,
+          size: results.reduce((acc, b) => acc + b.size, 0)
+        })
+      } catch (err) {
+        reject(err instanceof Error ? err : new Error('渲染切片时发生未知错误'))
       }
-      resolve({
-        blobs: results,
-        size: results.reduce((acc, b) => acc + b.size, 0)
-      })
     }
 
     img.onerror = () => {
       URL.revokeObjectURL(url)
-      reject(new Error('图片加载失败'))
+      reject(new Error('图片资源加载失败，请检查文件格式是否正确'))
     }
     img.src = url
   })
@@ -148,39 +174,77 @@ function getContentBounds(ctx: CanvasRenderingContext2D, bgPixel: Uint8ClampedAr
   const { width, height } = ctx.canvas
   const imageData = ctx.getImageData(0, 0, width, height)
   const data = imageData.data
-  let minX = width,
-    minY = height,
-    maxX = 0,
-    maxY = 0
   const threshold = 30
 
-  // 【优化】：分级扫描策略
-  // 第一步：粗略扫描 (步长为 4)，确定初步边界
-  const step = width * height > 1000000 ? 4 : 1 // 超过 100万像素时启用跳行扫描
+  // 分级扫描步长
+  const step = width * height > 1000000 ? 4 : 1
 
+  let minY = -1,
+    maxY = -1,
+    minX = -1,
+    maxX = -1
+
+  const isDifferent = (x: number, y: number) => {
+    const i = (y * width + x) * 4
+    return (
+      Math.abs((data[i] ?? 0) - (bgPixel[0] ?? 0)) > threshold ||
+      Math.abs((data[i + 1] ?? 0) - (bgPixel[1] ?? 0)) > threshold ||
+      Math.abs((data[i + 2] ?? 0) - (bgPixel[2] ?? 0)) > threshold
+    )
+  }
+
+  // 1. 从上往下找 minY
   for (let y = 0; y < height; y += step) {
     for (let x = 0; x < width; x += step) {
-      const i = (y * width + x) * 4
-      const rDiff = Math.abs((data[i] ?? 0) - (bgPixel[0] ?? 0))
-      const gDiff = Math.abs((data[i + 1] ?? 0) - (bgPixel[1] ?? 0))
-      const bDiff = Math.abs((data[i + 2] ?? 0) - (bgPixel[2] ?? 0))
-      if (rDiff > threshold || gDiff > threshold || bDiff > threshold) {
-        if (x < minX) minX = x
-        if (x > maxX) maxX = x
-        if (y < minY) minY = y
-        if (y > maxY) maxY = y
+      if (isDifferent(x, y)) {
+        minY = y
+        break
       }
     }
+    if (minY !== -1) break
+  }
+  if (minY === -1) return null // 全是背景
+
+  // 2. 从下往上找 maxY
+  for (let y = height - 1; y >= minY; y -= step) {
+    for (let x = 0; x < width; x += step) {
+      if (isDifferent(x, y)) {
+        maxY = y
+        break
+      }
+    }
+    if (maxY !== -1) break
   }
 
-  // 第二步：如果初步边界有效，在其周边进行精细微调 (仅当 step > 1 时)
-  if (step > 1 && maxX >= minX) {
-    minX = Math.max(0, minX - step)
+  // 3. 从左往右找 minX (仅在 minY 到 maxY 范围内)
+  for (let x = 0; x < width; x += step) {
+    for (let y = minY; y <= maxY; y += step) {
+      if (isDifferent(x, y)) {
+        minX = x
+        break
+      }
+    }
+    if (minX !== -1) break
+  }
+
+  // 4. 从右往左找 maxX
+  for (let x = width - 1; x >= minX; x -= step) {
+    for (let y = minY; y <= maxY; y += step) {
+      if (isDifferent(x, y)) {
+        maxX = x
+        break
+      }
+    }
+    if (maxX !== -1) break
+  }
+
+  // 边缘微调 (针对 step > 1)
+  if (step > 1) {
     minY = Math.max(0, minY - step)
-    maxX = Math.min(width - 1, maxX + step)
     maxY = Math.min(height - 1, maxY + step)
+    minX = Math.max(0, minX - step)
+    maxX = Math.min(width - 1, maxX + step)
   }
 
-  if (maxX < minX || maxY < minY) return null
   return { x: minX, y: minY, width: maxX - minX + 1, height: maxY - minY + 1 }
 }

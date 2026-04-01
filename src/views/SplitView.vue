@@ -275,11 +275,14 @@ watch(
   { deep: true }
 )
 
-// 【优化】：针对视图设置单独监听，不再使用 deep: true
+// 【极致性能优化】：仅监听视图设置中的具体原子属性，避免闭包内对象解构的内存开销
 watch(
-  () => ({ ...viewSettings.value }),
-  () => requestDraw(),
-  { deep: false }
+  [
+    () => viewSettings.value.lineWidth,
+    () => viewSettings.value.lineColor,
+    () => viewSettings.value.lineOpacity
+  ],
+  () => requestDraw()
 )
 
 const resetView = () => {
@@ -669,6 +672,8 @@ const handleCtaClick = async () => {
       <div class="sr-only" aria-live="polite">{{ srMessage }}</div>
       <AppCanvasWorkspace
         ref="workspaceRef"
+        aria-label="图片分割画布"
+        :aria-describedby="'canvas-instructions'"
         @reset="resetView"
         @pointerdown="handlePointerDown"
         @pointermove="handlePointerMove"
@@ -677,6 +682,12 @@ const handleCtaClick = async () => {
         @pointercancel="handlePointerUp"
       >
         <template #default>
+          <!-- 隐藏的 A11y 指引文本 -->
+          <div id="canvas-instructions" class="sr-only">
+            使用鼠标点击添加切分线。按住空格键并拖拽可以平移画布。
+            选中线条后，使用方向键进行像素级微调，Shift + 方向键快速移动，Delete 或 Backspace
+            键删除选中线。
+          </div>
           <div class="relative shadow-2xl">
             <canvas ref="canvasRef" class="block rounded-sm" />
 
@@ -766,44 +777,46 @@ const handleCtaClick = async () => {
             v-else
             class="bg-primary/5 rounded-2xl p-4 border border-primary/20 flex flex-col gap-4"
           >
-            <div class="grid grid-cols-2 gap-2.5">
-              <button
+            <div class="grid grid-cols-2 gap-3">
+              <AppButton
                 @click="activeAxis = 'x'"
-                class="py-2.5 rounded-xl border-2 transition-all font-bold text-xs active:scale-95"
-                :class="
-                  activeAxis === 'x'
-                    ? 'bg-primary border-primary text-white shadow-md'
-                    : 'bg-background border-border text-muted-foreground'
-                "
+                :variant="activeAxis === 'x' ? 'primary' : 'secondary'"
+                size="md"
+                class="rounded-xl h-11 border-2 text-xs"
+                :class="{ 'border-primary shadow-md': activeAxis === 'x' }"
               >
                 垂直线
-              </button>
-              <button
+              </AppButton>
+              <AppButton
                 @click="activeAxis = 'y'"
-                class="py-2.5 rounded-xl border-2 transition-all font-bold text-xs active:scale-95"
-                :class="
-                  activeAxis === 'y'
-                    ? 'bg-primary border-primary text-white shadow-md'
-                    : 'bg-background border-border text-muted-foreground'
-                "
+                :variant="activeAxis === 'y' ? 'primary' : 'secondary'"
+                size="md"
+                class="rounded-xl h-11 border-2 text-xs"
+                :class="{ 'border-primary shadow-md': activeAxis === 'y' }"
               >
                 水平线
-              </button>
+              </AppButton>
             </div>
-            <div class="flex gap-2">
-              <button
+            <div class="flex gap-2.5">
+              <AppButton
                 @click="handleResetToGrid"
-                class="flex-1 py-2.5 rounded-xl border border-border/40 bg-muted/5 hover:bg-primary/5 hover:border-primary/40 active:scale-95 transition-all text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 text-muted-foreground/60"
+                variant="secondary"
+                size="sm"
+                class="flex-1 rounded-xl h-10 text-[11px] font-black uppercase tracking-widest border-border/40 bg-muted/5"
+                :icon="Grid3X3"
                 title="根据网格设置数值重置线条"
               >
-                <Grid3X3 :size="13" /> 同步网格
-              </button>
-              <button
+                同步网格
+              </AppButton>
+              <AppButton
                 @click="clearLines"
-                class="flex-1 py-2.5 rounded-xl border border-border/40 bg-muted/5 hover:bg-destructive/5 hover:border-destructive hover:text-destructive active:scale-95 transition-all text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 text-muted-foreground/60"
+                variant="secondary"
+                size="sm"
+                class="flex-1 rounded-xl h-10 text-[11px] font-black uppercase tracking-widest border-border/40 bg-muted/5 hover:text-destructive hover:border-destructive hover:bg-destructive/5"
+                :icon="Trash2"
               >
-                <Trash2 :size="13" /> 全部清空
-              </button>
+                全部清空
+              </AppButton>
             </div>
           </div>
         </div>
@@ -812,13 +825,14 @@ const handleCtaClick = async () => {
       <section class="space-y-5">
         <div class="flex items-center justify-between pr-1">
           <AppSectionHeader title="视图设置" :icon="Box" />
-          <button
+          <AppButton
+            variant="ghost"
+            size="sm"
             @click="resetViewSettings"
-            class="p-1.5 rounded-lg hover:bg-muted/40 text-muted-foreground/40 hover:text-primary active:scale-90 transition-all"
+            class="w-8 h-8 p-0 rounded-lg text-muted-foreground/40 hover:text-primary"
             title="恢复默认视图"
-          >
-            <RotateCcw :size="14" />
-          </button>
+            :icon="RotateCcw"
+          />
         </div>
         <div class="space-y-4 px-1">
           <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-6">

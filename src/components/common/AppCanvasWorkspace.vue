@@ -80,6 +80,9 @@ defineExpose({
     <div
       ref="containerRef"
       class="flex-1 bg-muted/20 border border-border/60 rounded-3xl overflow-hidden relative w-full group select-none touch-none transition-all duration-300"
+      role="application"
+      :aria-label="($attrs['aria-label'] as string) || '图像工作区'"
+      :aria-describedby="$attrs['aria-describedby'] as string"
       :class="[
         isPanning ? 'cursor-grabbing-forced' : isHandMode ? 'cursor-grab-forced' : 'cursor-default',
         isHandMode ? 'ring-2 ring-primary/20 bg-primary/[0.02]' : ''
