@@ -14,9 +14,26 @@ export interface ExifData {
   longitude?: number
   metaCount: number
   all?: Record<string, string | number | boolean>
+  error?: string
+  unsupported?: boolean
 }
 
+const SUPPORTED_MIME_TYPES = [
+  'image/jpeg',
+  'image/tiff',
+  'image/heic',
+  'image/heif',
+  'image/avif',
+  'image/png',
+  'image/webp'
+]
+
 export const readExif = async (file: File): Promise<ExifData | null> => {
+  // 快速检查：如果是不支持的格式，直接返回 unsupported 状态
+  if (!SUPPORTED_MIME_TYPES.includes(file.type)) {
+    return { metaCount: 0, unsupported: true }
+  }
+
   try {
     const rawData = (await exifr.parse(file, {
       tiff: true,
@@ -25,7 +42,7 @@ export const readExif = async (file: File): Promise<ExifData | null> => {
       jfif: true,
       iptc: true,
       xmp: true
-    })) as Record<string, unknown> // 使用 Record 承接库返回的复杂对象
+    })) as Record<string, unknown>
 
     if (!rawData) return { metaCount: 0 }
 
@@ -59,8 +76,13 @@ export const readExif = async (file: File): Promise<ExifData | null> => {
       all: filteredRaw
     }
   } catch (error) {
+    // 捕获“未知文件格式”错误
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    if (errorMessage.includes('Unknown file format')) {
+      return { metaCount: 0, unsupported: true }
+    }
     console.error('Failed to read EXIF:', error)
-    return null
+    return { metaCount: 0, error: errorMessage }
   }
 }
 

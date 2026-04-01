@@ -27,6 +27,8 @@ export interface ImageItem {
   abortController?: AbortController
   isDirty?: boolean
   exifCount?: number
+  isExifUnsupported?: boolean
+  exifError?: string
   history?: {
     past: Record<string, unknown>[]
     future: Record<string, unknown>[]

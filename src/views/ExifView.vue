@@ -55,7 +55,6 @@ const scanAllImages = async () => {
   const pendingImages = store.images.filter((img) => img.exifCount === undefined)
   if (pendingImages.length === 0) return
 
-  // 并发控制：每组处理 5 张图片，避免主线程长时间阻塞
   const CHUNK_SIZE = 5
   for (let i = 0; i < pendingImages.length; i += CHUNK_SIZE) {
     const chunk = pendingImages.slice(i, i + CHUNK_SIZE)
@@ -64,7 +63,11 @@ const scanAllImages = async () => {
         try {
           const data = await readExif(img.file)
           if (data) {
-            store.updateImage(img.id, { exifCount: data.metaCount })
+            store.updateImage(img.id, {
+              exifCount: data.metaCount,
+              isExifUnsupported: data.unsupported,
+              exifError: data.error
+            })
             exifDataMap.value[img.id] = data
           } else {
             store.updateImage(img.id, { exifCount: 0 })
@@ -98,7 +101,11 @@ watch(activeImageId, async (id) => {
         const data = await readExif(img.file)
         if (data) {
           exifDataMap.value[id] = data
-          store.updateImage(id, { exifCount: data.metaCount })
+          store.updateImage(id, {
+            exifCount: data.metaCount,
+            isExifUnsupported: data.unsupported,
+            exifError: data.error
+          })
         }
       }
     } finally {
@@ -121,11 +128,19 @@ const handleClearExif = async () => {
   })
   for (const id of store.selectedIds) {
     const img = store.images.find((i) => i.id === id)
-    if (img) {
-      const data = await readExif(img.file)
+    if (img && img.processedBlob) {
+      // 验证清理结果：读取处理后的 Blob 的元数据
+      const data = await readExif(
+        new File([img.processedBlob], img.file.name, { type: img.processedBlob.type })
+      )
       if (data) {
         exifDataMap.value[id] = data
-        store.updateImage(id, { exifCount: data.metaCount, status: 'done' })
+        store.updateImage(id, {
+          exifCount: data.metaCount,
+          isExifUnsupported: data.unsupported,
+          exifError: data.error,
+          status: 'done'
+        })
       }
     }
   }
@@ -237,15 +252,25 @@ const handleCtaClick = async () => {
                 v-if="image.exifCount !== undefined"
                 class="flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest leading-none border"
                 :class="[
-                  image.exifCount > 0
-                    ? 'bg-destructive/5 text-destructive border-destructive/20'
-                    : 'bg-primary/5 text-primary border-primary/20'
+                  image.isExifUnsupported
+                    ? 'bg-muted/10 text-muted-foreground border-border/60'
+                    : image.exifCount > 0
+                      ? 'bg-destructive/5 text-destructive border-destructive/20'
+                      : 'bg-primary/5 text-primary border-primary/20'
                 ]"
               >
-                <ShieldAlert v-if="image.exifCount > 0" :size="10" /><ShieldCheck
-                  v-else
-                  :size="10"
-                /><span>{{ image.exifCount > 0 ? `${image.exifCount} 隐私风险` : '安全' }}</span>
+                <ShieldAlert v-if="!image.isExifUnsupported && image.exifCount > 0" :size="10" />
+                <ShieldCheck v-else-if="!image.isExifUnsupported" :size="10" />
+                <Info v-else :size="10" />
+                <span>
+                  {{
+                    image.isExifUnsupported
+                      ? '不支持格式'
+                      : image.exifCount > 0
+                        ? `${image.exifCount} 隐私风险`
+                        : '安全'
+                  }}
+                </span>
               </div>
               <div v-else class="h-6 flex items-center">
                 <div class="w-10 h-1 bg-muted/40 rounded-full animate-pulse"></div>
@@ -348,10 +373,23 @@ const handleCtaClick = async () => {
           </div>
         </div>
         <div v-if="!activeExifData?.metaCount" class="py-10 text-center space-y-3">
-          <div class="bg-primary/5 w-12 h-12 rounded-full flex items-center justify-center mx-auto">
-            <ShieldCheck :size="24" class="text-primary" />
+          <div
+            :class="[activeExifData?.unsupported ? 'bg-muted/30' : 'bg-primary/5']"
+            class="w-12 h-12 rounded-full flex items-center justify-center mx-auto"
+          >
+            <ShieldCheck v-if="!activeExifData?.unsupported" :size="24" class="text-primary" />
+            <Info v-else :size="24" class="text-muted-foreground/60" />
           </div>
-          <div class="text-xs font-bold text-muted-foreground">未检测到敏感数据，隐私安全</div>
+          <div class="text-xs font-bold text-muted-foreground px-4 leading-relaxed">
+            {{
+              activeExifData?.unsupported
+                ? '该文件格式暂不支持或不含元数据'
+                : '未检测到敏感数据，隐私安全'
+            }}
+          </div>
+          <p v-if="activeExifData?.unsupported" class="text-[10px] text-muted-foreground/40 px-6">
+            支持检测 JPEG, TIFF, PNG, WebP, HEIC, AVIF 等主流图片格式。
+          </p>
         </div>
       </div>
       <div
