@@ -63,6 +63,8 @@ const resetViewSettings = () => {
   srMessage.value = '已恢复默认视图设置'
 }
 
+const colorButtonRefs = ref<HTMLElement[]>([])
+
 const handleColorKeydown = (e: KeyboardEvent) => {
   const index = colorOptions.findIndex((c) => c.value === viewSettings.value.lineColor)
   let nextIndex = index
@@ -77,11 +79,16 @@ const handleColorKeydown = (e: KeyboardEvent) => {
 
   e.preventDefault()
   viewSettings.value.lineColor = colorOptions[nextIndex]!.value
-  // 自动将焦点移到新选中的按钮 (使用更稳健的专用属性选择器)
   nextTick(() => {
-    const buttons = document.querySelectorAll('[data-color-option]')
-    ;(buttons[nextIndex] as HTMLElement)?.focus()
+    colorButtonRefs.value[nextIndex]?.focus()
   })
+}
+
+// 【新】：触感反馈
+const triggerHaptic = (intensity = 5) => {
+  if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+    window.navigator.vibrate(intensity)
+  }
 }
 
 let lastLoadId = 0
@@ -402,19 +409,19 @@ const getLogicPos = (e: PointerEvent) => {
 
 const snapLine = (pos: number, axis: 'x' | 'y') => {
   const img = selectedImage.value
-  if (!img) return pos
+  if (!img) return { pos, snapped: false }
   const max = axis === 'x' ? img.width! : img.height!
   const scale = workspaceRef.value?.scale || 1
   const threshold = 15 / scale
 
   // 吸附到边缘
-  if (pos < threshold) return 0
-  if (Math.abs(pos - max) < threshold) return max
+  if (pos < threshold) return { pos: 0, snapped: true }
+  if (Math.abs(pos - max) < threshold) return { pos: max, snapped: true }
 
   // 吸附到中点
-  if (Math.abs(pos - max / 2) < threshold) return max / 2
+  if (Math.abs(pos - max / 2) < threshold) return { pos: max / 2, snapped: true }
 
-  return pos
+  return { pos, snapped: false }
 }
 
 const handlePointerDown = (e: PointerEvent) => {
@@ -440,6 +447,7 @@ const handlePointerDown = (e: PointerEvent) => {
     }
     draggingLine.value = { ...hoveredLine.value }
     selectedLine.value = { ...hoveredLine.value } // 选中线以支持键盘操作
+    triggerHaptic(10) // 选中反馈
     return
   }
 
@@ -448,21 +456,23 @@ const handlePointerDown = (e: PointerEvent) => {
 
   if (editMode.value === 'custom') {
     if (activeAxis.value === 'x') {
-      const snappedX = snapLine(pos.x, 'x')
+      const { pos: snappedX, snapped } = snapLine(pos.x, 'x')
       linesX.value.push(snappedX)
       linesX.value.sort((a, b) => a - b)
       srMessage.value = `已在垂直方向 ${Math.round(snappedX)} 像素处添加切分线`
       // 自动选中新添加的线
       const newIndex = linesX.value.indexOf(snappedX)
       selectedLine.value = { axis: 'x', index: newIndex }
+      if (snapped) triggerHaptic(8)
     } else {
-      const snappedY = snapLine(pos.y, 'y')
+      const { pos: snappedY, snapped } = snapLine(pos.y, 'y')
       linesY.value.push(snappedY)
       linesY.value.sort((a, b) => a - b)
       srMessage.value = `已在水平方向 ${Math.round(snappedY)} 像素处添加切分线`
       // 自动选中新添加的线
       const newIndex = linesY.value.indexOf(snappedY)
       selectedLine.value = { axis: 'y', index: newIndex }
+      if (snapped) triggerHaptic(8)
     }
     saveMeta()
   }
@@ -478,8 +488,17 @@ const handlePointerMove = (e: PointerEvent) => {
 
   if (draggingLine.value) {
     const { axis, index } = draggingLine.value
-    if (axis === 'x') linesX.value[index] = snapLine(pos.x, 'x')
-    else linesY.value[index] = snapLine(pos.y, 'y')
+    const currentLines = axis === 'x' ? linesX.value : linesY.value
+    const oldVal = currentLines[index]
+    const { pos: newVal, snapped } = snapLine(axis === 'x' ? pos.x : pos.y, axis)
+
+    if (axis === 'x') linesX.value[index] = newVal
+    else linesY.value[index] = newVal
+
+    // 仅在吸附瞬间触发一次反馈
+    if (snapped && oldVal !== newVal) {
+      triggerHaptic(5)
+    }
     return
   }
 
@@ -904,15 +923,41 @@ const handleCtaClick = async () => {
 
       <section class="space-y-5">
         <AppSectionHeader title="增强处理" :icon="Layers" />
-        <div class="space-y-4 px-1">
-          <AppSegmentedControl
-            v-model="centerMode"
-            :options="[
-              { label: '标准', value: 'none', icon: Grid3X3 },
-              { label: '居中', value: 'center', icon: AlignCenter },
-              { label: '正方形', value: 'square', icon: Box }
-            ]"
-          />
+        <div class="space-y-6 px-1">
+          <div class="space-y-4">
+            <div class="flex flex-col gap-1 px-1">
+              <span class="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
+                >对齐模式</span
+              >
+              <p class="text-[10px] text-muted-foreground/60 leading-relaxed">
+                自动探测并裁剪主体内容，支持居中对齐或强制正方形填充。
+              </p>
+            </div>
+            <AppSegmentedControl
+              v-model="centerMode"
+              :options="[
+                { label: '标准', value: 'none', icon: Grid3X3 },
+                { label: '居中', value: 'center', icon: AlignCenter },
+                { label: '正方形', value: 'square', icon: Box }
+              ]"
+            />
+          </div>
+
+          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-5">
+            <div class="space-y-1">
+              <div class="flex justify-between items-center px-1">
+                <div class="flex flex-col">
+                  <span
+                    class="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
+                    >边缘收缩 (Shave)</span
+                  >
+                  <span class="text-[9px] text-muted-foreground/50">消除边缘杂色或黑边</span>
+                </div>
+                <span class="text-xs font-mono font-bold text-primary">{{ shave }}px</span>
+              </div>
+              <AppSlider v-model="shave" :min="0" :max="50" :step="1" />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -950,15 +995,19 @@ const handleCtaClick = async () => {
 </template>
 
 <style scoped>
-.fade-fast-enter-active,
+.fade-fast-enter-active {
+  transition:
+    opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
 .fade-fast-leave-active {
   transition:
-    opacity 0.2s ease-out,
-    transform 0.2s ease-out;
+    opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .fade-fast-enter-from,
 .fade-fast-leave-to {
   opacity: 0;
-  transform: translate(-50%, -10px);
+  transform: translate(-50%, 12px);
 }
 </style>
