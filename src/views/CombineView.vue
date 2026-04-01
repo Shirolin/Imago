@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, watch } from 'vue'
+import { ref, computed, nextTick, watch, onMounted } from 'vue'
 import { useImageStore, type ImageItem } from '../stores/imageStore'
 import { useResizeObserver } from '@vueuse/core'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
@@ -193,6 +193,10 @@ const requestDraw = () => {
   })
 }
 
+onMounted(() => {
+  requestDraw()
+})
+
 watch(
   [
     combineDirection,
@@ -205,6 +209,12 @@ watch(
     () => store.images.length
   ],
   (newValues, oldValues) => {
+    // 如果没有 oldValues，说明是 watch 的初次运行（虽然我们去掉了 immediate，但为了防御性编程仍保留判断）
+    if (!oldValues) {
+      requestDraw()
+      return
+    }
+
     // 只有在方向、对齐、背景重置或图片增删时触发较明显的振动
     if (
       newValues[0] !== oldValues[0] ||
@@ -215,7 +225,7 @@ watch(
     }
     requestDraw()
   },
-  { deep: true, immediate: true }
+  { deep: true }
 )
 
 watch(
