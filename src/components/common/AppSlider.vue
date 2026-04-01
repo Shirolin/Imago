@@ -37,28 +37,38 @@ const handleInput = (e: Event) => {
 </script>
 
 <template>
-  <div class="relative h-6 flex items-center group/slider px-2">
-    <!-- 轨道 -->
-    <div
-      class="absolute left-2 right-2 h-1 bg-muted/60 rounded-full border border-border/10 overflow-hidden"
-    >
-      <div
-        class="h-full bg-primary/80 transition-[width] duration-75 ease-out shadow-[0_0_12px_hsl(var(--primary)/0.3)]"
-        :style="{ width: progressPercent + '%' }"
-      ></div>
+  <div class="flex flex-col gap-1.5 w-full group/slider">
+    <!-- 文字标识层 -->
+    <div v-if="label" class="flex justify-between items-center px-1">
+      <span class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{{
+        label
+      }}</span>
+      <span class="text-xs font-mono font-bold text-primary">{{ modelValue }}{{ unit }}</span>
     </div>
 
-    <!-- 原生滑块：纯净交互 -->
-    <input
-      type="range"
-      :value="modelValue"
-      @input="handleInput"
-      :min="min"
-      :max="max"
-      :step="step"
-      :aria-label="ariaLabel"
-      class="absolute inset-0 w-full h-full bg-transparent appearance-none cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-full z-10 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary [&::-webkit-slider-thumb]:shadow-[0_2px_8px_rgba(0,0,0,0.15)] [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200 hover:[&::-webkit-slider-thumb]:scale-110 active:[&::-webkit-slider-thumb]:scale-125 active:[&::-webkit-slider-thumb]:bg-primary active:[&::-webkit-slider-thumb]:border-white"
-    />
+    <div class="relative h-6 flex items-center px-1">
+      <!-- 轨道 -->
+      <div
+        class="absolute left-1 right-1 h-1 bg-muted/60 rounded-full border border-border/10 overflow-hidden"
+      >
+        <div
+          class="h-full bg-primary/80 transition-[width] duration-75 ease-out shadow-[0_0_12px_hsl(var(--primary)/0.3)]"
+          :style="{ width: progressPercent + '%' }"
+        ></div>
+      </div>
+
+      <!-- 原生滑块：纯净交互 -->
+      <input
+        type="range"
+        :value="modelValue"
+        @input="handleInput"
+        :min="min"
+        :max="max"
+        :step="step"
+        :aria-label="ariaLabel || label"
+        class="absolute inset-0 w-full h-full bg-transparent appearance-none cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-full z-10 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary [&::-webkit-slider-thumb]:shadow-[0_2px_8px_rgba(0,0,0,0.15)] [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200 hover:[&::-webkit-slider-thumb]:scale-110 active:[&::-webkit-slider-thumb]:scale-125 active:[&::-webkit-slider-thumb]:bg-primary active:[&::-webkit-slider-thumb]:border-white"
+      />
+    </div>
   </div>
 </template>
 

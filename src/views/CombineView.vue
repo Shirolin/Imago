@@ -524,45 +524,17 @@ useResizeObserver(containerRef, resetView)
           class="space-y-6 px-1 animate-in fade-in slide-in-from-right-4 duration-500"
           style="--stagger: 4"
         >
-          <div v-if="combineDirection === 'grid'" class="space-y-1">
-            <div class="flex justify-between items-center px-1">
-              <span class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider"
-                >网格列数</span
-              >
-              <span class="text-xs font-mono font-bold text-primary">{{ columns }}</span>
-            </div>
-            <AppSlider v-model="columns" :min="1" :max="10" :step="1" />
-          </div>
-
-          <div class="space-y-1">
-            <div class="flex justify-between items-center px-1">
-              <span class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider"
-                >图片间距</span
-              >
-              <span class="text-xs font-mono font-bold text-primary">{{ spacing }}px</span>
-            </div>
-            <AppSlider v-model="spacing" :min="0" :max="200" :step="1" />
-          </div>
-
-          <div class="space-y-1">
-            <div class="flex justify-between items-center px-1">
-              <span class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider"
-                >外边距</span
-              >
-              <span class="text-xs font-mono font-bold text-primary">{{ padding }}px</span>
-            </div>
-            <AppSlider v-model="padding" :min="0" :max="200" :step="1" />
-          </div>
-
-          <div class="space-y-1">
-            <div class="flex justify-between items-center px-1">
-              <span class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider"
-                >图片圆角</span
-              >
-              <span class="text-xs font-mono font-bold text-primary">{{ borderRadius }}px</span>
-            </div>
-            <AppSlider v-model="borderRadius" :min="0" :max="100" :step="1" />
-          </div>
+          <AppSlider
+            v-if="combineDirection === 'grid'"
+            v-model="columns"
+            label="网格列数"
+            :min="1"
+            :max="10"
+            unit="列"
+          />
+          <AppSlider v-model="spacing" label="图片间距" :min="0" :max="200" unit="px" />
+          <AppSlider v-model="padding" label="外边距" :min="0" :max="200" unit="px" />
+          <AppSlider v-model="borderRadius" label="图片圆角" :min="0" :max="100" unit="px" />
 
           <div class="space-y-4">
             <div class="flex flex-col gap-1 px-1">
