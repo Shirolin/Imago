@@ -105,16 +105,16 @@ defineExpose({
     >
       <div class="absolute inset-0 transparency-grid opacity-20"></div>
 
-      <!-- 核心修复：重构坐标系 -->
-      <!-- 使用 top-1/2 left-1/2 锚点配合 translate(-50%, -50%) -->
-      <!-- 这样无论子元素 (Canvas) 原始尺寸多大，其中点始终对齐工作区中心 -->
+      <!-- 核心修复：零尺寸锚点系统 -->
+      <!-- 将容器宽高设为 0，使其在布局树中不占空间，彻底避免超大尺寸导致的裁剪与事件拦截 -->
       <div
-        class="absolute top-1/2 left-1/2 will-change-transform isolate"
+        class="absolute top-1/2 left-1/2 w-0 h-0 flex items-center justify-center pointer-events-none will-change-transform isolate"
         :class="[isPanning ? 'transition-none' : transformDuration]"
         :style="{
-          transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px)) scale(${scale})`
+          transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale})`
         }"
       >
+        <!-- 子元素 (Canvas) 正常溢出显示 -->
         <div class="flex-shrink-0 backface-hidden">
           <slot :scale="scale" :offset="offset" :is-panning="isPanning"></slot>
         </div>
