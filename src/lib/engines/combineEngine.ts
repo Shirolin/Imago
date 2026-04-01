@@ -4,6 +4,8 @@ export interface CombineOptions {
   direction: 'vertical' | 'horizontal' | 'grid'
   spacing: number
   backgroundColor: string
+  // 智能模式选项：'original' (原始对齐), 'smart' (轴向缩放齐平)
+  layoutMode?: 'original' | 'smart'
   alignment: 'start' | 'center' | 'end'
   columns?: number
   padding?: number
@@ -17,6 +19,7 @@ export const combineEngine: MultiImageProcessor<CombineOptions> = async (files, 
 
   const padding = options.padding || 0
   const borderRadius = options.borderRadius || 0
+  const layoutMode = options.layoutMode || 'smart'
   const objectUrls: string[] = []
 
   try {
@@ -33,40 +36,116 @@ export const combineEngine: MultiImageProcessor<CombineOptions> = async (files, 
       })
     )
 
-    let totalWidth = 0
-    let totalHeight = 0
-
+    // 1. 计算布局参数
     const maxWidth = Math.max(...images.map((img) => img.width))
     const maxHeight = Math.max(...images.map((img) => img.height))
 
+    let totalWidth = 0
+    let totalHeight = 0
     let cols = 1
     let rows = 1
 
+    // 存储每张图的绘制信息 { x, y, w, h }
+    const drawInfos: { x: number; y: number; w: number; h: number }[] = []
+
     if (options.direction === 'vertical') {
+      let currentY = padding
+      images.forEach((img) => {
+        let drawW = img.width
+        let drawH = img.height
+        let drawX = padding
+
+        if (layoutMode === 'smart') {
+          // 纵向智能：宽度放大到 maxWidth，高度等比
+          drawW = maxWidth
+          drawH = img.height * (maxWidth / img.width)
+        } else {
+          // 原始模式下的水平对齐
+          if (options.alignment === 'center') drawX = padding + (maxWidth - img.width) / 2
+          else if (options.alignment === 'end') drawX = padding + maxWidth - img.width
+        }
+
+        drawInfos.push({ x: drawX, y: currentY, w: drawW, h: drawH })
+        currentY += drawH + options.spacing
+      })
       totalWidth = maxWidth
-      totalHeight =
-        images.reduce((sum, img) => sum + img.height, 0) + (images.length - 1) * options.spacing
+      totalHeight = currentY - options.spacing - padding
     } else if (options.direction === 'horizontal') {
-      totalWidth =
-        images.reduce((sum, img) => sum + img.width, 0) + (images.length - 1) * options.spacing
+      let currentX = padding
+      images.forEach((img) => {
+        let drawW = img.width
+        let drawH = img.height
+        let drawY = padding
+
+        if (layoutMode === 'smart') {
+          // 横向智能：高度放大到 maxHeight，宽度等比
+          drawH = maxHeight
+          drawW = img.width * (maxHeight / img.height)
+        } else {
+          // 原始模式下的垂直对齐
+          if (options.alignment === 'center') drawY = padding + (maxHeight - img.height) / 2
+          else if (options.alignment === 'end') drawY = padding + maxHeight - img.height
+        }
+
+        drawInfos.push({ x: currentX, y: drawY, w: drawW, h: drawH })
+        currentX += drawW + options.spacing
+      })
+      totalWidth = currentX - options.spacing - padding
       totalHeight = maxHeight
     } else {
+      // 网格模式
       cols =
         options.columns && options.columns > 0
           ? options.columns
           : Math.ceil(Math.sqrt(images.length))
       rows = Math.ceil(images.length / cols)
-      totalWidth = maxWidth * cols + (cols - 1) * options.spacing
-      totalHeight = maxHeight * rows + (rows - 1) * options.spacing
+
+      const cellW = maxWidth
+      const cellH = maxHeight
+
+      images.forEach((img, i) => {
+        const r = Math.floor(i / cols)
+        const c = i % cols
+
+        let drawW = img.width
+        let drawH = img.height
+        let offsetX = 0
+        let offsetY = 0
+
+        if (layoutMode === 'smart') {
+          // 网格智能：Cover 填充单元格
+          const ratio = Math.max(cellW / img.width, cellH / img.height)
+          drawW = img.width * ratio
+          drawH = img.height * ratio
+          offsetX = (cellW - drawW) / 2
+          offsetY = (cellH - drawH) / 2
+        } else {
+          // 原始模式：单元格内对齐
+          if (options.alignment === 'center') {
+            offsetX = (cellW - img.width) / 2
+            offsetY = (cellH - img.height) / 2
+          } else if (options.alignment === 'end') {
+            offsetX = cellW - img.width
+            offsetY = cellH - img.height
+          }
+        }
+
+        const x = padding + c * (cellW + options.spacing) + offsetX
+        const y = padding + r * (cellH + options.spacing) + offsetY
+        drawInfos.push({ x, y, w: drawW, h: drawH })
+      })
+
+      totalWidth = cols * cellW + (cols - 1) * options.spacing
+      totalHeight = rows * cellH + (rows - 1) * options.spacing
     }
 
+    // 2. 创建画布并执行绘制
     const canvas = document.createElement('canvas')
     canvas.width = totalWidth + padding * 2
     canvas.height = totalHeight + padding * 2
     const ctx = canvas.getContext('2d', { alpha: true })
     if (!ctx) throw new Error('无法初始化 Canvas 绘图上下文')
 
-    // 清理/填充背景
     if (options.backgroundColor === 'transparent') {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
     } else {
@@ -74,69 +153,37 @@ export const combineEngine: MultiImageProcessor<CombineOptions> = async (files, 
       ctx.fillRect(0, 0, canvas.width, canvas.height)
     }
 
-    let currentX = padding
-    let currentY = padding
+    images.forEach((img, i) => {
+      const info = drawInfos[i]!
+      const { x, y, w, h } = info
 
-    const drawImageWithRadius = (
-      img: HTMLImageElement,
-      x: number,
-      y: number,
-      w: number,
-      h: number
-    ) => {
       ctx.save()
-      if (borderRadius > 0) {
-        ctx.beginPath()
-        if (ctx.roundRect) {
-          ctx.roundRect(x, y, w, h, borderRadius)
-        } else {
-          ctx.rect(x, y, w, h)
-        }
-        ctx.clip()
-      }
-      ctx.drawImage(img, x, y, w, h)
-      ctx.restore()
-    }
 
-    if (options.direction === 'vertical') {
-      images.forEach((img) => {
-        let x = padding
-        if (options.alignment === 'center') x = padding + (maxWidth - img.width) / 2
-        else if (options.alignment === 'end') x = padding + maxWidth - img.width
-
-        drawImageWithRadius(img, x, currentY, img.width, img.height)
-        currentY += img.height + options.spacing
-      })
-    } else if (options.direction === 'horizontal') {
-      images.forEach((img) => {
-        let y = padding
-        if (options.alignment === 'center') y = padding + (maxHeight - img.height) / 2
-        else if (options.alignment === 'end') y = padding + maxHeight - img.height
-
-        drawImageWithRadius(img, currentX, y, img.width, img.height)
-        currentX += img.width + options.spacing
-      })
-    } else {
-      images.forEach((img, i) => {
+      // 处理网格 Cover 模式下的溢出裁剪
+      if (options.direction === 'grid' && layoutMode === 'smart') {
         const r = Math.floor(i / cols)
         const c = i % cols
+        ctx.beginPath()
+        ctx.rect(
+          padding + c * (maxWidth + options.spacing),
+          padding + r * (maxHeight + options.spacing),
+          maxWidth,
+          maxHeight
+        )
+        ctx.clip()
+      }
 
-        let offsetX = padding
-        let offsetY = padding
+      // 圆角逻辑
+      if (borderRadius > 0) {
+        ctx.beginPath()
+        if (ctx.roundRect) ctx.roundRect(x, y, w, h, borderRadius)
+        else ctx.rect(x, y, w, h)
+        ctx.clip()
+      }
 
-        if (options.alignment === 'center') {
-          offsetX = padding + (maxWidth - img.width) / 2
-          offsetY = padding + (maxHeight - img.height) / 2
-        } else if (options.alignment === 'end') {
-          offsetX = padding + maxWidth - img.width
-          offsetY = padding + maxHeight - img.height
-        }
-
-        const x = c * (maxWidth + options.spacing) + offsetX
-        const y = r * (maxHeight + options.spacing) + offsetY
-        drawImageWithRadius(img, x, y, img.width, img.height)
-      })
-    }
+      ctx.drawImage(img, x, y, w, h)
+      ctx.restore()
+    })
 
     const outputFormat = (options.format === 'original' ? undefined : options.format) || 'image/png'
     const outputQuality = options.quality ?? 0.9
@@ -155,7 +202,6 @@ export const combineEngine: MultiImageProcessor<CombineOptions> = async (files, 
       format: outputFormat
     }
   } finally {
-    // 强制清理所有创建的 ObjectURL，无论成功与否
     objectUrls.forEach((url) => {
       try {
         URL.revokeObjectURL(url)

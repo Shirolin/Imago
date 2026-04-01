@@ -14,6 +14,7 @@ import {
   Grid3X3,
   AlignLeft,
   AlignCenter,
+  Box,
   AlignRight,
   AlignStartVertical,
   AlignCenterVertical,
@@ -55,6 +56,7 @@ const { isProcessing, processCombine } = useImageProcessor(combineEngine)
 
 // 配置状态
 const combineDirection = ref<'vertical' | 'horizontal' | 'grid'>('vertical')
+const layoutMode = ref<'original' | 'smart'>('smart')
 const alignment = ref<'start' | 'center' | 'end'>('center')
 const spacing = ref(20)
 const columns = ref(3)
@@ -96,21 +98,85 @@ const drawPreview = async () => {
   let cols = 1
   let rows = 1
 
+  const drawInfos: { x: number; y: number; w: number; h: number }[] = []
+
   if (combineDirection.value === 'vertical') {
+    let currentY = padding.value
+    loadedImages.forEach((img) => {
+      let drawW = img.width
+      let drawH = img.height
+      let drawX = padding.value
+
+      if (layoutMode.value === 'smart') {
+        drawW = maxWidth
+        drawH = img.height * (maxWidth / img.width)
+      } else {
+        if (alignment.value === 'center') drawX = padding.value + (maxWidth - img.width) / 2
+        else if (alignment.value === 'end') drawX = padding.value + maxWidth - img.width
+      }
+
+      drawInfos.push({ x: drawX, y: currentY, w: drawW, h: drawH })
+      currentY += drawH + spacing.value
+    })
     totalWidth = maxWidth
-    totalHeight =
-      loadedImages.reduce((sum, img) => sum + img.height, 0) +
-      (loadedImages.length - 1) * spacing.value
+    totalHeight = currentY - spacing.value - padding.value
   } else if (combineDirection.value === 'horizontal') {
-    totalWidth =
-      loadedImages.reduce((sum, img) => sum + img.width, 0) +
-      (loadedImages.length - 1) * spacing.value
+    let currentX = padding.value
+    loadedImages.forEach((img) => {
+      let drawW = img.width
+      let drawH = img.height
+      let drawY = padding.value
+
+      if (layoutMode.value === 'smart') {
+        drawH = maxHeight
+        drawW = img.width * (maxHeight / img.height)
+      } else {
+        if (alignment.value === 'center') drawY = padding.value + (maxHeight - img.height) / 2
+        else if (alignment.value === 'end') drawY = padding.value + maxHeight - img.height
+      }
+
+      drawInfos.push({ x: currentX, y: drawY, w: drawW, h: drawH })
+      currentX += drawW + spacing.value
+    })
+    totalWidth = currentX - spacing.value - padding.value
     totalHeight = maxHeight
   } else {
     cols = columns.value || Math.ceil(Math.sqrt(loadedImages.length))
     rows = Math.ceil(loadedImages.length / cols)
-    totalWidth = maxWidth * cols + (cols - 1) * spacing.value
-    totalHeight = maxHeight * rows + (rows - 1) * spacing.value
+    const cellW = maxWidth
+    const cellH = maxHeight
+
+    loadedImages.forEach((img, i) => {
+      const r = Math.floor(i / cols)
+      const c = i % cols
+      let drawW = img.width
+      let drawH = img.height
+      let offsetX = 0
+      let offsetY = 0
+
+      if (layoutMode.value === 'smart') {
+        const ratio = Math.max(cellW / img.width, cellH / img.height)
+        drawW = img.width * ratio
+        drawH = img.height * ratio
+        offsetX = (cellW - drawW) / 2
+        offsetY = (cellH - drawH) / 2
+      } else {
+        if (alignment.value === 'center') {
+          offsetX = (cellW - img.width) / 2
+          offsetY = (cellH - img.height) / 2
+        } else if (alignment.value === 'end') {
+          offsetX = cellW - img.width
+          offsetY = cellH - img.height
+        }
+      }
+
+      const x = padding.value + c * (cellW + spacing.value) + offsetX
+      const y = padding.value + r * (cellH + spacing.value) + offsetY
+      drawInfos.push({ x, y, w: drawW, h: drawH })
+    })
+
+    totalWidth = cols * cellW + (cols - 1) * spacing.value
+    totalHeight = rows * cellH + (rows - 1) * spacing.value
   }
 
   const finalW = totalWidth + padding.value * 2
@@ -130,58 +196,33 @@ const drawPreview = async () => {
     ctx.fillRect(0, 0, finalW, finalH)
   }
 
-  const drawImg = (img: HTMLImageElement, x: number, y: number, w: number, h: number) => {
+  loadedImages.forEach((img, i) => {
+    const { x, y, w, h } = drawInfos[i]!
     ctx.save()
+
+    // 网格裁剪
+    if (combineDirection.value === 'grid' && layoutMode.value === 'smart') {
+      const r = Math.floor(i / cols)
+      const c = i % cols
+      ctx.beginPath()
+      ctx.rect(
+        padding.value + c * (maxWidth + spacing.value),
+        padding.value + r * (maxHeight + spacing.value),
+        maxWidth,
+        maxHeight
+      )
+      ctx.clip()
+    }
+
     if (borderRadius.value > 0) {
       ctx.beginPath()
-      if (ctx.roundRect) {
-        ctx.roundRect(x, y, w, h, borderRadius.value)
-      } else {
-        ctx.rect(x, y, w, h)
-      }
+      if (ctx.roundRect) ctx.roundRect(x, y, w, h, borderRadius.value)
+      else ctx.rect(x, y, w, h)
       ctx.clip()
     }
     ctx.drawImage(img, x, y, w, h)
     ctx.restore()
-  }
-
-  let currentX = padding.value
-  let currentY = padding.value
-
-  if (combineDirection.value === 'vertical') {
-    loadedImages.forEach((img) => {
-      let x = padding.value
-      if (alignment.value === 'center') x = padding.value + (maxWidth - img.width) / 2
-      else if (alignment.value === 'end') x = padding.value + maxWidth - img.width
-      drawImg(img, x, currentY, img.width, img.height)
-      currentY += img.height + spacing.value
-    })
-  } else if (combineDirection.value === 'horizontal') {
-    loadedImages.forEach((img) => {
-      let y = padding.value
-      if (alignment.value === 'center') y = padding.value + (maxHeight - img.height) / 2
-      else if (alignment.value === 'end') y = padding.value + maxHeight - img.height
-      drawImg(img, currentX, y, img.width, img.height)
-      currentX += img.width + spacing.value
-    })
-  } else {
-    loadedImages.forEach((img, i) => {
-      const r = Math.floor(i / cols)
-      const c = i % cols
-      let offsetX = padding.value
-      let offsetY = padding.value
-      if (alignment.value === 'center') {
-        offsetX = padding.value + (maxWidth - img.width) / 2
-        offsetY = padding.value + (maxHeight - img.height) / 2
-      } else if (alignment.value === 'end') {
-        offsetX = padding.value + maxWidth - img.width
-        offsetY = padding.value + maxHeight - img.height
-      }
-      const x = c * (maxWidth + spacing.value) + offsetX
-      const y = r * (maxHeight + spacing.value) + offsetY
-      drawImg(img, x, y, img.width, img.height)
-    })
-  }
+  })
 }
 
 const requestDraw = () => {
@@ -200,6 +241,7 @@ onMounted(() => {
 watch(
   [
     combineDirection,
+    layoutMode,
     alignment,
     spacing,
     columns,
@@ -209,17 +251,17 @@ watch(
     () => store.images.length
   ],
   (newValues, oldValues) => {
-    // 如果没有 oldValues，说明是 watch 的初次运行（虽然我们去掉了 immediate，但为了防御性编程仍保留判断）
     if (!oldValues) {
       requestDraw()
       return
     }
 
-    // 只有在方向、对齐、背景重置或图片增删时触发较明显的振动
+    // 只有在方向、模式、对齐、背景重置或图片增删时触发较明显的振动
     if (
       newValues[0] !== oldValues[0] ||
       newValues[1] !== oldValues[1] ||
-      newValues[7] !== oldValues[7]
+      newValues[2] !== oldValues[2] ||
+      newValues[8] !== oldValues[8]
     ) {
       triggerHaptic(10)
     }
@@ -252,6 +294,11 @@ const combineDirections = [
   { label: '网格', value: 'grid', icon: Grid3X3 }
 ]
 
+const layoutModes = [
+  { label: '智能缩放', value: 'smart', icon: Layers },
+  { label: '原始尺寸', value: 'original', icon: Box }
+]
+
 const alignmentOptions = computed(() => {
   if (combineDirection.value === 'vertical')
     return [
@@ -278,6 +325,7 @@ const handleCombine = async () => {
   try {
     const result = await processCombine({
       direction: combineDirection.value,
+      layoutMode: layoutMode.value,
       spacing: spacing.value,
       columns: columns.value,
       padding: padding.value,
@@ -455,6 +503,17 @@ useResizeObserver(containerRef, resetView)
           class="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500"
           style="--stagger: 2"
         >
+          <AppSectionHeader title="填充逻辑" :icon="Layers" /><AppSegmentedControl
+            v-model="layoutMode"
+            :options="layoutModes"
+          />
+        </section>
+
+        <section
+          v-if="layoutMode === 'original'"
+          class="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500"
+          style="--stagger: 3"
+        >
           <AppSectionHeader title="对齐方式" :icon="AlignCenter" /><AppSegmentedControl
             v-model="alignment"
             :options="alignmentOptions"
@@ -463,7 +522,7 @@ useResizeObserver(containerRef, resetView)
 
         <div
           class="space-y-6 px-1 animate-in fade-in slide-in-from-right-4 duration-500"
-          style="--stagger: 3"
+          style="--stagger: 4"
         >
           <AppSlider
             v-if="combineDirection === 'grid'"
