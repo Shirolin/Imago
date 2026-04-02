@@ -157,32 +157,29 @@ defineProps<Props>()
       <aside
         v-if="showSidebar"
         id="inspector-panel"
-        class="bg-card transition-all duration-500 ease-apple z-[200] lg:static w-full lg:rounded-none shadow-2xl-up lg:shadow-none"
+        class="bg-card transition-all duration-500 ease-apple z-[200] lg:static shadow-2xl-up lg:shadow-none"
         :class="[
           // XS: 底部抽屉
-          isCompact
-            ? 'fixed bottom-0 left-0 right-0 h-[70vh] rounded-t-[2.5rem] border-t border-border shadow-2xl-up z-[300]'
-            : '',
+          isCompact ? 'fixed bottom-0 left-0 right-0 h-[70vh] rounded-t-[2.5rem] border-t border-border z-[300]' : '',
           isCompact && layoutStore.isInspectorCollapsed ? 'translate-y-[calc(100%-44px)]' : '',
 
-          // MD: 叠层 Overlay
-          isMedium
-            ? 'fixed top-14 right-0 bottom-0 w-[340px] border-l border-border shadow-2xl z-[60]'
-            : '',
-          isMedium && layoutStore.isInspectorCollapsed ? 'translate-x-full' : 'translate-x-0',
+          // MD: 悬浮面板 (专业平板质感)
+          isMedium ? 'fixed top-4 right-4 bottom-4 w-[360px] rounded-[2rem] border border-border shadow-2xl z-[60]' : '',
+          isMedium && layoutStore.isInspectorCollapsed ? 'translate-x-[calc(100%+2rem)]' : 'translate-x-0',
 
           // LG/XL: 常驻分栏
-          isDesktop ? 'lg:border-l lg:h-auto lg:z-[60]' : '',
-          isDesktop && layoutStore.isInspectorCollapsed
-            ? 'lg:w-0 lg:overflow-hidden lg:border-l-0'
-            : 'lg:w-[320px] 2xl:w-[360px]'
+          isDesktop ? 'lg:border-l lg:h-auto lg:z-[60] lg:rounded-none' : '',
+          isDesktop && layoutStore.isInspectorCollapsed ? 'lg:w-0 lg:overflow-hidden lg:border-l-0' : 'lg:w-[320px] 2xl:w-[360px]'
         ]"
       >
         <div
           class="h-full flex flex-col w-full overflow-hidden relative"
-          :class="[isCompact ? 'rounded-t-[2.5rem]' : '']"
+          :class="[
+            isCompact ? 'rounded-t-[2.5rem]' : '',
+            isMedium ? 'rounded-[2rem]' : ''
+          ]"
         >
-          <!-- 移动端把手 (仅 XS 可见) -->
+          <!-- 移动端把手 (仅 XS 可见，MD 隐藏) -->
           <div
             v-if="isCompact"
             @click="layoutStore.toggleInspector"
@@ -201,12 +198,26 @@ defineProps<Props>()
             </div>
           </div>
 
+          <!-- MD 专用标题栏 (提升专业感) -->
+          <div 
+            v-if="isMedium" 
+            class="h-14 flex items-center justify-between px-6 border-b border-border/10 shrink-0"
+          >
+            <span class="text-xs font-black uppercase tracking-widest text-muted-foreground/60">Inspector</span>
+            <button 
+              @click="layoutStore.toggleInspector"
+              class="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground/40 hover:text-primary"
+            >
+              <PanelRightClose :size="18" />
+            </button>
+          </div>
+
           <!-- 核心内容滚动区 -->
           <div
             class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar w-full"
             :class="{ 'opacity-0': layoutStore.isInspectorCollapsed && isCompact }"
           >
-            <div class="p-4 md:p-5 flex flex-col gap-8 pb-6">
+            <div class="p-4 md:p-6 flex flex-col gap-8 pb-6">
               <slot name="sidebar"></slot>
             </div>
           </div>
