@@ -8,7 +8,7 @@ import { useBreakpoints } from '../../composables/useBreakpoints'
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
-const { isCompact, isMedium, isWide, isUltra, isDesktop } = useBreakpoints()
+const { isCompact, isMedium, isUltra, isDesktop } = useBreakpoints()
 
 interface Props {
   showSidebar?: boolean

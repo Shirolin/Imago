@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import {
-  Image,
   Minimize2,
   Maximize2,
   Scissors,
@@ -20,6 +19,7 @@ import {
 } from 'lucide-vue-next'
 import { useImageStore } from './stores/imageStore'
 import { useLayoutStore } from './stores/layoutStore'
+import AppLogo from './components/common/AppLogo.vue'
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
@@ -146,26 +146,23 @@ const menuGroups = [
         <router-link
           to="/"
           @click="closeMobileSidebar"
-          class="flex items-center hover:opacity-80 transition-opacity active:scale-95 duration-200"
-          :class="layoutStore.isMenuCollapsed ? 'md:justify-center w-full gap-4 md:gap-0' : 'gap-4'"
+          class="flex items-center hover:opacity-90 transition-opacity active:scale-95 duration-200"
+          :class="layoutStore.isMenuCollapsed ? 'md:justify-center w-full gap-4 md:gap-0' : 'gap-3.5'"
         >
-          <div
-            class="bg-primary text-primary-foreground p-2.5 rounded-xl shadow-lg shadow-primary/20 shrink-0"
-          >
-            <Image :size="22" />
-          </div>
+          <AppLogo :size="layoutStore.isMenuCollapsed ? 36 : 42" />
+          
           <transition name="fade">
             <div
               v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-              class="flex flex-col justify-center"
+              class="flex flex-col justify-center translate-y-[2px]"
               :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
             >
               <h1
-                class="text-2xl font-extrabold tracking-tight whitespace-nowrap leading-none text-primary/90"
+                class="text-[28px] font-black tracking-tighter whitespace-nowrap leading-none pb-1"
               >
-                Imago
+                <span class="bg-gradient-to-r from-[#2bd19e] to-[#69eaca] bg-clip-text text-transparent">imago</span>
               </h1>
-              <span class="text-[10px] font-bold text-muted-foreground/60 tracking-tight mt-1.5">
+              <span class="text-[11px] font-extrabold text-[#2bd19e]/80 tracking-widest leading-none mt-[2px] ml-[2px]">
                 极简图像处理工具
               </span>
             </div>
