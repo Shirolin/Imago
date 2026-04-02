@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import AppCanvasControls from './AppCanvasControls.vue'
 import { useCanvasView } from '../../composables/useCanvasView'
+import { useBreakpoints } from '../../composables/useBreakpoints'
 
 interface Props {
   transformDuration?: string
