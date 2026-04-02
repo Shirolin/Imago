@@ -143,11 +143,11 @@ defineExpose({
             >
               Space
             </div>
-            <span class="text-white/30 text-[10px]">+</span>
+            <span class="text-white/40 text-[10px]">+</span>
 
-            <!-- 操作图标 -->
+            <!-- 操作图标 (简约静态) -->
             <div
-              class="p-1 md:p-1.5 bg-primary/20 rounded-lg md:rounded-xl border border-primary/40 text-primary animate-pulse-subtle"
+              class="p-1 md:p-1.5 bg-white/10 rounded-lg md:rounded-xl border border-white/10 text-white/80"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -155,7 +155,7 @@ defineExpose({
                 height="14"
                 class="md:w-4 md:h-4"
                 stroke="currentColor"
-                stroke-width="3"
+                stroke-width="2.5"
                 fill="none"
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -173,9 +173,9 @@ defineExpose({
           <!-- 辅助文案 (仅宽屏可见) -->
           <div v-if="!isCompact" class="flex items-center gap-2">
             <div class="w-px h-4 bg-white/15"></div>
-            <span class="text-[10px] md:text-xs text-white font-black tracking-widest uppercase">
-              {{ scale > fitScale * 1.05 ? '拖动图片' : '视图预览' }}
-            </span>
+            <span class="text-[10px] md:text-xs text-white font-black tracking-widest uppercase"
+              >拖动图片</span
+            >
           </div>
         </div>
       </div>
