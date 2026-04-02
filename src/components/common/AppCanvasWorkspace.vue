@@ -9,7 +9,9 @@ interface Props {
   hideDefaultHint?: boolean
 }
 
-defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  showControls: true
+})
 
 const emit = defineEmits<{
   (e: 'wheel', evt: WheelEvent): void
