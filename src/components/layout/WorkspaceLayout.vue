@@ -32,8 +32,10 @@ defineProps<Props>()
       class="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden relative w-full max-w-full"
     >
       <!-- A. 左侧核心区域 (画布 + 资源托盘) -->
+      <!-- 核心加固：在 Overlay 模式 (Compact/Medium) 展开时，为背景应用 inert 防止焦点穿透 -->
       <main
         class="flex-1 flex flex-col min-w-0 min-h-0 relative z-10 bg-background overflow-hidden transition-all duration-500 ease-apple"
+        :inert="(isCompact || isMedium) && !layoutStore.isInspectorCollapsed ? true : undefined"
         :class="[
           isCompact && showSidebar && !layoutStore.isInspectorCollapsed ? 'pb-[70vh]' : '',
           isCompact && showSidebar && layoutStore.isInspectorCollapsed ? 'pb-11' : '',
@@ -43,16 +45,17 @@ defineProps<Props>()
         <header
           class="h-14 bg-card border-b border-border/50 flex items-center px-4 md:px-6 justify-between gap-4 shrink-0 z-30"
         >
-          <div class="flex items-center gap-4 md:gap-6 shrink-0">
+          <div class="flex items-center gap-4 md:gap-6 shrink min-w-0">
             <slot name="header-left"></slot>
           </div>
-          <div class="flex items-center gap-2 md:gap-3 shrink min-w-0">
+          <div class="flex items-center gap-2 md:gap-3 shrink-0">
             <slot name="header-actions"></slot>
             <button
               v-if="showSidebar"
               @click="layoutStore.toggleInspector"
               class="hidden lg:flex p-2 hover:bg-muted rounded-lg transition-all text-muted-foreground/60 hover:text-primary active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[44px] min-w-[44px] items-center justify-center"
               aria-label="Toggle Inspector Panel"
+              :aria-expanded="!layoutStore.isInspectorCollapsed"
             >
               <PanelRightOpen v-if="layoutStore.isInspectorCollapsed" :size="18" />
               <PanelRightClose v-else :size="18" />
@@ -62,6 +65,8 @@ defineProps<Props>()
               v-if="showSidebar && isMedium"
               @click="layoutStore.toggleInspector"
               class="flex lg:hidden p-2 hover:bg-muted rounded-lg transition-all text-muted-foreground/60 hover:text-primary min-h-[44px] min-w-[44px] items-center justify-center"
+              aria-label="Toggle Inspector Panel"
+              :aria-expanded="!layoutStore.isInspectorCollapsed"
             >
               <PanelRightOpen v-if="layoutStore.isInspectorCollapsed" :size="18" />
               <PanelRightClose v-else :size="18" />
@@ -87,8 +92,8 @@ defineProps<Props>()
             class="grid transition-all duration-300"
             :class="[
               layoutStore.cardSizeMode === 'compact'
-                ? 'grid-cols-[repeat(auto-fill,minmax(130px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 md:gap-8'
-                : 'grid-cols-[repeat(auto-fill,minmax(160px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 md:gap-10'
+                ? 'grid-cols-[repeat(auto-fill,minmax(130px,1fr))] lg:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 lg:gap-8'
+                : 'grid-cols-[repeat(auto-fill,minmax(160px,1fr))] lg:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 lg:gap-10'
             ]"
           >
             <slot name="content"></slot>
@@ -158,32 +163,41 @@ defineProps<Props>()
         v-if="showSidebar"
         id="inspector-panel"
         class="bg-card transition-all duration-500 ease-apple z-[200] lg:static shadow-2xl-up lg:shadow-none"
+        role="complementary"
+        :aria-label="isCompact ? '设置面板抽屉' : '设置侧边栏'"
         :class="[
           // XS: 底部抽屉
-          isCompact ? 'fixed bottom-0 left-0 right-0 h-[70vh] rounded-t-[2.5rem] border-t border-border z-[300]' : '',
+          isCompact
+            ? 'fixed bottom-0 left-0 right-0 h-[70vh] rounded-t-[2.5rem] border-t border-border z-[300]'
+            : '',
           isCompact && layoutStore.isInspectorCollapsed ? 'translate-y-[calc(100%-44px)]' : '',
 
           // MD: 悬浮面板 (专业平板质感)
-          isMedium ? 'fixed top-4 right-4 bottom-4 w-[360px] rounded-[2rem] border border-border shadow-2xl z-[60]' : '',
-          isMedium && layoutStore.isInspectorCollapsed ? 'translate-x-[calc(100%+2rem)]' : 'translate-x-0',
+          isMedium
+            ? 'fixed top-4 right-4 bottom-4 w-[360px] rounded-[2rem] border border-border shadow-2xl z-[60]'
+            : '',
+          isMedium && layoutStore.isInspectorCollapsed
+            ? 'translate-x-[calc(100%+2rem)]'
+            : 'translate-x-0',
 
           // LG/XL: 常驻分栏
           isDesktop ? 'lg:border-l lg:h-auto lg:z-[60] lg:rounded-none' : '',
-          isDesktop && layoutStore.isInspectorCollapsed ? 'lg:w-0 lg:overflow-hidden lg:border-l-0' : 'lg:w-[320px] 2xl:w-[360px]'
+          isDesktop && layoutStore.isInspectorCollapsed
+            ? 'lg:w-0 lg:overflow-hidden lg:border-l-0'
+            : 'lg:w-[320px] 2xl:w-[360px]'
         ]"
       >
         <div
           class="h-full flex flex-col w-full overflow-hidden relative"
-          :class="[
-            isCompact ? 'rounded-t-[2.5rem]' : '',
-            isMedium ? 'rounded-[2rem]' : ''
-          ]"
+          :class="[isCompact ? 'rounded-t-[2.5rem]' : '', isMedium ? 'rounded-[2rem]' : '']"
         >
           <!-- 移动端把手 (仅 XS 可见，MD 隐藏) -->
           <div
             v-if="isCompact"
             @click="layoutStore.toggleInspector"
             class="flex flex-col items-center justify-center h-11 shrink-0 cursor-pointer touch-none group bg-card border-b border-border/10"
+            role="button"
+            :aria-label="layoutStore.isInspectorCollapsed ? '展开面板' : '折叠面板'"
           >
             <div
               class="w-12 h-1.5 bg-muted-foreground/20 rounded-full transition-all group-hover:bg-muted-foreground/40"
@@ -199,14 +213,17 @@ defineProps<Props>()
           </div>
 
           <!-- MD 专用标题栏 (提升专业感) -->
-          <div 
-            v-if="isMedium" 
+          <div
+            v-if="isMedium"
             class="h-14 flex items-center justify-between px-6 border-b border-border/10 shrink-0"
           >
-            <span class="text-xs font-black uppercase tracking-widest text-muted-foreground/60">Inspector</span>
-            <button 
+            <span class="text-xs font-black uppercase tracking-widest text-muted-foreground/60"
+              >Inspector</span
+            >
+            <button
               @click="layoutStore.toggleInspector"
               class="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground/40 hover:text-primary"
+              aria-label="关闭面板"
             >
               <PanelRightClose :size="18" />
             </button>

@@ -116,8 +116,8 @@ defineExpose({
           transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale})`
         }"
       >
-        <!-- 子元素 (Canvas) 正常溢出显示 -->
-        <div class="flex-shrink-0 backface-hidden">
+        <!-- 子元素 (Canvas) 正常溢出显示，且恢复交互能力 -->
+        <div class="flex-shrink-0 backface-hidden pointer-events-auto">
           <slot :scale="scale" :offset="offset" :is-panning="isPanning"></slot>
         </div>
       </div>
