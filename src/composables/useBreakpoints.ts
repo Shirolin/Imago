@@ -1,43 +1,76 @@
 import { useBreakpoints as useVueUseBreakpoints, breakpointsTailwind } from '@vueuse/core'
 
 /**
- * 统一的设备断点判断 Hook
- * 基于 Tailwind 标准断点:
- * Mobile: < 768px (小于 md)
- * Tablet: 768px - 1280px (md 到 xl 之间)
- * PC: >= 1280px (大于等于 xl)
+ * Imago 响应式系统 2.0
+ *
+ * 档次定义:
+ * 1. XS / Compact (Phone): < 640px (sm)
+ *    策略: 侧边栏转底抽屉，单栏布局。
+ *
+ * 2. MD / Medium (Tablet/Foldable): 640px - 1024px (lg)
+ *    策略: 侧边栏 Overlay 弹出模式，画布优先。
+ *
+ * 3. LG / Wide (Standard Desktop): 1024px - 1536px (2xl)
+ *    策略: 侧边栏常驻，资源托盘固定。
+ *
+ * 4. XL / Ultra (Ultrawide): >= 1536px (2xl)
+ *    策略: 容器限宽，留白艺术。
  */
 export const useBreakpoints = () => {
   const breakpoints = useVueUseBreakpoints(breakpointsTailwind)
 
-  // 1. 基础设备类型 (互斥判断)
-  const isMobile = breakpoints.smaller('md')
-  const isTablet = breakpoints.between('md', 'xl')
-  const isPC = breakpoints.greaterOrEqual('xl')
+  // --- 核心语义断点 ---
 
-  // 2. 常用组合判断 (语义化)
-  const isMobileOrTablet = breakpoints.smaller('xl')
-  const isTabletOrPC = breakpoints.greaterOrEqual('md')
+  // XS: 紧凑模式 (手机)
+  const isCompact = breakpoints.smaller('sm')
 
-  // 3. 兼容旧逻辑的别名
-  const isSmallerThanMd = isMobile
-  const isMdOrGreater = isTabletOrPC
+  // MD: 中等模式 (平板/折叠屏)
+  const isMedium = breakpoints.between('sm', 'lg')
+
+  // LG: 宽屏模式 (标准桌面)
+  const isWide = breakpoints.between('lg', '2xl')
+
+  // XL: 超宽屏模式 (iMac/大显示器)
+  const isUltra = breakpoints.greaterOrEqual('2xl')
+
+  // --- 语义化逻辑组合 ---
+
+  // 是否为移动端体验 (XS + MD)
+  const isMobileOrTablet = breakpoints.smaller('lg')
+
+  // 是否为桌面端体验 (LG + XL)
+  const isDesktop = breakpoints.greaterOrEqual('lg')
+
+  // 是否可以常驻侧边栏
+  const canStickySidebar = isDesktop
+
+  // --- 兼容性别名 (针对旧逻辑) ---
+  const isMobile = isCompact
+  const isTablet = isMedium
+  const isPC = isDesktop
+  const isSmallerThanMd = breakpoints.smaller('md')
+  const isMdOrGreater = breakpoints.greaterOrEqual('md')
 
   return {
-    // 核心设备类型
+    // 基础档次
+    isCompact,
+    isMedium,
+    isWide,
+    isUltra,
+
+    // 逻辑组合
+    isMobileOrTablet,
+    isDesktop,
+    canStickySidebar,
+
+    // 兼容别名
     isMobile,
     isTablet,
     isPC,
-
-    // 组合类型
-    isMobileOrTablet,
-    isTabletOrPC,
-
-    // 兼容别名
     isSmallerThanMd,
     isMdOrGreater,
 
-    // 原始断点对象 (备用)
+    // 原始对象
     breakpoints
   }
 }

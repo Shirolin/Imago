@@ -8,7 +8,7 @@ import { useBreakpoints } from '../../composables/useBreakpoints'
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
-const { isPC, isMobile } = useBreakpoints()
+const { isCompact, isMedium, isWide, isUltra, isDesktop } = useBreakpoints()
 
 interface Props {
   showSidebar?: boolean
@@ -29,15 +29,15 @@ defineProps<Props>()
     <!-- 2. 主工作布局 -->
     <div
       v-else
-      class="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden relative w-full max-w-full"
+      class="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden relative w-full max-w-full"
     >
       <!-- A. 左侧核心区域 (画布 + 资源托盘) -->
       <main
         class="flex-1 flex flex-col min-w-0 min-h-0 relative z-10 bg-background overflow-hidden transition-all duration-500 ease-apple"
         :class="[
-          isMobile && showSidebar && !layoutStore.isInspectorCollapsed ? 'pb-[40vh]' : '',
-          isMobile && showSidebar && layoutStore.isInspectorCollapsed ? 'pb-11' : '',
-          !isMobile ? 'pb-0' : ''
+          isCompact && showSidebar && !layoutStore.isInspectorCollapsed ? 'pb-[70vh]' : '',
+          isCompact && showSidebar && layoutStore.isInspectorCollapsed ? 'pb-11' : '',
+          !isCompact ? 'pb-0' : ''
         ]"
       >
         <header
@@ -51,8 +51,17 @@ defineProps<Props>()
             <button
               v-if="showSidebar"
               @click="layoutStore.toggleInspector"
-              class="hidden md:flex p-2 hover:bg-muted rounded-lg transition-all text-muted-foreground/60 hover:text-primary active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[44px] min-w-[44px] items-center justify-center"
+              class="hidden lg:flex p-2 hover:bg-muted rounded-lg transition-all text-muted-foreground/60 hover:text-primary active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[44px] min-w-[44px] items-center justify-center"
               aria-label="Toggle Inspector Panel"
+            >
+              <PanelRightOpen v-if="layoutStore.isInspectorCollapsed" :size="18" />
+              <PanelRightClose v-else :size="18" />
+            </button>
+            <!-- 平板/中屏模式下的切换按钮 -->
+            <button
+              v-if="showSidebar && isMedium"
+              @click="layoutStore.toggleInspector"
+              class="flex lg:hidden p-2 hover:bg-muted rounded-lg transition-all text-muted-foreground/60 hover:text-primary min-h-[44px] min-w-[44px] items-center justify-center"
             >
               <PanelRightOpen v-if="layoutStore.isInspectorCollapsed" :size="18" />
               <PanelRightClose v-else :size="18" />
@@ -64,12 +73,13 @@ defineProps<Props>()
         <div
           class="flex-1 relative min-h-0 w-full"
           :style="{
-            overscrollBehavior: isMobile && !layoutStore.isInspectorCollapsed ? 'contain' : 'auto'
+            overscrollBehavior: isCompact && !layoutStore.isInspectorCollapsed ? 'contain' : 'auto'
           }"
           :class="[
             noScroll
               ? 'overflow-hidden'
-              : 'overflow-y-auto custom-scrollbar px-6 py-6 md:px-10 md:py-10'
+              : 'overflow-y-auto custom-scrollbar px-4 py-4 md:px-10 md:py-10',
+            isUltra && !noScroll ? 'mx-auto max-w-[1600px]' : ''
           ]"
         >
           <div
@@ -91,29 +101,32 @@ defineProps<Props>()
           v-if="showAssetsTray && store.images.length > 1"
           class="shrink-0 w-0 min-w-full z-20 bg-card/30 transition-all duration-500 ease-apple overflow-hidden"
           :class="[
-            (layoutStore.isAssetsTrayCollapsed && isPC) ||
-            (isMobile && showSidebar && !layoutStore.isInspectorCollapsed)
+            (layoutStore.isAssetsTrayCollapsed && isDesktop) ||
+            (isCompact && showSidebar && !layoutStore.isInspectorCollapsed)
               ? 'h-0 border-t-0'
               : 'h-32 md:h-28 border-t border-border/40'
           ]"
         >
           <div
             class="h-full w-full relative group/tray-outer"
-            @dblclick="isPC && layoutStore.toggleAssetsTray"
+            @dblclick="isDesktop && layoutStore.toggleAssetsTray"
           >
-            <!-- 极简把手 (仅在 PC 悬停或折叠时可见，提示可折叠) -->
+            <!-- 极简把手 -->
             <div
-              v-if="isPC"
+              v-if="isDesktop"
               class="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-muted-foreground/10 rounded-full mt-1 opacity-0 group-hover/tray-outer:opacity-100 transition-opacity cursor-ns-resize z-50 pointer-events-none"
             ></div>
             <AssetsTray />
           </div>
         </div>
 
-        <!-- 3. 资产托盘折叠提示条 (仅限 PC 端且已折叠时) -->
+        <!-- 3. 资产托盘折叠提示条 -->
         <div
           v-if="
-            isPC && showAssetsTray && store.images.length > 1 && layoutStore.isAssetsTrayCollapsed
+            isDesktop &&
+            showAssetsTray &&
+            store.images.length > 1 &&
+            layoutStore.isAssetsTrayCollapsed
           "
           @click="layoutStore.toggleAssetsTray"
           class="h-8 bg-muted/10 hover:bg-primary/[0.03] backdrop-blur-md cursor-pointer transition-all border-t border-border/10 shrink-0 group flex items-center justify-between px-6"
@@ -144,21 +157,36 @@ defineProps<Props>()
       <aside
         v-if="showSidebar"
         id="inspector-panel"
-        class="bg-card md:border-l border-border flex flex-col shrink-0 transition-all duration-500 ease-apple z-[200] md:z-[60] fixed bottom-0 left-0 right-0 md:static w-full rounded-t-[2.5rem] md:rounded-none shadow-2xl-up md:shadow-none overflow-visible"
+        class="bg-card transition-all duration-500 ease-apple z-[200] lg:static w-full lg:rounded-none shadow-2xl-up lg:shadow-none"
         :class="[
-          'h-[40vh] md:h-auto',
-          layoutStore.isInspectorCollapsed
-            ? 'translate-y-[calc(100%-44px)] md:w-0'
-            : 'translate-y-0 md:w-[320px] xl:w-[360px]'
+          // XS: 底部抽屉
+          isCompact
+            ? 'fixed bottom-0 left-0 right-0 h-[70vh] rounded-t-[2.5rem] border-t border-border shadow-2xl-up z-[300]'
+            : '',
+          isCompact && layoutStore.isInspectorCollapsed ? 'translate-y-[calc(100%-44px)]' : '',
+
+          // MD: 叠层 Overlay
+          isMedium
+            ? 'fixed top-14 right-0 bottom-0 w-[340px] border-l border-border shadow-2xl z-[60]'
+            : '',
+          isMedium && layoutStore.isInspectorCollapsed ? 'translate-x-full' : 'translate-x-0',
+
+          // LG/XL: 常驻分栏
+          isDesktop ? 'lg:border-l lg:h-auto lg:z-[60]' : '',
+          isDesktop && layoutStore.isInspectorCollapsed
+            ? 'lg:w-0 lg:overflow-hidden lg:border-l-0'
+            : 'lg:w-[320px] 2xl:w-[360px]'
         ]"
       >
         <div
-          class="h-full flex flex-col w-full md:w-[320px] xl:w-[360px] overflow-hidden rounded-t-[2.5rem] md:rounded-none bg-card relative"
+          class="h-full flex flex-col w-full overflow-hidden relative"
+          :class="[isCompact ? 'rounded-t-[2.5rem]' : '']"
         >
-          <!-- 移动端把手 -->
+          <!-- 移动端把手 (仅 XS 可见) -->
           <div
+            v-if="isCompact"
             @click="layoutStore.toggleInspector"
-            class="md:hidden flex flex-col items-center justify-center h-11 shrink-0 cursor-pointer touch-none group bg-card border-b border-border/10"
+            class="flex flex-col items-center justify-center h-11 shrink-0 cursor-pointer touch-none group bg-card border-b border-border/10"
           >
             <div
               class="w-12 h-1.5 bg-muted-foreground/20 rounded-full transition-all group-hover:bg-muted-foreground/40"
@@ -176,7 +204,7 @@ defineProps<Props>()
           <!-- 核心内容滚动区 -->
           <div
             class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar w-full"
-            :class="{ 'opacity-0': layoutStore.isInspectorCollapsed && !isPC }"
+            :class="{ 'opacity-0': layoutStore.isInspectorCollapsed && isCompact }"
           >
             <div class="p-4 md:p-5 flex flex-col gap-8 pb-6">
               <slot name="sidebar"></slot>
@@ -185,18 +213,25 @@ defineProps<Props>()
 
           <!-- 工作流工具栏 -->
           <div
-            v-if="(!layoutStore.isInspectorCollapsed || isPC) && $slots.toolbar"
+            v-if="(!layoutStore.isInspectorCollapsed || isDesktop) && $slots.toolbar"
             class="shrink-0 px-4 md:px-5 py-2 border-t border-border/20 bg-card"
           >
             <slot name="toolbar"></slot>
           </div>
 
           <!-- 核心操作按钮区 -->
-          <div v-if="!layoutStore.isInspectorCollapsed || isPC" class="shrink-0 z-30">
+          <div v-if="!layoutStore.isInspectorCollapsed || isDesktop" class="shrink-0 z-30">
             <slot name="footer"></slot>
           </div>
         </div>
       </aside>
+
+      <!-- 平板模式下的遮罩层 (当侧边栏展开时) -->
+      <div
+        v-if="isMedium && showSidebar && !layoutStore.isInspectorCollapsed"
+        @click="layoutStore.toggleInspector"
+        class="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-50 transition-opacity duration-500"
+      ></div>
     </div>
   </div>
 </template>
