@@ -36,6 +36,7 @@ defineProps<Props>()
       <main
         class="flex-1 flex flex-col min-w-0 min-h-0 relative z-10 bg-background overflow-hidden transition-all duration-500 ease-apple"
         :inert="(isCompact || isMedium) && !layoutStore.isInspectorCollapsed ? true : undefined"
+        :aria-hidden="(isCompact || isMedium) && !layoutStore.isInspectorCollapsed"
         :class="[
           isCompact && showSidebar && !layoutStore.isInspectorCollapsed ? 'pb-[70vh]' : '',
           isCompact && showSidebar && layoutStore.isInspectorCollapsed ? 'pb-11' : '',

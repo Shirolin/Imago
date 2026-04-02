@@ -11,6 +11,7 @@ interface Props {
   loading?: boolean
   icon?: Component
   iconPosition?: 'left' | 'right'
+  ariaLabel?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -120,6 +121,7 @@ const iconClass = computed(() => {
     :size="shadcnSize"
     :disabled="disabled || loading"
     :class="extraClasses"
+    :aria-label="ariaLabel"
   >
     <Loader2 v-if="loading" class="animate-spin shrink-0" :size="iconSize" />
     <template v-else>
