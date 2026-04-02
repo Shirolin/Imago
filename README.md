@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://github.com/Shirolin/Imago/blob/main/public/vite.svg" width="128" height="128" alt="Imago Logo" />
+<img src="public/favicon.svg" width="160" height="160" alt="Imago Logo" />
 
 # Imago
 
