@@ -134,27 +134,26 @@ defineExpose({
         :class="isHandMode ? 'opacity-0 scale-95' : 'opacity-100 scale-100'"
       >
         <div
-          class="px-3 py-2 md:px-4 md:py-2 bg-black/80 backdrop-blur-md border border-white/10 rounded-full flex items-center gap-2 md:gap-3 shadow-2xl ring-1 ring-white/5"
+          class="px-3 py-2 md:px-4 md:py-2 bg-black/80 backdrop-blur-md border border-white/10 rounded-full flex items-center gap-2.5 md:gap-3 shadow-2xl ring-1 ring-white/5"
         >
-          <!-- 桌面端/宽屏显示快捷键提示 (核心引导：[Space] + 图标 + 文案) -->
-          <div v-if="!isCompact" class="flex items-center gap-3">
-            <div class="flex items-center gap-1.5">
-              <div
-                class="px-2 py-1 bg-white/15 rounded-md border border-white/20 text-[10px] font-black text-white uppercase tracking-tighter shadow-sm"
-              >
-                Space
-              </div>
-              <span class="text-white/40 text-xs font-medium">+</span>
-            </div>
-
-            <!-- 操作图标 (所有模式可见) -->
+          <!-- 核心操作提示 (全模式可见：[Space] + 图标) -->
+          <div class="flex items-center gap-1.5 md:gap-2">
             <div
-              class="p-1.5 bg-primary/20 rounded-xl border border-primary/40 text-primary animate-pulse-subtle"
+              class="px-1.5 py-0.5 bg-white/15 rounded border border-white/20 text-[9px] md:text-[10px] font-black text-white uppercase tracking-tighter shadow-sm"
+            >
+              Space
+            </div>
+            <span class="text-white/30 text-[10px]">+</span>
+
+            <!-- 操作图标 -->
+            <div
+              class="p-1 md:p-1.5 bg-primary/20 rounded-lg md:rounded-xl border border-primary/40 text-primary animate-pulse-subtle"
             >
               <svg
                 viewBox="0 0 24 24"
-                width="16"
-                height="16"
+                width="14"
+                height="14"
+                class="md:w-4 md:h-4"
                 stroke="currentColor"
                 stroke-width="3"
                 fill="none"
@@ -169,35 +168,14 @@ defineExpose({
                 />
               </svg>
             </div>
-
-            <div class="flex items-center gap-2">
-              <div class="w-px h-4 bg-white/20"></div>
-              <span class="text-xs text-white font-black tracking-[0.1em] uppercase">拖动图片</span>
-            </div>
           </div>
 
-          <!-- 窄屏模式仅显示图标 (响应式降级) -->
-          <div
-            v-else
-            class="p-2 bg-primary/20 rounded-xl border border-primary/40 text-primary animate-pulse-subtle"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              width="18"
-              height="18"
-              stroke="currentColor"
-              stroke-width="3"
-              fill="none"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v5" />
-              <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v10" />
-              <path d="M10 10.5V3a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v9" />
-              <path
-                d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"
-              />
-            </svg>
+          <!-- 辅助文案 (仅宽屏可见) -->
+          <div v-if="!isCompact" class="flex items-center gap-2">
+            <div class="w-px h-4 bg-white/15"></div>
+            <span class="text-[10px] md:text-xs text-white font-black tracking-widest uppercase">
+              {{ scale > fitScale * 1.05 ? '拖动图片' : '视图预览' }}
+            </span>
           </div>
         </div>
       </div>
