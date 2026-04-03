@@ -546,8 +546,8 @@ useResizeObserver(containerRef, resetView)
       <InspectorFooter>
         <AppButton
           size="lg"
-          :variant="isProcessing ? 'cta' : store.images.length >= 2 ? 'success' : 'cta'"
-          class="w-full h-12 rounded-xl shadow-xl shadow-primary/10 active:scale-[0.98] transition-all duration-300"
+          variant="cta"
+          class="w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden"
           :loading="isProcessing"
           :disabled="!hasEnoughImages"
           @click="handleCombine"

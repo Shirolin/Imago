@@ -8,7 +8,6 @@ import {
   Split,
   Layers,
   Palette,
-  Grid3X3,
   ArrowRight
 } from 'lucide-vue-next'
 import AppButton from '../components/common/AppButton.vue'
@@ -68,13 +67,6 @@ const tools = [
     path: '/filters',
     icon: Palette,
     colorClass: 'text-indigo-500'
-  },
-  {
-    name: '网格生成',
-    desc: '为图片添加参考网格',
-    path: '/grid',
-    icon: Grid3X3,
-    colorClass: 'text-teal-500'
   }
 ]
 </script>
@@ -160,7 +152,7 @@ const tools = [
           </div>
           <div class="mt-auto relative z-10">
             <div
-              class="flex items-center text-primary font-bold text-xs tracking-tight opacity-0 group-hover:opacity-10 translate-x-[-8px] group-hover:translate-x-0 transition-all duration-300"
+              class="flex items-center text-primary font-bold text-xs tracking-tight opacity-0 group-hover:opacity-100 translate-x-[-8px] group-hover:translate-x-0 transition-all duration-300"
             >
               即刻开始 <ArrowRight :size="14" class="ml-1.5" />
             </div>
