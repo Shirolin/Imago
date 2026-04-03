@@ -5,7 +5,7 @@ import { Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 
 interface Props {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'tool' | 'cta' | 'link'
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'tool' | 'cta' | 'link' | 'success'
   size?: 'sm' | 'md' | 'lg'
   disabled?: boolean
   loading?: boolean
@@ -30,6 +30,8 @@ const shadcnVariant = computed(() => {
       return 'outline'
     case 'danger':
       return 'destructive'
+    case 'success':
+      return 'default'
     case 'ghost':
     case 'tool':
     case 'link':
@@ -57,7 +59,7 @@ const shadcnSize = computed(() => {
 
 const extraClasses = computed(() => {
   let classes =
-    'font-bold transition-all duration-300 whitespace-nowrap shrink-0 flex items-center justify-center select-none active:scale-[0.97] '
+    'font-bold transition-all duration-300 whitespace-nowrap shrink-0 flex items-center justify-center select-none active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background outline-none '
 
   if (props.icon || props.loading) {
     classes += 'gap-2.5 '
@@ -72,11 +74,15 @@ const extraClasses = computed(() => {
 
     if (props.variant === 'cta') {
       classes +=
-        'bg-[hsl(var(--cta))] hover:bg-[hsl(32,95%,55%)] text-white shadow-[0_10px_20px_-5px_hsla(var(--cta),var(--button-shadow-opacity))] hover:shadow-[0_15px_30px_-5px_hsla(var(--cta),0.4)] '
+        'bg-[hsl(var(--cta))] hover:bg-[hsl(var(--cta-hover))] text-white shadow-[0_10px_20px_-5px_hsla(var(--cta),var(--button-shadow-opacity))] hover:shadow-[0_15px_30px_-5px_hsla(var(--cta),0.4)] '
     }
     if (props.variant === 'primary') {
       classes +=
         'bg-primary text-primary-foreground shadow-[0_10px_20px_-5px_hsla(var(--primary),var(--button-shadow-opacity))] hover:shadow-[0_15px_30px_-5px_hsla(var(--primary),0.4)] '
+    }
+    if (props.variant === 'success') {
+      classes +=
+        'bg-success text-success-foreground shadow-[0_10px_20px_-5px_hsla(var(--success),var(--button-shadow-opacity))] hover:shadow-[0_15px_30px_-5px_hsla(var(--success),0.4)] '
     }
     if (props.variant === 'tool') {
       classes += 'text-muted-foreground hover:bg-muted hover:text-primary '
@@ -91,7 +97,7 @@ const extraClasses = computed(() => {
     }
     if (props.variant === 'danger') {
       classes +=
-        'bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive hover:text-white '
+        'bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive hover:text-destructive-foreground '
     }
   }
   return classes

@@ -242,7 +242,7 @@ const handleCtaClick = async () => {
             <template #overlay="{ image }"
               ><div
                 v-if="activeImageId === image.id"
-                class="px-2 py-0.5 rounded-md text-[10px] font-black flex items-center gap-1 shadow-lg bg-primary text-white animate-in fade-in zoom-in duration-300"
+                class="px-2 py-0.5 rounded-md text-[10px] font-black flex items-center gap-1 shadow-lg bg-primary text-primary-foreground animate-in fade-in zoom-in duration-300"
               >
                 <Eye :size="10" />正在检查
               </div></template
@@ -287,8 +287,10 @@ const handleCtaClick = async () => {
         class="relative aspect-video bg-muted/20 rounded-xl overflow-hidden border border-border/40 shadow-sm mb-4 shrink-0"
       >
         <img :src="activeImage.preview" class="w-full h-full object-contain" />
-        <div class="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
-          <div class="text-[10px] text-white font-bold truncate uppercase tracking-tight">
+        <div
+          class="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-background/80 via-background/20 to-transparent"
+        >
+          <div class="text-[10px] text-foreground font-bold truncate uppercase tracking-tight">
             Checking: {{ activeImage.file.name }}
           </div>
         </div>
@@ -418,14 +420,9 @@ const handleCtaClick = async () => {
       <InspectorFooter>
         <AppButton
           size="lg"
-          variant="cta"
-          class="w-full h-12 rounded-xl shadow-xl transition-all duration-500 active:scale-95 group overflow-hidden"
-          :class="[
-            ctaState.action === 'download'
-              ? 'bg-emerald-500 hover:bg-emerald-400 border-emerald-400/20 shadow-emerald-500/20 text-white'
-              : 'shadow-primary/10'
-          ]"
-          :loading="isProcessing"
+          :variant="ctaState.action === 'download' ? 'success' : 'cta'"
+          class="w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden"
+          :loading="isReadingExif"
           :disabled="ctaState.disabled"
           @click="handleCtaClick"
         >

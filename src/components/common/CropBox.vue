@@ -11,7 +11,7 @@ interface Props {
   rotation?: number
   flipH?: boolean
   flipV?: boolean
-  isHandMode?: boolean // 鏂板锛氭姄鎵嬫ā寮忕姸鎬
+  isHandMode?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -82,7 +82,7 @@ const magnifierCropLines = computed(() => {
     position: 'absolute',
     borderStyle: 'solid',
     borderColor: 'hsl(var(--primary))',
-    boxShadow: '0 0 0 999px rgba(0,0,0,0.4)',
+    boxShadow: '0 0 0 999px hsla(var(--background) / 0.4)',
     zIndex: 10,
     pointerEvents: 'none'
   }
@@ -117,21 +117,17 @@ watch(
     const nw = imgNaturalSize.value.w,
       nh = imgNaturalSize.value.h
     const imgRatio = nw / nh
-    // 视觉比例：在百分比坐标系下的宽度比
     const visualRatio = ar / imgRatio
 
     const n = { ...internalCrop.value }
-    // 以中心点为基准调整比例
     const centerX = n.x + n.w / 2
     const centerY = n.y + n.h / 2
 
-    // 优先保持当前宽度，调整高度
     n.h = n.w / visualRatio
     if (n.h > 100) {
       n.h = 100
       n.w = n.h * visualRatio
     }
-    // 如果宽度也溢出了，按比例缩小
     if (n.w > 100) {
       n.w = 100
       n.h = n.w / visualRatio
@@ -251,10 +247,7 @@ let startX = 0,
   rafId: number | null = null
 
 const handleStart = (e: MouseEvent | TouchEvent, mode: typeof dragMode.value) => {
-  // 濡傛灉鏄姄鎵嬫ā寮忥紝绂佹瑁佸壀浜や簰
   if (props.isHandMode) return
-
-  // 銆愭牳績淇銆戯細蹇界暐闈為紶鏍囧乏閿紙濡備腑閿€佸彸閿級浠ュ強鎸変綇浜 Alt 閿殑鎷栨嫿
   if ('button' in e && e.button !== 0) return
   if ('altKey' in e && e.altKey) return
 
@@ -281,11 +274,7 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
   const alt = 'altKey' in e ? (e as MouseEvent).altKey : false
   if (rafId) cancelAnimationFrame(rafId)
   rafId = requestAnimationFrame(() => {
-    // 銆愭牳績淇銆戯細鍦ㄦ嫋鎷藉眰绾ц繘琛屽疄鏃 getBoundingClientRect 璇诲彇
-    // 铏界劧鏈 Layout Thrashing 椋庨櫓锛屼絾鍦ㄥ浘鐗囧钩绉伙紙Panning锛夊満鏅笅锛岃繖鏄繚璇佹暟瀛﹀潗鏍囩郴缁濆鍚屾鐨勫敮涓€鏂规硶
     const rect = containerRef.value!.getBoundingClientRect()
-
-    // 鍩虹鍧愭爣璁＄畻...
     const rawDx = (cx - rect.left) / props.scale
     const rawDy = (cy - rect.top) / props.scale
     const centerX = rect.width / 2 / props.scale
@@ -310,7 +299,6 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
       sV = false
     const currentLines = { x: null as number | null, y: null as number | null }
 
-    // 增强的吸附函数：支持多个目标，并自动更新辅助线状态
     const snap = (val: number, targets: (number | undefined)[], axis: 'x' | 'y') => {
       if (alt) return val
       const threshold = (15 / props.scale / Math.max(nw, nh)) * 100
@@ -331,7 +319,6 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
     }
 
     if (dragMode.value === 'move') {
-      // 移动模式吸附：左/右/上/下边缘均可吸附到图片边界或内容边界
       const targetsX = [
         0,
         100,
@@ -345,27 +332,22 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
         (contentBounds.value?.y ?? 0) + (contentBounds.value?.h ?? 0)
       ]
 
-      // 尝试吸附左边缘
       const nx = snap(startCrop.x + dxPercent, targetsX, 'x')
       if (sH) {
         n.x = nx
       } else {
-        // 如果左边缘没吸附，尝试右边缘吸附
         const nr = snap(startCrop.x + startCrop.w + dxPercent, targetsX, 'x')
         n.x = nr - n.w
       }
 
-      // 尝试吸附上边缘
       const ny = snap(startCrop.y + dyPercent, targetsY, 'y')
       if (sV) {
         n.y = ny
       } else {
-        // 如果上边缘没吸附，尝试下边缘吸附
         const nb = snap(startCrop.y + startCrop.h + dyPercent, targetsY, 'y')
         n.y = nb - n.h
       }
 
-      // 最终边界限制（允许稍微超出一点以便操作，但通常会被吸附拉回）
       n.x = Math.max(-50, Math.min(150 - n.w, n.x))
       n.y = Math.max(-50, Math.min(150 - n.h, n.y))
       activePercent.value = { x: px, y: py }
@@ -421,13 +403,9 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
   })
 }
 
-// 避让算法样式计算
 const magnifierStyle = computed(() => {
   if (!showMagnifier.value) return {}
   const { x, y } = activePercent.value
-
-  // 核心优化：智能避让鼠标
-  // 规则：如果在右上象限，放大镜移动到左下，以此类推
   const translateX = x > 50 ? '-125%' : '25%'
   const translateY = y < 50 ? '25%' : '-125%'
 
@@ -435,7 +413,7 @@ const magnifierStyle = computed(() => {
     left: x + '%',
     top: y + '%',
     transform: `translate(${translateX}, ${translateY}) scale(${1 / props.scale})`,
-    transition: 'transform 0.15s ease-out' // 增加微量平滑感
+    transition: 'transform 0.15s ease-out'
   }
 })
 
@@ -464,14 +442,12 @@ onUnmounted(() => {
     :style="containerStyle"
   >
     <div class="relative w-full h-full">
-      <!-- 填充层 -->
       <div
         v-if="props.fillColor !== 'transparent'"
         class="absolute inset-[-100%] z-0 pointer-events-none"
         :style="{ backgroundColor: props.fillColor }"
       ></div>
 
-      <!-- 图片层 -->
       <img
         ref="imgRef"
         :src="imageUrl"
@@ -479,37 +455,36 @@ onUnmounted(() => {
         @load="handleImageLoad"
       />
 
-      <!-- 吸附辅助线层 -->
       <div class="absolute inset-0 pointer-events-none z-10 overflow-hidden">
         <Transition name="fade-fast">
           <div
             v-if="snapLines.x !== null"
-            class="absolute h-full w-[1px] bg-primary shadow-[0_0_4px_rgba(255,255,255,0.8)]"
+            class="absolute h-full w-[1px] bg-primary shadow-[0_0_4px_rgba(var(--primary-rgb),0.8)]"
             :style="{ left: snapLines.x + '%' }"
           ></div>
         </Transition>
         <Transition name="fade-fast">
           <div
             v-if="snapLines.y !== null"
-            class="absolute w-full h-[1px] bg-primary shadow-[0_0_4px_rgba(255,255,255,0.8)]"
+            class="absolute w-full h-[1px] bg-primary shadow-[0_0_4px_rgba(var(--primary-rgb),0.8)]"
             :style="{ top: snapLines.y + '%' }"
           ></div>
         </Transition>
       </div>
 
       <div v-if="imgNaturalSize.w > 0" class="absolute inset-0 z-20 pointer-events-none">
-        <!-- 工业级遮罩系统 -->
+        <!-- 工业级遮罩系统 (接入设计系统背景色) -->
         <div class="absolute inset-0 z-0">
           <div
-            class="absolute top-0 left-0 w-full bg-black/50"
+            class="absolute top-0 left-0 w-full bg-background/60 backdrop-blur-[1px]"
             :style="{ height: Math.max(0, internalCrop.y) + '%' }"
           ></div>
           <div
-            class="absolute bottom-0 left-0 w-full bg-black/50"
+            class="absolute bottom-0 left-0 w-full bg-background/60 backdrop-blur-[1px]"
             :style="{ height: Math.max(0, 100 - (internalCrop.y + internalCrop.h)) + '%' }"
           ></div>
           <div
-            class="absolute left-0 bg-black/50"
+            class="absolute left-0 bg-background/60 backdrop-blur-[1px]"
             :style="{
               top: Math.max(0, internalCrop.y) + '%',
               height: Math.min(100, internalCrop.h + Math.min(0, internalCrop.y)) + '%',
@@ -517,7 +492,7 @@ onUnmounted(() => {
             }"
           ></div>
           <div
-            class="absolute right-0 bg-black/50"
+            class="absolute right-0 bg-background/60 backdrop-blur-[1px]"
             :style="{
               top: Math.max(0, internalCrop.y) + '%',
               height: Math.min(100, internalCrop.h + Math.min(0, internalCrop.y)) + '%',
@@ -541,7 +516,7 @@ onUnmounted(() => {
           @mousedown="handleStart($event, 'move')"
           @dblclick="updateCrop({ x: 0, y: 0, w: 100, h: 100 })"
         >
-          <!-- 构图参考线 -->
+          <!-- 构图参考线 (使用主题前景色增强对比) -->
           <div
             v-if="gridMode !== 'none'"
             class="absolute inset-0 pointer-events-none transition-all duration-500"
@@ -551,14 +526,14 @@ onUnmounted(() => {
               <div
                 v-for="i in 9"
                 :key="i"
-                class="relative border-[0.5px] border-white/60 shadow-[0_0_1px_rgba(0,0,0,0.5)]"
+                class="relative border-[0.5px] border-foreground/30 shadow-[0_0_1px_hsla(var(--background)/0.5)]"
               >
                 <div
                   v-if="[1, 2, 4, 5].includes(i)"
                   class="absolute -right-1.5 -bottom-1.5 w-3 h-3 flex items-center justify-center"
                 >
                   <div
-                    class="w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_4px_rgba(0,0,0,0.8)]"
+                    class="w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_4px_rgba(var(--primary-rgb),0.6)]"
                   ></div>
                 </div>
               </div>
@@ -567,13 +542,13 @@ onUnmounted(() => {
               <div
                 v-for="y in ['38.2%', '61.8%']"
                 :key="y"
-                class="absolute w-full h-[1px] bg-white/60 shadow-[0_0.5px_1px_rgba(0,0,0,0.5)]"
+                class="absolute w-full h-[1px] bg-foreground/30 shadow-[0_0.5px_1px_hsla(var(--background)/0.5)]"
                 :style="{ top: y }"
               ></div>
               <div
                 v-for="x in ['38.2%', '61.8%']"
                 :key="x"
-                class="absolute h-full w-[1px] bg-white/60 shadow-[0.5px_0_1px_rgba(0,0,0,0.5)]"
+                class="absolute h-full w-[1px] bg-foreground/30 shadow-[0.5px_0_1px_hsla(var(--background)/0.5)]"
                 :style="{ left: x }"
               ></div>
             </div>
@@ -593,7 +568,7 @@ onUnmounted(() => {
             @mousedown.stop="handleStart($event, pos as any)"
           >
             <div
-              class="m-auto w-3 h-3 bg-white border-2 border-primary rounded-sm shadow-xl transition-all group-hover/handle:scale-125"
+              class="m-auto w-3 h-3 bg-foreground border-2 border-primary rounded-sm shadow-xl transition-all group-hover/handle:scale-125"
             ></div>
           </div>
           <div
@@ -612,17 +587,17 @@ onUnmounted(() => {
           >
             <div
               :class="['n', 's'].includes(pos) ? 'w-5 h-1.5' : 'w-1.5 h-5'"
-              class="m-auto bg-white border border-primary/50 rounded-full shadow-md group-hover/handle:bg-primary"
+              class="m-auto bg-foreground border border-primary/50 rounded-full shadow-md group-hover/handle:bg-primary"
             ></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 专业放大镜 (应用避让样式) -->
+    <!-- 专业放大镜 (规范化材质) -->
     <div
       v-if="showMagnifier"
-      class="absolute z-50 w-40 h-40 rounded-full border-[4px] border-white shadow-2xl pointer-events-none overflow-hidden bg-black flex flex-col"
+      class="absolute z-50 w-40 h-40 rounded-full border-[4px] border-foreground shadow-2xl pointer-events-none overflow-hidden bg-background flex flex-col"
       :style="magnifierStyle"
     >
       <div class="relative flex-1">
@@ -640,23 +615,23 @@ onUnmounted(() => {
         <div v-if="magnifierCropLines" :style="magnifierCropLines"></div>
         <div class="absolute inset-0 flex items-center justify-center z-20">
           <div
-            class="w-2.5 h-2.5 border-[1.5px] border-primary rounded-full shadow-[0_0_0_1px_rgba(255,255,255,0.8)] bg-primary/5"
+            class="w-2.5 h-2.5 border-[1.5px] border-primary rounded-full shadow-[0_0_0_1px_rgba(var(--primary-rgb),0.4)] bg-primary/5"
           ></div>
           <div
-            class="absolute w-full h-[0.5px] bg-primary/90 shadow-[0_0.5px_0_rgba(255,255,255,0.5)]"
+            class="absolute w-full h-[0.5px] bg-primary/90 shadow-[0_0.5px_0_rgba(var(--primary-rgb),0.3)]"
           ></div>
           <div
-            class="absolute h-full w-[0.5px] bg-primary/90 shadow-[0.5px_0_0_rgba(255,255,255,0.5)]"
+            class="absolute h-full w-[0.5px] bg-primary/90 shadow-[0.5px_0_0_rgba(var(--primary-rgb),0.3)]"
           ></div>
         </div>
         <div
-          class="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 px-2 py-0.5 bg-black/70 backdrop-blur-md rounded-full border border-white/20 flex items-center gap-1.5 shadow-xl"
+          class="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 px-2 py-0.5 bg-background/70 backdrop-blur-md rounded-full border border-border/40 flex items-center gap-1.5 shadow-xl"
         >
           <div
             class="w-1 h-1 rounded-full"
-            :class="isSnapping ? 'bg-primary animate-pulse' : 'bg-white/20'"
+            :class="isSnapping ? 'bg-primary animate-pulse' : 'bg-foreground/20'"
           ></div>
-          <span class="text-[8px] text-white font-black tracking-widest uppercase italic">{{
+          <span class="text-[8px] text-foreground font-black tracking-widest uppercase italic">{{
             isSnapping ? 'Magnetic' : 'Precision'
           }}</span>
         </div>
@@ -666,12 +641,10 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* 核心修复：消除拖拽时的果冻效应 (位移延迟) */
 .relative {
   transition-property: transform, width, height;
 }
 
-/* 仅在非拖拽状态下开启弹性过渡，使比例切换更有质感 */
 :not(.is-dragging) > .relative,
 :not(.is-dragging).absolute {
   transition-duration: 500ms;
@@ -683,7 +656,6 @@ onUnmounted(() => {
   transition: none !important;
 }
 
-/* 性能优化：强制开启 GPU 加速层 */
 img,
 .absolute {
   backface-visibility: hidden;

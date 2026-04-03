@@ -375,16 +375,16 @@ const ratios = [
 
             <div class="flex flex-col items-center gap-1.5">
               <div
-                class="px-4 py-2 bg-black/80 text-white rounded-xl border border-white/10 text-xs font-mono font-bold shadow-xl backdrop-blur-md tabular-nums"
+                class="px-4 py-2 bg-card/90 text-foreground rounded-xl border border-border/40 text-xs font-mono font-bold shadow-xl backdrop-blur-md tabular-nums ring-1 ring-primary/5"
               >
                 {{ pxCoords.w }} × {{ pxCoords.h }} PX
               </div>
 
               <!-- 下沉式功能提示：在这里显示双击重置，不遮挡拉手 -->
               <div
-                class="px-2.5 py-1 bg-white/5 backdrop-blur-sm rounded-lg border border-white/5 text-[9px] text-white/40 font-medium tracking-tight flex items-center gap-1.5 shadow-sm"
+                class="px-2.5 py-1 bg-muted/20 backdrop-blur-sm rounded-lg border border-border/40 text-[9px] text-muted-foreground/60 font-medium tracking-tight flex items-center gap-1.5 shadow-sm"
               >
-                <div class="w-1 h-1 rounded-full bg-white/20"></div>
+                <div class="w-1 h-1 rounded-full bg-primary/40"></div>
                 双击选区快速重置全图
               </div>
             </div>
@@ -680,13 +680,9 @@ const ratios = [
     <template #footer>
       <InspectorFooter class="bg-background/95 backdrop-blur-md border-t border-border/60">
         <AppButton
-          variant="cta"
+          size="lg"
+          :variant="ctaState.action === 'download' ? 'success' : 'cta'"
           class="w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden"
-          :class="[
-            ctaState.action === 'download'
-              ? 'bg-emerald-500 hover:bg-emerald-400 border-emerald-400/20 shadow-emerald-500/20 text-white'
-              : ''
-          ]"
           :loading="isProcessing"
           :disabled="ctaState.disabled"
           @click="handleCtaClick"

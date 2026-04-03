@@ -259,7 +259,7 @@ defineProps<Props>()
       <div
         v-if="isMedium && showSidebar && !layoutStore.isInspectorCollapsed"
         @click="layoutStore.toggleInspector"
-        class="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-50 transition-opacity duration-500"
+        class="fixed inset-0 bg-background/20 backdrop-blur-[2px] z-50 transition-opacity duration-500"
       ></div>
     </div>
   </div>

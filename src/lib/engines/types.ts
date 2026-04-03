@@ -26,7 +26,7 @@ export interface SplitOptions {
 
 export interface ViewSettings {
   lineWidth: number
-  lineColor: 'white' | 'primary' | 'blue' | 'red'
+  lineColor: 'white' | 'primary' | 'blue' | 'red' | 'black'
   lineOpacity: number
 }
 

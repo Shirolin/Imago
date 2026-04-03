@@ -61,7 +61,7 @@ const isColorLight = computed(() => getBrightness(props.modelValue) > 180)
         "
         title="透明背景"
       >
-        <div class="absolute inset-0 transparency-grid"></div>
+        <div class="absolute inset-0 transparency-grid-sm"></div>
       </button>
 
       <!-- 纯白 -->
@@ -132,17 +132,5 @@ const isColorLight = computed(() => getBrightness(props.modelValue) > 180)
 </template>
 
 <style scoped>
-.transparency-grid {
-  background-image:
-    linear-gradient(45deg, #ccc 25%, transparent 25%),
-    linear-gradient(-45deg, #ccc 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #ccc 75%),
-    linear-gradient(-45deg, transparent 75%, #ccc 75%);
-  background-size: 8px 8px;
-  background-position:
-    0 0,
-    0 4px,
-    4px -4px,
-    -4px 0px;
-}
+/* 移除内联 hardcoded 网格，使用 style.css 全局定义 */
 </style>

@@ -65,7 +65,6 @@ const triggerAutoFit = (contentW: number, contentH: number, padding = 80, useAni
 
   // 核心修复：如果是超大图切换，瞬间归零 offset 且可以禁用动画防止偏移
   if (!useAnimation) {
-    // 这里通过某种方式临时禁用 transition，虽然 Vue class 绑定也可以，但直接操作 ref 更快
     scale.value = newScale
     offset.value = { x: 0, y: 0 }
   } else {
@@ -110,7 +109,6 @@ defineExpose({
       <div class="absolute inset-0 transparency-grid opacity-20"></div>
 
       <!-- 核心修复：零尺寸锚点系统 -->
-      <!-- 将容器宽高设为 0，使其在布局树中不占空间，彻底避免超大尺寸导致的裁剪与事件拦截 -->
       <div
         class="absolute top-1/2 left-1/2 w-0 h-0 flex items-center justify-center pointer-events-none will-change-transform isolate"
         :class="[isPanning ? 'transition-none' : transformDuration]"
@@ -118,36 +116,34 @@ defineExpose({
           transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale})`
         }"
       >
-        <!-- 子元素 (Canvas) 正常溢出显示，且恢复交互能力 -->
         <div class="flex-shrink-0 backface-hidden pointer-events-auto">
           <slot :scale="scale" :offset="offset" :is-panning="isPanning"></slot>
         </div>
       </div>
 
-      <!-- 悬浮层 Slot -->
       <slot name="floating" :scale="scale" :offset="offset" :is-panning="isPanning"></slot>
 
-      <!-- 智能引导提示 (优化版) -->
+      <!-- 智能引导提示 (规范化版本) -->
       <div
         v-if="!hideDefaultHint && (isHovered || scale > fitScale * 1.05)"
         class="absolute top-6 left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-all duration-500"
         :class="isHandMode ? 'opacity-0 scale-95' : 'opacity-100 scale-100'"
       >
         <div
-          class="px-3 py-2 md:px-4 md:py-2 bg-black/80 backdrop-blur-md border border-white/10 rounded-full flex items-center gap-2.5 md:gap-3 shadow-2xl ring-1 ring-white/5"
+          class="px-3 py-2 md:px-4 md:py-2 bg-card/90 backdrop-blur-md border border-border/40 rounded-full flex items-center gap-2.5 md:gap-3 shadow-2xl ring-1 ring-primary/5"
         >
-          <!-- 核心操作提示 (全模式可见：[Space] + 图标) -->
+          <!-- 核心操作提示 -->
           <div class="flex items-center gap-1.5 md:gap-2">
             <div
-              class="px-1.5 py-0.5 bg-white/15 rounded border border-white/20 text-[9px] md:text-[10px] font-black text-white uppercase tracking-tighter shadow-sm"
+              class="px-1.5 py-0.5 bg-primary/10 rounded border border-primary/20 text-[9px] md:text-[10px] font-black text-primary uppercase tracking-tighter shadow-sm"
             >
               Space
             </div>
-            <span class="text-white/40 text-[10px]">+</span>
+            <span class="text-foreground/20 text-[10px]">+</span>
 
-            <!-- 操作图标 (简约静态) -->
+            <!-- 操作图标 -->
             <div
-              class="p-1 md:p-1.5 bg-white/10 rounded-lg md:rounded-xl border border-white/10 text-white/80"
+              class="p-1 md:p-1.5 bg-muted rounded-lg md:rounded-xl border border-border/40 text-foreground/80"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -172,8 +168,9 @@ defineExpose({
 
           <!-- 辅助文案 (仅宽屏可见) -->
           <div v-if="!isCompact" class="flex items-center gap-2">
-            <div class="w-px h-4 bg-white/15"></div>
-            <span class="text-[10px] md:text-xs text-white font-black tracking-widest uppercase"
+            <div class="w-px h-4 bg-border/40"></div>
+            <span
+              class="text-[10px] md:text-xs text-foreground/60 font-black tracking-widest uppercase"
               >拖动图片</span
             >
           </div>
@@ -195,7 +192,6 @@ defineExpose({
 </template>
 
 <style scoped>
-/* 强制光标覆盖：确保在抓手模式下，子元素的光标（如裁剪框的移动光标）不会遮盖抓手手型 */
 .cursor-grab-forced,
 .cursor-grab-forced * {
   cursor: grab !important;

@@ -41,7 +41,7 @@ const select = (value: T) => {
       class="button-item relative flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-all duration-200 outline-none min-w-0"
       :class="
         modelValue === option.value
-          ? 'bg-card text-primary shadow-sm ring-1 ring-black/5'
+          ? 'bg-card text-primary shadow-sm ring-1 ring-border/80 shadow-inner-glow'
           : 'text-muted-foreground hover:text-foreground hover:bg-card/40'
       "
       @click="select(option.value)"

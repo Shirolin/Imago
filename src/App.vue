@@ -121,7 +121,7 @@ const menuGroups = [
     <div
       v-show="isMobileSidebarOpen"
       @click="closeMobileSidebar"
-      class="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 md:hidden"
+      class="fixed inset-0 bg-background/40 backdrop-blur-sm z-30 md:hidden"
     ></div>
 
     <!-- Sidebar (Menu) -->
@@ -147,10 +147,12 @@ const menuGroups = [
           to="/"
           @click="closeMobileSidebar"
           class="flex items-center hover:opacity-90 transition-opacity active:scale-95 duration-200"
-          :class="layoutStore.isMenuCollapsed ? 'md:justify-center w-full gap-4 md:gap-0' : 'gap-3.5'"
+          :class="
+            layoutStore.isMenuCollapsed ? 'md:justify-center w-full gap-4 md:gap-0' : 'gap-3.5'
+          "
         >
           <AppLogo :size="layoutStore.isMenuCollapsed ? 36 : 42" />
-          
+
           <transition name="fade">
             <div
               v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
@@ -160,9 +162,14 @@ const menuGroups = [
               <h1
                 class="text-[28px] font-black tracking-tighter whitespace-nowrap leading-none pb-1"
               >
-                <span class="bg-gradient-to-r from-[#2bd19e] to-[#69eaca] bg-clip-text text-transparent">imago</span>
+                <span
+                  class="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent"
+                  >imago</span
+                >
               </h1>
-              <span class="text-[11px] font-extrabold text-[#2bd19e]/80 tracking-widest leading-none mt-[2px] ml-[2px]">
+              <span
+                class="text-[11px] font-extrabold text-primary/80 tracking-widest leading-none mt-[2px] ml-[2px]"
+              >
                 极简图像处理工具
               </span>
             </div>

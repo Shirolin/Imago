@@ -46,10 +46,10 @@ const viewSettings = ref<ViewSettings>({
   lineColor: 'white',
   lineOpacity: 0.95
 })
-
 const colorOptions = [
+  { value: 'primary', label: '主题色', color: 'primary' },
   { value: 'white', label: '高亮白 (默认)', color: '#ffffff' },
-  { value: 'primary', label: '品牌主色', color: 'primary' },
+  { value: 'black', label: '深邃黑', color: '#000000' },
   { value: 'blue', label: '科技蓝', color: '#3b82f6' },
   { value: 'red', label: '警示红', color: '#ef4444' }
 ] as const
@@ -211,6 +211,7 @@ const draw = () => {
       if (lineColor === 'primary') coreColor = activeColor
       else if (lineColor === 'blue') coreColor = '#3b82f6'
       else if (lineColor === 'red') coreColor = '#ef4444'
+      else if (lineColor === 'black') coreColor = 'rgba(0, 0, 0, 0.95)'
       else coreColor = `rgba(255, 255, 255, ${lineOpacity})`
     }
 
@@ -973,13 +974,8 @@ const handleCtaClick = async () => {
       <InspectorFooter>
         <AppButton
           size="lg"
-          variant="cta"
-          class="w-full h-12 rounded-xl shadow-xl transition-all duration-500 active:scale-95 group overflow-hidden"
-          :class="[
-            ctaState.action === 'download'
-              ? 'bg-emerald-500 hover:bg-emerald-400 border-emerald-400/20 shadow-emerald-500/20 text-white'
-              : 'shadow-primary/10'
-          ]"
+          :variant="ctaState.action === 'download' ? 'success' : 'cta'"
+          class="w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden"
           :loading="isProcessing"
           :disabled="ctaState.disabled"
           @click="handleCtaClick"

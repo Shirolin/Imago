@@ -108,7 +108,7 @@ const displayUrl = computed(() => {
 
 <template>
   <div
-    class="relative bg-card rounded-2xl overflow-hidden border border-border/60 transition-all duration-500 cursor-pointer flex flex-col group hover:shadow-2xl hover:shadow-black/10 hover:border-primary/30 @container outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+    class="relative bg-card rounded-2xl overflow-hidden border border-border/60 transition-all duration-500 cursor-pointer flex flex-col group hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/30 @container outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background shadow-inner-glow"
     :class="[
       isSelected
         ? 'ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/[0.03]'
@@ -124,7 +124,7 @@ const displayUrl = computed(() => {
     <!-- 图片展示区 -->
     <div
       ref="imageRef"
-      class="relative aspect-[4/3] overflow-hidden bg-slate-900/50 flex items-center justify-center shrink-0"
+      class="relative aspect-[4/3] overflow-hidden bg-muted/20 flex items-center justify-center shrink-0"
       @mouseenter="enterMagnifier"
       @mouseleave="leaveMagnifier"
       @mousemove="handleMouseMove"
@@ -146,7 +146,7 @@ const displayUrl = computed(() => {
           :class="
             isSelected
               ? 'text-primary scale-110'
-              : 'text-white/60 opacity-100 md:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
+              : 'text-foreground/60 opacity-100 md:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
           "
         >
           <CheckSquare v-if="isSelected" :size="20" />
@@ -158,9 +158,9 @@ const displayUrl = computed(() => {
 
       <!-- 【右上角】：删除按钮 (z-30) -->
       <button
-        @click.stop="emit('remove', image.id)"
-        class="absolute top-3 right-3 z-30 bg-black/20 hover:bg-destructive text-white p-1.5 rounded-full opacity-100 md:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-white/10 outline-none focus-visible:ring-2 focus-visible:ring-white"
-        aria-label="从列表移除图片"
+        @click.stop="store.removeImage(image.id)"
+        class="absolute top-3 right-3 z-30 bg-background/40 hover:bg-destructive text-foreground/60 hover:text-destructive-foreground p-1.5 rounded-full opacity-100 md:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-border/40 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        title="移除图片"
       >
         <X :size="14" />
       </button>
@@ -194,7 +194,7 @@ const displayUrl = computed(() => {
       >
         <!-- 倍镜容器 -->
         <div
-          class="absolute w-32 h-32 md:w-48 md:h-48 -ml-16 -mt-16 md:-ml-24 md:-mt-24 rounded-full border-2 border-primary shadow-[0_0_30px_rgba(var(--primary-rgb),0.5)] overflow-hidden bg-black flex items-center justify-center"
+          class="absolute w-32 h-32 md:w-48 md:h-48 -ml-16 -mt-16 md:-ml-24 md:-mt-24 rounded-full border-2 border-primary shadow-[0_0_30px_rgba(var(--primary-rgb),0.5)] overflow-hidden bg-background flex items-center justify-center"
           :style="magnifierStyle"
         >
           <img
@@ -215,11 +215,11 @@ const displayUrl = computed(() => {
             class="absolute inset-0 flex items-center justify-between px-2 text-[10px] pointer-events-none z-20"
           >
             <span
-              class="bg-black/60 px-1.5 py-0.5 rounded text-white font-black border border-white/20"
+              class="bg-muted/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-foreground font-black border border-border/20"
               >BEFORE</span
             >
             <span
-              class="bg-primary/80 px-1.5 py-0.5 rounded text-white font-black border border-white/20"
+              class="bg-primary/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-primary-foreground font-black border border-white/20"
               >AFTER</span
             >
           </div>
@@ -228,13 +228,13 @@ const displayUrl = computed(() => {
 
       <!-- 【底部 HUD】：技术参数条 (降级至 z-20，确保不遮挡侧边栏) -->
       <div
-        class="absolute bottom-0 left-0 right-0 h-9 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-20 flex items-end px-3 pb-2 transition-all duration-300 md:opacity-0 md:group-hover:opacity-100 pointer-events-none @[200px]:via-black/30"
+        class="absolute bottom-0 left-0 right-0 h-9 bg-gradient-to-t from-background/90 via-background/40 to-transparent z-20 flex items-end px-3 pb-2 transition-all duration-300 md:opacity-0 md:group-hover:opacity-100 pointer-events-none @[200px]:via-background/60"
       >
         <div
-          class="flex items-center gap-2 text-[0.65rem] font-bold text-white/90 tabular-nums tracking-tight"
+          class="flex items-center gap-2 text-[0.65rem] font-bold text-foreground/90 tabular-nums tracking-tight"
         >
           <span
-            class="px-1.5 py-0.5 bg-white/20 rounded-sm uppercase text-white tracking-widest text-[0.55rem] md:text-[0.6rem]"
+            class="px-1.5 py-0.5 bg-foreground/10 rounded-sm uppercase text-foreground tracking-widest text-[0.55rem] md:text-[0.6rem]"
             >{{ image.format }}</span
           >
           <span v-if="image.width" class="opacity-90 hidden @[200px]:inline"

@@ -25,6 +25,9 @@
     --ring: 173 80% 40%;
     --radius: 0.75rem;
 
+    /* 颜色分量 (用于 rgba 投影) */
+    --primary-rgb: 26, 188, 156;
+
     /* 语义化颜色 */
     --success: 142 70% 45%;
     --success-foreground: 0 0% 100%;
@@ -59,6 +62,9 @@
     --input: 173 10% 18%;
     --ring: 173 80% 40%;
 
+    /* 颜色分量 (深色模式微调) */
+    --primary-rgb: 20, 160, 133;
+
     /* 语义化颜色 (深色模式微调) */
     --success: 142 70% 45%;
     --success-foreground: 0 0% 100%;
@@ -74,11 +80,21 @@
   /* 核心按钮系统变量 (Standardization) */
   :root {
     --cta: 32 95% 50%;
+    --cta-hover: 32 95% 55%;
     /* 更加高级的琥珀橙 */
     --button-shadow-opacity: 0.25;
     --button-hover-offset: -1px;
     --card-inner-glow: hsla(0, 0%, 100%, 0.05);
     /* 深色模式下的微弱内边框 */
+    --shadow-color: 173 10% 10%;
+    --shadow-strength: 0.1;
+  }
+
+  [data-theme='dark'] {
+    --button-shadow-opacity: 0.4;
+    --card-inner-glow: hsla(0, 0%, 100%, 0.02);
+    --shadow-color: 0 0% 0%;
+    --shadow-strength: 0.4;
   }
 }
 
@@ -90,6 +106,11 @@
   html,
   body {
     @apply bg-background text-foreground antialiased;
+  }
+
+  /* 基础海拔系统 (Shadow System) */
+  .shadow-elevated {
+    box-shadow: 0 10px 30px -5px hsla(var(--shadow-color), var(--shadow-strength));
   }
 
   /* Custom Scrollbar Logic (Initial Fix Version: No Gutter) */
@@ -107,13 +128,17 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/10 rounded-full transition-all;
+    @apply bg-muted-foreground/20 rounded-full transition-all;
     border: 2px solid transparent;
     background-clip: padding-box;
   }
 
+  [data-theme='dark'] .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/40;
+  }
+
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground/30;
+    @apply bg-muted-foreground/50;
   }
 
   /* Firefox */
@@ -124,11 +149,6 @@
 }
 
 @layer utilities {
-  /* 统一高级阴影 */
-  .shadow-elevated {
-    box-shadow: 0 8px 30px -10px rgba(0, 0, 0, 0.12);
-  }
-
   /* 层级强化：内边框光晕效果 */
   .shadow-inner-glow {
     box-shadow: inset 0 1px 1px 0 var(--card-inner-glow);

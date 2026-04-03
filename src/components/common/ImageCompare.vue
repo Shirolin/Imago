@@ -205,14 +205,11 @@ onUnmounted(() => {
     <!-- 核心视图区域 -->
     <div class="flex-1 relative flex items-center justify-center p-4 md:p-12 cursor-move group">
       <div
-        class="w-full h-full max-w-7xl relative rounded-3xl overflow-hidden border border-border/50 bg-black shadow-elevated transition-all duration-700"
-        :class="[
-          isDecoding ? 'opacity-0 scale-95' : 'opacity-100 scale-100',
-          isResizing || isPanning ? 'select-none ring-2 ring-primary/20' : ''
-        ]"
-        ref="container"
-        @pointerdown.self="handlePointerDown($event, 'pan')"
+        class="w-full h-full max-w-7xl relative rounded-3xl overflow-hidden border border-border/50 bg-background shadow-elevated transition-all duration-700"
       >
+        isDecoding ? 'opacity-0 scale-95' : 'opacity-100 scale-100', isResizing || isPanning ?
+        'select-none ring-2 ring-primary/20' : '' ]" ref="container"
+        @pointerdown.self="handlePointerDown($event, 'pan')" >
         <!-- 层级 1: 处理后图片 (底层) -->
         <div
           class="absolute inset-0 w-full h-full will-change-transform"

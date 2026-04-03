@@ -16,7 +16,7 @@ const emit = defineEmits(['update:modelValue'])
       class="relative w-5 h-5 rounded-md border-2 transition-all duration-200 flex items-center justify-center shadow-sm"
       :class="[
         modelValue
-          ? 'bg-primary border-primary scale-105 shadow-primary/20'
+          ? 'bg-primary border-primary scale-105 shadow-[0_2px_10px_hsla(var(--primary),var(--button-shadow-opacity))]'
           : 'bg-muted/30 border-border group-hover:border-primary/40 group-hover:bg-primary/5'
       ]"
     >
@@ -30,7 +30,7 @@ const emit = defineEmits(['update:modelValue'])
         class="transition-all duration-300 transform"
         :class="modelValue ? 'scale-100 opacity-100' : 'scale-50 opacity-0'"
       >
-        <Check :size="12" class="text-white stroke-[4px]" />
+        <Check :size="12" class="text-primary-foreground stroke-[4px]" />
       </div>
     </div>
     <span

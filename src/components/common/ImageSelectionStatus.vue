@@ -54,7 +54,7 @@ const isAllDone = computed(() => {
         <CheckCircle2
           v-if="isAllDone"
           :size="isPC ? 20 : 18"
-          class="drop-shadow-[0_0_8px_rgba(var(--primary),0.4)]"
+          class="drop-shadow-[0_0_8px_rgba(var(--primary-rgb),0.4)]"
           stroke-width="2.5"
         />
         <CheckSquare
@@ -83,9 +83,9 @@ const isAllDone = computed(() => {
           <!-- Ready 状态标签 (仅在 PC 或全选完成时展示) -->
           <div
             v-if="isAllDone"
-            class="px-1.5 py-0.5 rounded bg-primary text-white text-[0.6rem] font-black uppercase tracking-widest animate-in fade-in zoom-in duration-500 hidden sm:block"
+            class="px-1.5 py-0.5 rounded bg-primary text-primary-foreground text-[0.6rem] font-black uppercase tracking-widest animate-in fade-in zoom-in duration-500 hidden sm:block"
           >
-            Ready
+            Selected
           </div>
         </div>
 

@@ -289,7 +289,7 @@ const onDragEnd = () => {
             <div
               class="absolute inset-0 transition-colors pointer-events-none"
               :class="
-                store.selectedIds.has(img.id) ? 'bg-primary/20' : 'group-hover/item:bg-black/5'
+                store.selectedIds.has(img.id) ? 'bg-primary/20' : 'group-hover/item:bg-muted/30'
               "
             ></div>
 
@@ -298,17 +298,17 @@ const onDragEnd = () => {
               @click.stop="store.toggleSelection(img.id)"
               @keydown.stop="handleCheckboxKeyDown($event, img.id)"
               tabindex="0"
-              class="absolute top-0 left-0 w-7 h-7 flex items-center justify-center z-20 cursor-pointer group/check hover:bg-black/20 dark:hover:bg-white/20 rounded-br-lg transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:z-30"
+              class="absolute top-0 left-0 w-7 h-7 flex items-center justify-center z-20 cursor-pointer group/check hover:bg-muted rounded-br-lg transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:z-30"
               role="checkbox"
               :aria-checked="store.selectedIds.has(img.id)"
-              aria-label="选中图片"
+              :aria-label="`选择图片 ${img.file.name}`"
             >
               <div
                 class="w-4 h-4 rounded-md border flex items-center justify-center transition-all shadow-sm group-hover/check:scale-110 group-hover/check:border-primary"
                 :class="
                   store.selectedIds.has(img.id)
                     ? 'bg-primary border-primary text-primary-foreground scale-100'
-                    : 'bg-white/90 border-black/20 opacity-0 group-hover/item:opacity-100 group-hover/check:opacity-100 scale-90'
+                    : 'bg-muted/80 border-border/40 opacity-0 group-hover/item:opacity-100 group-hover/check:opacity-100 scale-90'
                 "
               >
                 <CheckCircle2 v-if="store.selectedIds.has(img.id)" :size="10" stroke-width="3" />
@@ -321,13 +321,13 @@ const onDragEnd = () => {
 
             <div
               v-if="img.status !== 'idle'"
-              class="absolute bottom-1.5 right-1.5 p-0.5 rounded-md bg-black/60 backdrop-blur-md shadow-sm z-10"
+              class="absolute bottom-1.5 right-1.5 p-0.5 rounded-md bg-background/60 backdrop-blur-md shadow-sm z-10"
             >
               <component
                 :size="10"
                 :is="getStatusIcon(img.status)"
                 :class="{
-                  'animate-spin text-white': img.status === 'processing',
+                  'animate-spin text-primary': img.status === 'processing',
                   'text-green-400': img.status === 'done',
                   'text-red-400': img.status === 'error'
                 }"
@@ -364,7 +364,7 @@ const onDragEnd = () => {
   display: none;
 }
 .assets-tray {
-  box-shadow: 0 -10px 40px -10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -10px 40px -10px hsla(var(--shadow-color), 0.1);
 }
 .fade-pop-enter-active {
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
