@@ -8,7 +8,8 @@ import {
   Split,
   Layers,
   Palette,
-  ArrowRight
+  ArrowRight,
+  Box
 } from 'lucide-vue-next'
 import AppButton from '../components/common/AppButton.vue'
 
@@ -67,6 +68,13 @@ const tools = [
     path: '/filters',
     icon: Palette,
     colorClass: 'text-indigo-500'
+  },
+  {
+    name: '站标生成',
+    desc: '自动生成全套网站 Favicon 图标',
+    path: '/favicon',
+    icon: Box,
+    colorClass: 'text-teal-500'
   }
 ]
 </script>

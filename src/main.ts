@@ -48,6 +48,11 @@ const router = createRouter({
       path: '/exif',
       name: 'exif',
       component: () => import('./views/ExifView.vue')
+    },
+    {
+      path: '/favicon',
+      name: 'favicon',
+      component: () => import('./views/FaviconView.vue')
     }
   ]
 })

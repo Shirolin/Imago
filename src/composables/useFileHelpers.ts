@@ -46,7 +46,8 @@ export function useFileHelpers() {
       'image/avif': '.avif',
       'image/jxl': '.jxl',
       'image/webp2': '.wp2',
-      'image/jpeg-li': '.jpg'
+      'image/jpeg-li': '.jpg',
+      'application/zip': '.zip'
     }
 
     const newExt = mimeMap[mimeType] || '.jpg'

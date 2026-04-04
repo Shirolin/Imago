@@ -15,7 +15,8 @@ import {
   Menu,
   Loader2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Box
 } from 'lucide-vue-next'
 import { useImageStore } from './stores/imageStore'
 import { useLayoutStore } from './stores/layoutStore'
@@ -85,7 +86,9 @@ const routeNameMap: Record<string, string> = {
   combine: '拼接合并',
   Combine: '拼接合并',
   filters: '色彩滤镜',
-  Filters: '色彩滤镜'
+  Filters: '色彩滤镜',
+  favicon: '站标生成',
+  Favicon: '站标生成'
 }
 
 const menuGroups = [
@@ -107,6 +110,7 @@ const menuGroups = [
   {
     label: '创意工具',
     items: [
+      { name: '站标生成', path: '/favicon', icon: Box },
       { name: '拼接合并', path: '/combine', icon: Layers },
       { name: '色彩滤镜', path: '/filters', icon: Palette }
     ]
