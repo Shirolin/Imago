@@ -139,9 +139,7 @@ export const faviconEngine = {
         const shouldScale = isMaskable && autoPadding
 
         const finalBg =
-          isMaskable && shouldScale && backgroundColor === 'transparent'
-            ? '#ffffff'
-            : backgroundColor
+          isMaskable && shouldScale && backgroundColor === 'transparent' ? 'white' : backgroundColor
 
         const blob = await this.renderToBlob(img, spec.size, finalBg, shouldScale)
         zip.file(spec.name, blob)

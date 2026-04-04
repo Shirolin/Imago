@@ -84,11 +84,15 @@ const sortedMatrixSpecs = computed(() => {
   ).sort((a, b) => (a.size || 0) - (b.size || 0))
 })
 
-const getPreviewSize = (px: number) => {
-  if (px <= 32) return px
-  if (px === 48) return 40
-  if (px <= 192) return 80
-  return 110
+/**
+ * 预览尺寸计算 (用于矩阵展示)
+ */
+const getPreviewSize = (size: number) => {
+  if (size <= 16) return 32
+  if (size <= 32) return 40
+  if (size <= 64) return 48
+  if (size <= 128) return 56
+  return 64
 }
 
 // 处理生成
@@ -142,15 +146,15 @@ const handleGenerate = async () => {
                 class="bg-card border border-border/60 rounded-2xl overflow-hidden shadow-elevated w-full"
               >
                 <div
-                  class="bg-muted/30 px-5 py-2.5 flex items-center gap-2 border-b border-border/40"
+                  class="bg-muted/30 px-5 py-2.5 flex items-center gap-2 border-b border-border/40 overflow-hidden"
                 >
-                  <div class="flex gap-1.5 shrink-0 opacity-20">
+                  <div class="hidden sm:flex gap-1.5 shrink-0 opacity-20">
                     <div class="w-2.5 h-2.5 rounded-full bg-foreground"></div>
                     <div class="w-2.5 h-2.5 rounded-full bg-foreground"></div>
                     <div class="w-2.5 h-2.5 rounded-full bg-foreground"></div>
                   </div>
                   <div
-                    class="ml-6 bg-background border border-border/40 px-3.5 py-1.5 rounded-lg flex items-center gap-2.5 min-w-[180px] shadow-sm ring-1 ring-primary/5"
+                    class="sm:ml-6 bg-background border border-border/40 px-3.5 py-1.5 rounded-lg flex items-center gap-2.5 min-w-0 flex-1 sm:flex-none sm:min-w-[180px] shadow-sm ring-1 ring-primary/5"
                   >
                     <div
                       class="w-4 h-4 shrink-0 relative"
@@ -166,9 +170,10 @@ const handleGenerate = async () => {
                       <img
                         :src="activeImage.preview"
                         class="w-full h-full object-contain relative z-10"
+                        alt="favicon"
                       />
                     </div>
-                    <span class="text-[9px] font-black opacity-60 tracking-tight uppercase"
+                    <span class="text-[9px] font-black opacity-60 tracking-tight uppercase truncate"
                       >New Tab</span
                     >
                   </div>
@@ -247,7 +252,9 @@ const handleGenerate = async () => {
                   <div class="flex items-center gap-4">
                     <button
                       @click="rotateMaskShape"
-                      class="flex items-center gap-1.5 text-[9px] font-black text-primary uppercase hover:opacity-80 transition-opacity"
+                      class="flex items-center gap-1.5 text-[9px] font-black text-primary uppercase hover:opacity-80 transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 rounded-sm outline-none"
+                      aria-label="切换预览形状"
+                      :title="`当前形状: ${activeMaskShape}`"
                     >
                       <RefreshCw :size="10" />
                       Shape: {{ activeMaskShape }}
@@ -260,12 +267,13 @@ const handleGenerate = async () => {
                   <div class="absolute top-6 right-8 z-30">
                     <button
                       @click="autoPadding = !autoPadding"
-                      class="flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all active:scale-95 shadow-sm"
+                      class="flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all active:scale-95 shadow-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none"
                       :class="
                         autoPadding
                           ? 'bg-primary border-primary text-primary-foreground'
                           : 'bg-background border-border text-muted-foreground'
                       "
+                      :aria-label="autoPadding ? '禁用安全边距保护' : '开启安全边距保护'"
                     >
                       <LayoutIcon :size="12" />
                       <span class="text-[9px] font-black uppercase tracking-widest"
@@ -278,11 +286,10 @@ const handleGenerate = async () => {
                   <div
                     class="relative w-40 h-40 flex items-center justify-center bg-muted/20 rounded-[2.5rem] shadow-inner ring-1 ring-black/5 dark:ring-white/5 overflow-hidden"
                   >
-                    <!-- 【底层】：透明参照层 ( X-Ray View ) -->
-                    <!-- 当切换到裁切形状时，底层展示原始图片的灰度幽灵位，辅助观察溢出 -->
+                    <!-- 【底层】：透明参照层 ( X-Ray View / Canvas Boundary ) -->
                     <div
-                      v-if="activeMaskShape !== 'full'"
-                      class="absolute inset-0 flex items-center justify-center opacity-[0.15] grayscale pointer-events-none"
+                      class="absolute inset-0 flex items-center justify-center grayscale mix-blend-multiply dark:mix-blend-screen pointer-events-none transition-all duration-500"
+                      :class="activeMaskShape === 'full' ? 'opacity-[0.05]' : 'opacity-[0.25]'"
                     >
                       <div
                         v-if="backgroundColor === 'transparent'"
@@ -290,20 +297,22 @@ const handleGenerate = async () => {
                       ></div>
                       <img
                         :src="activeImage.preview"
-                        class="absolute transition-all duration-500 object-contain"
+                        class="absolute object-contain"
                         :style="{
                           width: autoPadding ? '128px' : '160px',
                           height: autoPadding ? '128px' : '160px',
                           maxWidth: 'none'
                         }"
+                        alt="物理画布边界参考"
                       />
                     </div>
 
-                    <!-- 【顶层】：裁切实测层 ( 固定为物理容器的 80% 大小 ) -->
+                    <!-- 【顶层】：裁切实测层 -->
                     <div
-                      class="relative transition-all duration-500 flex items-center justify-center"
+                      class="relative flex items-center justify-center transition-[width,height,border-radius,ring,background-color,shadow] duration-500"
                       :class="{
-                        'w-full h-full rounded-2xl': activeMaskShape === 'full',
+                        'w-full h-full rounded-2xl ring-1 ring-foreground/[0.03]':
+                          activeMaskShape === 'full',
                         'w-[80%] h-[80%] overflow-hidden rounded-full shadow-2xl ring-2 ring-primary/40 dark:ring-primary/60':
                           activeMaskShape === 'circle',
                         'w-[80%] h-[80%] overflow-hidden rounded-[38%] shadow-2xl ring-2 ring-primary/40 dark:ring-primary/60':
@@ -313,11 +322,10 @@ const handleGenerate = async () => {
                       }"
                       :style="{
                         backgroundColor:
-                          backgroundColor === 'transparent' ? '#ffffff' : backgroundColor
+                          backgroundColor === 'transparent' ? 'var(--background)' : backgroundColor
                       }"
                     >
                       <!-- 图片逻辑：工业级正向物理映射 -->
-                      <!-- 在 80% 的裁切窗内，如果是 100% 的原图，需要显示为 125% 才能与底层 160px 幽灵图对齐并产生真实溢出效果 -->
                       <div
                         class="absolute inset-0 flex items-center justify-center overflow-hidden"
                       >
@@ -347,36 +355,35 @@ const handleGenerate = async () => {
                                   : '125%',
                             maxWidth: 'none'
                           }"
+                          :alt="`裁切后的预览 (${activeMaskShape})`"
                         />
                       </div>
                     </div>
                   </div>
 
-                  <div class="text-center space-y-2">
-                    <div class="flex flex-col items-center">
+                  <div class="text-center space-y-2.5">
+                    <div class="flex flex-col items-center gap-1">
                       <span
-                        class="text-[10px] font-black text-foreground/60 uppercase tracking-widest leading-none mb-1"
+                        class="text-[10px] font-black text-foreground/60 uppercase tracking-widest leading-none"
                       >
                         {{
                           activeMaskShape === 'full'
-                            ? '物理文件预览 (Full Asset)'
-                            : `系统环境实测 (System: ${activeMaskShape})`
+                            ? '物理资产预览 (Full Asset)'
+                            : `系统裁切实测 (Environment: ${activeMaskShape})`
                         }}
                       </span>
-                      <span
-                        class="text-[8px] font-bold text-primary/60 uppercase tracking-tighter max-w-[260px]"
-                      >
+                      <p class="text-[9px] font-bold text-primary/70 leading-relaxed max-w-[280px]">
                         {{
                           autoPadding
-                            ? '已开启保护：图标已按照 80% 安全区标准缩放'
-                            : '警告：原始满铺模式，Logo 边缘将被系统遮罩裁切'
+                            ? '安全保护已开启：Logo 已缩回 80% 核心区，确保在任何形状下都完整可见。'
+                            : '警告：原始满铺模式下，图标边缘可能会被系统遮罩裁切。'
                         }}
-                      </span>
+                      </p>
                     </div>
                     <div
                       class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-muted/50 text-[8px] font-bold text-muted-foreground/40 font-mono uppercase"
                     >
-                      512 × 512 PX
+                      Output Size: 512 × 512 PX
                     </div>
                   </div>
                 </div>
@@ -396,14 +403,20 @@ const handleGenerate = async () => {
               >
                 <div
                   class="flex flex-wrap items-end justify-center lg:justify-start gap-x-12 gap-y-12 px-2"
+                  style="content-visibility: auto"
                 >
                   <div
                     v-for="spec in sortedMatrixSpecs"
                     :key="spec.id"
-                    class="flex flex-col items-center gap-5 group/item animate-in zoom-in duration-500"
+                    class="flex flex-col items-center gap-5 group/item animate-in zoom-in duration-300 outline-none"
+                    tabindex="0"
+                    @keydown.enter.prevent="toggleSpec(spec.id)"
+                    @keydown.space.prevent="toggleSpec(spec.id)"
+                    :aria-label="`切换选中 ${spec.name}`"
+                    :aria-pressed="selectedIds.has(spec.id)"
                   >
                     <div
-                      class="transition-all group-hover/item:scale-125 flex items-center justify-center relative bg-background shadow-sm border border-border/20 overflow-hidden ring-1 ring-black/5"
+                      class="transition-[transform,shadow,background-color] duration-300 group-hover/item:scale-125 group-focus-visible/item:scale-125 group-focus-visible/item:ring-2 group-focus-visible/item:ring-primary group-focus-visible/item:ring-offset-4 flex items-center justify-center relative bg-background shadow-sm border border-border/20 overflow-hidden ring-1 ring-black/5"
                       :style="{
                         width: getPreviewSize(spec.size!) + 'px',
                         height: getPreviewSize(spec.size!) + 'px',
@@ -411,12 +424,14 @@ const handleGenerate = async () => {
                           spec.id === 'maskable512' &&
                           autoPadding &&
                           backgroundColor === 'transparent'
-                            ? 'white'
+                            ? 'var(--background)'
                             : backgroundColor === 'transparent'
                               ? spec.platform === 'ios'
                                 ? 'white'
                                 : 'transparent'
-                              : backgroundColor
+                              : backgroundColor,
+                        willChange: 'transform',
+                        backfaceVisibility: 'hidden'
                       }"
                     >
                       <div
@@ -425,11 +440,12 @@ const handleGenerate = async () => {
                       ></div>
                       <img
                         :src="activeImage.preview"
-                        class="w-full h-full object-contain relative z-0 transition-all duration-500"
+                        class="w-full h-full object-contain relative z-0 transition-transform duration-300"
                         :style="{
                           transform:
                             spec.id === 'maskable512' && autoPadding ? 'scale(0.8)' : 'scale(1.0)'
                         }"
+                        :alt="`${spec.platform.toUpperCase()} ${spec.size}x${spec.size} 图标预览${spec.id === 'maskable512' && autoPadding ? ' (已开启 80% 安全保护)' : ''}`"
                       />
                       <div
                         v-if="spec.id === 'ico'"
@@ -509,38 +525,38 @@ const handleGenerate = async () => {
                   >{{ groupName }}</span
                 >
               </div>
-              <div class="space-y-2">
+              <div class="space-y-1.5">
                 <div
                   v-for="spec in specs"
                   :key="spec.id"
                   @click="toggleSpec(spec.id)"
-                  class="flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer group select-none"
+                  class="flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer group select-none hover:translate-x-0.5"
                   :class="
                     selectedIds.has(spec.id)
                       ? 'bg-primary/[0.03] border-primary/30 shadow-sm'
                       : 'bg-muted/5 border-border/40 hover:bg-muted/10'
                   "
                 >
-                  <div class="flex items-center gap-3 min-w-0">
+                  <div class="flex items-center gap-2.5 min-w-0">
                     <div
                       v-if="spec.type !== 'image'"
                       class="shrink-0 text-muted-foreground/40 group-hover:text-primary/60 transition-colors"
                     >
-                      <FileCode v-if="spec.type === 'config'" :size="14" />
-                      <FileText v-else :size="14" />
+                      <FileCode v-if="spec.type === 'config'" :size="12" />
+                      <FileText v-else :size="12" />
                     </div>
-                    <div class="flex flex-col gap-0.5 min-w-0">
-                      <span class="text-[10px] font-bold text-foreground truncate">{{
+                    <div class="flex flex-col gap-0 min-w-0">
+                      <span class="text-[10px] font-bold text-foreground truncate leading-tight">{{
                         spec.name
                       }}</span>
-                      <span class="text-[9px] font-medium text-muted-foreground/60 leading-tight">{{
+                      <span class="text-[8px] font-medium text-muted-foreground/50 leading-tight">{{
                         spec.description
                       }}</span>
                     </div>
                   </div>
                   <AppCheckbox
                     :model-value="selectedIds.has(spec.id)"
-                    class="pointer-events-none"
+                    class="pointer-events-none scale-90 origin-right"
                   />
                 </div>
               </div>
