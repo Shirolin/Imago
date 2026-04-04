@@ -37,7 +37,7 @@ export const FAVICON_SPECS: FaviconSpec[] = [
     type: 'image'
   },
 
-  // Chrome 扩展商店
+  // Chrome 扩展
   {
     id: 'chrome128',
     name: 'icon-128.png',
@@ -135,9 +135,15 @@ export const faviconEngine = {
     // 1. 生成选中的图片
     for (const spec of FAVICON_SPECS) {
       if (spec.type === 'image' && selectedIds.has(spec.id) && spec.size) {
-        const isMaskable = spec.id.includes('maskable')
+        const isMaskable = spec.id === 'maskable512'
         const shouldScale = isMaskable && autoPadding
-        const blob = await this.renderToBlob(img, spec.size, backgroundColor, shouldScale)
+
+        const finalBg =
+          isMaskable && shouldScale && backgroundColor === 'transparent'
+            ? '#ffffff'
+            : backgroundColor
+
+        const blob = await this.renderToBlob(img, spec.size, finalBg, shouldScale)
         zip.file(spec.name, blob)
       }
     }
@@ -234,6 +240,7 @@ ${headCode}${chromeGuide}
       const sy = (img.height - sourceSize) / 2
 
       if (shouldScale) {
+        // 【行业基准对齐】：W3C Maskable 标准及 maskable.app 统一使用 80% 安全区 (radius 40%)
         const safeSize = size * 0.8
         const offset = (size - safeSize) / 2
         ctx.drawImage(img, sx, sy, sourceSize, sourceSize, offset, offset, safeSize, safeSize)

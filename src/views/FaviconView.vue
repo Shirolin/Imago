@@ -40,9 +40,9 @@ const selectedIds = ref<Set<string>>(new Set(FAVICON_SPECS.map((s) => s.id)))
 // 核心配置：自动安全区缩放
 const autoPadding = ref(true)
 
-// Maskable 预览形状：circle | squircle | rounded (已废除 guide 模式)
-const maskShapes = ['circle', 'squircle', 'rounded'] as const
-const activeMaskShape = ref<(typeof maskShapes)[number]>('circle')
+// Maskable 预览形状：full | circle | squircle | rounded
+const maskShapes = ['full', 'circle', 'squircle', 'rounded'] as const
+const activeMaskShape = ref<(typeof maskShapes)[number]>('full')
 
 const rotateMaskShape = () => {
   const idx = maskShapes.indexOf(activeMaskShape.value)
@@ -168,7 +168,7 @@ const handleGenerate = async () => {
                         class="w-full h-full object-contain relative z-10"
                       />
                     </div>
-                    <span class="text-[10px] font-bold opacity-60 tracking-tight uppercase"
+                    <span class="text-[9px] font-black opacity-60 tracking-tight uppercase"
                       >New Tab</span
                     >
                   </div>
@@ -205,14 +205,17 @@ const handleGenerate = async () => {
                   class="bg-card border border-border/60 rounded-[2.5rem] p-8 flex flex-col items-center justify-center gap-8 shadow-elevated group hover:border-primary/20 transition-all min-h-[320px]"
                 >
                   <div
-                    class="aspect-square w-32 relative shadow-2xl transition-all duration-500 group-hover:scale-105 group-hover:-translate-y-1 shadow-primary/5 bg-background ring-1 ring-black/5 dark:ring-white/10"
+                    class="aspect-square w-32 relative shadow-2xl transition-all duration-500 group-hover:scale-105 group-hover:-translate-y-1 shadow-primary/5 bg-background ring-1 ring-black/5 dark:ring-white/10 flex items-center justify-center"
                     :style="{
                       borderRadius: '22.5%',
                       overflow: 'hidden',
                       backgroundColor: backgroundColor === 'transparent' ? 'white' : backgroundColor
                     }"
                   >
-                    <img :src="activeImage.preview" class="w-full h-full object-cover" />
+                    <img
+                      :src="activeImage.preview"
+                      class="w-full h-full object-cover transition-transform duration-500"
+                    />
                     <div
                       class="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-[inherit]"
                     ></div>
@@ -232,7 +235,7 @@ const handleGenerate = async () => {
                 </div>
               </section>
 
-              <!-- Android Simulator (物理边界修正版) -->
+              <!-- Android Adaptive Simulator (Maskable.app 工业标准对齐版) -->
               <section v-if="selectedIds.has('maskable512')" class="space-y-4">
                 <div class="flex items-center justify-between pl-1 pr-4">
                   <div class="flex items-center gap-2.5 text-muted-foreground/40">
@@ -247,14 +250,13 @@ const handleGenerate = async () => {
                       class="flex items-center gap-1.5 text-[9px] font-black text-primary uppercase hover:opacity-80 transition-opacity"
                     >
                       <RefreshCw :size="10" />
-                      Switch Shape
+                      Shape: {{ activeMaskShape }}
                     </button>
                   </div>
                 </div>
                 <div
                   class="bg-card border border-border/60 rounded-[2.5rem] p-8 flex flex-col items-center justify-center gap-8 shadow-elevated group hover:border-primary/20 transition-all min-h-[320px] relative overflow-hidden"
                 >
-                  <!-- 自动缩放开关 -->
                   <div class="absolute top-6 right-8 z-30">
                     <button
                       @click="autoPadding = !autoPadding"
@@ -264,7 +266,6 @@ const handleGenerate = async () => {
                           ? 'bg-primary border-primary text-primary-foreground'
                           : 'bg-background border-border text-muted-foreground'
                       "
-                      title="开启后将自动缩小 Logo 并填充背景以防止被裁切"
                     >
                       <LayoutIcon :size="12" />
                       <span class="text-[9px] font-black uppercase tracking-widest"
@@ -273,35 +274,78 @@ const handleGenerate = async () => {
                     </button>
                   </div>
 
-                  <!-- 物理容器 (模拟手机屏幕局部) -->
+                  <!-- 物理容器 ( w-40 = 160px = 100% 物理文件 ) -->
                   <div
                     class="relative w-40 h-40 flex items-center justify-center bg-muted/20 rounded-[2.5rem] shadow-inner ring-1 ring-black/5 dark:ring-white/5 overflow-hidden"
                   >
-                    <!-- 裁切层 (80% 固定边界) -->
+                    <!-- 【底层】：透明参照层 ( X-Ray View ) -->
+                    <!-- 当切换到裁切形状时，底层展示原始图片的灰度幽灵位，辅助观察溢出 -->
                     <div
-                      class="relative w-32 h-32 transition-all duration-500 shadow-2xl ring-1 ring-black/10 dark:ring-white/20 overflow-hidden flex items-center justify-center bg-background"
+                      v-if="activeMaskShape !== 'full'"
+                      class="absolute inset-0 flex items-center justify-center opacity-[0.15] grayscale pointer-events-none"
+                    >
+                      <div
+                        v-if="backgroundColor === 'transparent'"
+                        class="absolute inset-0 transparency-grid-sm"
+                      ></div>
+                      <img
+                        :src="activeImage.preview"
+                        class="absolute transition-all duration-500 object-contain"
+                        :style="{
+                          width: autoPadding ? '128px' : '160px',
+                          height: autoPadding ? '128px' : '160px',
+                          maxWidth: 'none'
+                        }"
+                      />
+                    </div>
+
+                    <!-- 【顶层】：裁切实测层 ( 固定为物理容器的 80% 大小 ) -->
+                    <div
+                      class="relative transition-all duration-500 flex items-center justify-center"
                       :class="{
-                        'rounded-full': activeMaskShape === 'circle',
-                        'rounded-[30%]': activeMaskShape === 'squircle',
-                        'rounded-2xl': activeMaskShape === 'rounded'
+                        'w-full h-full rounded-2xl': activeMaskShape === 'full',
+                        'w-[80%] h-[80%] overflow-hidden rounded-full shadow-2xl ring-2 ring-primary/40 dark:ring-primary/60':
+                          activeMaskShape === 'circle',
+                        'w-[80%] h-[80%] overflow-hidden rounded-[38%] shadow-2xl ring-2 ring-primary/40 dark:ring-primary/60':
+                          activeMaskShape === 'squircle',
+                        'w-[80%] h-[80%] overflow-hidden rounded-[15%] shadow-2xl ring-2 ring-primary/40 dark:ring-primary/60':
+                          activeMaskShape === 'rounded'
                       }"
                       :style="{
                         backgroundColor:
                           backgroundColor === 'transparent' ? '#ffffff' : backgroundColor
                       }"
                     >
-                      <!-- 内部图片：根据保护开关，决定它是 100% (被裁) 还是 80% (契合) -->
-                      <div class="absolute inset-0 flex items-center justify-center">
+                      <!-- 图片逻辑：工业级正向物理映射 -->
+                      <!-- 在 80% 的裁切窗内，如果是 100% 的原图，需要显示为 125% 才能与底层 160px 幽灵图对齐并产生真实溢出效果 -->
+                      <div
+                        class="absolute inset-0 flex items-center justify-center overflow-hidden"
+                      >
                         <div
                           v-if="backgroundColor === 'transparent'"
-                          class="absolute inset-0 transparency-grid-sm opacity-20 pointer-events-none"
+                          class="absolute inset-0 transparency-grid-sm opacity-10 pointer-events-none"
                         ></div>
                         <img
                           :src="activeImage.preview"
-                          class="transition-all duration-500 object-contain relative z-10"
+                          class="absolute transition-all duration-500 object-contain"
                           :style="{
-                            width: autoPadding ? '100%' : '125%',
-                            height: autoPadding ? '100%' : '125%'
+                            width:
+                              activeMaskShape === 'full'
+                                ? autoPadding
+                                  ? '128px'
+                                  : '160px'
+                                : autoPadding
+                                  ? '100%'
+                                  : '125%',
+                            height:
+                              activeMaskShape === 'full'
+                                ? autoPadding
+                                  ? '128px'
+                                  : '160px'
+                                : autoPadding
+                                  ? '100%'
+                                  : '125%',
+                            maxWidth: 'none'
                           }"
                         />
                       </div>
@@ -313,15 +357,19 @@ const handleGenerate = async () => {
                       <span
                         class="text-[10px] font-black text-foreground/60 uppercase tracking-widest leading-none mb-1"
                       >
-                        System Preview: {{ activeMaskShape }}
+                        {{
+                          activeMaskShape === 'full'
+                            ? '物理文件预览 (Full Asset)'
+                            : `系统环境实测 (System: ${activeMaskShape})`
+                        }}
                       </span>
                       <span
                         class="text-[8px] font-bold text-primary/60 uppercase tracking-tighter max-w-[260px]"
                       >
                         {{
                           autoPadding
-                            ? '已开启保护：Logo 已缩回安全区，裁切后完美呈现'
-                            : '警告：原始满铺模式，Logo 边缘在裁切后将丢失'
+                            ? '已开启保护：图标已按照 80% 安全区标准缩放'
+                            : '警告：原始满铺模式，Logo 边缘将被系统遮罩裁切'
                         }}
                       </span>
                     </div>
@@ -360,29 +408,28 @@ const handleGenerate = async () => {
                         width: getPreviewSize(spec.size!) + 'px',
                         height: getPreviewSize(spec.size!) + 'px',
                         backgroundColor:
+                          spec.id === 'maskable512' &&
+                          autoPadding &&
                           backgroundColor === 'transparent'
-                            ? spec.platform === 'ios'
-                              ? 'white'
-                              : 'transparent'
-                            : backgroundColor
+                            ? 'white'
+                            : backgroundColor === 'transparent'
+                              ? spec.platform === 'ios'
+                                ? 'white'
+                                : 'transparent'
+                              : backgroundColor
                       }"
                     >
                       <div
                         v-if="backgroundColor === 'transparent' && spec.platform !== 'ios'"
                         class="absolute inset-0 transparency-grid-sm opacity-20"
                       ></div>
-                      <div
-                        v-if="spec.id.includes('maskable') && autoPadding"
-                        class="absolute inset-0 border border-dashed border-primary/20 rounded-full scale-[0.8] z-10 pointer-events-none"
-                      ></div>
                       <img
                         :src="activeImage.preview"
                         class="w-full h-full object-contain relative z-0 transition-all duration-500"
-                        :class="[
-                          spec.id.includes('maskable') && autoPadding
-                            ? 'scale-[0.8]'
-                            : 'scale-[1.0]'
-                        ]"
+                        :style="{
+                          transform:
+                            spec.id === 'maskable512' && autoPadding ? 'scale(0.8)' : 'scale(1.0)'
+                        }"
                       />
                       <div
                         v-if="spec.id === 'ico'"
@@ -398,7 +445,7 @@ const handleGenerate = async () => {
                       >
                       <span
                         class="text-[7px] font-black text-muted-foreground/20 uppercase tracking-widest leading-none"
-                        >{{ spec.id.includes('maskable') ? 'Maskable' : spec.platform }}</span
+                        >{{ spec.id === 'maskable512' ? 'Maskable' : spec.platform }}</span
                       >
                     </div>
                   </div>
@@ -508,8 +555,8 @@ const handleGenerate = async () => {
                 <span class="text-[10px] font-black uppercase tracking-widest">Maskable Guide</span>
               </div>
               <p class="text-[9px] text-primary/70 leading-relaxed font-medium">
-                Android 建议图标关键内容（如文字、图形）应保持在
-                <b>80% 中心圆区 (Safe Zone)</b> 内，其余区域作为背景以自适应各种裁切形状。
+                Android 建议图标内容应保持在
+                <b>80% 中心区</b> 内，其余区域作为背景以自适应各种裁切形状。
               </p>
             </div>
 
