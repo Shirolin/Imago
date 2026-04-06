@@ -25,12 +25,14 @@ interface Props {
   isSelected?: boolean
   imageStyle?: CSSProperties
   allowMagnifier?: boolean
+  showTransparency?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   isSelected: false,
   imageStyle: () => ({}),
-  allowMagnifier: true
+  allowMagnifier: true,
+  showTransparency: false
 })
 const emit = defineEmits(['toggle', 'remove', 'download', 'compare'])
 
@@ -125,6 +127,7 @@ const displayUrl = computed(() => {
     <div
       ref="imageRef"
       class="relative aspect-[4/3] overflow-hidden bg-muted/20 flex items-center justify-center shrink-0"
+      :class="{ 'transparency-grid-sm': showTransparency }"
       @mouseenter="enterMagnifier"
       @mouseleave="leaveMagnifier"
       @mousemove="handleMouseMove"
@@ -195,6 +198,7 @@ const displayUrl = computed(() => {
         <!-- 倍镜容器 -->
         <div
           class="absolute w-32 h-32 md:w-48 md:h-48 -ml-16 -mt-16 md:-ml-24 md:-mt-24 rounded-full border-2 border-primary shadow-[0_0_30px_rgba(var(--primary-rgb),0.5)] overflow-hidden bg-background flex items-center justify-center"
+          :class="{ 'transparency-grid-sm': showTransparency }"
           :style="magnifierStyle"
         >
           <img

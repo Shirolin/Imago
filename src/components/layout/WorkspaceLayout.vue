@@ -233,6 +233,7 @@ defineProps<Props>()
           <!-- 核心内容滚动区 -->
           <div
             class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar w-full"
+            style="scrollbar-gutter: stable"
             :class="{ 'opacity-0': layoutStore.isInspectorCollapsed && isCompact }"
           >
             <div class="p-4 md:p-6 flex flex-col gap-8 pb-6">

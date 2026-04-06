@@ -148,7 +148,7 @@ const handleClearExif = async () => {
 
 const handleCardClick = (id: string) => {
   activeImageId.value = id
-  if (!store.selectedIds.has(id)) store.toggleSelection(id)
+  store.toggleSelection(id)
 }
 
 watch([outputFormat, outputQuality], () => store.markAllAsDirty(), { deep: true })

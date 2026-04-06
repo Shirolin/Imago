@@ -263,7 +263,12 @@ const handleCtaClick = async () => {
       </template>
     </WorkspaceLayout>
 
-    <AppModal :show="showCompareModal" @close="closeCompare" @after-leave="handleModalLeave">
+    <AppModal
+      :show="showCompareModal"
+      title="压缩转换细节对比"
+      @close="closeCompare"
+      @after-leave="handleModalLeave"
+    >
       <ImageCompare
         v-if="comparingImage"
         :original-url="comparingImage.file"

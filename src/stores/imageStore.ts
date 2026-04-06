@@ -6,6 +6,7 @@ export interface ImageItem {
   file: File
   preview: string
   status: 'idle' | 'processing' | 'done' | 'error'
+  progress?: number // 0 to 1
   originalSize: number
   width?: number
   height?: number
@@ -64,7 +65,14 @@ export const useImageStore = defineStore('image', () => {
   const globalProgress = computed(() => {
     if (totalCount.value === 0) return 0
     if (processingCount.value === 0 && doneCount.value === totalCount.value) return 100
-    return Math.round((doneCount.value / totalCount.value) * 100)
+
+    // 计算已完成的部分 + 正在处理的部分的权重
+    const doneBase = doneCount.value
+    const processingProgress = images.value
+      .filter((img) => img.status === 'processing')
+      .reduce((sum, img) => sum + (img.progress || 0), 0)
+
+    return Math.round(((doneBase + processingProgress) / totalCount.value) * 100)
   })
 
   // 排序逻辑

@@ -501,19 +501,51 @@ useResizeObserver(containerRef, resetView)
 
         <div class="space-y-8 px-1">
           <div v-if="combineDirection === 'grid'" class="space-y-3">
-            <AppSlider v-model="columns" label="网格列数" :min="1" :max="10" unit="列" />
+            <AppSlider
+              v-model="columns"
+              label="网格列数"
+              :icon="Grid3X3"
+              unit=" 列"
+              :min="1"
+              :max="10"
+              :default-value="3"
+            />
           </div>
 
           <div class="space-y-3">
-            <AppSlider v-model="spacing" label="图片间距" :min="0" :max="200" unit="px" />
+            <AppSlider
+              v-model="spacing"
+              label="图片间距"
+              :icon="Layers"
+              unit="px"
+              :min="0"
+              :max="200"
+              :default-value="0"
+            />
           </div>
 
           <div class="space-y-3">
-            <AppSlider v-model="padding" label="外边距" :min="0" :max="200" unit="px" />
+            <AppSlider
+              v-model="padding"
+              label="外边距"
+              :icon="Box"
+              unit="px"
+              :min="0"
+              :max="200"
+              :default-value="0"
+            />
           </div>
 
           <div class="space-y-3">
-            <AppSlider v-model="borderRadius" label="图片圆角" :min="0" :max="100" unit="px" />
+            <AppSlider
+              v-model="borderRadius"
+              label="图片圆角"
+              :icon="Settings2"
+              unit="px"
+              :min="0"
+              :max="100"
+              :default-value="0"
+            />
           </div>
 
           <div class="space-y-4">

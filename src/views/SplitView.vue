@@ -775,22 +775,28 @@ const handleCtaClick = async () => {
             class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-6"
           >
             <div class="space-y-1">
-              <div class="flex justify-between items-center px-1">
-                <span class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider"
-                  >垂直行数</span
-                >
-                <span class="text-xs font-mono font-bold text-primary">{{ rows }}</span>
-              </div>
-              <AppSlider v-model="rows" :min="1" :max="10" :step="1" />
+              <AppSlider
+                v-model="rows"
+                label="垂直行数"
+                :icon="AlignCenter"
+                unit=" 行"
+                :min="1"
+                :max="10"
+                :step="1"
+                :default-value="3"
+              />
             </div>
             <div class="space-y-1">
-              <div class="flex justify-between items-center px-1">
-                <span class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider"
-                  >水平列数</span
-                >
-                <span class="text-xs font-mono font-bold text-primary">{{ cols }}</span>
-              </div>
-              <AppSlider v-model="cols" :min="1" :max="10" :step="1" />
+              <AppSlider
+                v-model="cols"
+                label="水平列数"
+                :icon="Grid3X3"
+                unit=" 列"
+                :min="1"
+                :max="10"
+                :step="1"
+                :default-value="3"
+              />
             </div>
           </div>
           <div
@@ -857,15 +863,16 @@ const handleCtaClick = async () => {
         <div class="space-y-4 px-1">
           <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-6">
             <div class="space-y-1">
-              <div class="flex justify-between items-center px-1">
-                <span class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider"
-                  >线宽 (px)</span
-                >
-                <span class="text-xs font-mono font-bold text-primary">{{
-                  viewSettings.lineWidth
-                }}</span>
-              </div>
-              <AppSlider v-model="viewSettings.lineWidth" :min="0.5" :max="5" :step="0.1" />
+              <AppSlider
+                v-model="viewSettings.lineWidth"
+                label="线宽"
+                :icon="Scissors"
+                unit="px"
+                :min="0.5"
+                :max="5"
+                :step="0.1"
+                :default-value="1.5"
+              />
             </div>
 
             <div class="space-y-3">
@@ -908,15 +915,16 @@ const handleCtaClick = async () => {
             </div>
 
             <div class="space-y-1">
-              <div class="flex justify-between items-center px-1">
-                <span class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider"
-                  >不透明度</span
-                >
-                <span class="text-xs font-mono font-bold text-primary"
-                  >{{ Math.round(viewSettings.lineOpacity * 100) }}%</span
-                >
-              </div>
-              <AppSlider v-model="viewSettings.lineOpacity" :min="0.1" :max="1" :step="0.05" />
+              <AppSlider
+                v-model="viewSettings.lineOpacity"
+                label="不透明度"
+                :icon="Layers"
+                unit=""
+                :min="0.1"
+                :max="1"
+                :step="0.05"
+                :default-value="0.95"
+              />
             </div>
           </div>
         </div>
@@ -946,17 +954,16 @@ const handleCtaClick = async () => {
 
           <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-5">
             <div class="space-y-1">
-              <div class="flex justify-between items-center px-1">
-                <div class="flex flex-col">
-                  <span
-                    class="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
-                    >边缘收缩 (Shave)</span
-                  >
-                  <span class="text-[9px] text-muted-foreground/50">消除边缘杂色或黑边</span>
-                </div>
-                <span class="text-xs font-mono font-bold text-primary">{{ shave }}px</span>
-              </div>
-              <AppSlider v-model="shave" :min="0" :max="50" :step="1" />
+              <AppSlider
+                v-model="shave"
+                label="边缘收缩 (Shave)"
+                :icon="Box"
+                unit="px"
+                :min="0"
+                :max="50"
+                :step="1"
+                :default-value="0"
+              />
             </div>
           </div>
         </div>

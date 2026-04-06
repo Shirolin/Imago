@@ -53,6 +53,11 @@ const router = createRouter({
       path: '/favicon',
       name: 'favicon',
       component: () => import('./views/FaviconView.vue')
+    },
+    {
+      path: '/bg-remove',
+      name: 'bgRemove',
+      component: () => import('./views/BgRemoveView.vue')
     }
   ]
 })

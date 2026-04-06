@@ -32,6 +32,7 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
         signal: abortController.signal,
         onProgress: (p: number) => {
           progress.value = p
+          store.updateImage(id, { progress: p })
         }
       })
 

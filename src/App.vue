@@ -16,7 +16,8 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
-  Box
+  Box,
+  Sparkles
 } from 'lucide-vue-next'
 import { useImageStore } from './stores/imageStore'
 import { useLayoutStore } from './stores/layoutStore'
@@ -112,6 +113,7 @@ const menuGroups = [
     items: [
       { name: '站标生成', path: '/favicon', icon: Box },
       { name: '拼接合并', path: '/combine', icon: Layers },
+      { name: '去除背景', path: '/bg-remove', icon: Sparkles },
       { name: '色彩滤镜', path: '/filters', icon: Palette }
     ]
   }

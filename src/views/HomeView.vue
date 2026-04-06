@@ -9,7 +9,8 @@ import {
   Layers,
   Palette,
   ArrowRight,
-  Box
+  Box,
+  Sparkles
 } from 'lucide-vue-next'
 import AppButton from '../components/common/AppButton.vue'
 
@@ -61,6 +62,13 @@ const tools = [
     path: '/combine',
     icon: Layers,
     colorClass: 'text-pink-500'
+  },
+  {
+    name: '去除背景',
+    desc: '基于本地 AI 技术的全自动背景抠图',
+    path: '/bg-remove',
+    icon: Sparkles,
+    colorClass: 'text-violet-500'
   },
   {
     name: '色彩滤镜',
