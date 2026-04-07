@@ -23,7 +23,7 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
 
     const abortController = new AbortController()
     currentController = abortController
-    store.updateImage(id, { status: 'processing', abortController })
+    store.updateImage(id, { status: 'processing', progress: 0, abortController })
     progress.value = 0
 
     try {
@@ -111,15 +111,35 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
   }
 
   const processQueue = async (items: ImageItem[], options: T) => {
+    const total = items.length
+    if (total === 0) return
+
     const CONCURRENCY_LIMIT = 3
     let index = 0
     const results: Promise<void>[] = []
+
+    // 维护每张图的实时进度，用于计算精确的总进度
+    const itemProgress = new Map<string, number>()
+
+    const updateGlobalProgress = () => {
+      const sum = Array.from(itemProgress.values()).reduce((a, b) => a + b, 0)
+      progress.value = Math.min(100, Math.round((sum / total) * 100))
+    }
 
     const worker = async () => {
       while (index < items.length) {
         const item = items[index++]
         if (item) {
-          await processSingle(item.id, options)
+          itemProgress.set(item.id, 0)
+          await processSingle(item.id, {
+            ...options,
+            onProgress: (p: number) => {
+              itemProgress.set(item.id, p)
+              updateGlobalProgress()
+            }
+          })
+          itemProgress.set(item.id, 1) // 确保完成后计为 1
+          updateGlobalProgress()
         }
       }
     }

@@ -15,21 +15,32 @@ export const bgRemoveEngine: ImageProcessor<BgRemoveOptions> = async (file, opti
   try {
     // 强制输出格式为 PNG，因为背景移除后的图片需要支持 Alpha 透明通道
     // 该库默认返回 image/png 格式的 Blob，完全在本地或 WebWorker 执行
+    // 维护一个阶段性的最大进度，确保进度条只增不减
+    let maxProgress = 0
+
     const imageBlob = await removeBackground(file, {
-      // 这里的 progress 回调会在模型下载和推理阶段触发
       progress: (key: string, current: number, total: number) => {
-        // 转换进度为 0-1 之间的数字
         const p = current / total
-        if (options.onProgress) options.onProgress(p)
-        console.log(`[BgRemove Progress] ${key}: ${current}/${total} (${Math.round(p * 100)}%)`)
+        let weightedP = 0
+
+        // 阶段权重分配：加载模型(0.3) -> 实际推理(0.7)
+        if (key.includes('fetch')) {
+          weightedP = p * 0.3
+        } else if (key.includes('compute')) {
+          weightedP = 0.3 + p * 0.7
+        } else {
+          weightedP = p
+        }
+
+        // 确保进度不回退
+        maxProgress = Math.max(maxProgress, weightedP)
+        if (options.onProgress) options.onProgress(maxProgress)
+
+        console.log(`[BgRemove Progress] ${key}: ${Math.round(maxProgress * 100)}%`)
       },
-      // 显式传递中止信号，允许用户取消耗时的背景移除任务
-      // 注意：部分旧版库可能不支持 signal 参数，需确保依赖版本匹配
-      // 如果报错，可能需要封装在 try-catch 中或检查库文档
-      // @ts-expect-error - 兼容性处理，如果库版本较旧可能没有 signal 定义
+      // @ts-expect-error - 兼容性处理，某些版本可能在 options 中缺少 signal 定义
       signal: options.signal
     })
-
     if (!imageBlob) {
       throw new Error('背景移除引擎未返回任何有效数据')
     }

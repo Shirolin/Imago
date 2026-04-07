@@ -4,7 +4,6 @@ import type { CSSProperties } from 'vue'
 import {
   Download,
   X,
-  Loader2,
   CheckCircle2,
   Square,
   CheckSquare,
@@ -299,12 +298,53 @@ const displayUrl = computed(() => {
         </div>
       </div>
 
-      <!-- 处理中状态 (降级至 z-20) -->
+      <!-- 处理中状态 (z-20) -->
       <div
         v-if="image.status === 'processing'"
-        class="absolute inset-0 bg-background/60 backdrop-blur-[2px] z-20 flex items-center justify-center"
+        class="absolute inset-0 bg-background/60 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center gap-3"
       >
-        <Loader2 class="animate-spin text-primary" :size="24" />
+        <div class="relative flex items-center justify-center">
+          <!-- 环形进度底色 -->
+          <svg class="w-12 h-12 -rotate-90">
+            <circle
+              cx="24"
+              cy="24"
+              r="20"
+              stroke="currentColor"
+              stroke-width="2.5"
+              fill="transparent"
+              class="text-muted/20"
+            />
+            <!-- 环形进度条：缩短过渡时间以适应高频更新 -->
+            <circle
+              cx="24"
+              cy="24"
+              r="20"
+              stroke="currentColor"
+              stroke-width="3"
+              fill="transparent"
+              class="text-primary transition-[stroke-dashoffset] duration-150 ease-linear"
+              :style="{
+                strokeDasharray: 2 * Math.PI * 20,
+                strokeDashoffset: 2 * Math.PI * 20 * (1 - (image.progress || 0))
+              }"
+            />
+          </svg>
+          <!-- 核心修复：使用纯 CSS 方案并通过 v-once 锁定，防止 Vue 频繁更新 progress 时导致动画重启/停止 -->
+          <div v-once class="absolute inset-0 flex items-center justify-center">
+            <div
+              class="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin"
+              style="will-change: transform"
+            ></div>
+          </div>
+        </div>
+        <div class="flex flex-col items-center">
+          <span
+            class="text-[10px] font-black text-primary uppercase tracking-[0.2em] animate-pulse"
+          >
+            {{ Math.round((image.progress || 0) * 100) }}%
+          </span>
+        </div>
       </div>
     </div>
 

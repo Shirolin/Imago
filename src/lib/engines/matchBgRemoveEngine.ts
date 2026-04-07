@@ -52,8 +52,12 @@ export const matchBgRemoveEngine: ImageProcessor<MatchBgRemoveOptions> = async (
     })
 
     worker.onmessage = (e) => {
-      resolve(e.data.pixels)
-      worker.terminate()
+      if (e.data.type === 'progress') {
+        if (options.onProgress) options.onProgress(e.data.progress)
+      } else if (e.data.type === 'done') {
+        resolve(e.data.pixels)
+        worker.terminate()
+      }
     }
 
     worker.onerror = (err) => {

@@ -35,7 +35,16 @@ self.onmessage = (e: MessageEvent) => {
   // 容差 Epsilon：处理浮点数计算误差
   const EPSILON = 0.00001
 
+  const totalPixels = data.length / 4
+  const progressStep = Math.max(1, Math.floor(totalPixels / 20)) // 每 5% 汇报一次
+
   for (let i = 0; i < data.length; i += 4) {
+    // 进度汇报
+    const pixelIndex = i / 4
+    if (pixelIndex % progressStep === 0) {
+      self.postMessage({ type: 'progress', progress: pixelIndex / totalPixels })
+    }
+
     const r = data[i]!
     const g = data[i + 1]!
     const b = data[i + 2]!
@@ -65,5 +74,5 @@ self.onmessage = (e: MessageEvent) => {
 
   // 使用 Transferable Objects 传输 buffer，避免内存复制
   // @ts-expect-error - 适配 DedicatedWorkerGlobalScope.postMessage 签名
-  self.postMessage({ pixels: data.buffer }, [data.buffer])
+  self.postMessage({ type: 'done', pixels: data.buffer }, [data.buffer])
 }

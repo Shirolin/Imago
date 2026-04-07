@@ -194,14 +194,17 @@ const ctaState = computed(() => {
       variant: 'cta' as const
     }
 
-  if (isProcessing.value)
+  if (isProcessing.value) {
+    const p =
+      engineMode.value === 'match' ? matchProcessor.progress.value : proProcessor.progress.value
     return {
-      text: '正在去除背景...',
+      text: `正在去除背景 (${p}%)`,
       icon: Sparkles,
       action: 'none',
       disabled: true,
       variant: 'cta' as const
     }
+  }
 
   const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
   const allDoneAndClean =
