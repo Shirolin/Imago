@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, nextTick } from 'vue'
 import type { Component } from 'vue'
 import { RotateCcw } from 'lucide-vue-next'
 
 interface Props {
   modelValue: number
   label?: string
-  icon?: Component // 新增：图标 Prop
+  icon?: Component
   min?: number
   max?: number
   step?: number
@@ -21,11 +21,48 @@ const props = withDefaults(defineProps<Props>(), {
   min: 0,
   max: 100,
   step: 1,
-  unit: '', // 修改：默认为空，避免非百分比数值误显示 %
+  unit: '',
   ariaLabel: '滑动条'
 })
 
 const emit = defineEmits(['update:modelValue'])
+
+// --- 点击即编辑逻辑 ---
+const isEditing = ref(false)
+const tempValue = ref('')
+const inputRef = ref<HTMLInputElement | null>(null)
+
+const startEdit = () => {
+  tempValue.value = String(props.modelValue)
+  isEditing.value = true
+  nextTick(() => {
+    inputRef.value?.focus()
+    inputRef.value?.select()
+  })
+}
+
+const commitEdit = () => {
+  if (!isEditing.value) return
+
+  let val = parseFloat(tempValue.value)
+
+  // 校验 1：如果不是有效数字，回滚
+  if (isNaN(val)) {
+    isEditing.value = false
+    return
+  }
+
+  // 校验 2：钳制范围 [min, max] 并处理步长
+  const clamped = Math.max(props.min, Math.min(props.max, val))
+  const stepped = Math.round(clamped / props.step) * props.step
+
+  emit('update:modelValue', Number(stepped.toFixed(2)))
+  isEditing.value = false
+}
+
+const cancelEdit = () => {
+  isEditing.value = false
+}
 
 const progressPercent = computed(() => {
   return ((props.modelValue - props.min) / (props.max - props.min)) * 100
@@ -70,12 +107,29 @@ const isDirty = computed(() => {
         >
       </div>
       <div class="flex items-center">
-        <!-- 数值显示：保持位置稳定 -->
-        <span class="text-[11px] font-mono font-black text-primary leading-none"
-          >{{ modelValue }}{{ unit }}</span
-        >
+        <!-- 数值显示/编辑区 -->
+        <div class="relative min-w-[40px] flex justify-end">
+          <input
+            v-if="isEditing"
+            ref="inputRef"
+            type="text"
+            v-model="tempValue"
+            class="w-12 h-5 px-1 bg-primary/10 border border-primary/30 rounded text-[11px] font-mono font-black text-primary text-right outline-none focus:ring-1 focus:ring-primary/50"
+            @blur="commitEdit"
+            @keydown.enter="commitEdit"
+            @keydown.esc="cancelEdit"
+          />
+          <span
+            v-else
+            @click="startEdit"
+            class="text-[11px] font-mono font-black text-primary leading-none cursor-text hover:bg-primary/5 px-1 rounded transition-colors"
+            title="点击手动输入"
+          >
+            {{ modelValue }}{{ unit }}
+          </span>
+        </div>
 
-        <!-- 重置按钮占位符：固定宽度防止布局跳动 -->
+        <!-- 重置按钮占位符 -->
         <div class="w-5 h-5 flex items-center justify-end ml-1">
           <transition
             enter-active-class="transition duration-300 ease-out"
