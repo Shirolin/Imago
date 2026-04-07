@@ -47,8 +47,8 @@ const engineOptions = [
 ]
 
 // 智能取色参数 (使用 0-100 刻度以适配百分比显示)
-const DEFAULT_TOLERANCE = 15
-const DEFAULT_FEATHER = 10
+const DEFAULT_TOLERANCE = 0
+const DEFAULT_FEATHER = 0
 const matchTolerance = ref(DEFAULT_TOLERANCE)
 const matchFeather = ref(DEFAULT_FEATHER)
 const matchColor = ref('#ffffff') // 默认白色
@@ -439,22 +439,23 @@ const handleCtaClick = async () => {
                 <Palette :size="14" class="text-muted-foreground" />
                 <span
                   class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest"
-                  >目标背景色</span
+                  >要去除的背景色</span
                 >
               </div>
             </div>
-            <AppColorPicker v-model="matchColor" />
+            <AppColorPicker v-model="matchColor" :show-transparent="false" />
           </div>
 
           <div class="space-y-3">
             <AppSlider
               v-model="matchTolerance"
-              :min="1"
+              :min="0"
               :max="50"
               :step="1"
               label="容差范围"
               unit="%"
               :default-value="DEFAULT_TOLERANCE"
+              description="数值越大，识别的颜色范围越宽。若背景有光影变化，可适当调大。"
             />
           </div>
 
@@ -467,6 +468,7 @@ const handleCtaClick = async () => {
               label="边缘羽化"
               unit="%"
               :default-value="DEFAULT_FEATHER"
+              description="数值越大，边缘过渡越柔和。适合处理毛发或让主体更自然地融入新背景。"
             />
           </div>
         </div>

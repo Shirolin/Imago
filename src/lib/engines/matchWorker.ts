@@ -32,10 +32,19 @@ self.onmessage = (e: MessageEvent) => {
   const threshold = tolerance * MAX_PERCEPTUAL_DIST
   const featherRange = feather * MAX_PERCEPTUAL_DIST
 
+  // 容差 Epsilon：处理浮点数计算误差
+  const EPSILON = 0.00001
+
   for (let i = 0; i < data.length; i += 4) {
     const r = data[i]!
     const g = data[i + 1]!
     const b = data[i + 2]!
+
+    // 1. 严格等值优化：如果是 0 容差且颜色完全一致，直接抠除，避开浮点数误差
+    if (tolerance === 0 && r === targetColor.r && g === targetColor.g && b === targetColor.b) {
+      data[i + 3] = 0
+      continue
+    }
 
     const currentLab = rgbToLab(r, g, b)
 
@@ -45,9 +54,10 @@ self.onmessage = (e: MessageEvent) => {
         Math.pow(currentLab.b - targetLab.b, 2)
     )
 
-    if (dist < threshold) {
+    // 2. 使用带微小偏移的判断，解决 0 容差下的临界问题
+    if (dist < threshold + EPSILON) {
       data[i + 3] = 0
-    } else if (dist < threshold + featherRange && featherRange > 0) {
+    } else if (dist < threshold + featherRange + EPSILON && featherRange > 0) {
       const opacity = (dist - threshold) / featherRange
       data[i + 3] = Math.round(data[i + 3]! * opacity)
     }

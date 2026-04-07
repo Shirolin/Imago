@@ -13,6 +13,7 @@ interface Props {
   unit?: string
   snapValue?: number
   defaultValue?: number
+  description?: string
   ariaLabel?: string
 }
 
@@ -122,6 +123,16 @@ const isDirty = computed(() => {
         :aria-valuenow="modelValue"
         class="absolute inset-0 w-full h-full bg-transparent appearance-none cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background rounded-full z-20"
       />
+    </div>
+
+    <!-- 辅助说明层 -->
+    <div
+      v-if="description"
+      class="px-1 -mt-2 mb-1 animate-in fade-in slide-in-from-top-1 duration-500"
+    >
+      <p class="text-[10px] leading-relaxed text-muted-foreground/60 font-medium italic">
+        {{ description }}
+      </p>
     </div>
   </div>
 </template>
