@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Component } from 'vue'
-import { Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 
 interface Props {
@@ -129,7 +128,16 @@ const iconClass = computed(() => {
     :class="extraClasses"
     :aria-label="ariaLabel"
   >
-    <Loader2 v-if="loading" class="animate-spin shrink-0" :size="iconSize" />
+    <!-- 核心修复：纯 CSS 硬件加速加载圆环 -->
+    <div
+      v-if="loading"
+      class="animate-spin shrink-0 rounded-full border-2 border-current border-t-transparent transform-gpu"
+      :style="{
+        width: iconSize + 'px',
+        height: iconSize + 'px',
+        willChange: 'transform'
+      }"
+    ></div>
     <template v-else>
       <slot name="icon">
         <component

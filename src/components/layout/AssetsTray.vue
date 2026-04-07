@@ -323,11 +323,17 @@ const onDragEnd = () => {
               v-if="img.status !== 'idle'"
               class="absolute bottom-1.5 right-1.5 p-0.5 rounded-md bg-background/60 backdrop-blur-md shadow-sm z-10"
             >
+              <!-- 核心修复：如果是处理中，使用纯 CSS 旋转圆环 -->
+              <div
+                v-if="img.status === 'processing'"
+                class="w-2.5 h-2.5 border border-primary/30 border-t-primary rounded-full animate-spin transform-gpu"
+                style="will-change: transform"
+              ></div>
               <component
+                v-else
                 :size="10"
                 :is="getStatusIcon(img.status)"
                 :class="{
-                  'animate-spin text-primary': img.status === 'processing',
                   'text-green-400': img.status === 'done',
                   'text-red-400': img.status === 'error'
                 }"
