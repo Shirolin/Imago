@@ -47,18 +47,36 @@ const rafId = ref<number | null>(null)
 // 只有在完成处理且悬停时才处理高清 URL
 watch(showMagnifier, (isShowing) => {
   if (isShowing) {
-    if (props.image.processedBlob && !processedUrl.value) {
+    if (props.image.processedPreview) {
+      processedUrl.value = props.image.processedPreview
+    } else if (props.image.processedBlob) {
       processedUrl.value = URL.createObjectURL(props.image.processedBlob)
     }
+
     if (!originalHDUrl.value) {
-      originalHDUrl.value = URL.createObjectURL(props.image.file)
+      originalHDUrl.value = props.image.preview || URL.createObjectURL(props.image.file)
     }
   }
 })
 
+// 监听处理结果变化，实时更新倍镜
+watch(
+  () => props.image.processedPreview,
+  (newUrl) => {
+    if (showMagnifier.value && newUrl) {
+      processedUrl.value = newUrl
+    }
+  }
+)
+
 onUnmounted(() => {
-  if (processedUrl.value) URL.revokeObjectURL(processedUrl.value)
-  if (originalHDUrl.value) URL.revokeObjectURL(originalHDUrl.value)
+  // 仅释放由本组件创建的 URL
+  if (processedUrl.value && processedUrl.value !== props.image.processedPreview) {
+    URL.revokeObjectURL(processedUrl.value)
+  }
+  if (originalHDUrl.value && originalHDUrl.value !== props.image.preview) {
+    URL.revokeObjectURL(originalHDUrl.value)
+  }
   if (rafId.value) cancelAnimationFrame(rafId.value)
 })
 
@@ -92,10 +110,29 @@ const magnifierStyle = computed<CSSProperties>(() => ({
   willChange: 'left, top'
 }))
 
-const innerImageStyle = computed<CSSProperties>(() => ({
-  transform: `scale(2.5)`,
-  transformOrigin: `${mousePos.value.x}% ${mousePos.value.y}%`
-}))
+const innerContainerStyle = computed<CSSProperties>(() => {
+  // 核心修复：内部容器比例必须与外层完全一致
+  // 关键：使用 translate(-x%, -y%) 配合 transform-origin，确保鼠标指向的像素始终在倍镜中心
+  return {
+    position: 'absolute',
+    width: `${imageRef.value?.clientWidth || 0}px`,
+    height: `${imageRef.value?.clientHeight || 0}px`,
+    left: '50%',
+    top: '50%',
+    transform: `translate(-${mousePos.value.x}%, -${mousePos.value.y}%) scale(2.5)`,
+    transformOrigin: `${mousePos.value.x}% ${mousePos.value.y}%`,
+    willChange: 'transform, transform-origin'
+  }
+})
+
+// 计算动态分割线位置：基于图片坐标系裁剪，确保裁剪线始终处于倍镜中心
+const dynamicClipPath = computed(() => {
+  const x = mousePos.value.x
+  return {
+    original: `inset(0 ${100 - x}% 0 0)`,
+    processed: `inset(0 0 0 ${x}%)`
+  }
+})
 
 const isDirtyDone = computed(() => props.image.isDirty && props.image.status === 'done')
 
@@ -126,15 +163,40 @@ const displayUrl = computed(() => {
     <!-- 图片展示区 -->
     <div
       ref="imageRef"
-      class="relative aspect-[4/3] overflow-hidden bg-muted/20 flex items-center justify-center shrink-0"
-      :class="{ 'transparency-grid-sm': showTransparency }"
+      class="relative aspect-[4/3] flex items-center justify-center shrink-0"
       @mouseenter="enterMagnifier"
       @mouseleave="leaveMagnifier"
       @mousemove="handleMouseMove"
     >
-      <!-- 【专用层】：滤镜与视觉效果预览 (z-10, 位于图片之上，UI 之下) -->
-      <div class="absolute inset-0 z-10 pointer-events-none overflow-hidden">
-        <slot name="visual-effects" :image="image"></slot>
+      <!-- 主内容裁剪层：仅裁剪背景和主图，不裁剪倍镜 -->
+      <div
+        class="absolute inset-0 overflow-hidden rounded-t-[calc(1rem-1px)] bg-muted/20"
+        :class="{ 'transparency-grid-sm': showTransparency }"
+      >
+        <!-- 【专用层】：滤镜与视觉效果预览 (z-10) -->
+        <div class="absolute inset-0 z-10 pointer-events-none">
+          <slot name="visual-effects" :image="image"></slot>
+        </div>
+
+        <!-- 主预览图 -->
+        <img
+          :src="displayUrl"
+          alt="Preview"
+          class="w-full h-full object-contain transition-all duration-700"
+          :class="{
+            'group-hover:scale-105': !showMagnifier && !isDirtyDone,
+            'opacity-40 grayscale-[0.5] blur-[1px] scale-95': isDirtyDone
+          }"
+          :style="imageStyle"
+        />
+
+        <!-- 脏状态覆盖层 (z-20) -->
+        <div
+          v-if="isDirtyDone"
+          class="absolute inset-0 z-20 pointer-events-none overflow-hidden opacity-30"
+        >
+          <div class="absolute inset-[-100%] bg-stripe-pattern animate-stripe-scroll"></div>
+        </div>
       </div>
 
       <!-- 【左上角】：选择框 (z-30) -->
@@ -168,32 +230,12 @@ const displayUrl = computed(() => {
         <X :size="14" />
       </button>
 
-      <!-- 主预览图 -->
-      <img
-        :src="displayUrl"
-        alt="Preview"
-        class="w-full h-full object-contain transition-all duration-700"
-        :class="{
-          'group-hover:scale-105': !showMagnifier && !isDirtyDone,
-          'opacity-40 grayscale-[0.5] blur-[1px] scale-95': isDirtyDone
-        }"
-        :style="imageStyle"
-      />
-
-      <!-- 脏状态覆盖层 (z-20) -->
-      <div
-        v-if="isDirtyDone"
-        class="absolute inset-0 z-20 pointer-events-none overflow-hidden opacity-30"
-      >
-        <div class="absolute inset-[-100%] bg-stripe-pattern animate-stripe-scroll"></div>
-      </div>
-
-      <!-- 智能倍镜组件 (z-30) -->
+      <!-- 智能倍镜组件 (z-40) - 放在裁剪层之外 -->
       <div
         v-if="
           allowMagnifier && showMagnifier && processedUrl && originalHDUrl && store.showMagnifier
         "
-        class="absolute inset-0 z-30 pointer-events-none overflow-hidden"
+        class="absolute inset-0 z-40 pointer-events-none"
       >
         <!-- 倍镜容器 -->
         <div
@@ -201,29 +243,37 @@ const displayUrl = computed(() => {
           :class="{ 'transparency-grid-sm': showTransparency }"
           :style="magnifierStyle"
         >
-          <img
-            :src="originalHDUrl"
-            class="absolute inset-0 w-full h-full object-contain"
-            :style="innerImageStyle"
-          />
+          <!-- 左侧：原图 (动态裁剪) -->
           <div
-            class="absolute inset-0 w-full h-full"
-            :style="{ clipPath: `inset(0 0 0 50%)`, ...innerImageStyle } as CSSProperties"
+            class="absolute"
+            :style="{ ...innerContainerStyle, clipPath: dynamicClipPath.original } as CSSProperties"
           >
-            <img :src="processedUrl" class="w-full h-full object-contain" />
+            <img :src="originalHDUrl!" class="w-full h-full object-contain" />
           </div>
+
+          <!-- 右侧：处理后图 (动态裁剪) -->
           <div
-            class="absolute inset-y-0 left-1/2 w-0.5 bg-primary/80 z-10 shadow-[0_0_8px_rgba(var(--primary-rgb),1)]"
+            class="absolute"
+            :style="
+              { ...innerContainerStyle, clipPath: dynamicClipPath.processed } as CSSProperties
+            "
+          >
+            <img :src="processedUrl!" class="w-full h-full object-contain" />
+          </div>
+
+          <!-- 动态分割线：始终对齐鼠标中心点 -->
+          <div
+            class="absolute inset-y-0 left-1/2 w-0.5 bg-primary/80 z-10 shadow-[0_0_8px_rgba(var(--primary-rgb),1)] will-change-[left]"
           ></div>
           <div
             class="absolute inset-0 flex items-center justify-between px-2 text-[10px] pointer-events-none z-20"
           >
             <span
-              class="bg-muted/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-foreground font-black border border-border/20"
+              class="bg-muted/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-foreground font-black border border-border/20 transition-opacity duration-300"
               >BEFORE</span
             >
             <span
-              class="bg-primary/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-primary-foreground font-black border border-white/20"
+              class="bg-primary/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-primary-foreground font-black border border-white/20 transition-opacity duration-300"
               >AFTER</span
             >
           </div>

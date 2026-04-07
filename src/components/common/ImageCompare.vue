@@ -26,32 +26,13 @@ const props = withDefaults(defineProps<Props>(), {
 const originalViewUrl = ref<string>('')
 const processedViewUrl = ref<string>('')
 
-// 带有容量限制和显式内存释放的全局位图缓存
-const MAX_CACHE_SIZE = 10
-const bitmapCache = new Map<string | Blob, ImageBitmap>()
-const cacheOrder: (string | Blob)[] = []
-
-const addToCache = (key: string | Blob, bitmap: ImageBitmap) => {
-  if (bitmapCache.has(key)) return
-
-  if (cacheOrder.length >= MAX_CACHE_SIZE) {
-    const oldestKey = cacheOrder.shift()
-    if (oldestKey) {
-      const oldestBitmap = bitmapCache.get(oldestKey)
-      oldestBitmap?.close()
-      bitmapCache.delete(oldestKey)
-    }
-  }
-
-  bitmapCache.set(key, bitmap)
-  cacheOrder.push(key)
-}
-
 const sliderPos = ref(50)
 const isResizing = ref(false)
 const isPanning = ref(false)
 const container = ref<HTMLElement | null>(null)
 const isDecoding = ref(true)
+const originalLoaded = ref(false)
+const processedLoaded = ref(false)
 
 // 缩放与平移状态
 const scale = ref(1)
@@ -59,19 +40,12 @@ const offset = ref({ x: 0, y: 0 })
 const lastMousePos = ref({ x: 0, y: 0 })
 const isError = ref(false)
 
-// 辅助函数：将输入转换为 ImageBitmap
-const convertToBitmap = async (input: string | Blob): Promise<ImageBitmap> => {
-  if (input instanceof Blob) {
-    return createImageBitmap(input)
-  }
-  const response = await fetch(input)
-  const blob = await response.blob()
-  return createImageBitmap(blob)
-}
-
 const preloadImages = async () => {
   isDecoding.value = true
   isError.value = false
+  originalLoaded.value = false
+  processedLoaded.value = false
+
   try {
     originalViewUrl.value =
       props.originalUrl instanceof Blob ? URL.createObjectURL(props.originalUrl) : props.originalUrl
@@ -80,20 +54,15 @@ const preloadImages = async () => {
         ? URL.createObjectURL(props.processedUrl)
         : props.processedUrl
 
-    if (bitmapCache.has(props.originalUrl) && bitmapCache.has(props.processedUrl)) {
-      isDecoding.value = false
-      return
+    // 检查图片加载状态的 Promise
+    const checkLoaded = () => {
+      if (originalLoaded.value && processedLoaded.value) {
+        isDecoding.value = false
+      }
     }
 
-    const [img1, img2] = await Promise.all([
-      convertToBitmap(props.originalUrl),
-      convertToBitmap(props.processedUrl)
-    ])
-
-    addToCache(props.originalUrl, img1)
-    addToCache(props.processedUrl, img2)
-
-    isDecoding.value = false
+    // 暴露给模板使用
+    return { checkLoaded }
   } catch (err) {
     console.error('Failed to load images for comparison', err)
     isDecoding.value = false
@@ -101,12 +70,23 @@ const preloadImages = async () => {
   }
 }
 
+const handleImageLoad = (type: 'original' | 'processed') => {
+  if (type === 'original') originalLoaded.value = true
+  else processedLoaded.value = true
+
+  if (originalLoaded.value && processedLoaded.value) {
+    isDecoding.value = false
+  }
+}
+
 const containerRect = ref<DOMRect | null>(null)
 
 const handlePointerMove = (e: PointerEvent) => {
-  if (isResizing.value && container.value && containerRect.value) {
-    const rect = containerRect.value
-    sliderPos.value = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100))
+  if (isResizing.value && container.value) {
+    // 实时获取容器矩形以应对可能的窗口缩放或滚动
+    const rect = container.value.getBoundingClientRect()
+    const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left))
+    sliderPos.value = (x / rect.width) * 100
   } else if (isPanning.value) {
     const dx = e.clientX - lastMousePos.value.x
     const dy = e.clientY - lastMousePos.value.y
@@ -284,6 +264,8 @@ onUnmounted(() => {
             class="absolute inset-0 w-full h-full object-contain pointer-events-none"
             style="transform: translateZ(0)"
             alt="After"
+            @load="handleImageLoad('processed')"
+            @error="isError = true"
           />
         </div>
 
@@ -307,6 +289,8 @@ onUnmounted(() => {
               class="absolute inset-0 w-full h-full object-contain pointer-events-none"
               style="transform: translateZ(0)"
               alt="Before"
+              @load="handleImageLoad('original')"
+              @error="isError = true"
             />
           </div>
         </div>
