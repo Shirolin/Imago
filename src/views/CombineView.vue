@@ -458,7 +458,7 @@ useResizeObserver(containerRef, resetView)
                 class="rounded-full px-10 pointer-events-auto shadow-xl shadow-primary/20 transition-all active:scale-95"
                 @click="triggerFileInput"
               >
-                <Plus :size="18" class="mr-1.5" />立即添加图片
+                <Plus :size="18" class="mr-1.5" />立即导入图片
               </AppButton>
             </div>
           </Transition>
@@ -561,7 +561,7 @@ useResizeObserver(containerRef, resetView)
             <div
               class="bg-muted/10 rounded-2xl p-4 border border-border/60 hover:border-border transition-colors"
             >
-              <AppColorPicker v-model="backgroundColor" :label="undefined" />
+              <AppColorPicker v-model="backgroundColor" />
             </div>
           </div>
 
@@ -588,7 +588,7 @@ useResizeObserver(containerRef, resetView)
             <Layers v-if="!isProcessing" :size="19" class="mr-2 animate-in zoom-in duration-300" />
           </template>
           <span class="font-bold text-sm tracking-tight">{{
-            isProcessing ? '正在拼合...' : '生成并下载'
+            isProcessing ? '正在拼接...' : '生成并导出'
           }}</span>
         </AppButton>
       </InspectorFooter>

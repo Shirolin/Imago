@@ -239,7 +239,7 @@ onUnmounted(() => {
       <p
         class="text-[0.7rem] text-muted-foreground uppercase tracking-[0.25em] font-black opacity-60 max-w-xs leading-relaxed"
       >
-        无法获取高分辨率图像，请尝试重新处理或检查连接。
+        无法获取高分辨率图片，请尝试重新处理或检查连接。
       </p>
     </div>
 

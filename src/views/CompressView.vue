@@ -103,7 +103,7 @@ const ctaState = computed(() => {
 
   if (allDoneAndClean) {
     return {
-      text: `下载成果`,
+      text: `导出成果`,
       progress: `(${store.selectedCount})`,
       icon: Download,
       action: 'download',

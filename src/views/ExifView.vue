@@ -214,7 +214,7 @@ const handleCtaClick = async () => {
           <p class="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground/60 mb-2">
             暂无图片
           </p>
-          <p class="text-[11px] font-medium text-muted-foreground/40">上传图片以开始隐私风险分析</p>
+          <p class="text-[11px] font-medium text-muted-foreground/40">导入图片以开始隐私风险分析</p>
         </div>
         <div
           v-else

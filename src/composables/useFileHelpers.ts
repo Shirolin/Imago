@@ -99,8 +99,8 @@ export function useFileHelpers() {
   }
 
   /**
-   * 打包下载所有已处理图片为 ZIP
-   * 优化：如果只有一张图且不是切片图，则直接触发单图下载，不进行打包
+   * 打包导出所有已处理图片为 ZIP
+   * 优化：如果只有一张图且不是切片图，则直接触发单图导出，不进行打包
    */
   const downloadAllAsZip = async (tag = '_Imago_Processed') => {
     const doneImages = store.images.filter(
@@ -108,7 +108,7 @@ export function useFileHelpers() {
     )
     if (doneImages.length === 0) return
 
-    // 【智能优化】：如果只有一张图且该图只有一个 Blob，直接触发单图下载，不用打包
+    // 【智能优化】：如果只有一张图且该图只有一个 Blob，直接触发单图导出，不用打包
     if (doneImages.length === 1) {
       const img = doneImages[0]!
       if (img.processedBlob && (!img.processedBlobs || img.processedBlobs.length <= 1)) {

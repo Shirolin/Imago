@@ -22,7 +22,7 @@ describe('Image Store', () => {
     }
   })
 
-  it('应该能正确添加图片', async () => {
+  it('应该能正确导入图片', async () => {
     const store = useImageStore()
     const mockFile = new File(['test'], 'test.png', { type: 'image/png' })
 

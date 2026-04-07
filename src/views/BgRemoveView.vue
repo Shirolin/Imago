@@ -210,7 +210,7 @@ const ctaState = computed(() => {
 
   if (allDoneAndClean) {
     return {
-      text: `下载透明图片 (${store.selectedCount})`,
+      text: `导出透明图片 (${store.selectedCount})`,
       icon: Download,
       action: 'download',
       disabled: false,
@@ -303,7 +303,8 @@ const handleCtaClick = async () => {
 
             <h2 class="text-2xl font-black mb-3 tracking-tight text-foreground">全能专业初始化</h2>
             <p class="text-sm text-muted-foreground font-medium leading-relaxed mb-8">
-              全能专业版 (Pro) 需下载约 40MB 模型。支持全品类（物品、宠物等）抠图，边缘处理更细腻。
+              全能专业版 (Pro) 需下载约 40MB
+              模型。支持全品类（物品、宠物等）背景移除，边缘处理更细腻。
               <br />
               <span class="text-primary font-bold">所有处理均在本地完成，隐私 100% 安全。</span>
             </p>
@@ -360,7 +361,7 @@ const handleCtaClick = async () => {
             暂无图片
           </p>
           <p class="text-[11px] font-medium text-muted-foreground/40">
-            上传包含主体的图片以自动去除背景
+            导入包含主体的图片以自动去除背景
           </p>
         </div>
         <div
@@ -424,7 +425,7 @@ const handleCtaClick = async () => {
       <AppTip :icon="Info" class="mb-6">
         <span v-if="engineMode === 'match'">
           智能取色：<span class="text-primary font-black uppercase">0MB 下载</span
-          >。通过识别背景颜色自动抠图，最适合纯色或渐变色背景下的物体。
+          >。通过识别背景颜色自动背景移除，最适合纯色或渐变色背景下的物体。
         </span>
         <span v-else> 全能专业模式：全能识别，细节更强。需下载约 40MB 资产。 </span>
       </AppTip>

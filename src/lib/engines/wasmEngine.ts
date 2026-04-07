@@ -9,7 +9,7 @@ import { injectMetadata } from '../utils/metadata'
 export const wasmEngine: ImageProcessor<CompressionOptions> = async (file, options) => {
   const format = options.format || file.type
 
-  // 1. 将输入图像快速解析为统一的 RGBA 像素阵列 (ImageData)
+  // 1. 将输入图片快速解析为统一的 RGBA 像素阵列 (ImageData)
   // 并根据 maxWidth/maxHeight 进行预缩放处理
   const bitmap = await createImageBitmap(file)
   let targetWidth = bitmap.width

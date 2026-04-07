@@ -9,7 +9,6 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  label: '背景填充色',
   showTransparent: true
 })
 

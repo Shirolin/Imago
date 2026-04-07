@@ -176,7 +176,7 @@ onUnmounted(() => {
           class="font-black text-foreground mb-4 md:mb-5 tracking-tight px-2 leading-[1.1] [text-wrap:balance]"
           style="font-size: clamp(1.5rem, 6cqw, 2.25rem)"
         >
-          即刻开启您的<br /><span class="text-primary">图像处理之旅</span>
+          即刻开启您的<br /><span class="text-primary">图片处理之旅</span>
         </h2>
         <p
           class="text-muted-foreground font-medium leading-relaxed px-4 [text-wrap:balance] opacity-80"

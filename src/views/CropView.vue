@@ -282,7 +282,7 @@ const ctaState = computed(() => {
 
   // 如果已经处理完成且没有新改动 -> 显示下载 (绿色)
   if (img.status === 'done' && img.processedBlob && !img.isDirty) {
-    return { text: '下载图片', icon: Download, action: 'download', disabled: false }
+    return { text: '导出图片', icon: Download, action: 'download', disabled: false }
   }
 
   // 默认 -> 应用裁剪 (蓝色)
@@ -672,7 +672,7 @@ const ratios = [
         v-model:quality="outputQuality"
         v-model:preserve-exif="preserveExif"
         show-exif-option
-        title="导出保存"
+        title="导出"
         class="pt-2 pb-6 border-t border-border/40"
       />
     </template>

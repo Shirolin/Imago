@@ -84,8 +84,8 @@ const routeNameMap: Record<string, string> = {
   Split: '图片分割',
   exif: '清除 EXIF',
   Exif: '清除 EXIF',
-  combine: '拼接合并',
-  Combine: '拼接合并',
+  combine: '长图拼接',
+  Combine: '长图拼接',
   filters: '色彩滤镜',
   Filters: '色彩滤镜',
   favicon: '站标生成',
@@ -112,7 +112,7 @@ const menuGroups = [
     label: '创意工具',
     items: [
       { name: '站标生成', path: '/favicon', icon: Box },
-      { name: '拼接合并', path: '/combine', icon: Layers },
+      { name: '长图拼接', path: '/combine', icon: Layers },
       { name: '去除背景', path: '/bg-remove', icon: Sparkles },
       { name: '色彩滤镜', path: '/filters', icon: Palette }
     ]
@@ -176,7 +176,7 @@ const menuGroups = [
               <span
                 class="text-[11px] font-extrabold text-primary/80 tracking-widest leading-none mt-[2px] ml-[2px]"
               >
-                极简图像处理工具
+                极简图片处理工具
               </span>
             </div>
           </transition>

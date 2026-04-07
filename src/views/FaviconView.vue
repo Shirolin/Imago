@@ -494,7 +494,7 @@ const handleGenerate = async () => {
               <div
                 class="bg-muted/10 rounded-2xl p-4 border border-border/60 hover:border-border transition-colors"
               >
-                <AppColorPicker v-model="backgroundColor" show-transparent :label="undefined" />
+                <AppColorPicker v-model="backgroundColor" show-transparent />
               </div>
             </div>
           </div>

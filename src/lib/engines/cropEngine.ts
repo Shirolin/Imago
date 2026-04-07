@@ -37,14 +37,14 @@ export const cropEngine: ImageProcessor<CropOptions> = async (file, options) => 
       const rotation = (options.rotation || 0) % 360
       const isVertical = rotation === 90 || rotation === 270
 
-      // 旋转后的原始图像尺寸
+      // 旋转后的原始图片尺寸
       const rotatedWidth = isVertical ? img.height : img.width
       const rotatedHeight = isVertical ? img.width : img.height
 
       workCanvas.width = rotatedWidth
       workCanvas.height = rotatedHeight
 
-      // 应用变换并绘制原始图像到工作画布
+      // 应用变换并绘制原始图片到工作画布
       workCtx.translate(rotatedWidth / 2, rotatedHeight / 2)
       workCtx.rotate((rotation * Math.PI) / 180)
       workCtx.scale(options.flipH ? -1 : 1, options.flipV ? -1 : 1)

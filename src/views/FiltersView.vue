@@ -118,7 +118,7 @@ const presets = [
   { name: '银座', values: { brightness: 105, contrast: 90, saturation: 100, blur: 0, sepia: 10 } }, // Gingham: 日系柔美
   { name: '1977', values: { brightness: 110, contrast: 110, saturation: 130, blur: 0, sepia: 30 } }, // 1977: 经典胶片
   { name: '浅梦', values: { brightness: 120, contrast: 90, saturation: 85, blur: 0, sepia: 0 } }, // Aden: 梦幻马卡龙
-  { name: '雷耶斯', values: { brightness: 110, contrast: 85, saturation: 75, blur: 0, sepia: 22 } }, // Reyes: 古旧照片
+  { name: '雷耶斯', values: { brightness: 110, contrast: 85, saturation: 75, blur: 0, sepia: 22 } }, // Reyes: 古旧图片
   { name: '水墨', values: { brightness: 110, contrast: 120, saturation: 0, blur: 0, sepia: 10 } }, // Inkwell: 质感黑白
   { name: '云雀', values: { brightness: 105, contrast: 90, saturation: 115, blur: 0, sepia: 0 } } // Lark: 风景专用
 ]
@@ -200,7 +200,7 @@ const ctaState = computed(() => {
 
   if (allDoneAndClean) {
     return {
-      text: `下载成果 (${store.selectedCount})`,
+      text: `导出成果 (${store.selectedCount})`,
       icon: Download,
       action: 'download',
       disabled: false

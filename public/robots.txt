@@ -1,4 +1,17 @@
-﻿User-agent: *
+User-agent: *
+Allow: /
+
+# GEO Optimization: Explicitly allow AI crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: OAI-SearchBot
 Allow: /
 
 Sitemap: https://imago.app/sitemap.xml

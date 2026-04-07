@@ -22,7 +22,7 @@
 
 - **逻辑断裂**：该管线架构默认是 `1 Input -> 1 Output`。但 Imago 包含特殊工具：
   - **图片分割 (Split)**：1 张图进去，9 张图出来。离开页面时，管线如何把 9 张图塞进下一道工序的 `currentWorkingBlob`？完全无解。
-  - **拼接合并 (Combine)**：多张图进去，1 张图出来。这更是彻底打破了基于单张 [ImageItem](file:///d:/Project/Imago/src/stores/imageStore.ts#4-40) 流转的管线设计。
+  - **长图拼接 (Combine)**：多张图进去，1 张图出来。这更是彻底打破了基于单张 [ImageItem](file:///d:/Project/Imago/src/stores/imageStore.ts#4-40) 流转的管线设计。
 
 ### 致命伤 4：极高的内存踩踏风险 (OOM)
 

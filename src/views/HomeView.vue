@@ -57,7 +57,7 @@ const tools = [
     colorClass: 'text-purple-500'
   },
   {
-    name: '图片合并',
+    name: '图片拼接',
     desc: '水平或垂直拼接多张图',
     path: '/combine',
     icon: Layers,
@@ -65,7 +65,7 @@ const tools = [
   },
   {
     name: '去除背景',
-    desc: '基于本地 AI 技术的全自动背景抠图',
+    desc: '基于本地 AI 技术的全自动背景移除',
     path: '/bg-remove',
     icon: Sparkles,
     colorClass: 'text-violet-500'

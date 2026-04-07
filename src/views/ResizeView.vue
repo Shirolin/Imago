@@ -171,7 +171,7 @@ const ctaState = computed(() => {
 
   if (allDoneAndClean) {
     return {
-      text: `下载成果 (${store.selectedCount})`,
+      text: `导出成果 (${store.selectedCount})`,
       icon: Download,
       action: 'download',
       disabled: false

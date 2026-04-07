@@ -63,13 +63,13 @@ const handleConfirmAction = () => {
         size="md"
         @click="triggerFileInput"
         class="!px-3 md:!px-4 h-9 md:h-10 text-foreground/80 hover:text-primary transition-all group shrink-0"
-        title="添加图片"
-        aria-label="从本地选择并添加图片"
+        title="导入图片"
+        aria-label="从本地选择并导入图片"
       >
         <template #icon>
           <Plus :size="16" class="opacity-70 group-hover:opacity-100 transition-opacity" />
         </template>
-        <span class="hidden md:inline text-[0.75rem] font-bold">添加图片</span>
+        <span class="hidden md:inline text-[0.75rem] font-bold">导入图片</span>
       </AppButton>
 
       <AppButton
@@ -80,12 +80,12 @@ const handleConfirmAction = () => {
         :disabled="isProcessing || isDownloadingAll"
         @click="downloadAllAsZip(props.zipPrefix)"
         class="!px-3 md:!px-4 h-9 md:h-10 transition-all shrink-0"
-        title="下载全部"
-        :aria-label="`打包并下载全部 ${store.doneCount} 张已处理图片`"
+        title="导出全部"
+        :aria-label="`打包并导出全部 ${store.doneCount} 张已处理图片`"
       >
         <template #icon><Download :size="16" /></template>
         <span class="hidden lg:inline text-[0.75rem] font-bold"
-          >下载全部 ({{ store.doneCount }})</span
+          >导出全部 ({{ store.doneCount }})</span
         >
         <span class="lg:hidden font-mono text-[0.75rem] font-bold">{{ store.doneCount }}</span>
       </AppButton>

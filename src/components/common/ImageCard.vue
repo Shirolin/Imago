@@ -337,7 +337,7 @@ const displayUrl = computed(() => {
             @click.stop="emit('download', image.id)"
             class="flex items-center justify-center rounded-lg hover:bg-primary text-muted-foreground hover:text-primary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
             :class="layoutStore.cardSizeMode === 'compact' ? 'w-6 h-6' : 'w-8 h-8'"
-            title="保存处理后的图片"
+            title="导出处理后的图片"
           >
             <Download :size="layoutStore.cardSizeMode === 'compact' ? 12 : 16" />
           </button>

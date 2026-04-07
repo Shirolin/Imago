@@ -76,7 +76,7 @@ const handleSortChange = () => {
 
 // 保持排序标题
 const sortTitle = computed(() => {
-  if (store.sortMode === 'upload') return '当前排序: 上传时间 (点击切换)'
+  if (store.sortMode === 'upload') return '当前排序: 导入时间 (点击切换)'
   if (store.sortMode === 'name') return '当前排序: 文件名称 (点击切换)'
   return '当前排序: 处理状态 (点击切换)'
 })

@@ -128,7 +128,7 @@ export const filterEngine: ImageProcessor<FilterOptions> = async (file, options)
 
 /**
  * 简单的锐化卷积
- * @param imageData 图像数据
+ * @param imageData 图片数据
  * @param amount 强度 (0-1)
  */
 function applySharpen(imageData: ImageData, amount: number): ImageData {

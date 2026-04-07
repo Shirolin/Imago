@@ -641,7 +641,7 @@ const ctaState = computed(() => {
   }
 
   if (img.status === 'done' && (img.processedBlob || img.processedBlobs) && !img.isDirty) {
-    return { text: '下载切片', icon: Download, action: 'download', disabled: false }
+    return { text: '导出切片', icon: Download, action: 'download', disabled: false }
   }
 
   return {
