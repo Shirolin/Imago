@@ -5,79 +5,128 @@ export interface AnimeOptions {
   format?: string
   quality?: number
   modelUrl?: string
+  usePreScaling?: boolean
+  maskThreshold?: number // 边缘偏移 (-1 to 1)
+  maskBlur?: number // 边缘平滑 (0 to 20)
+  alphaRecovery?: number // 线条恢复 (0 to 1)
+  denoise?: number // 杂色去除 (0 to 10)
 }
 
-// 缓存模型实例
+// 缓存模型实例（内存级）
 let session: ort.InferenceSession | null = null
 
-// 配置 WASM 路径：指向 jsDelivr 提供的官方镜像，解决本地 MIME 类型报错
+// --- IndexedDB 缓存逻辑 ---
+const DB_NAME = 'imago-models-cache'
+const STORE_NAME = 'models'
+const MODEL_KEY = 'isnet-anime-v1'
+
+async function getCachedModel(): Promise<ArrayBuffer | null> {
+  return new Promise((resolve) => {
+    try {
+      const request = indexedDB.open(DB_NAME, 1)
+      request.onupgradeneeded = () => request.result.createObjectStore(STORE_NAME)
+      request.onsuccess = () => {
+        const db = request.result
+        const tx = db.transaction(STORE_NAME, 'readonly')
+        const store = tx.objectStore(STORE_NAME)
+        const getReq = store.get(MODEL_KEY)
+        getReq.onsuccess = () => resolve(getReq.result || null)
+        getReq.onerror = () => resolve(null)
+      }
+      request.onerror = () => resolve(null)
+    } catch {
+      resolve(null)
+    }
+  })
+}
+
+async function cacheModel(buffer: ArrayBuffer) {
+  try {
+    const request = indexedDB.open(DB_NAME, 1)
+    request.onsuccess = () => {
+      const db = request.result
+      const tx = db.transaction(STORE_NAME, 'readwrite')
+      tx.objectStore(STORE_NAME).put(buffer, MODEL_KEY)
+    }
+  } catch (e) {
+    console.warn('[Anime Engine] Failed to cache model to IndexedDB:', e)
+  }
+}
+// -----------------------
+
+// 配置 WASM 路径
 ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.24.3/dist/'
 
 /**
- * ISNet-Anime 二次元专业抠图引擎
+ * ISNet-Anime 二次元专业抠图引擎 (支持深度微调)
  */
 export const animeEngine: ImageProcessor<AnimeOptions> = async (file, options) => {
-  console.log('[Imago Engine] 🌸 Starting Anime Removal')
+  console.log('[Imago Engine] 🌸 Starting Anime Removal', options)
+
+  const {
+    usePreScaling = true,
+    maskThreshold = 0,
+    maskBlur = 0,
+    alphaRecovery = 0,
+    denoise = 0
+  } = options
 
   try {
     const originalBitmap = await createImageBitmap(file)
     const { width: originalWidth, height: originalHeight } = originalBitmap
 
     if (!session) {
-      // 终极稳定方案：使用 ComfyUI 生态中经过验证的高可用 Hugging Face 链接
-      // 真实模型大小约为 176MB，支持跨域 (CORS) 且无需身份验证
-      const modelUrl =
-        options.modelUrl ||
-        'https://huggingface.co/fofr/comfyui/resolve/main/rembg/isnet-anime.onnx'
+      console.log('[Anime Engine] Checking local IndexedDB cache...')
+      let modelBuffer = await getCachedModel()
 
-      console.log('[Anime Engine] Fetching model from HF:', modelUrl)
+      if (modelBuffer) {
+        console.log('[Anime Engine] Found cached model (176MB), skipping download.')
+        if (options.onProgress) options.onProgress(0.5)
+      } else {
+        const modelUrl = 'https://huggingface.co/fofr/comfyui/resolve/main/rembg/isnet-anime.onnx'
+        console.log('[Anime Engine] Cache miss. Fetching model from HF:', modelUrl)
 
-      const response = await fetch(modelUrl, {
-        method: 'GET',
-        credentials: 'omit', // 必须省略凭据，否则 LFS 重定向时会导致 401
-        mode: 'cors'
-      })
+        const response = await fetch(modelUrl, { method: 'GET', credentials: 'omit', mode: 'cors' })
+        if (!response.ok) throw new Error(`模型下载失败: ${response.status}`)
 
-      if (!response.ok) {
-        throw new Error(`模型下载失败: ${response.status} ${response.statusText}`)
-      }
+        const contentLength = response.headers.get('content-length')
+        const total = contentLength ? parseInt(contentLength, 10) : 0
+        const reader = response.body?.getReader()
+        if (!reader) throw new Error('无法读取下载流')
 
-      const contentLength = response.headers.get('content-length')
-
-      const total = contentLength ? parseInt(contentLength, 10) : 0
-      const reader = response.body?.getReader()
-      if (!reader) throw new Error('无法读取下载流')
-
-      let loaded = 0
-      const chunks: Uint8Array[] = []
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        chunks.push(value!)
-        loaded += value!.length
-        if (total > 0 && options.onProgress) {
-          options.onProgress((loaded / total) * 0.8)
+        let loaded = 0
+        const chunks: Uint8Array[] = []
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          chunks.push(value!)
+          loaded += value!.length
+          if (total > 0 && options.onProgress) options.onProgress((loaded / total) * 0.8)
         }
+
+        const fullBuffer = new Uint8Array(loaded)
+        let offset = 0
+        for (const chunk of chunks) {
+          fullBuffer.set(chunk, offset)
+          offset += chunk.length
+        }
+        modelBuffer = fullBuffer.buffer
+        cacheModel(modelBuffer)
       }
 
-      const modelBuffer = new Uint8Array(loaded)
-      let offset = 0
-      for (const chunk of chunks) {
-        modelBuffer.set(chunk, offset)
-        offset += chunk.length
-      }
-
-      session = await ort.InferenceSession.create(modelBuffer.buffer, {
+      session = await ort.InferenceSession.create(modelBuffer, {
         executionProviders: ['wasm'],
         graphOptimizationLevel: 'all'
       })
-      console.log('[Anime Engine] Model initialized successfully')
+      console.log('[Anime Engine] Model ready')
     }
 
-    // 预处理
+    // 1. 推理预处理：ISNet 固定输入 1024x1024
     const SIZE = 1024
     const canvas = new OffscreenCanvas(SIZE, SIZE)
     const ctx = canvas.getContext('2d')!
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
     ctx.drawImage(originalBitmap, 0, 0, SIZE, SIZE)
     const { data } = ctx.getImageData(0, 0, SIZE, SIZE)
 
@@ -90,16 +139,14 @@ export const animeEngine: ImageProcessor<AnimeOptions> = async (file, options) =
 
     const tensor = new ort.Tensor('float32', input, [1, 3, SIZE, SIZE])
 
-    // 修正：ISNet-Anime 模型要求的输入节点名称通常是 'img'
+    // 2. 执行 AI 推理
     const results = await session!.run({ img: tensor })
-
-    // 获取第一个输出节点的数据
     const outputName = session!.outputNames[0]!
     const output = results[outputName]!.data as Float32Array
 
-    // 生成蒙版
-    const maskCanvas = new OffscreenCanvas(SIZE, SIZE)
-    const mCtx = maskCanvas.getContext('2d')!
+    // 3. 后处理：生成原始蒙版
+    const lowResMaskCanvas = new OffscreenCanvas(SIZE, SIZE)
+    const mCtx = lowResMaskCanvas.getContext('2d')!
     const mData = mCtx.createImageData(SIZE, SIZE)
     for (let i = 0; i < output.length; i++) {
       const alpha = Math.round(output[i]! * 255)
@@ -108,14 +155,40 @@ export const animeEngine: ImageProcessor<AnimeOptions> = async (file, options) =
     }
     mCtx.putImageData(mData, 0, 0)
 
-    // 合成输出
+    // 4. 高清还原与深度微调
     const finalCanvas = new OffscreenCanvas(originalWidth, originalHeight)
     const finalCtx = finalCanvas.getContext('2d')!
+
+    // 创建增强蒙版层
+    const enhancedMaskCanvas = new OffscreenCanvas(originalWidth, originalHeight)
+    const eCtx = enhancedMaskCanvas.getContext('2d')!
+    eCtx.imageSmoothingEnabled = true
+    eCtx.imageSmoothingQuality = 'high'
+
+    // 应用多重滤镜链
+    // bVal: 线条恢复与边缘偏移对亮度的综合影响
+    const bVal = 1 + alphaRecovery * 0.5 + maskThreshold * 0.2
+    // cVal: 基础对比度 + 偏移修正
+    const cVal = usePreScaling ? 1 + maskThreshold * 0.2 : 1.8 + maskThreshold * 0.5
+
+    eCtx.filter = `brightness(${bVal}) blur(${maskBlur}px) contrast(${cVal})`
+    eCtx.drawImage(lowResMaskCanvas, 0, 0, originalWidth, originalHeight)
+
+    // d. 杂色去除 Pass
+    if (denoise > 0) {
+      const denoiseCanvas = new OffscreenCanvas(originalWidth, originalHeight)
+      const dCtx = denoiseCanvas.getContext('2d')!
+      dCtx.filter = `blur(${denoise * 0.4}px) contrast(1.4)`
+      dCtx.drawImage(enhancedMaskCanvas, 0, 0)
+      eCtx.clearRect(0, 0, originalWidth, originalHeight)
+      eCtx.filter = 'none'
+      eCtx.drawImage(denoiseCanvas, 0, 0)
+    }
+
+    // 5. 最终合成
     finalCtx.drawImage(originalBitmap, 0, 0)
     finalCtx.globalCompositeOperation = 'destination-in'
-    finalCtx.imageSmoothingEnabled = true
-    finalCtx.imageSmoothingQuality = 'high'
-    finalCtx.drawImage(maskCanvas, 0, 0, originalWidth, originalHeight)
+    finalCtx.drawImage(enhancedMaskCanvas, 0, 0)
 
     const blob = await finalCanvas.convertToBlob({ type: 'image/png' })
     originalBitmap.close()

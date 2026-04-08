@@ -4,7 +4,8 @@ import type { ImageProcessor } from './types'
 export interface BgRemoveOptions {
   format?: string
   quality?: number
-  isAnime?: boolean // 新增：是否为二次元/插画模式
+  isAnime?: boolean // 是否为二次元/插画模式
+  usePreScaling?: boolean // 新增：是否启用预缩放（默认启用以平衡性能）
 }
 
 /**
@@ -12,6 +13,8 @@ export interface BgRemoveOptions {
  */
 export const bgRemoveEngine: ImageProcessor<BgRemoveOptions> = async (file, options) => {
   console.log('[Imago Engine] 🪄 Starting Local Background Removal', options)
+
+  const { usePreScaling = true } = options
 
   try {
     // 1. 获取原图位图以获取原始尺寸
@@ -22,7 +25,10 @@ export const bgRemoveEngine: ImageProcessor<BgRemoveOptions> = async (file, opti
     const MAX_INFERENCE_DIMENSION = 2048
     let inferenceFile: File | Blob = file
 
-    if (originalWidth > MAX_INFERENCE_DIMENSION || originalHeight > MAX_INFERENCE_DIMENSION) {
+    if (
+      usePreScaling &&
+      (originalWidth > MAX_INFERENCE_DIMENSION || originalHeight > MAX_INFERENCE_DIMENSION)
+    ) {
       const ratio = Math.min(
         MAX_INFERENCE_DIMENSION / originalWidth,
         MAX_INFERENCE_DIMENSION / originalHeight
