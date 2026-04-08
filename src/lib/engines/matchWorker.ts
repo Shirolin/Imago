@@ -32,9 +32,6 @@ self.onmessage = (e: MessageEvent) => {
   const threshold = tolerance * MAX_PERCEPTUAL_DIST
   const featherRange = feather * MAX_PERCEPTUAL_DIST
 
-  // 容差 Epsilon：处理浮点数计算误差
-  const EPSILON = 0.00001
-
   const totalPixels = data.length / 4
   const progressStep = Math.max(1, Math.floor(totalPixels / 20)) // 每 5% 汇报一次
 
@@ -63,12 +60,18 @@ self.onmessage = (e: MessageEvent) => {
         Math.pow(currentLab.b - targetLab.b, 2)
     )
 
-    // 2. 使用带微小偏移的判断，解决 0 容差下的临界问题
-    if (dist < threshold + EPSILON) {
+    // 2. 增强的平滑切割逻辑 (Antialiasing)
+    // threshold: 容差
+    // softness: 由 feather 决定的过渡带宽度
+    const softness = Math.max(0.5, featherRange) // 即使 feather 为 0 也保持极微小的平滑以抗锯齿
+
+    if (dist < threshold) {
       data[i + 3] = 0
-    } else if (dist < threshold + featherRange + EPSILON && featherRange > 0) {
-      const opacity = (dist - threshold) / featherRange
-      data[i + 3] = Math.round(data[i + 3]! * opacity)
+    } else if (dist < threshold + softness) {
+      // 在过渡带内，利用三次插值（Smoothstep）产生更自然的边缘
+      const t = (dist - threshold) / softness
+      const alpha = t * t * (3 - 2 * t) // Smoothstep 公式
+      data[i + 3] = Math.round(data[i + 3]! * alpha)
     }
   }
 
