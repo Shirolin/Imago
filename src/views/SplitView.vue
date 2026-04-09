@@ -760,7 +760,7 @@ const handleCtaClick = async () => {
     </template>
 
     <template #sidebar>
-      <section class="space-y-5">
+      <section class="space-y-4">
         <AppSectionHeader title="网格设置" :icon="Grid3X3" />
         <div class="space-y-4 px-1">
           <AppSegmentedControl
@@ -772,7 +772,7 @@ const handleCtaClick = async () => {
           />
           <div
             v-if="editMode === 'grid'"
-            class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-6"
+            class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4"
           >
             <div class="space-y-1">
               <AppSlider
@@ -848,7 +848,7 @@ const handleCtaClick = async () => {
         </div>
       </section>
 
-      <section class="space-y-5">
+      <section class="space-y-4 pt-6 border-t border-border/40">
         <div class="flex items-center justify-between pr-1">
           <AppSectionHeader title="视图设置" :icon="Box" />
           <AppButton
@@ -861,7 +861,7 @@ const handleCtaClick = async () => {
           />
         </div>
         <div class="space-y-4 px-1">
-          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-6">
+          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4">
             <div class="space-y-1">
               <AppSlider
                 v-model="viewSettings.lineWidth"
@@ -930,9 +930,9 @@ const handleCtaClick = async () => {
         </div>
       </section>
 
-      <section class="space-y-5">
+      <section class="space-y-4 pt-6 border-t border-border/40">
         <AppSectionHeader title="增强处理" :icon="Layers" />
-        <div class="space-y-6 px-1">
+        <div class="space-y-4 px-1">
           <div class="space-y-4">
             <div class="flex flex-col gap-1 px-1">
               <span class="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
@@ -952,7 +952,7 @@ const handleCtaClick = async () => {
             />
           </div>
 
-          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-5">
+          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4">
             <div class="space-y-1">
               <AppSlider
                 v-model="shave"
@@ -973,7 +973,7 @@ const handleCtaClick = async () => {
         v-model:format="outputFormat"
         v-model:quality="outputQuality"
         title="导出配置"
-        class="pb-4"
+        class="pt-6 border-t border-border/40 pb-4"
       />
     </template>
 

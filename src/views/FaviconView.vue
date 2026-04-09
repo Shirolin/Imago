@@ -479,85 +479,83 @@ const handleGenerate = async () => {
 
     <template #sidebar>
       <div class="space-y-8 py-2">
-        <section class="space-y-5">
+        <section class="space-y-4">
           <AppSectionHeader title="外观配置" :icon="Monitor" />
-          <div class="px-1 space-y-6">
-            <div class="space-y-4">
-              <div class="flex flex-col gap-1 px-1">
-                <span class="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
-                  >背景填充</span
-                >
-                <p class="text-[10px] text-muted-foreground/60 leading-relaxed">
-                  若原始图标包含透明区域，可设置统一的底色。
-                </p>
-              </div>
-              <div
-                class="bg-muted/10 rounded-2xl p-4 border border-border/60 hover:border-border transition-colors"
+          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4">
+            <div class="flex flex-col gap-1 px-1">
+              <span class="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
+                >背景填充</span
               >
-                <AppColorPicker v-model="backgroundColor" show-transparent />
-              </div>
+              <p class="text-[10px] text-muted-foreground/60 leading-relaxed">
+                若原始图标包含透明区域，可设置统一的底色。
+              </p>
             </div>
+            <AppColorPicker v-model="backgroundColor" show-transparent />
           </div>
         </section>
 
-        <section class="space-y-5">
+        <section class="space-y-4 pt-6 border-t border-border/40 pb-4">
           <AppSectionHeader title="导出控制" :icon="Info" />
-          <div class="px-1 space-y-8 pb-4 overflow-x-hidden">
-            <div v-for="(specs, groupName) in groupedSpecs" :key="groupName" class="space-y-3">
-              <div class="flex items-center gap-2 px-1 mb-1">
-                <component
-                  :is="
-                    groupName === 'web'
-                      ? Globe
-                      : groupName === 'chrome'
-                        ? Share2
-                        : groupName === 'ios'
-                          ? Smartphone
-                          : groupName === 'android'
-                            ? Box
-                            : FileCode
-                  "
-                  :size="12"
-                  class="text-primary/60"
-                />
-                <span
-                  class="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60"
-                  >{{ groupName }}</span
-                >
-              </div>
-              <div class="space-y-1.5">
-                <div
-                  v-for="spec in specs"
-                  :key="spec.id"
-                  @click="toggleSpec(spec.id)"
-                  class="flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer group select-none hover:translate-x-0.5"
-                  :class="
-                    selectedIds.has(spec.id)
-                      ? 'bg-primary/[0.03] border-primary/30 shadow-sm'
-                      : 'bg-muted/5 border-border/40 hover:bg-muted/10'
-                  "
-                >
-                  <div class="flex items-center gap-2.5 min-w-0">
-                    <div
-                      v-if="spec.type !== 'image'"
-                      class="shrink-0 text-muted-foreground/40 group-hover:text-primary/60 transition-colors"
-                    >
-                      <FileCode v-if="spec.type === 'config'" :size="12" />
-                      <FileText v-else :size="12" />
-                    </div>
-                    <div class="flex flex-col gap-0 min-w-0">
-                      <span class="text-[10px] font-bold text-foreground truncate leading-tight">{{
-                        spec.name
-                      }}</span>
-                      <span class="text-[8px] font-medium text-muted-foreground/50 leading-tight">{{
-                        spec.description
-                      }}</span>
-                    </div>
-                  </div>
-                  <AppCheckbox
-                    :model-value="selectedIds.has(spec.id)"
-                    class="pointer-events-none scale-90 origin-right"
+          <div class="space-y-4">
+            <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-6">
+              <div v-for="(specs, groupName) in groupedSpecs" :key="groupName" class="space-y-3">
+                <div class="flex items-center gap-2 px-1 mb-1">
+                  <component
+                    :is="
+                      groupName === 'web'
+                        ? Globe
+                        : groupName === 'chrome'
+                          ? Share2
+                          : groupName === 'ios'
+                            ? Smartphone
+                            : groupName === 'android'
+                              ? Box
+                              : FileCode
+                    "
+                    :size="12"
+                    class="text-primary/60"
                   />
+                  <span
+                    class="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60"
+                    >{{ groupName }}</span
+                  >
+                </div>
+                <div class="space-y-1.5">
+                  <div
+                    v-for="spec in specs"
+                    :key="spec.id"
+                    @click="toggleSpec(spec.id)"
+                    class="flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer group select-none hover:translate-x-0.5"
+                    :class="
+                      selectedIds.has(spec.id)
+                        ? 'bg-primary/[0.03] border-primary/30 shadow-sm'
+                        : 'bg-muted/5 border-border/40 hover:bg-muted/10'
+                    "
+                  >
+                    <div class="flex items-center gap-2.5 min-w-0">
+                      <div
+                        v-if="spec.type !== 'image'"
+                        class="shrink-0 text-muted-foreground/40 group-hover:text-primary/60 transition-colors"
+                      >
+                        <FileCode v-if="spec.type === 'config'" :size="12" />
+                        <FileText v-else :size="12" />
+                      </div>
+                      <div class="flex flex-col gap-0 min-w-0">
+                        <span
+                          class="text-[10px] font-bold text-foreground truncate leading-tight"
+                          >{{ spec.name }}</span
+                        >
+                        <span
+                          class="text-[8px] font-medium text-muted-foreground/50 leading-tight"
+                          >{{ spec.description }}</span
+                        >
+                      </div>
+                    </div>
+                    <AppCheckbox
+                      :model-value="selectedIds.has(spec.id)"
+                      class="pointer-events-none scale-90 origin-right"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -576,7 +574,7 @@ const handleGenerate = async () => {
               </p>
             </div>
 
-            <AppTip>ZIP 将自动包含满足各商店审核要求的全套资源。</AppTip>
+            <AppTip class="mt-2">ZIP 将自动包含满足各商店审核要求的全套资源。</AppTip>
           </div>
         </section>
       </div>

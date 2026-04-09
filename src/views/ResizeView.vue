@@ -303,9 +303,7 @@ const handleCtaClick = async () => {
         <section class="space-y-4">
           <AppSectionHeader title="调整模式" :icon="Settings2" />
           <AppSegmentedControl v-model="resizeMode" :options="modeOptions" />
-        </section>
 
-        <section class="relative">
           <div class="bg-muted/10 rounded-2xl p-4 border border-border/60">
             <div v-if="resizeMode === 'percentage'" class="space-y-3">
               <AppSlider
@@ -351,12 +349,14 @@ const handleCtaClick = async () => {
           </div>
         </section>
 
-        <AppExportSettings
-          v-model:format="outputFormat"
-          v-model:quality="outputQuality"
-          v-model:preserve-exif="preserveExif"
-          show-exif-option
-        />
+        <section class="pt-6 border-t border-border/40">
+          <AppExportSettings
+            v-model:format="outputFormat"
+            v-model:quality="outputQuality"
+            v-model:preserve-exif="preserveExif"
+            show-exif-option
+          />
+        </section>
       </template>
 
       <template #footer>

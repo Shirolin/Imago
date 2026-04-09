@@ -101,10 +101,7 @@ const isDirty = computed(() => {
         >
           <component :is="icon" :size="13" :stroke-width="2.5" class="text-primary" />
         </div>
-        <span
-          class="text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-none"
-          >{{ label }}</span
-        >
+        <span class="text-[11px] font-bold text-muted-foreground leading-none">{{ label }}</span>
       </div>
       <div class="flex items-center">
         <!-- 数值显示/编辑区 -->
@@ -182,9 +179,9 @@ const isDirty = computed(() => {
     <!-- 辅助说明层 -->
     <div
       v-if="description"
-      class="px-1 -mt-2 mb-1 animate-in fade-in slide-in-from-top-1 duration-500"
+      class="px-1 -mt-1 mb-1 animate-in fade-in slide-in-from-top-1 duration-500"
     >
-      <p class="text-[10px] leading-relaxed text-muted-foreground/60 font-medium italic">
+      <p class="text-[11px] leading-relaxed text-muted-foreground/60 font-medium">
         {{ description }}
       </p>
     </div>

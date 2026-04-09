@@ -16,7 +16,7 @@ interface Props {
 withDefaults(defineProps<Props>(), {
   showBorder: true,
   glass: true,
-  padding: 'p-3 md:p-4'
+  padding: 'p-3 pb-5 md:p-4 md:pb-6'
 })
 </script>
 

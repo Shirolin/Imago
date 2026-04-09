@@ -469,7 +469,7 @@ useResizeObserver(containerRef, resetView)
     <template #sidebar>
       <div class="stagger-list space-y-8 py-2">
         <section
-          class="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500"
+          class="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500"
           style="--stagger: 1"
         >
           <AppSectionHeader title="拼接模式" :icon="Settings2" /><AppSegmentedControl
@@ -479,7 +479,7 @@ useResizeObserver(containerRef, resetView)
         </section>
 
         <section
-          class="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500"
+          class="space-y-4 pt-6 border-t border-border/40 animate-in fade-in slide-in-from-right-4 duration-500"
           style="--stagger: 2"
         >
           <AppSectionHeader title="填充逻辑" :icon="Layers" /><AppSegmentedControl
@@ -490,7 +490,7 @@ useResizeObserver(containerRef, resetView)
 
         <section
           v-if="layoutMode === 'original'"
-          class="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500"
+          class="space-y-4 pt-6 border-t border-border/40 animate-in fade-in slide-in-from-right-4 duration-500"
           style="--stagger: 3"
         >
           <AppSectionHeader title="对齐方式" :icon="AlignCenter" /><AppSegmentedControl
@@ -499,78 +499,79 @@ useResizeObserver(containerRef, resetView)
           />
         </section>
 
-        <div class="space-y-8 px-1">
-          <div v-if="combineDirection === 'grid'" class="space-y-3">
-            <AppSlider
-              v-model="columns"
-              label="网格列数"
-              :icon="Grid3X3"
-              unit=" 列"
-              :min="1"
-              :max="10"
-              :default-value="3"
-            />
-          </div>
-
-          <div class="space-y-3">
-            <AppSlider
-              v-model="spacing"
-              label="图片间距"
-              :icon="Layers"
-              unit="px"
-              :min="0"
-              :max="200"
-              :default-value="0"
-            />
-          </div>
-
-          <div class="space-y-3">
-            <AppSlider
-              v-model="padding"
-              label="外边距"
-              :icon="Box"
-              unit="px"
-              :min="0"
-              :max="200"
-              :default-value="0"
-            />
-          </div>
-
-          <div class="space-y-3">
-            <AppSlider
-              v-model="borderRadius"
-              label="图片圆角"
-              :icon="Settings2"
-              unit="px"
-              :min="0"
-              :max="100"
-              :default-value="0"
-            />
-          </div>
-
-          <div class="space-y-4">
-            <div class="flex flex-col gap-1 px-1">
-              <span class="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
-                >画布背景</span
-              >
-              <p class="text-[10px] text-muted-foreground/60 leading-relaxed">
-                设置图片缝隙及外边距的填充底色。
-              </p>
+        <section
+          class="space-y-4 pt-6 border-t border-border/40 animate-in fade-in slide-in-from-right-4 duration-500"
+          style="--stagger: 4"
+        >
+          <AppSectionHeader title="排版参数" :icon="Settings2" />
+          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-5">
+            <div v-if="combineDirection === 'grid'" class="space-y-3">
+              <AppSlider
+                v-model="columns"
+                label="网格列数"
+                :icon="Grid3X3"
+                unit=" 列"
+                :min="1"
+                :max="10"
+                :default-value="3"
+              />
             </div>
 
-            <div
-              class="bg-muted/10 rounded-2xl p-4 border border-border/60 hover:border-border transition-colors"
-            >
-              <AppColorPicker v-model="backgroundColor" />
+            <div class="space-y-3">
+              <AppSlider
+                v-model="spacing"
+                label="图片间距"
+                :icon="Layers"
+                unit="px"
+                :min="0"
+                :max="200"
+                :default-value="0"
+              />
+            </div>
+
+            <div class="space-y-3">
+              <AppSlider
+                v-model="padding"
+                label="外边距"
+                :icon="Box"
+                unit="px"
+                :min="0"
+                :max="200"
+                :default-value="0"
+              />
+            </div>
+
+            <div class="space-y-3">
+              <AppSlider
+                v-model="borderRadius"
+                label="图片圆角"
+                :icon="Settings2"
+                unit="px"
+                :min="0"
+                :max="100"
+                :default-value="0"
+              />
             </div>
           </div>
+        </section>
 
-          <AppExportSettings
-            v-model:format="outputFormat"
-            v-model:quality="outputQuality"
-            class="pt-4"
-          />
-        </div>
+        <section
+          class="space-y-4 pt-6 border-t border-border/40 animate-in fade-in slide-in-from-right-4 duration-500"
+          style="--stagger: 5"
+        >
+          <AppSectionHeader title="画布外观" :icon="Settings2" />
+          <div
+            class="bg-muted/10 rounded-2xl p-4 border border-border/60 hover:border-border transition-colors"
+          >
+            <AppColorPicker v-model="backgroundColor" label="背景填充色" />
+          </div>
+        </section>
+
+        <AppExportSettings
+          v-model:format="outputFormat"
+          v-model:quality="outputQuality"
+          class="pt-6 border-t border-border/40"
+        />
       </div>
     </template>
 

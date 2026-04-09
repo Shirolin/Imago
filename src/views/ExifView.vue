@@ -295,124 +295,130 @@ const handleCtaClick = async () => {
           </div>
         </div>
       </div>
-      <AppSectionHeader title="隐私分析" :icon="Info" />
-      <div v-if="activeImageId && !isReadingExif" class="space-y-6 animate-in fade-in duration-500">
+      <section class="space-y-4">
+        <AppSectionHeader title="隐私分析" :icon="Info" />
         <div
-          v-if="activeExifData?.metaCount"
-          class="flex items-center gap-3 p-3 bg-destructive/5 border border-destructive/10 rounded-xl"
+          v-if="activeImageId && !isReadingExif"
+          class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4 animate-in fade-in duration-500"
         >
-          <ShieldAlert :size="18" class="text-destructive shrink-0" />
-          <div class="text-[13px] font-bold text-destructive">
-            含有 {{ activeExifData.metaCount }} 条隐私数据
-          </div>
-        </div>
-        <div v-if="activeExifData?.metaCount" class="space-y-5 px-1">
-          <div v-if="activeExifData?.model" class="flex flex-col gap-1.5">
-            <div
-              class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none"
-            >
-              拍摄设备
+          <div
+            v-if="activeExifData?.metaCount"
+            class="flex items-center gap-3 p-3 bg-destructive/5 border border-destructive/10 rounded-xl"
+          >
+            <ShieldAlert :size="18" class="text-destructive shrink-0" />
+            <div class="text-[13px] font-bold text-destructive">
+              含有 {{ activeExifData.metaCount }} 条隐私数据
             </div>
-            <div class="flex items-center gap-2 text-sm font-semibold text-foreground">
-              <Smartphone
-                v-if="activeExifData.model.includes('iPhone')"
+          </div>
+          <div v-if="activeExifData?.metaCount" class="space-y-4 px-1">
+            <div v-if="activeExifData?.model" class="flex flex-col gap-1.5">
+              <div
+                class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none"
+              >
+                拍摄设备
+              </div>
+              <div class="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <Smartphone
+                  v-if="activeExifData.model.includes('iPhone')"
+                  :size="14"
+                  class="text-primary"
+                /><Camera v-else :size="14" class="text-primary" /> {{ activeExifData.make }}
+                {{ activeExifData.model }}
+              </div>
+            </div>
+            <div v-if="activeExifData?.dateTime" class="flex flex-col gap-1.5">
+              <div
+                class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none"
+              >
+                拍摄时间
+              </div>
+              <div class="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <Calendar :size="14" class="text-primary" /> {{ activeExifData.dateTime }}
+              </div>
+            </div>
+            <div v-if="activeExifData?.latitude !== undefined" class="flex flex-col gap-1.5">
+              <div
+                class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none"
+              >
+                地理位置
+              </div>
+              <div class="flex items-center gap-2 text-sm font-bold text-foreground font-mono">
+                <MapPin :size="14" class="text-primary" />
+                {{ activeExifData.latitude.toFixed(4) }}°,
+                {{ activeExifData.longitude?.toFixed(4) }}°
+              </div>
+            </div>
+          </div>
+          <div v-if="activeExifData?.all && Object.keys(activeExifData.all).length > 0">
+            <button
+              @click="isAllTagsExpanded = !isAllTagsExpanded"
+              class="flex items-center justify-between w-full text-muted-foreground hover:text-primary transition-all mb-3 px-1 group"
+              :aria-expanded="isAllTagsExpanded"
+              aria-controls="exif-tags-details"
+            >
+              <span class="text-[0.65rem] font-bold uppercase tracking-widest leading-none"
+                >所有标记详情</span
+              >
+              <component
+                :is="isAllTagsExpanded ? ChevronUp : ChevronDown"
                 :size="14"
-                class="text-primary"
-              /><Camera v-else :size="14" class="text-primary" /> {{ activeExifData.make }}
-              {{ activeExifData.model }}
+                class="transition-transform group-hover:scale-110"
+              />
+            </button>
+            <div
+              v-if="isAllTagsExpanded"
+              id="exif-tags-details"
+              class="flex flex-wrap gap-1.5 animate-in slide-in-from-top-1"
+            >
+              <div
+                v-for="(val, key) in activeExifData.all"
+                :key="key"
+                class="px-2 py-1 bg-muted/30 border border-border/40 rounded-lg text-[10px] text-muted-foreground font-medium transition-colors hover:bg-muted/50"
+              >
+                {{ key }}
+              </div>
             </div>
           </div>
-          <div v-if="activeExifData?.dateTime" class="flex flex-col gap-1.5">
+          <div v-if="!activeExifData?.metaCount" class="py-10 text-center space-y-3">
             <div
-              class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none"
+              :class="[activeExifData?.unsupported ? 'bg-muted/30' : 'bg-primary/5']"
+              class="w-12 h-12 rounded-full flex items-center justify-center mx-auto"
             >
-              拍摄时间
+              <ShieldCheck v-if="!activeExifData?.unsupported" :size="24" class="text-primary" />
+              <Info v-else :size="24" class="text-muted-foreground/60" />
             </div>
-            <div class="flex items-center gap-2 text-sm font-semibold text-foreground">
-              <Calendar :size="14" class="text-primary" /> {{ activeExifData.dateTime }}
+            <div class="text-xs font-bold text-muted-foreground px-4 leading-relaxed">
+              {{
+                activeExifData?.unsupported
+                  ? '该文件格式暂不支持或不含元数据'
+                  : '未检测到敏感数据，隐私安全'
+              }}
             </div>
-          </div>
-          <div v-if="activeExifData?.latitude !== undefined" class="flex flex-col gap-1.5">
-            <div
-              class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none"
-            >
-              地理位置
-            </div>
-            <div class="flex items-center gap-2 text-sm font-bold text-foreground font-mono">
-              <MapPin :size="14" class="text-primary" />
-              {{ activeExifData.latitude.toFixed(4) }}°, {{ activeExifData.longitude?.toFixed(4) }}°
-            </div>
+            <p v-if="activeExifData?.unsupported" class="text-[10px] text-muted-foreground/40 px-6">
+              支持检测 JPEG, TIFF, PNG, WebP, HEIC, AVIF 等主流图片格式。
+            </p>
           </div>
         </div>
-        <div v-if="activeExifData?.all && Object.keys(activeExifData.all).length > 0">
-          <button
-            @click="isAllTagsExpanded = !isAllTagsExpanded"
-            class="flex items-center justify-between w-full text-muted-foreground hover:text-primary transition-all mb-3 px-1 group"
-            :aria-expanded="isAllTagsExpanded"
-            aria-controls="exif-tags-details"
-          >
-            <span class="text-[0.65rem] font-bold uppercase tracking-widest leading-none"
-              >所有标记详情</span
-            >
-            <component
-              :is="isAllTagsExpanded ? ChevronUp : ChevronDown"
-              :size="14"
-              class="transition-transform group-hover:scale-110"
-            />
-          </button>
-          <div
-            v-if="isAllTagsExpanded"
-            id="exif-tags-details"
-            class="flex flex-wrap gap-1.5 animate-in slide-in-from-top-1"
-          >
-            <div
-              v-for="(val, key) in activeExifData.all"
-              :key="key"
-              class="px-2 py-1 bg-muted/30 border border-border/40 rounded-lg text-[10px] text-muted-foreground font-medium transition-colors hover:bg-muted/50"
-            >
-              {{ key }}
-            </div>
-          </div>
-        </div>
-        <div v-if="!activeExifData?.metaCount" class="py-10 text-center space-y-3">
-          <div
-            :class="[activeExifData?.unsupported ? 'bg-muted/30' : 'bg-primary/5']"
-            class="w-12 h-12 rounded-full flex items-center justify-center mx-auto"
-          >
-            <ShieldCheck v-if="!activeExifData?.unsupported" :size="24" class="text-primary" />
-            <Info v-else :size="24" class="text-muted-foreground/60" />
-          </div>
-          <div class="text-xs font-bold text-muted-foreground px-4 leading-relaxed">
-            {{
-              activeExifData?.unsupported
-                ? '该文件格式暂不支持或不含元数据'
-                : '未检测到敏感数据，隐私安全'
-            }}
-          </div>
-          <p v-if="activeExifData?.unsupported" class="text-[10px] text-muted-foreground/40 px-6">
-            支持检测 JPEG, TIFF, PNG, WebP, HEIC, AVIF 等主流图片格式。
-          </p>
-        </div>
-      </div>
-      <div
-        v-else-if="isReadingExif"
-        class="py-20 flex flex-col items-center gap-4 text-muted-foreground"
-      >
-        <RefreshCcw :size="24" class="animate-spin" /><span
-          class="text-xs font-medium uppercase tracking-widest"
-          >正在分析中...</span
+        <div
+          v-else-if="isReadingExif"
+          class="py-20 flex flex-col items-center gap-4 text-muted-foreground"
         >
-      </div>
-      <div v-else class="py-20 flex flex-col items-center gap-4 opacity-30">
-        <Fingerprint :size="32" /><span class="text-xs font-bold uppercase tracking-widest"
-          >选择图片查看详情</span
-        >
-      </div>
+          <RefreshCcw :size="24" class="animate-spin" /><span
+            class="text-xs font-medium uppercase tracking-widest"
+            >正在分析中...</span
+          >
+        </div>
+        <div v-else class="py-20 flex flex-col items-center gap-4 opacity-30">
+          <Fingerprint :size="32" /><span class="text-xs font-bold uppercase tracking-widest"
+            >选择图片查看详情</span
+          >
+        </div>
+      </section>
 
       <AppExportSettings
         v-model:format="outputFormat"
         v-model:quality="outputQuality"
-        class="mt-6 pt-6 border-t border-border/40"
+        class="pt-6 border-t border-border/40"
       />
     </template>
 

@@ -397,7 +397,7 @@ const ratios = [
       <!-- 第一分区：基础变换 (地基校准) -->
       <section class="space-y-4">
         <AppSectionHeader title="基础变换" :icon="RotateCw" />
-        <div class="bg-muted/10 rounded-2xl p-3 border border-border/60">
+        <div class="bg-muted/10 rounded-2xl p-4 border border-border/60">
           <div class="grid grid-cols-3 gap-2">
             <button
               @click="handleRotate"
@@ -448,7 +448,7 @@ const ratios = [
       <!-- 第二分区：裁剪比例 (定形阶段) -->
       <section class="space-y-4 pt-6 border-t border-border/40">
         <AppSectionHeader title="裁剪比例" :icon="Scissors" />
-        <div class="bg-muted/10 rounded-2xl p-3 border border-border/60 space-y-3">
+        <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4">
           <AppButton
             variant="secondary"
             class="w-full h-10 rounded-xl bg-background/50 border-dashed border-border hover:border-primary/50 hover:bg-primary/[0.02] group transition-all"
@@ -490,7 +490,7 @@ const ratios = [
       <!-- 第三分区：精确构图 (精度微调) -->
       <section class="space-y-4 pt-6 border-t border-border/40">
         <AppSectionHeader title="精确构图" :icon="LayoutGrid" />
-        <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-5">
+        <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4">
           <div class="grid grid-cols-2 gap-x-3 gap-y-4 relative">
             <div class="space-y-1.5">
               <label
@@ -600,7 +600,7 @@ const ratios = [
       </section>
 
       <!-- 第五分区：边缘精修 (TRIM) - 后处理阶段 -->
-      <section class="space-y-4 pt-2">
+      <section class="space-y-4 pt-6 border-t border-border/40">
         <div class="flex items-center justify-between pr-1">
           <AppSectionHeader title="边缘精修" :icon="Settings2" />
           <div class="text-[9px] text-amber-500 font-black uppercase tracking-widest italic">
@@ -636,7 +636,7 @@ const ratios = [
       </section>
 
       <!-- 第六分区：操作管理 (终结阶段) -->
-      <section class="space-y-4 pt-2 pb-4">
+      <section class="space-y-4 pt-6 border-t border-border/40 pb-4">
         <AppSectionHeader title="操作管理" :icon="History" />
         <div class="flex items-center justify-between gap-3">
           <div class="flex-1 grid grid-cols-2 gap-2">

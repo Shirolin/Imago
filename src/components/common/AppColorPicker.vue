@@ -47,7 +47,7 @@ const isColorLight = computed(() => getBrightness(props.modelValue) > 180)
     >
       {{ label }}
     </div>
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2">
       <!-- 透明选项 -->
       <button
         v-if="showTransparent"
@@ -69,7 +69,7 @@ const isColorLight = computed(() => getBrightness(props.modelValue) > 180)
         class="w-10 h-10 rounded-xl border-2 transition-all bg-white hover:scale-110 active:scale-95 shrink-0"
         :class="
           !isTransparent && modelValue.toLowerCase() === '#ffffff'
-            ? 'border-primary shadow-md'
+            ? 'border-primary shadow-[0_0_12px_hsla(var(--primary),0.3)]'
             : 'border-border'
         "
         title="纯白填充"
@@ -81,7 +81,7 @@ const isColorLight = computed(() => getBrightness(props.modelValue) > 180)
         class="w-10 h-10 rounded-xl border-2 transition-all bg-black hover:scale-110 active:scale-95 shrink-0"
         :class="
           !isTransparent && modelValue.toLowerCase() === '#000000'
-            ? 'border-primary shadow-md'
+            ? 'border-primary shadow-[0_0_12px_hsla(var(--primary),0.3)]'
             : 'border-border'
         "
         title="纯黑填充"
@@ -108,7 +108,7 @@ const isColorLight = computed(() => getBrightness(props.modelValue) > 180)
             !isTransparent &&
             modelValue.toLowerCase() !== '#ffffff' &&
             modelValue.toLowerCase() !== '#000000'
-              ? 'border-primary shadow-md'
+              ? 'border-primary shadow-[0_0_15px_hsla(var(--primary),0.4)]'
               : 'border-border opacity-80'
           "
         >

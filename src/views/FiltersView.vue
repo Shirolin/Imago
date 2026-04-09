@@ -337,7 +337,7 @@ const handleCtaClick = async () => {
           </div>
         </section>
 
-        <section class="space-y-4 pt-2">
+        <section class="space-y-4 pt-6 border-t border-border/40">
           <div class="flex items-center justify-between h-10 pr-1">
             <AppSectionHeader title="精细调整" :icon="Settings2" />
 
@@ -364,7 +364,7 @@ const handleCtaClick = async () => {
             </div>
           </div>
 
-          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-6">
+          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4">
             <!-- 亮度 -->
             <div class="space-y-3">
               <AppSlider
@@ -442,7 +442,7 @@ const handleCtaClick = async () => {
           </div>
         </section>
 
-        <section class="relative">
+        <section class="pt-6 border-t border-border/40">
           <div
             class="p-4 bg-muted/20 border border-border/40 rounded-2xl flex items-start gap-3 transition-all group hover:bg-muted/30"
           >
@@ -463,7 +463,7 @@ const handleCtaClick = async () => {
         <AppExportSettings
           v-model:format="outputFormat"
           v-model:quality="outputQuality"
-          class="pt-2"
+          class="pt-6 border-t border-border/40"
         />
       </template>
 

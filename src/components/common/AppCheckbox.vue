@@ -4,6 +4,7 @@ import { Check } from 'lucide-vue-next'
 interface Props {
   modelValue: boolean
   label?: string
+  description?: string
 }
 
 defineProps<Props>()
@@ -11,9 +12,9 @@ const emit = defineEmits(['update:modelValue'])
 </script>
 
 <template>
-  <label class="flex items-center gap-3 cursor-pointer group select-none">
+  <label class="flex items-start gap-3 cursor-pointer group select-none">
     <div
-      class="relative w-5 h-5 rounded-md border-2 transition-all duration-200 flex items-center justify-center shadow-sm"
+      class="relative w-5 h-5 rounded-md border-2 transition-all duration-200 flex items-center justify-center shadow-sm shrink-0"
       :class="[
         modelValue
           ? 'bg-primary border-primary scale-105 shadow-[0_2px_10px_hsla(var(--primary),var(--button-shadow-opacity))]'
@@ -33,11 +34,19 @@ const emit = defineEmits(['update:modelValue'])
         <Check :size="12" class="text-primary-foreground stroke-[4px]" />
       </div>
     </div>
-    <span
-      v-if="label"
-      class="text-xs font-bold text-muted-foreground group-hover:text-primary transition-colors"
-    >
-      {{ label }}
-    </span>
+    <div class="flex flex-col gap-1">
+      <span
+        v-if="label"
+        class="text-xs font-bold text-muted-foreground group-hover:text-primary transition-colors leading-5"
+      >
+        {{ label }}
+      </span>
+      <span
+        v-if="description"
+        class="text-[11px] font-medium text-muted-foreground/60 leading-relaxed"
+      >
+        {{ description }}
+      </span>
+    </div>
   </label>
 </template>

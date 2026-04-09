@@ -227,7 +227,7 @@ const ctaState = computed(() => {
   if (store.selectedCount === 0)
     return {
       text: '请选择图片',
-      icon: Sparkles,
+      icon: ImageMinus,
       action: 'none',
       disabled: true,
       variant: 'cta' as const
@@ -437,141 +437,160 @@ const handleResetParams = () => {
     </template>
 
     <template #sidebar>
-      <div class="flex items-center justify-between pr-1 h-10">
-        <AppSectionHeader title="背景去除方案" :icon="Sparkles" />
-        <div class="w-8 h-8 flex items-center justify-end">
-          <transition name="fade">
-            <button
-              v-if="
-                (engineMode === 'match' && isMatchDirty) || (engineMode === 'anime' && isAnimeDirty)
-              "
-              @click="handleResetParams"
-              class="p-1.5 hover:bg-muted rounded-lg transition-all text-muted-foreground hover:text-primary"
-              title="重置当前模式参数"
-              aria-label="重置参数"
-            >
-              <RotateCcw :size="14" />
-            </button>
-          </transition>
+      <!-- 第一分区：方案设定 -->
+      <section class="space-y-4">
+        <div class="flex items-center justify-between pr-1">
+          <AppSectionHeader title="背景去除方案" :icon="Sparkles" />
+          <div class="flex items-center gap-1">
+            <transition name="fade">
+              <div
+                v-if="isProcessing || currentStatus === 'loading'"
+                class="flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 rounded-full border border-primary/20"
+              >
+                <Loader2 :size="10" class="animate-spin text-primary" />
+                <span class="text-[9px] font-bold text-primary uppercase tracking-wider"
+                  >处理中</span
+                >
+              </div>
+              <button
+                v-else-if="
+                  (engineMode === 'match' && isMatchDirty) ||
+                  (engineMode === 'anime' && isAnimeDirty)
+                "
+                @click="handleResetParams"
+                class="p-1.5 hover:bg-muted rounded-lg transition-all text-muted-foreground hover:text-primary"
+                title="重置当前模式参数"
+                aria-label="重置参数"
+              >
+                <RotateCcw :size="14" />
+              </button>
+            </transition>
+          </div>
         </div>
-      </div>
-      <div class="mb-4">
         <AppSegmentedControl
           v-model="engineMode"
           :options="engineOptions"
           aria-label="选择背景去除引擎"
         />
-      </div>
+        <AppTip :icon="Info">
+          <span v-if="engineMode === 'match'"
+            >智能取色：采用
+            <span class="text-primary font-bold uppercase">感知取色算法</span
+            >。通过识别背景颜色自动移除，最适合纯色或渐变背景。需下载约
+            <span class="text-primary font-bold uppercase">0MB</span> 资产。</span
+          >
+          <span v-else-if="engineMode === 'anime'"
+            >二次元专用：采用
+            <span class="text-primary font-bold uppercase">ISNet-Anime</span>
+            模型。专门针对插画及动漫线条优化，边缘更锐利。需下载约
+            <span class="text-primary font-bold uppercase">176MB</span> 资产。</span
+          >
+          <span v-else
+            >通用专业模式：采用
+            <span class="text-primary font-black uppercase">AI 深度学习</span>
+            模型。全品类识别，处理光影更细腻。需下载约
+            <span class="text-primary font-black uppercase">40MB</span> 资产。</span
+          >
+        </AppTip>
+      </section>
 
-      <AppTip :icon="Info" class="mb-6">
-        <span v-if="engineMode === 'match'"
-          >智能取色：采用
-          <span class="text-primary font-black uppercase">感知取色算法</span
-          >。通过识别背景颜色自动移除，最适合纯色或渐变背景。需下载约
-          <span class="text-primary font-black uppercase">0MB</span> 资产。</span
-        >
-        <span v-else-if="engineMode === 'anime'"
-          >二次元专用：采用
-          <span class="text-primary font-black uppercase">ISNet-Anime</span>
-          模型。专门针对插画及动漫线条优化，边缘更锐利。需下载约
-          <span class="text-primary font-black uppercase">176MB</span> 资产。</span
-        >
-        <span v-else
-          >通用专业模式：采用
-          <span class="text-primary font-black uppercase">AI 深度学习</span>
-          模型。全品类识别，处理光影更细腻。需下载约
-          <span class="text-primary font-black uppercase">40MB</span> 资产。</span
-        >
-      </AppTip>
-
+      <!-- 第二分区：细分参数 -->
       <transition name="fade" mode="out-in">
-        <div v-if="engineMode === 'match'" class="space-y-6 pb-6 mb-6 border-b border-border/40">
-          <div class="space-y-3">
-            <div class="flex items-center gap-2 px-1">
-              <Palette :size="14" class="text-muted-foreground" /><span
-                id="bg-color-label"
-                class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest"
-                >要去除的背景色</span
-              >
+        <section v-if="engineMode === 'match'" class="space-y-4 pt-6 border-t border-border/40">
+          <AppSectionHeader title="取色调整" :icon="Palette" />
+          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-5">
+            <div class="space-y-2">
+              <div class="flex items-center gap-2 px-1 h-5">
+                <div class="bg-primary/5 p-1 rounded-full flex items-center justify-center">
+                  <Palette :size="13" :stroke-width="2.5" class="text-primary" />
+                </div>
+                <span
+                  id="bg-color-label"
+                  class="text-[11px] font-bold text-muted-foreground leading-none"
+                  >要去除的背景色</span
+                >
+              </div>
+              <AppColorPicker
+                v-model="matchColor"
+                class="px-1"
+                :show-transparent="false"
+                aria-labelledby="bg-color-label"
+              />
             </div>
-            <AppColorPicker
-              v-model="matchColor"
-              :show-transparent="false"
-              aria-labelledby="bg-color-label"
+            <AppSlider
+              v-model="matchTolerance"
+              :min="0"
+              :max="50"
+              label="容差范围"
+              unit="%"
+              :default-value="DEFAULT_MATCH_TOLERANCE"
+              description="数值越大，识别范围越宽。"
+            />
+            <AppSlider
+              v-model="matchFeather"
+              :min="0"
+              :max="30"
+              label="边缘羽化"
+              unit="%"
+              :default-value="DEFAULT_MATCH_FEATHER"
+              description="数值越大，边缘越圆润。"
             />
           </div>
-          <AppSlider
-            v-model="matchTolerance"
-            :min="0"
-            :max="50"
-            label="容差范围"
-            unit="%"
-            :default-value="DEFAULT_MATCH_TOLERANCE"
-            description="数值越大，识别范围越宽。"
-          />
-          <AppSlider
-            v-model="matchFeather"
-            :min="0"
-            :max="30"
-            label="边缘羽化"
-            unit="%"
-            :default-value="DEFAULT_MATCH_FEATHER"
-            description="数值越大，边缘越圆润。"
-          />
-        </div>
+        </section>
 
-        <div
+        <section
           v-else-if="engineMode === 'anime'"
-          class="space-y-6 pb-6 mb-6 border-b border-border/40"
+          class="space-y-4 pt-6 border-t border-border/40"
         >
-          <AppSlider
-            v-model="animeThreshold"
-            :min="-50"
-            :max="50"
-            label="边缘偏移 (Offset)"
-            unit="%"
-            :default-value="DEFAULT_ANIME_THRESHOLD"
-            description="正值向内收缩剔除白边，负值向外扩张保留更多细节。"
-          />
-          <AppSlider
-            v-model="animeBlur"
-            :min="0"
-            :max="10"
-            :step="0.5"
-            label="边缘平滑 (Blur)"
-            unit="px"
-            :default-value="DEFAULT_ANIME_BLUR"
-            description="消除 AI 推理产生的阶梯状锯齿，使曲线更圆润。"
-          />
-          <AppSlider
-            v-model="animeRecovery"
-            :min="0"
-            :max="100"
-            label="线条恢复 (Recovery)"
-            unit="%"
-            :default-value="DEFAULT_ANIME_RECOVERY"
-            description="拉起极细或半透明的线条，防止线条被过度吞噬。"
-          />
-          <AppSlider
-            v-model="animeDenoise"
-            :min="0"
-            :max="5"
-            :step="1"
-            label="杂色去除 (Denoise)"
-            unit="级"
-            :default-value="DEFAULT_ANIME_DENOISE"
-            description="利用形态学降噪剔除背景残留的零星杂点。"
-          />
-        </div>
+          <AppSectionHeader title="二次元参数" :icon="Flower" />
+          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4">
+            <AppSlider
+              v-model="animeThreshold"
+              :min="-50"
+              :max="50"
+              label="边缘偏移 (Offset)"
+              unit="%"
+              :default-value="DEFAULT_ANIME_THRESHOLD"
+              description="正值向内收缩剔除白边，负值向外扩张保留更多细节。"
+            />
+            <AppSlider
+              v-model="animeBlur"
+              :min="0"
+              :max="10"
+              :step="0.5"
+              label="边缘平滑 (Blur)"
+              unit="px"
+              :default-value="DEFAULT_ANIME_BLUR"
+              description="消除 AI 推理产生的阶梯状锯齿，使曲线更圆润。"
+            />
+            <AppSlider
+              v-model="animeRecovery"
+              :min="0"
+              :max="100"
+              label="线条恢复 (Recovery)"
+              unit="%"
+              :default-value="DEFAULT_ANIME_RECOVERY"
+              description="拉起极细或半透明的线条，防止线条被过度吞噬。"
+            />
+            <AppSlider
+              v-model="animeDenoise"
+              :min="0"
+              :max="5"
+              :step="1"
+              label="杂色去除 (Denoise)"
+              unit="级"
+              :default-value="DEFAULT_ANIME_DENOISE"
+              description="利用形态学降噪剔除背景残留的零星杂点。"
+            />
+          </div>
+        </section>
+        <div v-else class="hidden"></div>
       </transition>
 
-      <div class="mt-4 px-1">
-        <div
-          class="text-[0.65rem] font-black text-muted-foreground/60 uppercase tracking-[0.15em] mb-2.5"
-        >
-          高级处理选项
-        </div>
-        <div v-if="engineMode !== 'match'" class="mb-6 space-y-4">
+      <!-- 第三分区：高级处理选项 -->
+      <section v-if="engineMode !== 'match'" class="space-y-4 pt-6 border-t border-border/40">
+        <AppSectionHeader title="高级处理选项" :icon="Zap" />
+        <div class="bg-muted/10 rounded-2xl p-4 border border-border/60">
           <AppCheckbox
             v-model="useHighFidelity"
             :label="engineMode === 'anime' ? '高清强制锐化 (Super Sharp)' : '禁用预缩放 (原图推理)'"
@@ -582,23 +601,21 @@ const handleResetParams = () => {
             "
           />
         </div>
-        <div
-          class="text-[0.65rem] font-black text-muted-foreground/60 uppercase tracking-[0.15em] mb-2.5"
-        >
-          输出格式注意
-        </div>
-        <div
-          class="text-xs font-bold text-foreground/80 leading-relaxed bg-muted/30 p-3 rounded-lg border border-border/40"
-        >
+      </section>
+
+      <!-- 第四分区：输出格式注意 -->
+      <section class="space-y-4 pt-6 border-t border-border/40">
+        <AppSectionHeader title="输出说明" :icon="Info" />
+        <AppTip :icon="Info">
           去除背景操作默认必须输出为支持 Alpha 透明通道的格式。推荐使用
-          <span class="text-primary">PNG</span> 以获得最佳兼容性。
-        </div>
-      </div>
-      <AppExportSettings
-        v-model:format="outputFormat"
-        v-model:quality="outputQuality"
-        class="mt-6 pt-6 border-t border-border/40"
-      />
+          <span class="text-primary font-bold">PNG</span> 以获得最佳兼容性。
+        </AppTip>
+      </section>
+
+      <!-- 第五分区：导出设置 -->
+      <section class="pt-6 border-t border-border/40">
+        <AppExportSettings v-model:format="outputFormat" v-model:quality="outputQuality" />
+      </section>
     </template>
 
     <template #footer>
