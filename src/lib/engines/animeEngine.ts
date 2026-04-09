@@ -55,7 +55,7 @@ async function cacheModel(buffer: ArrayBuffer) {
 // -----------------------
 
 // 配置 WASM 路径
-ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.24.3/dist/'
+ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/'
 
 /**
  * ISNet-Anime 二次元专业抠图引擎 (支持深度微调)
