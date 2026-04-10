@@ -163,14 +163,14 @@ const handleInitialize = async () => {
   initProgress.value = 0
   initError.value = ''
 
-    const targetModel = (engineMode.value === 'pro' ? 'isnet' : 'isnet_fp16') as 'isnet' | 'isnet_fp16'
-    const statusRef = engineMode.value === 'pro' ? proStatus : smartStatus
-    const storageKey = engineMode.value === 'pro' ? 'imago-bg-pro-ready' : 'imago-bg-smart-ready'
+  const targetModel = (engineMode.value === 'pro' ? 'isnet' : 'isnet_quint8') as 'isnet' | 'isnet_quint8'
+  const statusRef = engineMode.value === 'pro' ? proStatus : smartStatus
+  const storageKey = engineMode.value === 'pro' ? 'imago-bg-pro-ready' : 'imago-bg-smart-ready'
 
-    statusRef.value = 'loading'
-    try {
-      await preload({
-        model: targetModel,
+  statusRef.value = 'loading'
+  try {
+    await preload({
+      model: targetModel,
       progress: (key, current, total) => {
         if (key.includes('fetch')) initProgress.value = Math.round((current / total) * 100)
       }
@@ -187,7 +187,7 @@ const handleInitialize = async () => {
 const ctaState = computed(() => {
   const status = currentStatus.value
   if (status === 'not_ready' || status === 'error') {
-    const size = engineMode.value === 'pro' ? '176MB' : '82MB'
+    const size = engineMode.value === 'pro' ? '176MB' : '40MB'
     return {
       text: status === 'error' ? '重试下载引擎' : `激活${engineMode.value === 'pro' ? '全量' : '智能'}模型 (~${size})`,
       icon: Zap,
@@ -271,7 +271,7 @@ const handleCtaClick = async () => {
     } else {
       await proProcessor.processSelected({
         ...commonOptions,
-        model: engineMode.value === 'pro' ? 'isnet' : 'isnet_fp16',
+        model: engineMode.value === 'pro' ? 'isnet' : 'isnet_quint8',
         maskThreshold: aiStrictness.value / 100,
         maskShrink: aiOffset.value / 100,
         maskBlur: aiSmoothness.value
@@ -318,7 +318,7 @@ const handleResetParams = () => {
                 >需下载约 <span class="text-primary font-bold">176MB</span> 模型。采用完整精度算法，适合处理支架及复杂边缘。</template
               >
               <template v-else
-                >需下载约 <span class="text-primary font-bold">82MB</span> 模型。采用半精度加速算法，适合日常快速抠图。</template
+                >需下载约 <span class="text-primary font-bold">40MB</span> 模型。采用量化加速算法，适合日常快速抠图。</template
               >
             </p>
             <div
@@ -351,7 +351,7 @@ const handleResetParams = () => {
               :loading="currentStatus === 'loading'"
               @click="handleInitialize"
             >
-              {{ currentStatus === 'error' ? '重试下载' : `同意并下载 (${engineMode === 'pro' ? '176MB' : '82MB'})` }}
+              {{ currentStatus === 'error' ? '重试下载' : `同意并下载 (${engineMode === 'pro' ? '176MB' : '40MB'})` }}
             </AppButton>
           </div>
         </AppModal>
@@ -420,7 +420,7 @@ const handleResetParams = () => {
           >
           <span v-else-if="engineMode === 'smart'"
             >智能标准版：采用中量级 AI 模型。适合处理日常物体，光影过渡细腻。需下载约
-            <span class="text-primary font-bold uppercase">82MB</span> 资产。</span
+            <span class="text-primary font-bold uppercase">40MB</span> 资产。</span
           >
           <span v-else
             >专业全量版：采用顶级 ISNet 模型。全品类识别，支持对手办支架等干扰物进行深度剔除。需下载约
