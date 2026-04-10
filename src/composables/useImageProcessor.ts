@@ -29,6 +29,7 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
     try {
       const result = await (processor as ImageProcessor<T>)(item.file, {
         ...options,
+        jobId: id,
         signal: abortController.signal,
         onProgress: (p: number) => {
           progress.value = p

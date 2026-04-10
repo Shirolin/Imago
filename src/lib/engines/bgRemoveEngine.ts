@@ -10,6 +10,17 @@ export interface BgRemoveOptions {
   maskThreshold?: number // 新增：边缘严格度 (0-1)
   maskBlur?: number // 新增：平滑度
   maskShrink?: number // 新增：边缘偏移 (0-1)
+  jobId?: string // 新增：用于缓存 AI 遮罩以实现秒级精修
+}
+
+let sharedWorker: Worker | null = null
+
+const getWorker = () => {
+  if (!sharedWorker) {
+    sharedWorker = new BgRemoveWorker()
+    console.log('[Imago Engine] 🚀 Initialized Long-lived BgRemove Worker')
+  }
+  return sharedWorker
 }
 
 /**
@@ -17,52 +28,56 @@ export interface BgRemoveOptions {
  */
 export const bgRemoveEngine: ImageProcessor<BgRemoveOptions> = (file, options) => {
   return new Promise((resolve, reject) => {
-    console.log('[Imago Engine] 🪄 Spawning Background Removal Worker', options)
+    const worker = getWorker()
 
-    const worker = new BgRemoveWorker()
+    // 生成唯一请求 ID 以匹配并发消息
+    const requestId = Math.random().toString(36).slice(2)
 
-    // 处理来自 Worker 的消息
-    worker.onmessage = (event: MessageEvent) => {
-      const { type, value, blob, message } = event.data
+    const handleMessage = (event: MessageEvent) => {
+      const { type, value, blob, message, requestId: respId } = event.data
+      
+      if (respId !== requestId) return
 
       if (type === 'progress') {
         if (options.onProgress) options.onProgress(value)
       } else if (type === 'done') {
-        worker.terminate()
+        worker.removeEventListener('message', handleMessage)
         resolve(blob)
       } else if (type === 'error') {
-        worker.terminate()
+        worker.removeEventListener('message', handleMessage)
         reject(new Error(message || 'Worker 内部错误'))
       }
     }
 
-    worker.onerror = (error: ErrorEvent) => {
+    worker.addEventListener('message', handleMessage)
+
+    const handleError = (error: ErrorEvent) => {
       console.error('[Imago Engine] Worker Error:', error)
-      worker.terminate()
-      reject(new Error(`Worker 启动失败: ${error.message}`))
+      worker.removeEventListener('message', handleMessage)
+      sharedWorker = null // 标记损坏，下次重新创建
+      reject(new Error(`Worker 计算失败: ${error.message}`))
     }
+    worker.addEventListener('error', handleError, { once: true })
 
     // 监听中止信号
     if (options.signal) {
-      options.signal.addEventListener(
-        'abort',
-        () => {
-          worker.terminate()
-          reject(new Error('AbortError'))
-        },
-        { once: true }
-      )
+      options.signal.addEventListener('abort', () => {
+        worker.removeEventListener('message', handleMessage)
+        reject(new Error('AbortError'))
+      }, { once: true })
     }
 
     // 发送任务到 Worker
     worker.postMessage({
+      requestId,
       file,
       options: {
         model: options.model,
         usePreScaling: options.usePreScaling,
         maskThreshold: options.maskThreshold,
         maskBlur: options.maskBlur,
-        maskShrink: options.maskShrink
+        maskShrink: options.maskShrink,
+        jobId: options.jobId
       }
     })
   })
