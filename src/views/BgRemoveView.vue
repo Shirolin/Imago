@@ -24,7 +24,10 @@ import {
   Palette,
   RotateCcw,
   SlidersHorizontal,
-  Wand2
+  Wand2,
+  Database,
+  Trash2,
+  CheckCircle2
 } from 'lucide-vue-next'
 import { bgRemoveEngine } from '../lib/engines/bgRemoveEngine'
 import { matchBgRemoveEngine } from '../lib/engines/matchBgRemoveEngine'
@@ -100,12 +103,12 @@ const hexToRgb = (hex: string) => {
     : { r: 255, g: 255, b: 255 }
 }
 
-// 模型状态
+// 模型状态 (v2 版本锁定，确保在重构后强制重新触发下载检测)
 const smartStatus = ref<'not_ready' | 'loading' | 'ready' | 'error'>(
-  localStorage.getItem('imago-bg-smart-ready') === 'true' ? 'ready' : 'not_ready'
+  localStorage.getItem('imago-bg-v2-smart-ready') === 'true' ? 'ready' : 'not_ready'
 )
 const proStatus = ref<'not_ready' | 'loading' | 'ready' | 'error'>(
-  localStorage.getItem('imago-bg-pro-ready') === 'true' ? 'ready' : 'not_ready'
+  localStorage.getItem('imago-bg-v2-pro-ready') === 'true' ? 'ready' : 'not_ready'
 )
 
 const currentStatus = computed(() => {
@@ -165,7 +168,7 @@ const handleInitialize = async () => {
 
   const targetModel = (engineMode.value === 'pro' ? 'isnet' : 'isnet_quint8') as 'isnet' | 'isnet_quint8'
   const statusRef = engineMode.value === 'pro' ? proStatus : smartStatus
-  const storageKey = engineMode.value === 'pro' ? 'imago-bg-pro-ready' : 'imago-bg-smart-ready'
+  const storageKey = engineMode.value === 'pro' ? 'imago-bg-v2-pro-ready' : 'imago-bg-v2-smart-ready'
 
   statusRef.value = 'loading'
   try {
@@ -278,6 +281,12 @@ const handleCtaClick = async () => {
       })
     }
   }
+}
+
+const handleResetEngine = () => {
+  localStorage.removeItem('imago-bg-v2-pro-ready')
+  localStorage.removeItem('imago-bg-v2-smart-ready')
+  window.location.reload()
 }
 
 const handleResetParams = () => {
@@ -428,6 +437,41 @@ const handleResetParams = () => {
           >
         </AppTip>
       </section>
+      
+      <!-- 引擎看板：指向性状态反馈 -->
+      <section v-if="engineMode !== 'match'" class="space-y-3 pt-6 border-t border-border/40">
+        <div class="flex items-center justify-between group">
+          <div class="flex items-center gap-2">
+            <Database :size="14" class="text-muted-foreground" />
+            <span class="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">引擎状态仪表盘</span>
+          </div>
+          <button 
+            @click="handleResetEngine"
+            class="text-[10px] text-muted-foreground/40 hover:text-destructive flex items-center gap-1 transition-colors"
+            title="强制重新初始化并下载"
+          >
+            <Trash2 :size="10" /> <span>重置资产</span>
+          </button>
+        </div>
+        
+        <div class="p-3 bg-muted/5 rounded-xl border border-border/40 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] text-muted-foreground/60 font-medium">当前模型</span>
+            <span class="text-[10px] font-bold" :class="engineMode === 'pro' ? 'text-primary' : 'text-foreground'">
+              {{ engineMode === 'pro' ? 'ISNet (176MB Full)' : 'ISNet (40MB Quant)' }}
+            </span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] text-muted-foreground/60 font-medium">连接状态</span>
+            <div class="flex items-center gap-1.5">
+              <span class="h-1.5 w-1.5 rounded-full" :class="currentStatus === 'ready' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'"></span>
+              <span class="text-[10px] font-bold" :class="currentStatus === 'ready' ? 'text-emerald-500' : 'text-amber-500'">
+                {{ currentStatus === 'ready' ? '连接成功 - 本地已就绪' : '发现更新 - 待引导初始化' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <!-- 第二分区：细分参数 -->
       <transition name="fade" mode="out-in">
@@ -465,7 +509,13 @@ const handleResetParams = () => {
         </section>
 
         <section v-else class="space-y-4 pt-6 border-t border-border/40">
-          <AppSectionHeader title="高级精修 (Refiner)" :icon="SlidersHorizontal" />
+          <div class="flex items-center justify-between">
+            <AppSectionHeader title="高级精修 (Refiner)" :icon="SlidersHorizontal" />
+            <div class="flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 rounded-md border border-primary/20 scale-90 origin-right">
+              <CheckCircle2 :size="10" class="text-primary" />
+              <span class="text-[9px] font-black text-primary uppercase">{{ engineMode === 'pro' ? 'Premium Core' : 'Lite Core' }}</span>
+            </div>
+          </div>
           <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4">
             <AppSlider
               v-model="aiStrictness"
