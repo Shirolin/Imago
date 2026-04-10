@@ -120,8 +120,6 @@ watch(
   <AppModal
     :show="show"
     title="高级交互编辑器 (SAM2)"
-    max-width="6xl"
-    full-screen
     @close="emit('close')"
   >
     <div class="flex flex-col h-full bg-[#0a0a0a]">
