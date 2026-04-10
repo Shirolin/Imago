@@ -134,8 +134,8 @@ const handleInteractiveClick = (id: string) => {
   if (!item) return
   activeInteractiveImage.value = item
 
-  // 检查是否已经同意下载过
-  const isReady = localStorage.getItem('imago-sam2-ready') === 'true'
+  // 检查是否已经同意下载过 (使用 v2 版本号强制重新授权一次)
+  const isReady = localStorage.getItem('imago-sam2-v2-ready') === 'true'
   if (isReady) {
     showEditorModal.value = true
   } else {
@@ -144,9 +144,12 @@ const handleInteractiveClick = (id: string) => {
 }
 
 const handleConfirmDownload = () => {
-  localStorage.setItem('imago-sam2-ready', 'true')
+  localStorage.setItem('imago-sam2-v2-ready', 'true')
   showDownloadModal.value = false
-  showEditorModal.value = true
+  // 错开状态切换，确保过渡平滑且模态框能正确捕获 show 信号
+  setTimeout(() => {
+    showEditorModal.value = true
+  }, 300)
 }
 
 const handleInteractiveApply = (maskBlob: Blob) => {

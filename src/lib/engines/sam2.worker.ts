@@ -11,7 +11,7 @@ let processor: any = null
 let imageEmbeddings: Record<string, Tensor> | null = null
 let currentImageSize: { width: number; height: number } | null = null
 
-const MODEL_ID = 'facebook/sam2-hiera-tiny'
+const MODEL_ID = 'onnx-community/sam2-hiera-tiny-ONNX'
 
 async function loadModel() {
   if (model && processor) return
@@ -62,8 +62,8 @@ async function decode(points: number[][], labels: number[]) {
   // 构造解码器输入
   const modelInputs = {
     ...imageEmbeddings,
-    input_points: new Tensor('float32', scaledPoints.flat(), [1, points.length, 2]),
-    input_labels: new Tensor('int64', BigInt64Array.from(labels.map(BigInt)), [1, labels.length])
+    input_points: new Tensor('float32', scaledPoints.flat(), [1, 1, points.length, 2]),
+    input_labels: new Tensor('int64', BigInt64Array.from(labels.map(BigInt)), [1, 1, labels.length])
   }
 
   // 执行解码
