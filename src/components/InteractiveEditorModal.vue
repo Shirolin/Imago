@@ -25,6 +25,9 @@ let worker: Worker | null = null
 const initWorker = () => {
   import('../lib/engines/sam2.worker?worker').then((WorkerModule) => {
     worker = new WorkerModule.default()
+    
+    // 主动触发模型加载
+    worker.postMessage({ type: 'load' })
 
     worker!.onmessage = (e) => {
       const { type, message, maskUrl: newMaskUrl } = e.data
