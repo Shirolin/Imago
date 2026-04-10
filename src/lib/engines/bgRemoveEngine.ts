@@ -44,10 +44,14 @@ export const bgRemoveEngine: ImageProcessor<BgRemoveOptions> = (file, options) =
 
     // 监听中止信号
     if (options.signal) {
-      options.signal.addEventListener('abort', () => {
-        worker.terminate()
-        reject(new Error('AbortError'))
-      }, { once: true })
+      options.signal.addEventListener(
+        'abort',
+        () => {
+          worker.terminate()
+          reject(new Error('AbortError'))
+        },
+        { once: true }
+      )
     }
 
     // 发送任务到 Worker
@@ -63,4 +67,3 @@ export const bgRemoveEngine: ImageProcessor<BgRemoveOptions> = (file, options) =
     })
   })
 }
-

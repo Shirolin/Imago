@@ -62,7 +62,7 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
         if (key.includes('fetch')) weightedP = p * 0.3
         else if (key.includes('compute')) weightedP = 0.3 + p * 0.7
         else weightedP = p
-        
+
         self.postMessage({ type: 'progress', value: weightedP })
       }
     })
@@ -108,10 +108,9 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
     originalBitmap.close()
 
     if (!finalBlob) throw new Error('图像生成失败')
-    
+
     // 发送最终结果
     self.postMessage({ type: 'done', blob: finalBlob })
-
   } catch (error) {
     const err = error as Error
     self.postMessage({ type: 'error', message: err.message || '未知错误' })

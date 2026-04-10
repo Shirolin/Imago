@@ -126,7 +126,9 @@ const comparingImage = ref<ImageItem | null>(null)
 const matchProcessor = useImageProcessor(matchBgRemoveEngine)
 const proProcessor = useImageProcessor(bgRemoveEngine)
 
-const isProcessing = computed(() => matchProcessor.isProcessing.value || proProcessor.isProcessing.value)
+const isProcessing = computed(
+  () => matchProcessor.isProcessing.value || proProcessor.isProcessing.value
+)
 
 const displayImages = computed(() => [...store.images].reverse())
 
@@ -166,9 +168,12 @@ const handleInitialize = async () => {
   initProgress.value = 0
   initError.value = ''
 
-  const targetModel = (engineMode.value === 'pro' ? 'isnet' : 'isnet_quint8') as 'isnet' | 'isnet_quint8'
+  const targetModel = (engineMode.value === 'pro' ? 'isnet' : 'isnet_quint8') as
+    | 'isnet'
+    | 'isnet_quint8'
   const statusRef = engineMode.value === 'pro' ? proStatus : smartStatus
-  const storageKey = engineMode.value === 'pro' ? 'imago-bg-v2-pro-ready' : 'imago-bg-v2-smart-ready'
+  const storageKey =
+    engineMode.value === 'pro' ? 'imago-bg-v2-pro-ready' : 'imago-bg-v2-smart-ready'
 
   statusRef.value = 'loading'
   try {
@@ -192,7 +197,10 @@ const ctaState = computed(() => {
   if (status === 'not_ready' || status === 'error') {
     const size = engineMode.value === 'pro' ? '176MB' : '40MB'
     return {
-      text: status === 'error' ? '重试下载引擎' : `激活${engineMode.value === 'pro' ? '全量' : '智能'}模型 (~${size})`,
+      text:
+        status === 'error'
+          ? '重试下载引擎'
+          : `激活${engineMode.value === 'pro' ? '全量' : '智能'}模型 (~${size})`,
       icon: Zap,
       action: 'show_init',
       disabled: false,
@@ -217,7 +225,8 @@ const ctaState = computed(() => {
       variant: 'cta' as const
     }
   if (isProcessing.value) {
-    const p = engineMode.value === 'match' ? matchProcessor.progress.value : proProcessor.progress.value
+    const p =
+      engineMode.value === 'match' ? matchProcessor.progress.value : proProcessor.progress.value
     return {
       text: `正在去除背景 (${p}%)`,
       icon: Sparkles,
@@ -228,7 +237,8 @@ const ctaState = computed(() => {
   }
   const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
   const allDone =
-    selectedImages.length > 0 && selectedImages.every((img) => img.status === 'done' && img.processedBlob && !img.isDirty)
+    selectedImages.length > 0 &&
+    selectedImages.every((img) => img.status === 'done' && img.processedBlob && !img.isDirty)
   if (allDone)
     return {
       text: `导出透明图片 (${store.selectedCount})`,
@@ -315,7 +325,9 @@ const handleResetParams = () => {
           @close="showInitModal = false"
         >
           <div class="p-8 text-center">
-            <div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div
+              class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6"
+            >
               <Zap v-if="currentStatus !== 'loading'" :size="40" class="text-primary" />
               <Loader2 v-else :size="40" class="text-primary animate-spin" />
             </div>
@@ -324,10 +336,14 @@ const handleResetParams = () => {
             </h2>
             <p class="text-sm text-muted-foreground font-medium leading-relaxed mb-8">
               <template v-if="engineMode === 'pro'"
-                >需下载约 <span class="text-primary font-bold">176MB</span> 模型。采用完整精度算法，适合处理支架及复杂边缘。</template
+                >需下载约
+                <span class="text-primary font-bold">176MB</span>
+                模型。采用完整精度算法，适合处理支架及复杂边缘。</template
               >
               <template v-else
-                >需下载约 <span class="text-primary font-bold">40MB</span> 模型。采用量化加速算法，适合日常快速抠图。</template
+                >需下载约
+                <span class="text-primary font-bold">40MB</span>
+                模型。采用量化加速算法，适合日常快速抠图。</template
               >
             </p>
             <div
@@ -340,9 +356,14 @@ const handleResetParams = () => {
               :aria-label="`正在下载${engineMode === 'pro' ? '专业' : '智能'} AI 引擎资产`"
             >
               <div class="h-2 w-full bg-muted rounded-full overflow-hidden">
-                <div class="h-full bg-primary transition-all duration-300" :style="{ width: `${initProgress}%` }"></div>
+                <div
+                  class="h-full bg-primary transition-all duration-300"
+                  :style="{ width: `${initProgress}%` }"
+                ></div>
               </div>
-              <div class="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+              <div
+                class="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground/60"
+              >
                 <span>正在下载...</span><span aria-hidden="true">{{ initProgress }}%</span>
               </div>
             </div>
@@ -360,17 +381,28 @@ const handleResetParams = () => {
               :loading="currentStatus === 'loading'"
               @click="handleInitialize"
             >
-              {{ currentStatus === 'error' ? '重试下载' : `同意并下载 (${engineMode === 'pro' ? '176MB' : '40MB'})` }}
+              {{
+                currentStatus === 'error'
+                  ? '重试下载'
+                  : `同意并下载 (${engineMode === 'pro' ? '176MB' : '40MB'})`
+              }}
             </AppButton>
           </div>
         </AppModal>
 
-        <div v-if="store.images.length === 0" class="flex flex-col items-center justify-center py-32 animate-in fade-in duration-700">
+        <div
+          v-if="store.images.length === 0"
+          class="flex flex-col items-center justify-center py-32 animate-in fade-in duration-700"
+        >
           <div class="bg-muted/30 p-8 rounded-full mb-6">
             <ImageMinus :size="48" class="text-muted-foreground/40" />
           </div>
-          <p class="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground/60 mb-2">暂无图片</p>
-          <p class="text-[11px] font-medium text-muted-foreground/40">导入包含主体的图片以自动去除背景</p>
+          <p class="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground/60 mb-2">
+            暂无图片
+          </p>
+          <p class="text-[11px] font-medium text-muted-foreground/40">
+            导入包含主体的图片以自动去除背景
+          </p>
         </div>
         <div
           v-else
@@ -408,10 +440,14 @@ const handleResetParams = () => {
                 class="flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 rounded-full border border-primary/20"
               >
                 <Loader2 :size="10" class="animate-spin text-primary" />
-                <span class="text-[9px] font-bold text-primary uppercase tracking-wider">处理中</span>
+                <span class="text-[9px] font-bold text-primary uppercase tracking-wider"
+                  >处理中</span
+                >
               </div>
               <button
-                v-else-if="(engineMode === 'match' && isMatchDirty) || (engineMode !== 'match' && isAiDirty)"
+                v-else-if="
+                  (engineMode === 'match' && isMatchDirty) || (engineMode !== 'match' && isAiDirty)
+                "
                 @click="handleResetParams"
                 class="p-1.5 hover:bg-muted rounded-lg transition-all text-muted-foreground hover:text-primary"
                 title="重置当前模式参数"
@@ -422,30 +458,38 @@ const handleResetParams = () => {
             </transition>
           </div>
         </div>
-        <AppSegmentedControl v-model="engineMode" :options="engineOptions" aria-label="选择背景去除引擎" />
+        <AppSegmentedControl
+          v-model="engineMode"
+          :options="engineOptions"
+          aria-label="选择背景去除引擎"
+        />
         <AppTip :icon="Info">
           <span v-if="engineMode === 'match'"
-            >智能取色：通过算法识别背景色自动移除，适合纯色背景。需下载约 <span class="text-primary font-bold uppercase">0MB</span> 资产。</span
+            >智能取色：通过算法识别背景色自动移除，适合纯色背景。需下载约
+            <span class="text-primary font-bold uppercase">0MB</span> 资产。</span
           >
           <span v-else-if="engineMode === 'smart'"
             >智能标准版：采用中量级 AI 模型。适合处理日常物体，光影过渡细腻。需下载约
             <span class="text-primary font-bold uppercase">40MB</span> 资产。</span
           >
           <span v-else
-            >专业全量版：采用顶级 ISNet 模型。全品类识别，支持对手办支架等干扰物进行深度剔除。需下载约
+            >专业全量版：采用顶级 ISNet
+            模型。全品类识别，支持对手办支架等干扰物进行深度剔除。需下载约
             <span class="text-primary font-black uppercase">176MB</span> 资产。</span
           >
         </AppTip>
       </section>
-      
+
       <!-- 引擎看板：指向性状态反馈 -->
       <section v-if="engineMode !== 'match'" class="space-y-3 pt-6 border-t border-border/40">
         <div class="flex items-center justify-between group">
           <div class="flex items-center gap-2">
             <Database :size="14" class="text-muted-foreground" />
-            <span class="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">AI 引擎状态仪表盘</span>
+            <span class="text-[11px] font-bold text-muted-foreground uppercase tracking-widest"
+              >AI 引擎状态仪表盘</span
+            >
           </div>
-          <button 
+          <button
             @click="handleResetEngine"
             class="text-[10px] text-muted-foreground/40 hover:text-destructive flex items-center gap-1 transition-colors"
             title="强制重新初始化并下载"
@@ -453,20 +497,31 @@ const handleResetParams = () => {
             <Trash2 :size="10" /> <span>删除模型</span>
           </button>
         </div>
-        
+
         <div class="p-3 bg-muted/5 rounded-xl border border-border/40 space-y-2">
           <div class="flex items-center justify-between">
             <span class="text-[10px] text-muted-foreground/60 font-medium">当前模型</span>
-            <span class="text-[10px] font-bold" :class="engineMode === 'pro' ? 'text-primary' : 'text-foreground'">
+            <span
+              class="text-[10px] font-bold"
+              :class="engineMode === 'pro' ? 'text-primary' : 'text-foreground'"
+            >
               {{ engineMode === 'pro' ? 'ISNet (176MB Full)' : 'ISNet (40MB Quant)' }}
             </span>
           </div>
           <div class="flex items-center justify-between">
             <span class="text-[10px] text-muted-foreground/60 font-medium">连接状态</span>
             <div class="flex items-center gap-1.5">
-              <span class="h-1.5 w-1.5 rounded-full" :class="currentStatus === 'ready' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'"></span>
-              <span class="text-[10px] font-bold" :class="currentStatus === 'ready' ? 'text-emerald-500' : 'text-amber-500'">
-                {{ currentStatus === 'ready' ? '连接成功 - 本地已就绪' : '发现更新 - 待引导初始化' }}
+              <span
+                class="h-1.5 w-1.5 rounded-full"
+                :class="currentStatus === 'ready' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'"
+              ></span>
+              <span
+                class="text-[10px] font-bold"
+                :class="currentStatus === 'ready' ? 'text-emerald-500' : 'text-amber-500'"
+              >
+                {{
+                  currentStatus === 'ready' ? '连接成功 - 本地已就绪' : '发现更新 - 待引导初始化'
+                }}
               </span>
             </div>
           </div>
@@ -483,9 +538,18 @@ const handleResetParams = () => {
                 <div class="bg-primary/5 p-1 rounded-full flex items-center justify-center">
                   <Palette :size="13" :stroke-width="2.5" class="text-primary" />
                 </div>
-                <span id="bg-color-label" class="text-[11px] font-bold text-muted-foreground leading-none">要去除的背景色</span>
+                <span
+                  id="bg-color-label"
+                  class="text-[11px] font-bold text-muted-foreground leading-none"
+                  >要去除的背景色</span
+                >
               </div>
-              <AppColorPicker v-model="matchColor" class="px-1" :show-transparent="false" aria-labelledby="bg-color-label" />
+              <AppColorPicker
+                v-model="matchColor"
+                class="px-1"
+                :show-transparent="false"
+                aria-labelledby="bg-color-label"
+              />
             </div>
             <AppSlider
               v-model="matchTolerance"
@@ -511,9 +575,13 @@ const handleResetParams = () => {
         <section v-else class="space-y-4 pt-6 border-t border-border/40">
           <div class="flex items-center justify-between">
             <AppSectionHeader title="高级精修 (Refiner)" :icon="SlidersHorizontal" />
-            <div class="flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 rounded-md border border-primary/20 scale-90 origin-right">
+            <div
+              class="flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 rounded-md border border-primary/20 scale-90 origin-right"
+            >
               <CheckCircle2 :size="10" class="text-primary" />
-              <span class="text-[9px] font-black text-primary uppercase">{{ engineMode === 'pro' ? 'Premium Core' : 'Lite Core' }}</span>
+              <span class="text-[9px] font-black text-primary uppercase">{{
+                engineMode === 'pro' ? 'Premium Core' : 'Lite Core'
+              }}</span>
             </div>
           </div>
           <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4">
@@ -578,7 +646,11 @@ const handleResetParams = () => {
           @click="handleCtaClick"
         >
           <template #icon
-            ><component :is="ctaState.icon" v-if="!isProcessing && currentStatus !== 'loading'" :size="18" class="mr-2"
+            ><component
+              :is="ctaState.icon"
+              v-if="!isProcessing && currentStatus !== 'loading'"
+              :size="18"
+              class="mr-2"
           /></template>
           <span class="font-bold text-sm tracking-tight">{{ ctaState.text }}</span>
         </AppButton>
@@ -586,7 +658,12 @@ const handleResetParams = () => {
     </template>
   </WorkspaceLayout>
 
-  <AppModal :show="showCompareModal" title="去除背景细节对比" @close="closeCompare" @after-leave="handleModalLeave">
+  <AppModal
+    :show="showCompareModal"
+    title="去除背景细节对比"
+    @close="closeCompare"
+    @after-leave="handleModalLeave"
+  >
     <ImageCompare
       v-if="comparingImage"
       :original-url="comparingImage.file"
