@@ -73,8 +73,8 @@ async function decode(points: number[][], labels: number[]) {
   const masks = outputs.pred_masks
   if (!masks) throw new Error('未能生成有效的遮罩输出')
 
-  // 选择最高分的遮罩并转为图片
-  const maskTensor = masks.slice([0, 0, 0]) // [256, 256]
+  // 获取生成的第一个遮罩 [batch_size=1, num_queries=1, 3, 256, 256] -> [256, 256]
+  const maskTensor = masks[0][0][0]
 
   const canvas = new OffscreenCanvas(256, 256)
   const ctx = canvas.getContext('2d')!
