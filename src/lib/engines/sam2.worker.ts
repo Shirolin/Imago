@@ -9,7 +9,7 @@ if (env.backends?.onnx?.wasm) {
 let model: Sam2Model | null = null
 let processor: any = null
 let imageEmbeddings: Record<string, Tensor> | null = null
-let currentImageSize: { width: number; height: number } | null = null
+let lastProcessorInputs: any = null
 
 const MODEL_ID = 'onnx-community/sam2-hiera-tiny-ONNX'
 
@@ -39,25 +39,26 @@ async function encode(imageBlob: Blob) {
   if (!model || !processor) throw new Error('模型未加载成功')
 
   const image = await RawImage.fromBlob(imageBlob)
-  currentImageSize = { width: image.width, height: image.height }
 
   self.postMessage({ type: 'status', message: '正在提取图像特征 (Encoder)...' })
 
-  const inputs = await processor(image)
-  imageEmbeddings = await model.get_image_embeddings(inputs)
+  lastProcessorInputs = await processor(image)
+  imageEmbeddings = await model.get_image_embeddings(lastProcessorInputs)
 
   self.postMessage({ type: 'encoded' })
 }
 
 async function decode(points: number[][], labels: number[]) {
-  if (!model || !processor || !imageEmbeddings || !currentImageSize) {
+  if (!model || !processor || !imageEmbeddings || !lastProcessorInputs) {
     throw new Error('请先执行 Encoder 编码')
   }
 
-  const { width, height } = currentImageSize
+  // 1. 准备点坐标：将 [0, 1] 归一化坐标转换为对应 reshaped_input_size 的像素坐标
+  const [origH, origW] = lastProcessorInputs.original_sizes[0]
+  const [reshapedH, reshapedW] = lastProcessorInputs.reshaped_input_sizes[0]
 
-  // 缩放点到 1024x1024 (SAM2 内部坐标系)
-  const scaledPoints = points.map((p) => [p[0]! * 1024, p[1]! * 1024])
+  // 将归一化的 [0, 1] 映射到 reshaped 坐标系
+  const scaledPoints = points.map((p) => [p[0]! * reshapedW, p[1]! * reshapedH])
 
   // 构造解码器输入
   const modelInputs = {
@@ -69,41 +70,38 @@ async function decode(points: number[][], labels: number[]) {
   // 执行解码
   const outputs = await model.forward(modelInputs)
 
-  // 获取预测遮罩 [1, num_prompts, 3, 256, 256]
-  const masks = outputs.pred_masks
-  if (!masks) throw new Error('未能生成有效的遮罩输出')
+  // 2. 后处理：将遮罩还原回原始尺寸和宽高比
+  const postProcessedMasks = await processor.post_process_masks(
+    outputs.pred_masks,
+    lastProcessorInputs.original_sizes,
+    lastProcessorInputs.reshaped_input_sizes
+  )
 
-  // 获取生成的第一个遮罩 [batch_size=1, num_queries=1, 3, 256, 256] -> [256, 256]
-  const maskTensor = masks[0][0][0]
+  const maskTensor = postProcessedMasks[0][0][0] // [origH, origW]
+  const dims = maskTensor.dims
+  const maskW = dims[1]
+  const maskH = dims[0]
 
-  const canvas = new OffscreenCanvas(256, 256)
+  // 渲染到画布
+  const canvas = new OffscreenCanvas(maskW, maskH)
   const ctx = canvas.getContext('2d')!
-  const imageData = ctx.createImageData(256, 256)
+  const imageData = ctx.createImageData(maskW, maskH)
 
-  const data = maskTensor.data as Float32Array
+  const data = maskTensor.data as Uint8Array
   for (let i = 0; i < data.length; ++i) {
     const val = data[i]! > 0 ? 255 : 0
     const j = i * 4
-    imageData.data[j] = 255
-    imageData.data[j + 1] = 255
-    imageData.data[j + 2] = 255
-    imageData.data[j + 3] = val
+    imageData.data[j] = 255 // R
+    imageData.data[j + 1] = 255 // G
+    imageData.data[j + 2] = 255 // B
+    imageData.data[j + 3] = val // A
   }
+
   ctx.putImageData(imageData, 0, 0)
+  const maskBlob = await canvas.convertToBlob()
+  const maskUrl = URL.createObjectURL(maskBlob)
 
-  const finalCanvas = new OffscreenCanvas(width, height)
-  const finalCtx = finalCanvas.getContext('2d')!
-  finalCtx.drawImage(canvas, 0, 0, width, height)
-
-  const blob = await finalCanvas.convertToBlob({ type: 'image/png' })
-  const reader = new FileReader()
-  reader.onloadend = () => {
-    self.postMessage({
-      type: 'mask',
-      maskUrl: reader.result as string
-    })
-  }
-  reader.readAsDataURL(blob)
+  self.postMessage({ type: 'mask', maskUrl })
 }
 
 self.onmessage = async (event: MessageEvent) => {
