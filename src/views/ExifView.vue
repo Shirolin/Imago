@@ -26,6 +26,10 @@ import {
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppSectionHeader from '../components/common/AppSectionHeader.vue'
+import AppEmptyState from '../components/common/AppEmptyState.vue'
+import AppBadge from '../components/common/AppBadge.vue'
+import AppSidebarCard from '../components/common/AppSidebarCard.vue'
+import AppInfoItem from '../components/common/AppInfoItem.vue'
 import { clearExifEngine, readExif, type ExifData } from '../lib/engines/exifEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useFileHelpers } from '../composables/useFileHelpers'
@@ -204,18 +208,12 @@ const handleCtaClick = async () => {
 
     <template #content>
       <div class="h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-6">
-        <div
+        <AppEmptyState
           v-if="store.images.length === 0"
-          class="flex flex-col items-center justify-center py-32 animate-in fade-in duration-700"
-        >
-          <div class="bg-muted/30 p-8 rounded-full mb-6">
-            <FileSearch :size="48" class="text-muted-foreground/40" />
-          </div>
-          <p class="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground/60 mb-2">
-            暂无图片
-          </p>
-          <p class="text-[11px] font-medium text-muted-foreground/40">导入图片以开始隐私风险分析</p>
-        </div>
+          title="暂无图片"
+          description="导入图片以开始隐私风险分析"
+          :icon="FileSearch"
+        />
         <div
           v-else
           class="grid transition-all duration-300"
@@ -248,30 +246,31 @@ const handleCtaClick = async () => {
               </div></template
             >
             <template #meta="{ image }">
-              <div
+              <AppBadge
                 v-if="image.exifCount !== undefined"
-                class="flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest leading-none border"
-                :class="[
+                :variant="
                   image.isExifUnsupported
-                    ? 'bg-muted/10 text-muted-foreground border-border/60'
+                    ? 'muted'
                     : image.exifCount > 0
-                      ? 'bg-destructive/5 text-destructive border-destructive/20'
-                      : 'bg-primary/5 text-primary border-primary/20'
-                ]"
+                      ? 'destructive'
+                      : 'primary'
+                "
+                :icon="
+                  !image.isExifUnsupported && image.exifCount > 0
+                    ? ShieldAlert
+                    : !image.isExifUnsupported
+                      ? ShieldCheck
+                      : Info
+                "
               >
-                <ShieldAlert v-if="!image.isExifUnsupported && image.exifCount > 0" :size="10" />
-                <ShieldCheck v-else-if="!image.isExifUnsupported" :size="10" />
-                <Info v-else :size="10" />
-                <span>
-                  {{
-                    image.isExifUnsupported
-                      ? '不支持格式'
-                      : image.exifCount > 0
-                        ? `${image.exifCount} 隐私风险`
-                        : '安全'
-                  }}
-                </span>
-              </div>
+                {{
+                  image.isExifUnsupported
+                    ? '不支持格式'
+                    : image.exifCount > 0
+                      ? `${image.exifCount} 隐私风险`
+                      : '安全'
+                }}
+              </AppBadge>
               <div v-else class="h-6 flex items-center">
                 <div class="w-10 h-1 bg-muted/40 rounded-full animate-pulse"></div>
               </div>
@@ -297,9 +296,9 @@ const handleCtaClick = async () => {
       </div>
       <section class="space-y-4">
         <AppSectionHeader title="隐私分析" :icon="Info" />
-        <div
+        <AppSidebarCard
           v-if="activeImageId && !isReadingExif"
-          class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4 animate-in fade-in duration-500"
+          class="space-y-4 animate-in fade-in duration-500"
         >
           <div
             v-if="activeExifData?.metaCount"
@@ -311,43 +310,26 @@ const handleCtaClick = async () => {
             </div>
           </div>
           <div v-if="activeExifData?.metaCount" class="space-y-4 px-1">
-            <div v-if="activeExifData?.model" class="flex flex-col gap-1.5">
-              <div
-                class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none"
-              >
-                拍摄设备
-              </div>
-              <div class="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <Smartphone
-                  v-if="activeExifData.model.includes('iPhone')"
-                  :size="14"
-                  class="text-primary"
-                /><Camera v-else :size="14" class="text-primary" /> {{ activeExifData.make }}
-                {{ activeExifData.model }}
-              </div>
-            </div>
-            <div v-if="activeExifData?.dateTime" class="flex flex-col gap-1.5">
-              <div
-                class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none"
-              >
-                拍摄时间
-              </div>
-              <div class="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <Calendar :size="14" class="text-primary" /> {{ activeExifData.dateTime }}
-              </div>
-            </div>
-            <div v-if="activeExifData?.latitude !== undefined" class="flex flex-col gap-1.5">
-              <div
-                class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none"
-              >
-                地理位置
-              </div>
-              <div class="flex items-center gap-2 text-sm font-bold text-foreground font-mono">
-                <MapPin :size="14" class="text-primary" />
-                {{ activeExifData.latitude.toFixed(4) }}°,
-                {{ activeExifData.longitude?.toFixed(4) }}°
-              </div>
-            </div>
+            <AppInfoItem
+              v-if="activeExifData?.model"
+              label="拍摄设备"
+              :icon="activeExifData.model.includes('iPhone') ? Smartphone : Camera"
+            >
+              {{ activeExifData.make }} {{ activeExifData.model }}
+            </AppInfoItem>
+
+            <AppInfoItem v-if="activeExifData?.dateTime" label="拍摄时间" :icon="Calendar">
+              {{ activeExifData.dateTime }}
+            </AppInfoItem>
+
+            <AppInfoItem
+              v-if="activeExifData?.latitude !== undefined"
+              label="地理位置"
+              :icon="MapPin"
+              mono
+            >
+              {{ activeExifData.latitude.toFixed(4) }}°, {{ activeExifData.longitude?.toFixed(4) }}°
+            </AppInfoItem>
           </div>
           <div v-if="activeExifData?.all && Object.keys(activeExifData.all).length > 0">
             <button
@@ -398,7 +380,7 @@ const handleCtaClick = async () => {
               支持检测 JPEG, TIFF, PNG, WebP, HEIC, AVIF 等主流图片格式。
             </p>
           </div>
-        </div>
+        </AppSidebarCard>
         <div
           v-else-if="isReadingExif"
           class="py-20 flex flex-col items-center gap-4 text-muted-foreground"

@@ -11,6 +11,9 @@ import AppCheckbox from '../components/common/AppCheckbox.vue'
 import AppSlider from '../components/common/AppSlider.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import AppSectionHeader from '../components/common/AppSectionHeader.vue'
+import AppComparisonBadge from '../components/common/AppComparisonBadge.vue'
+import AppSidebarCard from '../components/common/AppSidebarCard.vue'
+import AppEmptyState from '../components/common/AppEmptyState.vue'
 import AppModal from '../components/common/AppModal.vue'
 import ImageCard from '../components/common/ImageCard.vue'
 import ImageCompare from '../components/common/ImageCompare.vue'
@@ -22,9 +25,9 @@ import {
   Maximize2,
   Percent,
   RotateCcw,
-  ArrowRight,
   RefreshCw,
-  Download
+  Download,
+  FileSearch
 } from 'lucide-vue-next'
 import { resizeEngine } from '../lib/engines/resizeEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
@@ -227,7 +230,14 @@ const handleCtaClick = async () => {
 
       <template #content>
         <div class="h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-6">
+          <AppEmptyState
+            v-if="store.images.length === 0"
+            title="暂无图片"
+            description="导入图片以开始批量缩放"
+            :icon="FileSearch"
+          />
           <div
+            v-else
             class="grid transition-all duration-300"
             :class="[
               layoutStore.cardSizeMode === 'compact'
@@ -246,53 +256,14 @@ const handleCtaClick = async () => {
               @compare="handleCompare"
             >
               <template #meta="{ image }">
-                <div
-                  class="flex items-center bg-muted/30 border border-border transition-all duration-300 group-hover:border-primary/20"
-                  :class="[
-                    layoutStore.cardSizeMode === 'compact'
-                      ? 'gap-1.5 p-1.5 rounded-xl mt-1'
-                      : 'gap-3 p-3 rounded-2xl mt-1.5'
-                  ]"
-                >
-                  <div class="flex-1 flex flex-col gap-0.5">
-                    <span
-                      class="font-medium text-muted-foreground mt-0.5"
-                      :class="
-                        layoutStore.cardSizeMode === 'compact' ? 'text-[0.5rem]' : 'text-[0.6rem]'
-                      "
-                      >原始</span
-                    ><span
-                      class="font-bold text-foreground transition-all"
-                      :class="
-                        layoutStore.cardSizeMode === 'compact' ? 'text-[0.65rem]' : 'text-[0.75rem]'
-                      "
-                      >{{ image.width }}x{{ image.height }}</span
-                    >
-                  </div>
-                  <div class="text-muted-foreground flex shrink-0">
-                    <ArrowRight :size="layoutStore.cardSizeMode === 'compact' ? 10 : 12" />
-                  </div>
-                  <div class="flex-1 flex flex-col gap-0.5">
-                    <span
-                      class="font-medium text-muted-foreground mt-0.5"
-                      :class="
-                        layoutStore.cardSizeMode === 'compact' ? 'text-[0.5rem]' : 'text-[0.6rem]'
-                      "
-                      >目标</span
-                    ><span
-                      class="font-bold transition-all"
-                      :class="[
-                        image.status === 'done' ? 'text-primary' : 'text-foreground',
-                        layoutStore.cardSizeMode === 'compact' ? 'text-[0.65rem]' : 'text-[0.75rem]'
-                      ]"
-                      >{{
-                        image.status === 'done'
-                          ? `${image.processedWidth}x${image.processedHeight}`
-                          : '--'
-                      }}</span
-                    >
-                  </div>
-                </div>
+                <AppComparisonBadge
+                  before-label="原始"
+                  :before-value="`${image.width}x${image.height}`"
+                  after-label="目标"
+                  :after-value="`${image.processedWidth}x${image.processedHeight}`"
+                  :status="image.status"
+                  :compact="layoutStore.cardSizeMode === 'compact'"
+                />
               </template>
             </ImageCard>
           </div>
@@ -304,7 +275,7 @@ const handleCtaClick = async () => {
           <AppSectionHeader title="调整模式" :icon="Settings2" />
           <AppSegmentedControl v-model="resizeMode" :options="modeOptions" />
 
-          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60">
+          <AppSidebarCard>
             <div v-if="resizeMode === 'percentage'" class="space-y-3">
               <AppSlider
                 v-model="percentage"
@@ -346,7 +317,7 @@ const handleCtaClick = async () => {
                 </button>
               </div>
             </div>
-          </div>
+          </AppSidebarCard>
         </section>
 
         <section class="pt-6 border-t border-border/40">
