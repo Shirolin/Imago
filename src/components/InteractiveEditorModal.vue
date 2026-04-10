@@ -151,6 +151,7 @@ watch(
 <template>
   <AppModal
     :show="show"
+    pane-only
     title="高级交互编辑器 (SAM2)"
     @close="emit('close')"
   >
@@ -216,12 +217,12 @@ watch(
           </div>
         </div>
 
-        <!-- 画布渲染层 -->
-        <div class="absolute inset-0 flex items-center justify-center p-4 md:p-8 overflow-hidden">
-          <div class="relative w-full h-full flex items-center justify-center">
+        <!-- 画布渲染层：深度优化布局 -->
+        <div class="absolute inset-0 flex items-center justify-center overflow-hidden">
+          <div class="relative w-full h-full flex items-center justify-center overflow-hidden">
             <!-- 核心交互容器：确保它紧贴图片尺寸 -->
             <div 
-              class="relative max-w-full max-h-full cursor-crosshair shadow-[0_0_100px_rgba(0,0,0,0.5)] rounded-sm overflow-hidden"
+              class="relative max-w-full max-h-full cursor-crosshair shadow-[0_0_100px_rgba(0,0,0,0.8)] rounded-sm overflow-hidden"
               @mousedown="handleCanvasClick"
             >
               <!-- 原图 -->

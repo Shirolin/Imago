@@ -6,10 +6,12 @@ interface Props {
   show: boolean
   title?: string
   variant?: 'full' | 'dialog' // 增加变体支持
+  paneOnly?: boolean // 新增：是否移除外边距以支持全画幅展示
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  variant: 'full'
+  variant: 'full',
+  paneOnly: false
 })
 
 const emit = defineEmits(['close', 'after-leave'])
@@ -22,7 +24,7 @@ const containerClasses = computed(() => {
   if (props.variant === 'dialog') {
     return 'w-[90vw] max-w-md h-auto my-auto mx-auto rounded-3xl shadow-2xl border border-border bg-background flex flex-col overflow-hidden'
   }
-  return 'w-full h-full flex flex-col p-3 md:p-6'
+  return `w-full h-full flex flex-col ${props.paneOnly ? 'p-0' : 'p-3 md:p-6'}`
 })
 
 watch(
