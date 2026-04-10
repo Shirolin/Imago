@@ -183,7 +183,7 @@ const handleInitialize = async () => {
     showInitModal.value = false
   } catch (err) {
     statusRef.value = 'error'
-    initError.value = (err as Error).message || '下载引擎资产失败'
+    initError.value = (err as Error).message || '下载 AI 引擎资产失败'
   }
 }
 
@@ -311,7 +311,7 @@ const handleResetParams = () => {
         <AppModal
           :show="showInitModal"
           variant="dialog"
-          :title="engineMode === 'pro' ? '专业版全量引擎初始化' : '智能标准版初始化'"
+          :title="engineMode === 'pro' ? '专业版全量 AI 引擎初始化' : '智能标准版 AI 引擎初始化'"
           @close="showInitModal = false"
         >
           <div class="p-8 text-center">
@@ -320,7 +320,7 @@ const handleResetParams = () => {
               <Loader2 v-else :size="40" class="text-primary animate-spin" />
             </div>
             <h2 class="text-2xl font-black mb-3 tracking-tight text-foreground">
-              {{ engineMode === 'pro' ? '专业版全量引擎初始化' : '智能标准版初始化' }}
+              {{ engineMode === 'pro' ? '专业版全量 AI 引擎初始化' : '智能标准版 AI 引擎初始化' }}
             </h2>
             <p class="text-sm text-muted-foreground font-medium leading-relaxed mb-8">
               <template v-if="engineMode === 'pro'"
@@ -337,7 +337,7 @@ const handleResetParams = () => {
               :aria-valuenow="initProgress"
               aria-valuemin="0"
               aria-valuemax="100"
-              :aria-label="`正在下载${engineMode === 'pro' ? '专业' : '智能'}引擎资产`"
+              :aria-label="`正在下载${engineMode === 'pro' ? '专业' : '智能'} AI 引擎资产`"
             >
               <div class="h-2 w-full bg-muted rounded-full overflow-hidden">
                 <div class="h-full bg-primary transition-all duration-300" :style="{ width: `${initProgress}%` }"></div>
@@ -443,14 +443,14 @@ const handleResetParams = () => {
         <div class="flex items-center justify-between group">
           <div class="flex items-center gap-2">
             <Database :size="14" class="text-muted-foreground" />
-            <span class="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">引擎状态仪表盘</span>
+            <span class="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">AI 引擎状态仪表盘</span>
           </div>
           <button 
             @click="handleResetEngine"
             class="text-[10px] text-muted-foreground/40 hover:text-destructive flex items-center gap-1 transition-colors"
             title="强制重新初始化并下载"
           >
-            <Trash2 :size="10" /> <span>重置资产</span>
+            <Trash2 :size="10" /> <span>删除模型</span>
           </button>
         </div>
         
