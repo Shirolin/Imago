@@ -41,7 +41,7 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
       if (entry.model === model) {
         console.log(`[Worker] ⚡ Cache Hit for Job ${jobId}, skipping AI inference.`)
         lowResBitmap = entry.bitmap
-        
+
         // 获取并重置尺寸
         const originalBitmap = await createImageBitmap(file)
         originalWidth = originalBitmap.width
@@ -104,7 +104,7 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
       }
 
       lowResBitmap = await createImageBitmap(lowResResultBlob)
-      
+
       // 存入缓存
       if (jobId) {
         if (maskCache.size >= 10) {
@@ -132,8 +132,8 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
     mCtx.imageSmoothingEnabled = true
     mCtx.imageSmoothingQuality = 'high'
 
-    const contrast = 1.0 + maskThreshold * 4.0 
-    const brightness = 1.0 - maskShrink * 0.5 
+    const contrast = 1.0 + maskThreshold * 4.0
+    const brightness = 1.0 - maskShrink * 0.5
     const blur = maskBlur
 
     mCtx.filter = `blur(${blur}px) contrast(${contrast}) brightness(${brightness})`
@@ -148,9 +148,8 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
     originalImage.close()
 
     if (!finalBlob) throw new Error('图像生成失败')
-    
-    self.postMessage({ requestId, type: 'done', blob: finalBlob })
 
+    self.postMessage({ requestId, type: 'done', blob: finalBlob })
   } catch (error) {
     const err = error as Error
     self.postMessage({ requestId, type: 'error', message: err.message || '未知错误' })

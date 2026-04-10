@@ -35,7 +35,7 @@ export const bgRemoveEngine: ImageProcessor<BgRemoveOptions> = (file, options) =
 
     const handleMessage = (event: MessageEvent) => {
       const { type, value, blob, message, requestId: respId } = event.data
-      
+
       if (respId !== requestId) return
 
       if (type === 'progress') {
@@ -61,10 +61,14 @@ export const bgRemoveEngine: ImageProcessor<BgRemoveOptions> = (file, options) =
 
     // 监听中止信号
     if (options.signal) {
-      options.signal.addEventListener('abort', () => {
-        worker.removeEventListener('message', handleMessage)
-        reject(new Error('AbortError'))
-      }, { once: true })
+      options.signal.addEventListener(
+        'abort',
+        () => {
+          worker.removeEventListener('message', handleMessage)
+          reject(new Error('AbortError'))
+        },
+        { once: true }
+      )
     }
 
     // 发送任务到 Worker
