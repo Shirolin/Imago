@@ -6,6 +6,8 @@ import { useLayoutStore } from '../stores/layoutStore'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
 import ImageCard from '../components/common/ImageCard.vue'
+import InteractiveDownloadModal from '../components/InteractiveDownloadModal.vue'
+import InteractiveEditorModal from '../components/InteractiveEditorModal.vue'
 import AppExportSettings from '../components/common/AppExportSettings.vue'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
@@ -122,6 +124,53 @@ const initProgress = ref(0)
 const initError = ref('')
 const showCompareModal = ref(false)
 const comparingImage = ref<ImageItem | null>(null)
+// --- 交互式编辑器相关 (SAM2) ---
+const showDownloadModal = ref(false)
+const showEditorModal = ref(false)
+const activeInteractiveImage = ref<ImageItem | null>(null)
+
+const handleInteractiveClick = (id: string) => {
+  const item = store.images.find((img) => img.id === id)
+  if (!item) return
+  activeInteractiveImage.value = item
+
+  // 检查是否已经同意下载过
+  const isReady = localStorage.getItem('imago-sam2-ready') === 'true'
+  if (isReady) {
+    showEditorModal.value = true
+  } else {
+    showDownloadModal.value = true
+  }
+}
+
+const handleConfirmDownload = () => {
+  localStorage.setItem('imago-sam2-ready', 'true')
+  showDownloadModal.value = false
+  showEditorModal.value = true
+}
+
+const handleInteractiveApply = (maskBlob: Blob) => {
+  if (!activeInteractiveImage.value) return
+
+  // 更新图片状态：标记为已处理，并更新预览
+  const id = activeInteractiveImage.value.id
+
+  if (activeInteractiveImage.value.processedPreview) {
+    URL.revokeObjectURL(activeInteractiveImage.value.processedPreview)
+  }
+
+  const preview = URL.createObjectURL(maskBlob)
+  store.updateImage(id, {
+    status: 'done',
+    processedBlob: maskBlob,
+    processedPreview: preview,
+    processedSize: maskBlob.size,
+    isDirty: false
+  })
+
+  showEditorModal.value = false
+  activeInteractiveImage.value = null
+}
 
 const matchProcessor = useImageProcessor(matchBgRemoveEngine)
 const proProcessor = useImageProcessor(bgRemoveEngine)
@@ -438,8 +487,28 @@ const handleResetParams = () => {
             @remove="store.removeImage"
             @compare="handleCompare"
             @download="handleDownload"
+            @interactive="handleInteractiveClick"
           />
         </div>
+
+        <!-- 交互式编辑器模态框 -->
+        <InteractiveDownloadModal
+          :show="showDownloadModal"
+          @confirm="handleConfirmDownload"
+          @cancel="showDownloadModal = false"
+        />
+
+        <InteractiveEditorModal
+          v-if="activeInteractiveImage"
+          :show="showEditorModal"
+          :image-item="{
+            id: activeInteractiveImage.id,
+            file: activeInteractiveImage.file,
+            url: activeInteractiveImage.preview || ''
+          }"
+          @close="showEditorModal = false"
+          @apply="handleInteractiveApply"
+        />
       </div>
     </template>
 

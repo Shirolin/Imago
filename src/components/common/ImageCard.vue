@@ -8,7 +8,8 @@ import {
   Square,
   CheckSquare,
   Columns2,
-  RotateCcw
+  RotateCcw,
+  Sparkles
 } from 'lucide-vue-next'
 import { useFileHelpers } from '../../composables/useFileHelpers'
 import { useImageStore } from '../../stores/imageStore'
@@ -33,7 +34,7 @@ const props = withDefaults(defineProps<Props>(), {
   allowMagnifier: true,
   showTransparency: false
 })
-const emit = defineEmits(['toggle', 'remove', 'download', 'compare'])
+const emit = defineEmits(['toggle', 'remove', 'download', 'compare', 'interactive'])
 
 // 智能倍镜逻辑
 const showMagnifier = ref(false)
@@ -421,6 +422,14 @@ const displayUrl = computed(() => {
             title="对比画质细节"
           >
             <Columns2 :size="layoutStore.cardSizeMode === 'compact' ? 12 : 16" />
+          </button>
+          <button
+            @click.stop="emit('interactive', image.id)"
+            class="flex items-center justify-center rounded-lg hover:bg-primary/20 text-primary hover:text-primary transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary shadow-sm border border-primary/10"
+            :class="layoutStore.cardSizeMode === 'compact' ? 'w-6 h-6' : 'w-8 h-8'"
+            title="高级交互式抠图 (SAM2)"
+          >
+            <Sparkles :size="layoutStore.cardSizeMode === 'compact' ? 12 : 16" />
           </button>
           <button
             v-if="image.status === 'done'"
