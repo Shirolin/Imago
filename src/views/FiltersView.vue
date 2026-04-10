@@ -45,14 +45,23 @@ const isDirty = ref(false)
 const activePresetName = ref<string>('原图')
 const lastPresetName = ref<string>('原图')
 
+// 基准值（随预设变化），用于滑块的默认重置点
+const baselineValues = ref({
+  brightness: 100,
+  contrast: 100,
+  saturation: 100,
+  blur: 0,
+  sepia: 0
+})
+
 // 是否修改过参数（用于显示批量重置）
 const isFiltersDirty = computed(() => {
   return (
-    Math.abs(brightness.value - 100) > 0.001 ||
-    Math.abs(contrast.value - 100) > 0.001 ||
-    Math.abs(saturation.value - 100) > 0.001 ||
-    Math.abs(blur.value - 0) > 0.001 ||
-    Math.abs(sepia.value - 0) > 0.001
+    Math.abs(brightness.value - baselineValues.value.brightness) > 0.001 ||
+    Math.abs(contrast.value - baselineValues.value.contrast) > 0.001 ||
+    Math.abs(saturation.value - baselineValues.value.saturation) > 0.001 ||
+    Math.abs(blur.value - baselineValues.value.blur) > 0.001 ||
+    Math.abs(sepia.value - baselineValues.value.sepia) > 0.001
   )
 })
 
@@ -124,11 +133,16 @@ const presets = [
 ]
 
 const applyPreset = (preset: (typeof presets)[0]) => {
+  // 更新当前值
   brightness.value = preset.values.brightness
   contrast.value = preset.values.contrast
   saturation.value = preset.values.saturation
   blur.value = preset.values.blur
   sepia.value = preset.values.sepia
+
+  // 更新基准值，使滑块的默认重置点与预设一致
+  baselineValues.value = { ...preset.values }
+
   activePresetName.value = preset.name
   lastPresetName.value = preset.name
 }
@@ -307,7 +321,7 @@ const handleCtaClick = async () => {
                 v-for="preset in presets"
                 :key="preset.name"
                 @click="applyPreset(preset)"
-                class="flex-shrink-0 px-4 py-2.5 rounded-xl border transition-all active:scale-95 flex flex-col items-center gap-1.5 min-w-[70px] group"
+                class="flex-shrink-0 w-20 py-2.5 rounded-xl border transition-all active:scale-95 flex flex-col items-center gap-1.5 group"
                 :class="[
                   activePresetName === preset.name
                     ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20'
@@ -326,12 +340,15 @@ const handleCtaClick = async () => {
                   />
                 </div>
                 <span
-                  class="text-[0.65rem] font-bold uppercase tracking-widest"
+                  class="text-[11px] font-medium transition-colors"
                   :class="[
-                    activePresetName === preset.name ? 'text-primary' : 'text-muted-foreground'
+                    activePresetName === preset.name
+                      ? 'text-primary'
+                      : 'text-muted-foreground group-hover:text-primary'
                   ]"
-                  >{{ preset.name }}</span
                 >
+                  {{ preset.name }}
+                </span>
               </button>
             </div>
           </div>
@@ -375,7 +392,7 @@ const handleCtaClick = async () => {
                 :min="0"
                 :max="200"
                 :step="1"
-                :default-value="100"
+                :default-value="baselineValues.brightness"
                 @update:model-value="activePresetName = ''"
               />
             </div>
@@ -390,7 +407,7 @@ const handleCtaClick = async () => {
                 :min="0"
                 :max="200"
                 :step="1"
-                :default-value="100"
+                :default-value="baselineValues.contrast"
                 @update:model-value="activePresetName = ''"
               />
             </div>
@@ -405,7 +422,7 @@ const handleCtaClick = async () => {
                 :min="0"
                 :max="200"
                 :step="1"
-                :default-value="100"
+                :default-value="baselineValues.saturation"
                 @update:model-value="activePresetName = ''"
               />
             </div>
@@ -420,7 +437,7 @@ const handleCtaClick = async () => {
                 :min="0"
                 :max="20"
                 :step="1"
-                :default-value="0"
+                :default-value="baselineValues.blur"
                 @update:model-value="activePresetName = ''"
               />
             </div>
@@ -435,7 +452,7 @@ const handleCtaClick = async () => {
                 :min="0"
                 :max="100"
                 :step="1"
-                :default-value="0"
+                :default-value="baselineValues.sepia"
                 @update:model-value="activePresetName = ''"
               />
             </div>

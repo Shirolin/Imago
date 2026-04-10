@@ -22,12 +22,12 @@ import {
   AlertCircle,
   Trophy,
   Palette,
-  Flower,
-  RotateCcw
+  RotateCcw,
+  SlidersHorizontal,
+  Wand2
 } from 'lucide-vue-next'
 import { bgRemoveEngine } from '../lib/engines/bgRemoveEngine'
 import { matchBgRemoveEngine } from '../lib/engines/matchBgRemoveEngine'
-import { animeEngine } from '../lib/engines/animeEngine'
 import { preload } from '@imgly/background-removal'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useFileHelpers } from '../composables/useFileHelpers'
@@ -42,32 +42,31 @@ const store = useImageStore()
 const layoutStore = useLayoutStore()
 const { downloadImage, downloadAllAsZip, formatSize } = useFileHelpers()
 
-// 引擎模式：Match (智能取色) vs Pro (通用专业) vs Anime (二次元专用)
-const engineMode = ref<'match' | 'pro' | 'anime'>('match')
+// 引擎模式：Match (取色) vs Smart (智能-标准) vs Pro (专业-全量)
+const engineMode = ref<'match' | 'smart' | 'pro'>('match')
 
 const engineOptions = [
   { label: '取色 (Match)', value: 'match', icon: Palette },
-  { label: '通用专业 (Pro)', value: 'pro', icon: Trophy },
-  { label: '二次元 (Anime)', value: 'anime', icon: Flower }
+  { label: '智能 (Smart)', value: 'smart', icon: Wand2 },
+  { label: '专业 (Pro)', value: 'pro', icon: Trophy }
 ]
 
 // --- 参数默认值 ---
 const DEFAULT_MATCH_TOLERANCE = 15
 const DEFAULT_MATCH_FEATHER = 5
-const DEFAULT_ANIME_THRESHOLD = 0
-const DEFAULT_ANIME_BLUR = 0
-const DEFAULT_ANIME_RECOVERY = 0
-const DEFAULT_ANIME_DENOISE = 0
+const DEFAULT_AI_STRICTNESS = 0
+const DEFAULT_AI_OFFSET = 0
+const DEFAULT_AI_SMOOTHNESS = 0
 
 // --- 响应式状态 ---
 const matchTolerance = ref(DEFAULT_MATCH_TOLERANCE)
 const matchFeather = ref(DEFAULT_MATCH_FEATHER)
 const matchColor = ref('#ffffff')
 
-const animeThreshold = ref(DEFAULT_ANIME_THRESHOLD)
-const animeBlur = ref(DEFAULT_ANIME_BLUR)
-const animeRecovery = ref(DEFAULT_ANIME_RECOVERY)
-const animeDenoise = ref(DEFAULT_ANIME_DENOISE)
+// AI 精修参数
+const aiStrictness = ref(DEFAULT_AI_STRICTNESS)
+const aiOffset = ref(DEFAULT_AI_OFFSET)
+const aiSmoothness = ref(DEFAULT_AI_SMOOTHNESS)
 
 const useHighFidelity = ref(false)
 const outputFormat = ref<string>('image/png')
@@ -81,12 +80,11 @@ const isMatchDirty = computed(() => {
   )
 })
 
-const isAnimeDirty = computed(() => {
+const isAiDirty = computed(() => {
   return (
-    Math.abs(animeThreshold.value - DEFAULT_ANIME_THRESHOLD) > 0.001 ||
-    Math.abs(animeBlur.value - DEFAULT_ANIME_BLUR) > 0.001 ||
-    Math.abs(animeRecovery.value - DEFAULT_ANIME_RECOVERY) > 0.001 ||
-    Math.abs(animeDenoise.value - DEFAULT_ANIME_DENOISE) > 0.001
+    Math.abs(aiStrictness.value - DEFAULT_AI_STRICTNESS) > 0.001 ||
+    Math.abs(aiOffset.value - DEFAULT_AI_OFFSET) > 0.001 ||
+    Math.abs(aiSmoothness.value - DEFAULT_AI_SMOOTHNESS) > 0.001
   )
 })
 
@@ -103,16 +101,16 @@ const hexToRgb = (hex: string) => {
 }
 
 // 模型状态
+const smartStatus = ref<'not_ready' | 'loading' | 'ready' | 'error'>(
+  localStorage.getItem('imago-bg-smart-ready') === 'true' ? 'ready' : 'not_ready'
+)
 const proStatus = ref<'not_ready' | 'loading' | 'ready' | 'error'>(
   localStorage.getItem('imago-bg-pro-ready') === 'true' ? 'ready' : 'not_ready'
-)
-const animeStatus = ref<'not_ready' | 'loading' | 'ready' | 'error'>(
-  localStorage.getItem('imago-bg-anime-ready') === 'true' ? 'ready' : 'not_ready'
 )
 
 const currentStatus = computed(() => {
   if (engineMode.value === 'match') return 'ready'
-  if (engineMode.value === 'anime') return animeStatus.value
+  if (engineMode.value === 'smart') return smartStatus.value
   return proStatus.value
 })
 
@@ -124,14 +122,8 @@ const comparingImage = ref<ImageItem | null>(null)
 
 const matchProcessor = useImageProcessor(matchBgRemoveEngine)
 const proProcessor = useImageProcessor(bgRemoveEngine)
-const animeProcessor = useImageProcessor(animeEngine)
 
-const isProcessing = computed(
-  () =>
-    matchProcessor.isProcessing.value ||
-    proProcessor.isProcessing.value ||
-    animeProcessor.isProcessing.value
-)
+const isProcessing = computed(() => matchProcessor.isProcessing.value || proProcessor.isProcessing.value)
 
 const displayImages = computed(() => [...store.images].reverse())
 
@@ -157,10 +149,9 @@ watch(
     matchTolerance,
     matchFeather,
     matchColor,
-    animeThreshold,
-    animeBlur,
-    animeRecovery,
-    animeDenoise,
+    aiStrictness,
+    aiOffset,
+    aiSmoothness,
     useHighFidelity,
     engineMode
   ],
@@ -172,43 +163,33 @@ const handleInitialize = async () => {
   initProgress.value = 0
   initError.value = ''
 
-  if (engineMode.value === 'pro') {
-    proStatus.value = 'loading'
+    const targetModel = (engineMode.value === 'pro' ? 'isnet' : 'isnet_fp16') as 'isnet' | 'isnet_fp16'
+    const statusRef = engineMode.value === 'pro' ? proStatus : smartStatus
+    const storageKey = engineMode.value === 'pro' ? 'imago-bg-pro-ready' : 'imago-bg-smart-ready'
+
+    statusRef.value = 'loading'
     try {
       await preload({
-        progress: (key, current, total) => {
-          if (key.includes('fetch')) initProgress.value = Math.round((current / total) * 100)
-        }
-      })
-      proStatus.value = 'ready'
-      localStorage.setItem('imago-bg-pro-ready', 'true')
-      showInitModal.value = false
-    } catch (err) {
-      proStatus.value = 'error'
-      initError.value = (err as Error).message || '下载通用引擎失败'
-    }
-  } else if (engineMode.value === 'anime') {
-    animeStatus.value = 'loading'
-    try {
-      animeStatus.value = 'ready'
-      localStorage.setItem('imago-bg-anime-ready', 'true')
-      showInitModal.value = false
-    } catch (err) {
-      animeStatus.value = 'error'
-      initError.value = (err as Error).message || '下载二次元引擎失败'
-    }
+        model: targetModel,
+      progress: (key, current, total) => {
+        if (key.includes('fetch')) initProgress.value = Math.round((current / total) * 100)
+      }
+    })
+    statusRef.value = 'ready'
+    localStorage.setItem(storageKey, 'true')
+    showInitModal.value = false
+  } catch (err) {
+    statusRef.value = 'error'
+    initError.value = (err as Error).message || '下载引擎资产失败'
   }
 }
 
 const ctaState = computed(() => {
   const status = currentStatus.value
   if (status === 'not_ready' || status === 'error') {
-    const size = engineMode.value === 'anime' ? '176MB' : '40MB'
+    const size = engineMode.value === 'pro' ? '176MB' : '82MB'
     return {
-      text:
-        status === 'error'
-          ? '重试下载引擎'
-          : `下载${engineMode.value === 'anime' ? '二次元' : 'AI'}引擎 (~${size})`,
+      text: status === 'error' ? '重试下载引擎' : `激活${engineMode.value === 'pro' ? '全量' : '智能'}模型 (~${size})`,
       icon: Zap,
       action: 'show_init',
       disabled: false,
@@ -233,12 +214,7 @@ const ctaState = computed(() => {
       variant: 'cta' as const
     }
   if (isProcessing.value) {
-    const p =
-      engineMode.value === 'match'
-        ? matchProcessor.progress.value
-        : engineMode.value === 'anime'
-          ? animeProcessor.progress.value
-          : proProcessor.progress.value
+    const p = engineMode.value === 'match' ? matchProcessor.progress.value : proProcessor.progress.value
     return {
       text: `正在去除背景 (${p}%)`,
       icon: Sparkles,
@@ -249,8 +225,7 @@ const ctaState = computed(() => {
   }
   const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
   const allDone =
-    selectedImages.length > 0 &&
-    selectedImages.every((img) => img.status === 'done' && img.processedBlob && !img.isDirty)
+    selectedImages.length > 0 && selectedImages.every((img) => img.status === 'done' && img.processedBlob && !img.isDirty)
   if (allDone)
     return {
       text: `导出透明图片 (${store.selectedCount})`,
@@ -293,16 +268,14 @@ const handleCtaClick = async () => {
         tolerance: matchTolerance.value / 100,
         feather: matchFeather.value / 100
       })
-    } else if (engineMode.value === 'anime') {
-      await animeProcessor.processSelected({
-        ...commonOptions,
-        maskThreshold: animeThreshold.value / 100,
-        maskBlur: animeBlur.value,
-        alphaRecovery: animeRecovery.value / 100,
-        denoise: animeDenoise.value
-      })
     } else {
-      await proProcessor.processSelected({ ...commonOptions, isAnime: false })
+      await proProcessor.processSelected({
+        ...commonOptions,
+        model: engineMode.value === 'pro' ? 'isnet' : 'isnet_fp16',
+        maskThreshold: aiStrictness.value / 100,
+        maskShrink: aiOffset.value / 100,
+        maskBlur: aiSmoothness.value
+      })
     }
   }
 }
@@ -311,11 +284,10 @@ const handleResetParams = () => {
   if (engineMode.value === 'match') {
     matchTolerance.value = DEFAULT_MATCH_TOLERANCE
     matchFeather.value = DEFAULT_MATCH_FEATHER
-  } else if (engineMode.value === 'anime') {
-    animeThreshold.value = DEFAULT_ANIME_THRESHOLD
-    animeBlur.value = DEFAULT_ANIME_BLUR
-    animeRecovery.value = DEFAULT_ANIME_RECOVERY
-    animeDenoise.value = DEFAULT_ANIME_DENOISE
+  } else {
+    aiStrictness.value = DEFAULT_AI_STRICTNESS
+    aiOffset.value = DEFAULT_AI_OFFSET
+    aiSmoothness.value = DEFAULT_AI_SMOOTHNESS
   }
 }
 </script>
@@ -330,28 +302,23 @@ const handleResetParams = () => {
         <AppModal
           :show="showInitModal"
           variant="dialog"
-          :title="engineMode === 'anime' ? '二次元引擎初始化' : '通用专业版初始化'"
+          :title="engineMode === 'pro' ? '专业版全量引擎初始化' : '智能标准版初始化'"
           @close="showInitModal = false"
         >
           <div class="p-8 text-center">
-            <div
-              class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6"
-            >
+            <div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <Zap v-if="currentStatus !== 'loading'" :size="40" class="text-primary" />
               <Loader2 v-else :size="40" class="text-primary animate-spin" />
             </div>
             <h2 class="text-2xl font-black mb-3 tracking-tight text-foreground">
-              {{ engineMode === 'anime' ? '二次元引擎初始化' : '通用专业版初始化' }}
+              {{ engineMode === 'pro' ? '专业版全量引擎初始化' : '智能标准版初始化' }}
             </h2>
             <p class="text-sm text-muted-foreground font-medium leading-relaxed mb-8">
-              <template v-if="engineMode === 'anime'"
-                >需下载约
-                <span class="text-primary font-bold">176MB</span>
-                模型以获得最佳插画识别效果。</template
+              <template v-if="engineMode === 'pro'"
+                >需下载约 <span class="text-primary font-bold">176MB</span> 模型。采用完整精度算法，适合处理支架及复杂边缘。</template
               >
               <template v-else
-                >需下载约
-                <span class="text-primary font-bold">40MB</span> 模型以开启全品类识别。</template
+                >需下载约 <span class="text-primary font-bold">82MB</span> 模型。采用半精度加速算法，适合日常快速抠图。</template
               >
             </p>
             <div
@@ -361,17 +328,12 @@ const handleResetParams = () => {
               :aria-valuenow="initProgress"
               aria-valuemin="0"
               aria-valuemax="100"
-              :aria-label="`正在下载${engineMode === 'anime' ? '二次元' : '通用专业'}引擎资产`"
+              :aria-label="`正在下载${engineMode === 'pro' ? '专业' : '智能'}引擎资产`"
             >
               <div class="h-2 w-full bg-muted rounded-full overflow-hidden">
-                <div
-                  class="h-full bg-primary transition-all duration-300"
-                  :style="{ width: `${initProgress}%` }"
-                ></div>
+                <div class="h-full bg-primary transition-all duration-300" :style="{ width: `${initProgress}%` }"></div>
               </div>
-              <div
-                class="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground/60"
-              >
+              <div class="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
                 <span>正在下载...</span><span aria-hidden="true">{{ initProgress }}%</span>
               </div>
             </div>
@@ -389,28 +351,17 @@ const handleResetParams = () => {
               :loading="currentStatus === 'loading'"
               @click="handleInitialize"
             >
-              {{
-                currentStatus === 'error'
-                  ? '重试下载'
-                  : `同意并下载 (${engineMode === 'anime' ? '176MB' : '40MB'})`
-              }}
+              {{ currentStatus === 'error' ? '重试下载' : `同意并下载 (${engineMode === 'pro' ? '176MB' : '82MB'})` }}
             </AppButton>
           </div>
         </AppModal>
 
-        <div
-          v-if="store.images.length === 0"
-          class="flex flex-col items-center justify-center py-32 animate-in fade-in duration-700"
-        >
+        <div v-if="store.images.length === 0" class="flex flex-col items-center justify-center py-32 animate-in fade-in duration-700">
           <div class="bg-muted/30 p-8 rounded-full mb-6">
             <ImageMinus :size="48" class="text-muted-foreground/40" />
           </div>
-          <p class="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground/60 mb-2">
-            暂无图片
-          </p>
-          <p class="text-[11px] font-medium text-muted-foreground/40">
-            导入包含主体的图片以自动去除背景
-          </p>
+          <p class="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground/60 mb-2">暂无图片</p>
+          <p class="text-[11px] font-medium text-muted-foreground/40">导入包含主体的图片以自动去除背景</p>
         </div>
         <div
           v-else
@@ -448,15 +399,10 @@ const handleResetParams = () => {
                 class="flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 rounded-full border border-primary/20"
               >
                 <Loader2 :size="10" class="animate-spin text-primary" />
-                <span class="text-[9px] font-bold text-primary uppercase tracking-wider"
-                  >处理中</span
-                >
+                <span class="text-[9px] font-bold text-primary uppercase tracking-wider">处理中</span>
               </div>
               <button
-                v-else-if="
-                  (engineMode === 'match' && isMatchDirty) ||
-                  (engineMode === 'anime' && isAnimeDirty)
-                "
+                v-else-if="(engineMode === 'match' && isMatchDirty) || (engineMode !== 'match' && isAiDirty)"
                 @click="handleResetParams"
                 class="p-1.5 hover:bg-muted rounded-lg transition-all text-muted-foreground hover:text-primary"
                 title="重置当前模式参数"
@@ -467,29 +413,18 @@ const handleResetParams = () => {
             </transition>
           </div>
         </div>
-        <AppSegmentedControl
-          v-model="engineMode"
-          :options="engineOptions"
-          aria-label="选择背景去除引擎"
-        />
+        <AppSegmentedControl v-model="engineMode" :options="engineOptions" aria-label="选择背景去除引擎" />
         <AppTip :icon="Info">
           <span v-if="engineMode === 'match'"
-            >智能取色：采用
-            <span class="text-primary font-bold uppercase">感知取色算法</span
-            >。通过识别背景颜色自动移除，最适合纯色或渐变背景。需下载约
-            <span class="text-primary font-bold uppercase">0MB</span> 资产。</span
+            >智能取色：通过算法识别背景色自动移除，适合纯色背景。需下载约 <span class="text-primary font-bold uppercase">0MB</span> 资产。</span
           >
-          <span v-else-if="engineMode === 'anime'"
-            >二次元专用：采用
-            <span class="text-primary font-bold uppercase">ISNet-Anime</span>
-            模型。专门针对插画及动漫线条优化，边缘更锐利。需下载约
-            <span class="text-primary font-bold uppercase">176MB</span> 资产。</span
+          <span v-else-if="engineMode === 'smart'"
+            >智能标准版：采用中量级 AI 模型。适合处理日常物体，光影过渡细腻。需下载约
+            <span class="text-primary font-bold uppercase">82MB</span> 资产。</span
           >
           <span v-else
-            >通用专业模式：采用
-            <span class="text-primary font-black uppercase">AI 深度学习</span>
-            模型。全品类识别，处理光影更细腻。需下载约
-            <span class="text-primary font-black uppercase">40MB</span> 资产。</span
+            >专业全量版：采用顶级 ISNet 模型。全品类识别，支持对手办支架等干扰物进行深度剔除。需下载约
+            <span class="text-primary font-black uppercase">176MB</span> 资产。</span
           >
         </AppTip>
       </section>
@@ -504,18 +439,9 @@ const handleResetParams = () => {
                 <div class="bg-primary/5 p-1 rounded-full flex items-center justify-center">
                   <Palette :size="13" :stroke-width="2.5" class="text-primary" />
                 </div>
-                <span
-                  id="bg-color-label"
-                  class="text-[11px] font-bold text-muted-foreground leading-none"
-                  >要去除的背景色</span
-                >
+                <span id="bg-color-label" class="text-[11px] font-bold text-muted-foreground leading-none">要去除的背景色</span>
               </div>
-              <AppColorPicker
-                v-model="matchColor"
-                class="px-1"
-                :show-transparent="false"
-                aria-labelledby="bg-color-label"
-              />
+              <AppColorPicker v-model="matchColor" class="px-1" :show-transparent="false" aria-labelledby="bg-color-label" />
             </div>
             <AppSlider
               v-model="matchTolerance"
@@ -538,81 +464,54 @@ const handleResetParams = () => {
           </div>
         </section>
 
-        <section
-          v-else-if="engineMode === 'anime'"
-          class="space-y-4 pt-6 border-t border-border/40"
-        >
-          <AppSectionHeader title="二次元参数" :icon="Flower" />
+        <section v-else class="space-y-4 pt-6 border-t border-border/40">
+          <AppSectionHeader title="高级精修 (Refiner)" :icon="SlidersHorizontal" />
           <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4">
             <AppSlider
-              v-model="animeThreshold"
-              :min="-50"
-              :max="50"
-              label="边缘偏移 (Offset)"
+              v-model="aiStrictness"
+              :min="0"
+              :max="100"
+              label="判定严格度 (Strictness)"
               unit="%"
-              :default-value="DEFAULT_ANIME_THRESHOLD"
-              description="正值向内收缩剔除白边，负值向外扩张保留更多细节。"
+              :default-value="DEFAULT_AI_STRICTNESS"
+              description="提高此值可强制切断半透明的支架或残影。"
             />
             <AppSlider
-              v-model="animeBlur"
+              v-model="aiOffset"
+              :min="0"
+              :max="50"
+              label="边缘向内偏移 (Offset)"
+              unit="%"
+              :default-value="DEFAULT_AI_OFFSET"
+              description="物理收缩遮罩边缘，有效剔除粘连的细碎物体。"
+            />
+            <AppSlider
+              v-model="aiSmoothness"
               :min="0"
               :max="10"
               :step="0.5"
-              label="边缘平滑 (Blur)"
+              label="边缘平滑度 (Smooth)"
               unit="px"
-              :default-value="DEFAULT_ANIME_BLUR"
-              description="消除 AI 推理产生的阶梯状锯齿，使曲线更圆润。"
-            />
-            <AppSlider
-              v-model="animeRecovery"
-              :min="0"
-              :max="100"
-              label="线条恢复 (Recovery)"
-              unit="%"
-              :default-value="DEFAULT_ANIME_RECOVERY"
-              description="拉起极细或半透明的线条，防止线条被过度吞噬。"
-            />
-            <AppSlider
-              v-model="animeDenoise"
-              :min="0"
-              :max="5"
-              :step="1"
-              label="杂色去除 (Denoise)"
-              unit="级"
-              :default-value="DEFAULT_ANIME_DENOISE"
-              description="利用形态学降噪剔除背景残留的零星杂点。"
+              :default-value="DEFAULT_AI_SMOOTHNESS"
+              description="消除 AI 产生的阶梯状锯齿，使边缘更圆润。"
             />
           </div>
         </section>
-        <div v-else class="hidden"></div>
       </transition>
 
-      <!-- 第三分区：高级处理选项 -->
+      <!-- 第三分区：处理选项 -->
       <section v-if="engineMode !== 'match'" class="space-y-4 pt-6 border-t border-border/40">
-        <AppSectionHeader title="高级处理选项" :icon="Zap" />
+        <AppSectionHeader title="处理选项" :icon="Zap" />
         <div class="bg-muted/10 rounded-2xl p-4 border border-border/60">
           <AppCheckbox
             v-model="useHighFidelity"
-            :label="engineMode === 'anime' ? '高清强制锐化 (Super Sharp)' : '禁用预缩放 (原图推理)'"
-            :description="
-              engineMode === 'anime'
-                ? '在不牺牲性能的前提下，通过二次采样和对比度拉伸使边缘恢复至原图级锐利。'
-                : '跳过尺寸压缩，AI 直接在原始分辨率上运行。边缘最精准，但会消耗显著更多的内存。'
-            "
+            label="禁用预缩放 (原图推理)"
+            description="跳过尺寸压缩，AI 直接在原始分辨率下运行。边缘最精准，但消耗更多内存。"
           />
         </div>
       </section>
 
-      <!-- 第四分区：输出格式注意 -->
-      <section class="space-y-4 pt-6 border-t border-border/40">
-        <AppSectionHeader title="输出说明" :icon="Info" />
-        <AppTip :icon="Info">
-          去除背景操作默认必须输出为支持 Alpha 透明通道的格式。推荐使用
-          <span class="text-primary font-bold">PNG</span> 以获得最佳兼容性。
-        </AppTip>
-      </section>
-
-      <!-- 第五分区：导出设置 -->
+      <!-- 第四分区：导出设置 -->
       <section class="pt-6 border-t border-border/40">
         <AppExportSettings v-model:format="outputFormat" v-model:quality="outputQuality" />
       </section>
@@ -629,11 +528,7 @@ const handleResetParams = () => {
           @click="handleCtaClick"
         >
           <template #icon
-            ><component
-              :is="ctaState.icon"
-              v-if="!isProcessing && currentStatus !== 'loading'"
-              :size="18"
-              class="mr-2"
+            ><component :is="ctaState.icon" v-if="!isProcessing && currentStatus !== 'loading'" :size="18" class="mr-2"
           /></template>
           <span class="font-bold text-sm tracking-tight">{{ ctaState.text }}</span>
         </AppButton>
@@ -641,12 +536,7 @@ const handleResetParams = () => {
     </template>
   </WorkspaceLayout>
 
-  <AppModal
-    :show="showCompareModal"
-    title="去除背景细节对比"
-    @close="closeCompare"
-    @after-leave="handleModalLeave"
-  >
+  <AppModal :show="showCompareModal" title="去除背景细节对比" @close="closeCompare" @after-leave="handleModalLeave">
     <ImageCompare
       v-if="comparingImage"
       :original-url="comparingImage.file"
