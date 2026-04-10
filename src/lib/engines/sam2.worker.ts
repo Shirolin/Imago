@@ -57,7 +57,7 @@ async function decode(points: number[][], labels: number[]) {
   const { width, height } = currentImageSize
 
   // 缩放点到 1024x1024 (SAM2 内部坐标系)
-  const scaledPoints = points.map((p) => [p[0] * 1024, p[1] * 1024])
+  const scaledPoints = points.map((p) => [p[0]! * 1024, p[1]! * 1024])
 
   // 构造解码器输入
   const modelInputs = {
