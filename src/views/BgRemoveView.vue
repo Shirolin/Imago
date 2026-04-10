@@ -473,8 +473,8 @@ const handleResetParams = () => {
             <span class="text-primary font-bold uppercase">40MB</span> 资产。</span
           >
           <span v-else
-            >专业全量版：采用顶级 ISNet
-            模型。全品类识别，支持对手办支架等干扰物进行深度剔除。需下载约
+            >专业全量版：采用全精度 ISNet
+            模型。边缘识别更稳健，配合下方 “高级精修” 功能可大幅优化复杂背景的残留。需下载约
             <span class="text-primary font-black uppercase">176MB</span> 资产。</span
           >
         </AppTip>
