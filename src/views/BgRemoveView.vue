@@ -296,7 +296,8 @@ const handleCtaClick = async () => {
 const handleResetEngine = () => {
   localStorage.removeItem('imago-bg-v2-pro-ready')
   localStorage.removeItem('imago-bg-v2-smart-ready')
-  window.location.reload()
+  smartStatus.value = 'not_ready'
+  proStatus.value = 'not_ready'
 }
 
 const handleResetParams = () => {
