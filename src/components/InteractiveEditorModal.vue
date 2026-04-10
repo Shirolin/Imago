@@ -217,61 +217,60 @@ watch(
           </div>
         </div>
 
-        <!-- 画布渲染层：深度优化布局 -->
-        <div class="absolute inset-0 flex items-center justify-center overflow-hidden">
-          <div class="relative w-full h-full flex items-center justify-center overflow-hidden">
-            <!-- 核心交互容器：确保它紧贴图片尺寸 -->
-            <div 
-              class="relative max-w-full max-h-full cursor-crosshair shadow-[0_0_100px_rgba(0,0,0,0.8)] rounded-sm overflow-hidden"
-              @mousedown="handleCanvasClick"
+        <!-- 核心视口渲染层 (Viewport) -->
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+          <!-- 核心交互容器：严格遵循图片自然比例，杜绝溢出截断 -->
+          <div 
+            class="relative max-w-full max-h-full cursor-crosshair shadow-[0_0_100px_rgba(0,0,0,0.6)]"
+            @mousedown="handleCanvasClick"
+          >
+            <!-- 原图：使用布局约束而非固定比例 -->
+            <img
+              ref="imageRef"
+              :src="imageItem.url"
+              class="max-w-full max-h-full block select-none pointer-events-none rounded-lg"
+              alt="Base image"
+              @load="isLoading = false"
+            />
+
+            <!-- 遮罩预览层 (Blue Tint) -->
+            <img
+              v-if="maskUrl"
+              :src="maskUrl"
+              class="absolute inset-0 w-full h-full object-contain pointer-events-none mix-blend-screen opacity-75"
+              style="
+                filter: invert(33%) sepia(90%) saturate(1478%) hue-rotate(185deg) brightness(96%)
+                  contrast(101%);
+              "
+            />
+
+            <!-- 锚点层 -->
+            <div
+              v-for="(p, i) in points"
+              :key="i"
+              class="absolute w-5 h-5 -ml-2.5 -mt-2.5 rounded-full border-2 border-white shadow-xl flex items-center justify-center pointer-events-none z-10 transition-transform hover:scale-110"
+              :class="p.label === 1 ? 'bg-emerald-500' : 'bg-rose-500'"
+              :style="{ left: p.x * 100 + '%', top: p.y * 100 + '%' }"
             >
-              <!-- 原图 -->
-              <img
-                ref="imageRef"
-                :src="imageItem.url"
-                class="max-w-full max-h-full block select-none pointer-events-none"
-                alt="Base image"
-              />
-
-              <!-- 遮罩预览层 (Blue Tint) -->
-              <img
-                v-if="maskUrl"
-                :src="maskUrl"
-                class="absolute inset-0 w-full h-full object-contain pointer-events-none mix-blend-screen opacity-70"
-                style="
-                  filter: invert(33%) sepia(90%) saturate(1478%) hue-rotate(185deg) brightness(96%)
-                    contrast(101%);
-                "
-              />
-
-              <!-- 锚点层：使用计算好的归一化坐标 -->
-              <div
-                v-for="(p, i) in points"
-                :key="i"
-                class="absolute w-5 h-5 -ml-2.5 -mt-2.5 rounded-full border-2 border-white shadow-[0_0_10px_rgba(0,0,0,0.5)] flex items-center justify-center pointer-events-none z-10 transition-transform scale-100 hover:scale-110"
-                :class="p.label === 1 ? 'bg-emerald-500' : 'bg-rose-500'"
-                :style="{ left: p.x * 100 + '%', top: p.y * 100 + '%' }"
-              >
-                <PlusCircle v-if="p.label === 1" :size="12" class="text-white" />
-                <MinusCircle v-else :size="12" class="text-white" />
-              </div>
+              <PlusCircle v-if="p.label === 1" :size="12" class="text-white" />
+              <MinusCircle v-else :size="12" class="text-white" />
             </div>
           </div>
         </div>
 
-        <!-- 悬浮操作指引 -->
+        <!-- 悬浮操作指引：下沉显示，减小体积以防遮挡像素 -->
         <div
-          class="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-6 px-8 py-3.5 bg-black/60 backdrop-blur-xl rounded-full border border-white/10 text-[10px] font-bold text-white/40 pointer-events-none transition-all duration-500 group-hover:translate-y-0 translate-y-12 opacity-0 group-hover:opacity-100 uppercase tracking-widest italic"
+          class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4 px-5 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/5 text-[9px] font-bold text-white/40 pointer-events-none transition-all duration-500 group-hover:translate-y-0 translate-y-8 opacity-0 group-hover:opacity-100 uppercase tracking-widest italic"
         >
-          <div class="flex items-center gap-3">
-            <span class="text-emerald-400">Left Click</span>
-            <span class="text-white/20">/</span>
-            <span>Add Area</span>
+          <div class="flex items-center gap-2">
+            <span class="text-emerald-400">L-Click</span>
+            <span class="text-white/10">|</span>
+            <span>Add</span>
           </div>
-          <div class="flex items-center gap-3">
-            <span class="text-rose-400">Right Click</span>
-            <span class="text-white/20">/</span>
-            <span>Exclude Area</span>
+          <div class="flex items-center gap-2">
+            <span class="text-rose-400">R-Click</span>
+            <span class="text-white/10">|</span>
+            <span>Exclude</span>
           </div>
         </div>
       </div>
