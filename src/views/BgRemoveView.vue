@@ -293,7 +293,21 @@ const handleCtaClick = async () => {
   }
 }
 
-const handleResetEngine = () => {
+const handleResetEngine = async () => {
+  // 1. 物理删除：清理浏览器 Cache Storage 中的大文件资产
+  try {
+    const cacheKeys = await caches.keys()
+    for (const key of cacheKeys) {
+      if (key.includes('imgly')) {
+        await caches.delete(key)
+        console.log(`[Imago] 🗑️ Erased Cache Storage: ${key}`)
+      }
+    }
+  } catch (err) {
+    console.error('[Imago] Failed to clear Cache Storage:', err)
+  }
+
+  // 2. 标记删除：清理 LocalStorage 并更新 UI 状态
   localStorage.removeItem('imago-bg-v2-pro-ready')
   localStorage.removeItem('imago-bg-v2-smart-ready')
   smartStatus.value = 'not_ready'
