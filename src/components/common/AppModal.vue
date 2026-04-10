@@ -44,7 +44,10 @@ watch(
 )
 
 onMounted(() => {
-  if (props.show) dialogRef.value?.showModal()
+  if (props.show) {
+    dialogRef.value?.showModal()
+    contentReady.value = true
+  }
 })
 </script>
 
