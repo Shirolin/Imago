@@ -13,7 +13,7 @@ const emit = defineEmits(['close', 'apply'])
 
 // 状态管理
 const isLoading = ref(true)
-const statusMessage = ref('初始化计算引擎...')
+const statusMessage = ref('连接计算引擎...')
 const isEncoding = ref(false)
 const points = ref<{ x: number; y: number; label: number }[]>([])
 const maskUrl = ref<string | null>(null)
@@ -169,11 +169,21 @@ watch(
         <!-- 加载遮罩 -->
         <div
           v-if="isLoading || isEncoding"
-          class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm"
+          class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-xl transition-all duration-500"
         >
-          <Loader2 class="animate-spin text-primary mb-4" :size="40" />
-          <div class="text-lg font-medium text-white">{{ statusMessage }}</div>
-          <p class="text-white/40 text-sm mt-2">首次加载核心模型可能需要一点时间</p>
+          <div class="relative mb-8">
+            <Loader2 class="animate-spin text-primary" :size="48" />
+            <div class="absolute inset-0 blur-2xl bg-primary/20 animate-pulse"></div>
+          </div>
+          <div class="text-xl font-bold text-white tracking-tight mb-2">{{ statusMessage }}</div>
+          <div class="flex items-center gap-2 text-white/40 text-sm font-medium">
+            <template v-if="isLoading">
+              <span>正在建立 WebGPU 环境...</span>
+            </template>
+            <template v-else-if="isEncoding">
+              <span>正在提取图像语义特征，请稍候</span>
+            </template>
+          </div>
         </div>
 
         <!-- 画布层 -->
