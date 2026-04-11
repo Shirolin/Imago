@@ -54,7 +54,6 @@ async function decode(points: number[][], labels: number[]) {
   }
 
   // 1. 准备点坐标：将 [0, 1] 归一化坐标转换为对应 reshaped_input_size 的像素坐标
-  const [origH, origW] = lastProcessorInputs.original_sizes[0]
   const [reshapedH, reshapedW] = lastProcessorInputs.reshaped_input_sizes[0]
 
   // 将归一化的 [0, 1] 映射到 reshaped 坐标系

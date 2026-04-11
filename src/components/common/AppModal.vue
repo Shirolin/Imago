@@ -7,11 +7,13 @@ interface Props {
   title?: string
   variant?: 'full' | 'dialog' // 增加变体支持
   paneOnly?: boolean // 新增：是否移除外边距以支持全画幅展示
+  hideHeader?: boolean // 新增：是否隐藏标题栏以释放垂直空间
 }
 
 const props = withDefaults(defineProps<Props>(), {
   variant: 'full',
-  paneOnly: false
+  paneOnly: false,
+  hideHeader: false
 })
 
 const emit = defineEmits(['close', 'after-leave'])
@@ -24,6 +26,7 @@ const containerClasses = computed(() => {
   if (props.variant === 'dialog') {
     return 'w-[90vw] max-w-md h-auto my-auto mx-auto rounded-3xl shadow-2xl border border-border bg-background flex flex-col overflow-hidden'
   }
+  // 全屏模式下，如果开启 paneOnly，则去除一切内边距
   return `w-full h-full flex flex-col ${props.paneOnly ? 'p-0' : 'p-3 md:p-6'}`
 })
 
@@ -102,9 +105,10 @@ onMounted(() => {
         style="transform: translateZ(0); isolation: isolate"
       >
         <div
-          class="flex-1 flex flex-col bg-background shadow-2xl overflow-hidden relative border border-border rounded-2xl"
+          class="flex-1 flex flex-col bg-background shadow-2xl overflow-hidden relative border border-border rounded-2xl min-h-0"
         >
           <header
+            v-if="!hideHeader"
             class="h-14 flex items-center justify-between px-4 border-b border-border shrink-0 bg-card"
           >
             <div class="flex items-center gap-3">
@@ -126,7 +130,7 @@ onMounted(() => {
             </button>
           </header>
 
-          <main class="flex-1 overflow-hidden relative bg-muted/5">
+          <main class="flex-1 overflow-hidden relative bg-muted/5 flex flex-col min-h-0">
             <slot v-if="contentReady"></slot>
           </main>
 
