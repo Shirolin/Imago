@@ -7,9 +7,11 @@ if (env.backends?.onnx?.wasm) {
 }
 
 let model: Sam2Model | null = null
-let processor: any = null
+let processor: any = null // eslint-disable-line @typescript-eslint/no-explicit-any
 let imageEmbeddings: Record<string, Tensor> | null = null
-let lastProcessorInputs: any = null
+let lastProcessorInputs: any = null // eslint-disable-line @typescript-eslint/no-explicit-any
+// 上一次 decode 输出的 logit 空间遮罩，用于增量修正 (mask feedback loop)
+let prevMaskLogits: Tensor | null = null
 
 const MODEL_ID = 'onnx-community/sam2-hiera-tiny-ONNX'
 
@@ -27,7 +29,7 @@ async function loadModel() {
 
   processor = await AutoProcessor.from_pretrained(MODEL_ID)
   model = (await Sam2Model.from_pretrained(MODEL_ID, {
-    device: device as any,
+    device: device as any, // eslint-disable-line @typescript-eslint/no-explicit-any
     dtype: device === 'webgpu' ? 'fp16' : 'fp32'
   })) as Sam2Model
 
@@ -45,6 +47,9 @@ async function encode(imageBlob: Blob) {
   lastProcessorInputs = await processor(image)
   imageEmbeddings = await model.get_image_embeddings(lastProcessorInputs)
 
+  // 新图像编码时清除历史 logit 遮罩
+  prevMaskLogits = null
+
   self.postMessage({ type: 'encoded' })
 }
 
@@ -60,17 +65,26 @@ async function decode(points: number[][], labels: number[]) {
   const scaledPoints = points.map((p) => [p[0]! * reshapedW, p[1]! * reshapedH])
 
   // 构造解码器输入
-  // 当存在多点时，强制 multimask_output=false 输出单一遮罩，防止候选结果互相干扰产生空洞
-  const modelInputs = {
+  const modelInputs: Record<string, Tensor> = {
     ...imageEmbeddings,
     input_points: new Tensor('float32', scaledPoints.flat(), [1, 1, points.length, 2]),
     input_labels: new Tensor('int64', BigInt64Array.from(labels.map(BigInt)), [1, 1, labels.length])
   }
 
+  // 核心优化：Mask Logit Feedback Loop
+  // 将上一次 decode 的 logit 空间遮罩作为本次输入的 mask_input
+  // 模型会在已有结果上"增量修正"，而非每次从零重算，大幅减少内部空洞
+  if (prevMaskLogits) {
+    modelInputs.mask_input = prevMaskLogits
+    modelInputs.has_mask_input = new Tensor('float32', [1], [1])
+  } else {
+    modelInputs.has_mask_input = new Tensor('float32', [0], [1])
+  }
+
   // 执行解码
   const outputs = await model.forward(modelInputs)
 
-  // 默认使用第一张，如果有 iou_scores 则取置信度最高的那层遮罩 (防止多点交互时遮罩坍缩)
+  // 取置信度最高的遮罩索引 (防止多点交互时遮罩坍缩)
   let bestIndex = 0
   if (outputs.iou_scores) {
     const scores = outputs.iou_scores.data
@@ -81,6 +95,16 @@ async function decode(points: number[][], labels: number[]) {
         bestIndex = i
       }
     }
+  }
+
+  // 存储本次 decode 的最优 logit 遮罩供下次迭代使用
+  // pred_masks 形状: [1, num_masks, 256, 256]
+  if (outputs.pred_masks && outputs.pred_masks.dims.length === 4) {
+    const [b, , h, w] = outputs.pred_masks.dims
+    const stride = h * w
+    const start = bestIndex * stride
+    const logitSlice = (outputs.pred_masks.data as Float32Array).slice(start, start + stride)
+    prevMaskLogits = new Tensor('float32', logitSlice, [b, 1, h, w])
   }
 
   // 2. 后处理：将遮罩还原回原始尺寸和宽高比
@@ -130,6 +154,10 @@ self.onmessage = async (event: MessageEvent) => {
         break
       case 'decode':
         await decode(data.points, data.labels)
+        break
+      case 'reset':
+        // 用户清空标注点时，同步清除历史 logit 遮罩
+        prevMaskLogits = null
         break
     }
   } catch (error) {

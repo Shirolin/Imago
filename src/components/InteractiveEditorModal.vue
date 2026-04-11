@@ -193,6 +193,8 @@ const resetPoints = () => {
     historyFuture.value = []
   }
   points.value = []
+  // 通知 Worker 同步清除历史 logit，下次点击将从零开始推理
+  worker?.postMessage({ type: 'reset' })
   clearMask()
 }
 
