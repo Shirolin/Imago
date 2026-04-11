@@ -60,6 +60,7 @@ async function decode(points: number[][], labels: number[]) {
   const scaledPoints = points.map((p) => [p[0]! * reshapedW, p[1]! * reshapedH])
 
   // 构造解码器输入
+  // 当存在多点时，强制 multimask_output=false 输出单一遮罩，防止候选结果互相干扰产生空洞
   const modelInputs = {
     ...imageEmbeddings,
     input_points: new Tensor('float32', scaledPoints.flat(), [1, 1, points.length, 2]),
@@ -69,6 +70,19 @@ async function decode(points: number[][], labels: number[]) {
   // 执行解码
   const outputs = await model.forward(modelInputs)
 
+  // 默认使用第一张，如果有 iou_scores 则取置信度最高的那层遮罩 (防止多点交互时遮罩坍缩)
+  let bestIndex = 0
+  if (outputs.iou_scores) {
+    const scores = outputs.iou_scores.data
+    let maxScore = -Infinity
+    for (let i = 0; i < scores.length; ++i) {
+      if (scores[i] > maxScore) {
+        maxScore = scores[i]
+        bestIndex = i
+      }
+    }
+  }
+
   // 2. 后处理：将遮罩还原回原始尺寸和宽高比
   const postProcessedMasks = await processor.post_process_masks(
     outputs.pred_masks,
@@ -76,7 +90,7 @@ async function decode(points: number[][], labels: number[]) {
     lastProcessorInputs.reshaped_input_sizes
   )
 
-  const maskTensor = postProcessedMasks[0][0][0] // [origH, origW]
+  const maskTensor = postProcessedMasks[0][0][bestIndex] // [origH, origW]
   const dims = maskTensor.dims
   const maskW = dims[1]
   const maskH = dims[0]

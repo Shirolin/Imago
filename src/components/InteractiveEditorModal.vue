@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useResizeObserver, useEventListener } from '@vueuse/core'
 import AppModal from './common/AppModal.vue'
 import AppButton from './common/AppButton.vue'
+import { MinusCircle, PlusCircle, RotateCcw, Check, Loader2, Undo2, Redo2 } from 'lucide-vue-next'
 
 const props = defineProps<{
   show: boolean
@@ -19,6 +20,11 @@ const points = ref<{ x: number; y: number; label: number }[]>([])
 const maskUrl = ref<string | null>(null)
 const imageRef = ref<HTMLImageElement | null>(null)
 const viewportRef = ref<HTMLElement | null>(null)
+
+// 历史记录栈用于撤销/重做
+type Point = { x: number; y: number; label: number }
+const historyPast = ref<Point[][]>([])
+const historyFuture = ref<Point[][]>([])
 
 // 实时计算图片的物理显示矩形 (Display Rect)
 const displayRect = ref({ width: 0, height: 0, left: 0, top: 0 })
@@ -59,6 +65,22 @@ const updateDisplayRect = () => {
 // 监听尺寸变化
 useResizeObserver(viewportRef, updateDisplayRect)
 useEventListener(window, 'resize', updateDisplayRect)
+
+// 快捷键监听
+useEventListener(window, 'keydown', (e: KeyboardEvent) => {
+  if (!props.show || isLoading.value || isEncoding.value) return
+  if (e.ctrlKey && e.key.toLowerCase() === 'z') {
+    e.preventDefault()
+    if (e.shiftKey) {
+      redo()
+    } else {
+      undo()
+    }
+  } else if (e.ctrlKey && e.key.toLowerCase() === 'y') {
+    e.preventDefault()
+    redo()
+  }
+})
 
 // Worker 引用
 let worker: Worker | null = null
@@ -121,6 +143,10 @@ const handleCanvasClick = (e: MouseEvent) => {
   // 边界检查
   if (x < 0 || x > 1 || y < 0 || y > 1) return
 
+  // 保存历史记录
+  historyPast.value.push([...points.value])
+  historyFuture.value = []
+
   // 左键正向(1)，右键负向(0)
   const label = e.button === 2 ? 0 : 1
 
@@ -138,10 +164,36 @@ const triggerDecode = () => {
   })
 }
 
-const resetPoints = () => {
-  points.value = []
+const undo = () => {
+  if (!historyPast.value.length || isLoading.value || isEncoding.value) return
+  historyFuture.value.push([...points.value])
+  points.value = historyPast.value.pop()!
+  if (points.value.length > 0) {
+    triggerDecode()
+  } else {
+    clearMask()
+  }
+}
+
+const redo = () => {
+  if (!historyFuture.value.length || isLoading.value || isEncoding.value) return
+  historyPast.value.push([...points.value])
+  points.value = historyFuture.value.pop()!
+  triggerDecode()
+}
+
+const clearMask = () => {
   if (maskUrl.value) URL.revokeObjectURL(maskUrl.value)
   maskUrl.value = null
+}
+
+const resetPoints = () => {
+  if (points.value.length > 0) {
+    historyPast.value.push([...points.value])
+    historyFuture.value = []
+  }
+  points.value = []
+  clearMask()
 }
 
 const handleApply = async () => {
@@ -164,10 +216,14 @@ watch(
   () => props.show,
   (newVal) => {
     if (newVal) {
-      resetPoints()
+      // 打开时彻底清空记录
+      historyPast.value = []
+      historyFuture.value = []
+      points.value = []
+      clearMask()
       initWorker()
     } else {
-      // 退出时也可以选择在此处做进一步清理
+      // 退出清理
     }
   }
 )
@@ -189,9 +245,31 @@ watch(
             v-if="points.length > 0"
             class="text-xs text-white/40 hover:text-white transition-colors"
             @click="resetPoints"
+            title="清空"
           >
             清空所有标注
           </button>
+
+          <div class="h-4 w-px bg-white/10 mx-2"></div>
+
+          <div class="flex items-center gap-1.5">
+            <button
+              class="p-1.5 rounded-md text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-white/40 transition-colors"
+              title="撤销 (Ctrl+Z)"
+              :disabled="!historyPast.length"
+              @click="undo"
+            >
+              <Undo2 :size="16" />
+            </button>
+            <button
+              class="p-1.5 rounded-md text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-white/40 transition-colors"
+              title="重做 (Ctrl+Y)"
+              :disabled="!historyFuture.length"
+              @click="redo"
+            >
+              <Redo2 :size="16" />
+            </button>
+          </div>
         </div>
         <div class="flex items-center gap-2">
           <AppButton variant="ghost" size="sm" @click="emit('close')">取消</AppButton>
