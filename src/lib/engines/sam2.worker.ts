@@ -124,14 +124,20 @@ async function decode(points: number[][], labels: number[]) {
   const ctx = canvas.getContext('2d')!
   const imageData = ctx.createImageData(maskW, maskH)
 
-  const data = maskTensor.data as Uint8Array
-  for (let i = 0; i < data.length; ++i) {
-    const val = data[i]! > 0 ? 255 : 0
+  // 提取原始 alpha 通道（二值化），进行形态学填洞后再渲染
+  const rawAlpha = new Uint8Array(maskW * maskH)
+  const rawData = maskTensor.data as Uint8Array
+  for (let i = 0; i < rawData.length; ++i) {
+    rawAlpha[i] = rawData[i]! > 0 ? 255 : 0
+  }
+  const filledAlpha = fillHoles(rawAlpha, maskW, maskH)
+
+  for (let i = 0; i < filledAlpha.length; ++i) {
     const j = i * 4
     imageData.data[j] = 255 // R
     imageData.data[j + 1] = 255 // G
     imageData.data[j + 2] = 255 // B
-    imageData.data[j + 3] = val // A
+    imageData.data[j + 3] = filledAlpha[i]! // A（已填洞）
   }
 
   ctx.putImageData(imageData, 0, 0)
@@ -139,6 +145,71 @@ async function decode(points: number[][], labels: number[]) {
   const maskUrl = URL.createObjectURL(maskBlob)
 
   self.postMessage({ type: 'mask', maskUrl })
+}
+
+/**
+ * 形态学填洞：从图像边界发起 BFS，标记所有与边界连通的背景像素（真实背景）。
+ * 所有未被标记的黑色像素即为遮罩内部的孤立空洞，将其填充为白色。
+ */
+function fillHoles(alphaData: Uint8Array, width: number, height: number): Uint8Array {
+  const n = width * height
+  const visited = new Uint8Array(n)
+  const queue: number[] = []
+
+  // 从四边边界的背景像素出发
+  for (let x = 0; x < width; x++) {
+    const top = x
+    const bot = (height - 1) * width + x
+    if (alphaData[top] === 0 && !visited[top]) {
+      visited[top] = 1
+      queue.push(top)
+    }
+    if (alphaData[bot] === 0 && !visited[bot]) {
+      visited[bot] = 1
+      queue.push(bot)
+    }
+  }
+  for (let y = 1; y < height - 1; y++) {
+    const left = y * width
+    const right = y * width + (width - 1)
+    if (alphaData[left] === 0 && !visited[left]) {
+      visited[left] = 1
+      queue.push(left)
+    }
+    if (alphaData[right] === 0 && !visited[right]) {
+      visited[right] = 1
+      queue.push(right)
+    }
+  }
+
+  // BFS 扩散
+  let head = 0
+  while (head < queue.length) {
+    const idx = queue[head++]!
+    const cx = idx % width
+    const cy = Math.floor(idx / width)
+    const neighbors = [
+      cy > 0 ? idx - width : -1,
+      cy < height - 1 ? idx + width : -1,
+      cx > 0 ? idx - 1 : -1,
+      cx < width - 1 ? idx + 1 : -1
+    ]
+    for (const ni of neighbors) {
+      if (ni >= 0 && !visited[ni] && alphaData[ni] === 0) {
+        visited[ni] = 1
+        queue.push(ni)
+      }
+    }
+  }
+
+  // 将未被边界连通的黑色像素（内部空洞）填充为白色
+  const result = new Uint8Array(alphaData)
+  for (let i = 0; i < n; i++) {
+    if (result[i] === 0 && !visited[i]) {
+      result[i] = 255
+    }
+  }
+  return result
 }
 
 self.onmessage = async (event: MessageEvent) => {

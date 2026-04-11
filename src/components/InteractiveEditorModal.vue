@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useResizeObserver, useEventListener } from '@vueuse/core'
 import AppModal from './common/AppModal.vue'
 import AppButton from './common/AppButton.vue'
-import { MinusCircle, PlusCircle, RotateCcw, Check, Loader2, Undo2, Redo2 } from 'lucide-vue-next'
+import { Undo2, Redo2 } from 'lucide-vue-next'
 
 const props = defineProps<{
   show: boolean
