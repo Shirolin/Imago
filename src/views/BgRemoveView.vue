@@ -152,22 +152,75 @@ const handleConfirmDownload = () => {
   }, 300)
 }
 
-const handleInteractiveApply = (maskBlob: Blob) => {
+const handleInteractiveApply = async (maskBlob: Blob) => {
   if (!activeInteractiveImage.value) return
 
-  // 更新图片状态：标记为已处理，并更新预览
   const id = activeInteractiveImage.value.id
+  const originalUrl = activeInteractiveImage.value.preview
 
+  // === 遮罩合成：将 SAM2 遮罩叠加到原图，生成透明背景抠图 ===
+  const [origImg, maskImg] = await Promise.all([
+    // 加载原图
+    new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => resolve(img)
+      img.onerror = reject
+      img.crossOrigin = 'anonymous'
+      img.src = originalUrl
+    }),
+    // 加载遮罩（白色=前景，黑色=背景）
+    new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => resolve(img)
+      img.onerror = reject
+      img.src = URL.createObjectURL(maskBlob)
+    })
+  ])
+
+  const canvas = document.createElement('canvas')
+  canvas.width = origImg.naturalWidth
+  canvas.height = origImg.naturalHeight
+  const ctx = canvas.getContext('2d')!
+
+  // 1. 绘制原图
+  ctx.drawImage(origImg, 0, 0)
+
+  // 2. 读取原图像素，并以遮罩的 R 通道作为 Alpha 通道写回
+  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+
+  // 在临时 Canvas 上读取遮罩的灰度值
+  const maskCanvas = document.createElement('canvas')
+  maskCanvas.width = canvas.width
+  maskCanvas.height = canvas.height
+  const maskCtx = maskCanvas.getContext('2d')!
+  maskCtx.drawImage(maskImg, 0, 0, canvas.width, canvas.height)
+  const maskData = maskCtx.getImageData(0, 0, canvas.width, canvas.height)
+
+  // 3. 遮罩的 R 通道即为 Alpha（白色=255=完全保留，黑色=0=完全透明）
+  for (let i = 0; i < imgData.data.length; i += 4) {
+    imgData.data[i + 3] = maskData.data[i]! // R 通道即是灰度值
+  }
+  ctx.putImageData(imgData, 0, 0)
+
+  // 4. 导出为 PNG（保留透明通道）
+  const resultBlob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob)
+      else reject(new Error('Canvas toBlob failed'))
+    }, 'image/png')
+  })
+
+  // 5. 更新图片状态
   if (activeInteractiveImage.value.processedPreview) {
     URL.revokeObjectURL(activeInteractiveImage.value.processedPreview)
   }
 
-  const preview = URL.createObjectURL(maskBlob)
+  const preview = URL.createObjectURL(resultBlob)
   store.updateImage(id, {
     status: 'done',
-    processedBlob: maskBlob,
+    processedBlob: resultBlob,
     processedPreview: preview,
-    processedSize: maskBlob.size,
+    processedSize: resultBlob.size,
     isDirty: false
   })
 

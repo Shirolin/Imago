@@ -10,7 +10,7 @@ let model: Sam2Model | null = null
 let processor: any = null // eslint-disable-line @typescript-eslint/no-explicit-any
 let imageEmbeddings: Record<string, Tensor> | null = null
 let lastProcessorInputs: any = null // eslint-disable-line @typescript-eslint/no-explicit-any
-// 上一次 decode 输出的 logit 空间遮罩，用于增量修正 (mask feedback loop)
+// 上一次 decode 输出的低分辨率 logit 空间遮罩，用于增量修正 (mask feedback loop)
 let prevMaskLogits: Tensor | null = null
 
 const MODEL_ID = 'onnx-community/sam2-hiera-tiny-ONNX'
@@ -58,33 +58,34 @@ async function decode(points: number[][], labels: number[]) {
     throw new Error('请先执行 Encoder 编码')
   }
 
-  // 1. 准备点坐标：将 [0, 1] 归一化坐标转换为对应 reshaped_input_size 的像素坐标
-  const [reshapedH, reshapedW] = lastProcessorInputs.reshaped_input_sizes[0]
+  // 1. 坐标映射 (遵循 Plan 3.1)
+  const reshapedSize =
+    lastProcessorInputs.reshaped_input_sizes.data || lastProcessorInputs.reshaped_input_sizes[0]
+  const reshapedH = reshapedSize[0]
+  const reshapedW = reshapedSize[1]
 
-  // 将归一化的 [0, 1] 映射到 reshaped 坐标系
-  const scaledPoints = points.map((p) => [p[0]! * reshapedW, p[1]! * reshapedH])
+  // 映射到 reshaped 空间并增加 0.5 像素偏移
+  const scaledPoints = points.map((p) => [p[0]! * reshapedW + 0.5, p[1]! * reshapedH + 0.5])
 
-  // 构造解码器输入
+  // 构造解码器输入 - 采用 Rank 4 [batch, 1, N, 2]
   const modelInputs: Record<string, Tensor> = {
     ...imageEmbeddings,
     input_points: new Tensor('float32', scaledPoints.flat(), [1, 1, points.length, 2]),
-    input_labels: new Tensor('int64', BigInt64Array.from(labels.map(BigInt)), [1, 1, labels.length])
+    input_labels: new Tensor('int64', BigInt64Array.from(labels.map(BigInt)), [
+      1,
+      1,
+      labels.length
+    ]),
+    // 提供 mask_input 记忆
+    mask_input:
+      prevMaskLogits || new Tensor('float32', new Float32Array(256 * 256), [1, 1, 256, 256]),
+    has_mask_input: new Tensor('float32', [prevMaskLogits ? 1 : 0], [1]),
+    multimask_output: new Tensor('bool', [true], [1])
   }
 
-  // 核心优化：Mask Logit Feedback Loop
-  // 将上一次 decode 的 logit 空间遮罩作为本次输入的 mask_input
-  // 模型会在已有结果上"增量修正"，而非每次从零重算，大幅减少内部空洞
-  if (prevMaskLogits) {
-    modelInputs.mask_input = prevMaskLogits
-    modelInputs.has_mask_input = new Tensor('float32', [1], [1])
-  } else {
-    modelInputs.has_mask_input = new Tensor('float32', [0], [1])
-  }
-
-  // 执行解码
   const outputs = await model.forward(modelInputs)
 
-  // 取置信度最高的遮罩索引 (防止多点交互时遮罩坍缩)
+  // 选取最佳索引
   let bestIndex = 0
   if (outputs.iou_scores) {
     const scores = outputs.iou_scores.data
@@ -97,47 +98,68 @@ async function decode(points: number[][], labels: number[]) {
     }
   }
 
-  // 存储本次 decode 的最优 logit 遮罩供下次迭代使用
-  // pred_masks 形状: [1, num_masks, 256, 256]
+  // 更新 Feedback 遮罩 (256x256)
   if (outputs.pred_masks && outputs.pred_masks.dims.length === 4) {
-    const [b, , h, w] = outputs.pred_masks.dims
+    const dims = outputs.pred_masks.dims
+    const h = dims[2]!
+    const w = dims[3]!
     const stride = h * w
     const start = bestIndex * stride
     const logitSlice = (outputs.pred_masks.data as Float32Array).slice(start, start + stride)
-    prevMaskLogits = new Tensor('float32', logitSlice, [b, 1, h, w])
+    prevMaskLogits = new Tensor('float32', logitSlice, [1, 1, h, w])
   }
 
-  // 2. 后处理：将遮罩还原回原始尺寸和宽高比
+  // 2. 后处理与 Alpha 渲染 (遵循 Plan 3.2)
   const postProcessedMasks = await processor.post_process_masks(
     outputs.pred_masks,
     lastProcessorInputs.original_sizes,
     lastProcessorInputs.reshaped_input_sizes
   )
 
-  const maskTensor = postProcessedMasks[0][0][bestIndex] // [origH, origW]
-  const dims = maskTensor.dims
-  const maskW = dims[1]
-  const maskH = dims[0]
+  const fullMaskBatch = postProcessedMasks[0]
+  const dims = fullMaskBatch.dims
+  const maskW = dims[dims.length - 1]
+  const maskH = dims[dims.length - 2]
+  const allLogits = fullMaskBatch.data as Float32Array
+  const stride = maskH * maskW
+  const bestLogits = allLogits.slice(bestIndex * stride, (bestIndex + 1) * stride)
 
-  // 渲染到画布
   const canvas = new OffscreenCanvas(maskW, maskH)
   const ctx = canvas.getContext('2d')!
   const imageData = ctx.createImageData(maskW, maskH)
 
-  // 提取原始 alpha 通道（二值化），进行形态学填洞后再渲染
-  const rawAlpha = new Uint8Array(maskW * maskH)
-  const rawData = maskTensor.data as Uint8Array
-  for (let i = 0; i < rawData.length; ++i) {
-    rawAlpha[i] = rawData[i]! > 0 ? 255 : 0
+  // A. 二值化用于填洞判定 (严格使用 0.0 作为前景阈值)
+  const binaryAlpha = new Uint8Array(maskW * maskH)
+  for (let i = 0; i < bestLogits.length; ++i) {
+    binaryAlpha[i] = bestLogits[i]! > 0.0 ? 255 : 0
   }
-  const filledAlpha = fillHoles(rawAlpha, maskW, maskH)
 
-  for (let i = 0; i < filledAlpha.length; ++i) {
+  // B. 鲁棒填洞算法 (消除噪点)
+  const filledBinary = fillHoles(binaryAlpha, maskW, maskH)
+
+  // C. Sigmoid 渲染
+  for (let i = 0; i < bestLogits.length; ++i) {
     const j = i * 4
-    imageData.data[j] = 255 // R
-    imageData.data[j + 1] = 255 // G
-    imageData.data[j + 2] = 255 // B
-    imageData.data[j + 3] = filledAlpha[i]! // A（已填洞）
+    const logit = bestLogits[i]!
+
+    // ⚠️ 核心修复：彻底解决背景蓝色遮罩问题
+    // 只有 logit > 0 (模型认定的前景) 或填洞补全区域才显示透明度
+    // 否则强制 Alpha 为 0。
+    let finalAlpha = 0
+
+    if (logit > 0.0) {
+      // 前景：使用 Sigmoid 平滑 Alpha 实现抗锯齿
+      const alpha = 1 / (1 + Math.exp(-logit))
+      finalAlpha = Math.round(alpha * 255)
+    } else if (filledBinary[i] === 255) {
+      // 内部空洞：强制实心显示，解决“空洞小点”
+      finalAlpha = 255
+    }
+
+    imageData.data[j] = 255
+    imageData.data[j + 1] = 255
+    imageData.data[j + 2] = 255
+    imageData.data[j + 3] = finalAlpha
   }
 
   ctx.putImageData(imageData, 0, 0)
@@ -148,64 +170,52 @@ async function decode(points: number[][], labels: number[]) {
 }
 
 /**
- * 形态学填洞：从图像边界发起 BFS，标记所有与边界连通的背景像素（真实背景）。
- * 所有未被标记的黑色像素即为遮罩内部的孤立空洞，将其填充为白色。
+ * 标准形态学填洞算法 (BFS)
  */
 function fillHoles(alphaData: Uint8Array, width: number, height: number): Uint8Array {
   const n = width * height
   const visited = new Uint8Array(n)
   const queue: number[] = []
 
-  // 从四边边界的背景像素出发
+  // 从四边边界发起 BFS，寻找所有连通背景
   for (let x = 0; x < width; x++) {
-    const top = x
-    const bot = (height - 1) * width + x
-    if (alphaData[top] === 0 && !visited[top]) {
-      visited[top] = 1
-      queue.push(top)
-    }
-    if (alphaData[bot] === 0 && !visited[bot]) {
-      visited[bot] = 1
-      queue.push(bot)
+    const borders = [x, (height - 1) * width + x]
+    for (const b of borders) {
+      if (alphaData[b] === 0 && !visited[b]) {
+        visited[b] = 1
+        queue.push(b)
+      }
     }
   }
   for (let y = 1; y < height - 1; y++) {
-    const left = y * width
-    const right = y * width + (width - 1)
-    if (alphaData[left] === 0 && !visited[left]) {
-      visited[left] = 1
-      queue.push(left)
-    }
-    if (alphaData[right] === 0 && !visited[right]) {
-      visited[right] = 1
-      queue.push(right)
-    }
-  }
-
-  // BFS 扩散
-  let head = 0
-  while (head < queue.length) {
-    const idx = queue[head++]!
-    const cx = idx % width
-    const cy = Math.floor(idx / width)
-    const neighbors = [
-      cy > 0 ? idx - width : -1,
-      cy < height - 1 ? idx + width : -1,
-      cx > 0 ? idx - 1 : -1,
-      cx < width - 1 ? idx + 1 : -1
-    ]
-    for (const ni of neighbors) {
-      if (ni >= 0 && !visited[ni] && alphaData[ni] === 0) {
-        visited[ni] = 1
-        queue.push(ni)
+    const borders = [y * width, y * width + (width - 1)]
+    for (const b of borders) {
+      if (alphaData[b] === 0 && !visited[b]) {
+        visited[b] = 1
+        queue.push(b)
       }
     }
   }
 
-  // 将未被边界连通的黑色像素（内部空洞）填充为白色
+  let head = 0
+  while (head < queue.length) {
+    const idx = queue[head++]!
+    const cx = idx % width,
+      cy = Math.floor(idx / width)
+    const neighbors = [idx - width, idx + width, idx - 1, idx + 1]
+    const valid = [cy > 0, cy < height - 1, cx > 0, cx < width - 1]
+    for (let i = 0; i < 4; i++) {
+      if (valid[i] && !visited[neighbors[i]!] && alphaData[neighbors[i]!] === 0) {
+        visited[neighbors[i]!] = 1
+        queue.push(neighbors[i]!)
+      }
+    }
+  }
+
+  // 所有未被 BFS 触及且 alpha 为 0 的区域即为孤立空洞
   const result = new Uint8Array(alphaData)
   for (let i = 0; i < n; i++) {
-    if (result[i] === 0 && !visited[i]) {
+    if (alphaData[i] === 0 && !visited[i]) {
       result[i] = 255
     }
   }
@@ -214,7 +224,6 @@ function fillHoles(alphaData: Uint8Array, width: number, height: number): Uint8A
 
 self.onmessage = async (event: MessageEvent) => {
   const { type, data, requestId } = event.data
-
   try {
     switch (type) {
       case 'load':
@@ -227,12 +236,11 @@ self.onmessage = async (event: MessageEvent) => {
         await decode(data.points, data.labels)
         break
       case 'reset':
-        // 用户清空标注点时，同步清除历史 logit 遮罩
         prevMaskLogits = null
         break
     }
   } catch (error) {
-    const err = error as Error
-    self.postMessage({ type: 'error', message: err.message, requestId })
+    console.error('[SAM2 Worker Error]', error)
+    self.postMessage({ type: 'error', message: (error as Error).message, requestId })
   }
 }

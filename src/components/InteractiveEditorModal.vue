@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useResizeObserver, useEventListener } from '@vueuse/core'
 import AppModal from './common/AppModal.vue'
 import AppButton from './common/AppButton.vue'
-import { Undo2, Redo2 } from 'lucide-vue-next'
+import { Undo2, Redo2, ZoomIn, ZoomOut, Maximize } from 'lucide-vue-next'
 
 const props = defineProps<{
   show: boolean
@@ -26,49 +26,68 @@ type Point = { x: number; y: number; label: number }
 const historyPast = ref<Point[][]>([])
 const historyFuture = ref<Point[][]>([])
 
-// 实时计算图片的物理显示矩形 (Display Rect)
-const displayRect = ref({ width: 0, height: 0, left: 0, top: 0 })
+// --- 平移逻辑 (Pan Logic) ---
+const isSpacePressed = ref(false)
+const isPanning = ref(false)
+const panStart = ref({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0 })
 
-const updateDisplayRect = () => {
-  if (!imageRef.value || !viewportRef.value) return
-
-  const img = imageRef.value
-  const viewport = viewportRef.value
-  const vw = viewport.clientWidth
-  const vh = viewport.clientHeight
-  const nw = img.naturalWidth
-  const nh = img.naturalHeight
-
-  if (!nw || !nh) return
-
-  const imageAspect = nw / nh
-  const viewportAspect = vw / vh
-
-  let dw, dh
-
-  if (viewportAspect > imageAspect) {
-    dh = vh
-    dw = vh * imageAspect
-  } else {
-    dw = vw
-    dh = vw / imageAspect
-  }
-
-  displayRect.value = {
-    width: dw,
-    height: dh,
-    left: (vw - dw) / 2,
-    top: (vh - dh) / 2
+const handlePointerDown = (e: PointerEvent) => {
+  if (isSpacePressed.value) {
+    const container = document.getElementById('sam2-zoom-container')
+    if (!container) return
+    isPanning.value = true
+    panStart.value = {
+      x: e.clientX,
+      y: e.clientY,
+      scrollLeft: container.scrollLeft,
+      scrollTop: container.scrollTop
+    }
+    // 防止触发图片选择等
+    container.setPointerCapture(e.pointerId)
   }
 }
 
+const handlePointerMove = (e: PointerEvent) => {
+  if (isPanning.value) {
+    const container = document.getElementById('sam2-zoom-container')
+    if (!container) return
+    const dx = e.clientX - panStart.value.x
+    const dy = e.clientY - panStart.value.y
+    container.scrollLeft = panStart.value.scrollLeft - dx
+    container.scrollTop = panStart.value.scrollTop - dy
+  }
+}
+
+const handlePointerUp = (e: PointerEvent) => {
+  if (isPanning.value) {
+    isPanning.value = false
+    const container = document.getElementById('sam2-zoom-container')
+    container?.releasePointerCapture(e.pointerId)
+  }
+}
+
+// 实时计算图片的物理显示矩形 (Display Rect)
+const displayRect = ref({ width: 0, height: 0, left: 0, top: 0 })
+
 // 监听尺寸变化
-useResizeObserver(viewportRef, updateDisplayRect)
-useEventListener(window, 'resize', updateDisplayRect)
+useResizeObserver(viewportRef, () => updateDisplayRect())
+useEventListener(window, 'resize', () => updateDisplayRect())
 
 // 快捷键监听
 useEventListener(window, 'keydown', (e: KeyboardEvent) => {
-  if (!props.show || isLoading.value || isEncoding.value) return
+  if (!props.show) return
+
+  // 拦截空格键用于平移模式
+  if (e.code === 'Space') {
+    if (!isSpacePressed.value) isSpacePressed.value = true
+    // 防止页面滚动
+    if ((e.target as HTMLElement).tagName !== 'INPUT') {
+      e.preventDefault()
+    }
+    return
+  }
+
+  if (isLoading.value || isEncoding.value) return
   if (e.ctrlKey && e.key.toLowerCase() === 'z') {
     e.preventDefault()
     if (e.shiftKey) {
@@ -82,11 +101,27 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
   }
 })
 
+useEventListener(window, 'keyup', (e: KeyboardEvent) => {
+  if (e.code === 'Space') {
+    isSpacePressed.value = false
+    isPanning.value = false
+  }
+})
+
 // Worker 引用
 let worker: Worker | null = null
 
 // 初始化 Worker
 const initWorker = () => {
+  // 滚动至中心
+  nextTick(() => {
+    const container = document.getElementById('sam2-zoom-container')
+    if (container) {
+      container.scrollLeft = (container.scrollWidth - container.clientWidth) / 2
+      container.scrollTop = (container.scrollHeight - container.clientHeight) / 2
+    }
+  })
+
   import('../lib/engines/sam2.worker?worker').then((WorkerModule) => {
     worker = new WorkerModule.default()
 
@@ -132,7 +167,7 @@ const startEncoding = () => {
 
 // 交互逻辑：精确计算相对于图片像素的归一化坐标
 const handleCanvasClick = (e: MouseEvent) => {
-  if (isLoading.value || isEncoding.value) return
+  if (isLoading.value || isEncoding.value || isSpacePressed.value) return
 
   const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
 
@@ -196,6 +231,86 @@ const resetPoints = () => {
   // 通知 Worker 同步清除历史 logit，下次点击将从零开始推理
   worker?.postMessage({ type: 'reset' })
   clearMask()
+}
+
+// --- 缩放逻辑 (Zoom Logic) ---
+const zoom = ref(1) // 这里的 1 代表 100% 原生尺寸
+const initialZoom = ref(1) // 存储“最佳贴合”时的缩放倍率
+
+const updateDisplayRect = () => {
+  if (!imageRef.value || !viewportRef.value) return
+
+  const img = imageRef.value
+  const viewport = viewportRef.value
+  const vw = viewport.clientWidth - 64 // 预留 padding 空间
+  const vh = viewport.clientHeight - 64
+  const nw = img.naturalWidth
+  const nh = img.naturalHeight
+
+  if (!nw || !nh) return
+
+  // 计算“最佳贴合窗口”的缩放倍率
+  const fitZoom = Math.min(vw / nw, vh / nh, 1) // 不自动放大过小的图，最大贴合倍率为 1
+  initialZoom.value = fitZoom
+
+  // 如果是第一次加载或重置，应用最佳贴合
+  if (zoom.value === 1 && !historyPast.value.length) {
+    zoom.value = fitZoom
+  }
+
+  displayRect.value = {
+    width: nw,
+    height: nh,
+    left: 0,
+    top: 0
+  }
+}
+
+const handleWheel = (e: WheelEvent) => {
+  if (e.ctrlKey || e.metaKey) {
+    e.preventDefault()
+    const zoomContainer = document.getElementById('sam2-zoom-container')
+    if (!zoomContainer) return
+
+    const rect = zoomContainer.getBoundingClientRect()
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
+    const scrollX = zoomContainer.scrollLeft + mouseX
+    const scrollY = zoomContainer.scrollTop + mouseY
+
+    // 缩放步进：更细腻的滚轮反馈
+    const delta = e.deltaY > 0 ? 0.9 : 1.1
+    let newZoom = zoom.value * delta
+    newZoom = Math.max(0.05, Math.min(newZoom, 10))
+
+    if (newZoom === zoom.value) return
+
+    const scaleRatio = newZoom / zoom.value
+    zoom.value = newZoom
+
+    nextTick(() => {
+      zoomContainer.scrollLeft = scrollX * scaleRatio - mouseX
+      zoomContainer.scrollTop = scrollY * scaleRatio - mouseY
+    })
+  }
+}
+
+const zoomIn = () => {
+  zoom.value = Math.min(zoom.value * 1.2, 10)
+}
+
+const zoomOut = () => {
+  zoom.value = Math.max(zoom.value * 0.8, 0.05)
+}
+
+// 对应名词：1:1
+const setOneToOne = () => {
+  zoom.value = 1
+}
+
+// 对应名词：最佳贴合窗口
+const setFitToWindow = () => {
+  zoom.value = initialZoom.value
 }
 
 const handleApply = async () => {
@@ -272,6 +387,53 @@ watch(
               <Redo2 :size="16" />
             </button>
           </div>
+
+          <div class="h-4 w-px bg-white/10 mx-2"></div>
+
+          <div class="flex items-center gap-1.5">
+            <button
+              class="p-1.5 rounded-md text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+              title="缩小"
+              @click="zoomOut"
+            >
+              <ZoomOut :size="16" />
+            </button>
+            <span class="text-[11px] font-mono text-white/60 w-12 text-center select-none"
+              >{{ Math.round(zoom * 100) }}%</span
+            >
+            <button
+              class="p-1.5 rounded-md text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+              title="放大"
+              @click="zoomIn"
+            >
+              <ZoomIn :size="16" />
+            </button>
+            <div class="h-4 w-px bg-white/10 mx-1"></div>
+            <button
+              class="px-2 py-1 rounded-md text-[10px] font-bold transition-colors"
+              :class="
+                zoom === 1
+                  ? 'bg-primary/20 text-primary'
+                  : 'text-white/40 hover:text-white hover:bg-white/10'
+              "
+              title="1:1 原生尺寸"
+              @click="setOneToOne"
+            >
+              1:1
+            </button>
+            <button
+              class="p-1.5 rounded-md transition-colors"
+              :class="
+                Math.abs(zoom - initialZoom) < 0.01
+                  ? 'bg-primary/20 text-primary'
+                  : 'text-white/40 hover:text-white hover:bg-white/10'
+              "
+              title="最佳贴合窗口"
+              @click="setFitToWindow"
+            >
+              <Maximize :size="16" />
+            </button>
+          </div>
         </div>
         <div class="flex items-center gap-2">
           <AppButton variant="ghost" size="sm" @click="emit('close')">取消</AppButton>
@@ -287,23 +449,39 @@ watch(
         class="flex-1 relative min-h-0 bg-[#0a0a0a] group overflow-hidden"
         @contextmenu.prevent
       >
-        <div class="absolute inset-0 flex items-center justify-center p-2 sm:p-4 md:p-6 lg:p-8">
-          <!-- 比例容器 -->
-          <div class="relative w-full h-full flex items-center justify-center">
-            <!-- 物理交互层 -->
+        <div
+          id="sam2-zoom-container"
+          class="absolute inset-0 overflow-auto custom-scrollbar transition-all duration-200"
+          :class="[
+            isSpacePressed && !isPanning ? 'cursor-grab' : '',
+            isPanning ? 'cursor-grabbing' : ''
+          ]"
+          @wheel="handleWheel"
+          @pointerdown="handlePointerDown"
+          @pointermove="handlePointerMove"
+          @pointerup="handlePointerUp"
+          @pointerleave="handlePointerUp"
+        >
+          <!-- 比例容器：提供一个至少两倍于视口的背景区域，确保图片始终可以自由移动 -->
+          <div
+            class="relative flex items-center justify-center p-[50vh] min-w-max min-h-max"
+            style="width: fit-content; height: fit-content"
+          >
+            <!-- 物理交互层：宽高受 zoom 驱动，必须解除 max-width 限制防止变形 -->
             <div
-              class="relative shadow-[0_0_100px_rgba(0,0,0,0.8)] cursor-crosshair transition-all duration-300"
+              class="relative shadow-[0_0_100px_rgba(0,0,0,0.8)] shrink-0 max-w-none max-h-none"
+              :class="isSpacePressed ? '' : 'cursor-crosshair'"
               :style="{
-                width: displayRect.width ? `${displayRect.width}px` : 'auto',
-                height: displayRect.height ? `${displayRect.height}px` : 'auto'
+                width: displayRect.width ? `${displayRect.width * zoom}px` : 'auto',
+                height: displayRect.height ? `${displayRect.height * zoom}px` : 'auto'
               }"
               @mousedown="handleCanvasClick"
             >
-              <!-- 核心图像 -->
+              <!-- 核心图像：确保不被父容器挤压 -->
               <img
                 ref="imageRef"
                 :src="imageItem.url"
-                class="w-full h-full block select-none pointer-events-none rounded-sm border border-white/5"
+                class="w-full h-full block select-none pointer-events-none rounded-sm border border-white/5 max-w-none max-h-none"
                 alt="Interactive target"
                 @load="updateDisplayRect"
               />
@@ -312,7 +490,7 @@ watch(
               <img
                 v-if="maskUrl"
                 :src="maskUrl"
-                class="absolute inset-0 w-full h-full object-contain pointer-events-none mix-blend-screen opacity-70"
+                class="absolute inset-0 w-full h-full pointer-events-none mix-blend-screen opacity-70"
                 style="
                   filter: invert(33%) sepia(90%) saturate(2000%) hue-rotate(190deg) brightness(100%)
                     contrast(120%);
