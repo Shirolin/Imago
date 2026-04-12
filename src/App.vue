@@ -17,11 +17,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Box,
-  Sparkles
+  Sparkles,
+  Heart
 } from 'lucide-vue-next'
 import { useImageStore } from './stores/imageStore'
 import { useLayoutStore } from './stores/layoutStore'
 import AppLogo from './components/common/AppLogo.vue'
+import SponsorModal from './components/SponsorModal.vue'
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
@@ -30,6 +32,7 @@ const theme = ref<'light' | 'dark' | 'system'>('system')
 const themeModes = ['light', 'system', 'dark'] as const
 
 const isMobileSidebarOpen = ref(false)
+const showSponsorModal = ref(false)
 const toggleMobileSidebar = () => {
   isMobileSidebarOpen.value = !isMobileSidebarOpen.value
 }
@@ -408,6 +411,17 @@ const menuGroups = [
 
           <div class="w-px h-6 bg-border"></div>
 
+          <button
+            @click="showSponsorModal = true"
+            class="text-muted-foreground hover:text-rose-500 hover:bg-rose-500/5 transition-all min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg group"
+            title="赞助支持"
+            aria-label="Sponsor Project"
+          >
+            <Heart :size="18" class="group-hover:scale-110 transition-transform" />
+          </button>
+
+          <div class="w-px h-6 bg-border"></div>
+
           <a
             href="https://github.com/Shirolin/Imago"
             target="_blank"
@@ -451,6 +465,8 @@ const menuGroups = [
         </router-view>
       </div>
     </main>
+
+    <SponsorModal :show="showSponsorModal" @close="showSponsorModal = false" />
   </div>
 </template>
 
