@@ -1,21 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useImageStore } from '../../stores/imageStore'
-import { Square, CheckSquare, CheckCircle2, LayoutGrid, Maximize2 } from 'lucide-vue-next'
+import { Square, CheckSquare, CheckCircle2 } from 'lucide-vue-next'
 import { useBreakpoints } from '../../composables/useBreakpoints'
-import { useLayoutStore } from '../../stores/layoutStore'
 
 const store = useImageStore()
-const layoutStore = useLayoutStore()
 const { isPC } = useBreakpoints()
-
-interface Props {
-  showCardSize?: boolean
-}
-
-withDefaults(defineProps<Props>(), {
-  showCardSize: true
-})
 
 const isAllDone = computed(() => {
   return store.images.length > 0 && store.images.every((img) => img.status === 'done')
@@ -98,33 +88,6 @@ const isAllDone = computed(() => {
         </span>
       </div>
     </div>
-
-    <!-- 卡片切换按钮 -->
-    <button
-      v-if="showCardSize"
-      @click="layoutStore.toggleCardSize"
-      class="flex items-center justify-center hover:bg-muted rounded-xl transition-all active:scale-95 border border-transparent hover:border-border text-muted-foreground hover:text-primary group/size relative"
-      :class="isPC ? 'w-11 h-11' : 'w-10 h-10'"
-      :title="layoutStore.cardSizeMode === 'compact' ? '切换到大图模式' : '切换到紧凑模式'"
-    >
-      <LayoutGrid
-        v-if="layoutStore.cardSizeMode === 'large'"
-        :size="isPC ? 20 : 18"
-        class="transition-transform group-hover/size:scale-110"
-      />
-      <Maximize2
-        v-else
-        :size="isPC ? 20 : 18"
-        class="transition-transform group-hover/size:scale-110"
-      />
-
-      <!-- 提示气泡 (仅在 PC 悬停时展示) -->
-      <div
-        class="absolute -bottom-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-popover text-popover-foreground text-[10px] font-bold rounded border border-border opacity-0 group-hover/size:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-xl hidden md:block"
-      >
-        {{ layoutStore.cardSizeMode === 'compact' ? 'Large Cards' : 'Compact Cards' }}
-      </div>
-    </button>
   </div>
 </template>
 

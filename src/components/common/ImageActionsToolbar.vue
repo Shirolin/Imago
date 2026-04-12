@@ -2,9 +2,19 @@
 import { ref } from 'vue'
 import { useImageStore } from '../../stores/imageStore'
 import { useFileHelpers } from '../../composables/useFileHelpers'
+import { useLayoutStore } from '../../stores/layoutStore'
 import AppButton from './AppButton.vue'
 import AppModal from './AppModal.vue'
-import { Plus, Trash2, X, AlertTriangle, Download, RotateCcw } from 'lucide-vue-next'
+import {
+  Plus,
+  Trash2,
+  X,
+  AlertTriangle,
+  Download,
+  RotateCcw,
+  LayoutGrid,
+  Layout
+} from 'lucide-vue-next'
 
 interface Props {
   showDeleteSelected?: boolean
@@ -23,6 +33,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const store = useImageStore()
+const layoutStore = useLayoutStore()
 const { fileInput, triggerFileInput, handleFileChange, downloadAllAsZip, isDownloadingAll } =
   useFileHelpers()
 
@@ -99,6 +110,24 @@ const handleConfirmAction = () => {
       v-if="store.images.length > 0"
       class="flex items-center gap-1 animate-in fade-in slide-in-from-right-2 duration-300"
     >
+      <!-- 布局切换 -->
+      <AppButton
+        variant="ghost"
+        size="md"
+        @click="layoutStore.toggleCardSize"
+        class="h-9 w-9 md:h-10 md:w-10 !p-0 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all group shrink-0 hidden sm:flex"
+        :title="layoutStore.cardSizeMode === 'compact' ? '切换到大卡片' : '切换到紧凑模式'"
+      >
+        <template #icon>
+          <LayoutGrid
+            v-if="layoutStore.cardSizeMode === 'compact'"
+            :size="16"
+            class="opacity-60 group-hover:opacity-100"
+          />
+          <Layout v-else :size="16" class="opacity-60 group-hover:opacity-100" />
+        </template>
+      </AppButton>
+
       <!-- 恢复原图 -->
       <AppButton
         v-if="store.doneCount > 0"
