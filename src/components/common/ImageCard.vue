@@ -424,6 +424,7 @@ const displayUrl = computed(() => {
             <Columns2 :size="layoutStore.cardSizeMode === 'compact' ? 12 : 16" />
           </button>
           <button
+            v-if="false"
             @click.stop="emit('interactive', image.id)"
             class="flex items-center justify-center rounded-lg hover:bg-primary/20 text-primary hover:text-primary transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary shadow-sm border border-primary/10"
             :class="layoutStore.cardSizeMode === 'compact' ? 'w-6 h-6' : 'w-8 h-8'"
