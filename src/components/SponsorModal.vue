@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppModal from './common/AppModal.vue'
 import AppButton from './common/AppButton.vue'
-import { Coffee, Heart, ExternalLink } from 'lucide-vue-next'
+import { Coffee, Heart, ExternalLink, Zap } from 'lucide-vue-next'
 
 defineProps<{
   show: boolean
@@ -27,22 +27,48 @@ const emit = defineEmits(['close'])
       </div>
 
       <div class="grid gap-3">
+        <!-- 爱发电 -->
         <a
-          href="https://www.buymeacoffee.com/shirolin"
+          href="https://ifdian.net/a/shirolin"
           target="_blank"
-          class="flex items-center justify-between p-4 bg-[#FFDD00]/10 hover:bg-[#FFDD00]/20 border border-[#FFDD00]/20 rounded-2xl transition-all group"
+          class="flex items-center justify-between p-4 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 rounded-2xl transition-all group"
         >
           <div class="flex items-center gap-3">
             <div
-              class="w-10 h-10 bg-[#FFDD00] rounded-xl flex items-center justify-center text-black shadow-lg shadow-[#FFDD00]/20 group-hover:scale-110 transition-transform"
+              class="w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-purple-500/20 group-hover:scale-110 transition-transform"
+            >
+              <Zap :size="20" fill="currentColor" />
+            </div>
+            <div>
+              <div class="font-bold text-sm text-purple-600 dark:text-purple-400">
+                爱发电 (Afdian)
+              </div>
+              <div class="text-[10px] text-muted-foreground font-black uppercase tracking-wider">
+                支持微信、支付宝 · 推荐
+              </div>
+            </div>
+          </div>
+          <ExternalLink
+            :size="16"
+            class="text-muted-foreground/40 group-hover:text-foreground transition-colors"
+          />
+        </a>
+
+        <!-- Ko-fi -->
+        <a
+          href="https://ko-fi.com/shirolin"
+          target="_blank"
+          class="flex items-center justify-between p-4 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 rounded-2xl transition-all group"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform"
             >
               <Coffee :size="20" />
             </div>
             <div>
-              <div class="font-bold text-sm">Buy Me a Coffee</div>
-              <div
-                class="text-[10px] text-[#FFDD00]/80 dark:text-[#FFDD00]/60 font-black uppercase tracking-wider"
-              >
+              <div class="font-bold text-sm text-blue-600 dark:text-blue-400">Ko-fi</div>
+              <div class="text-[10px] text-muted-foreground font-black uppercase tracking-wider">
                 International · 推荐
               </div>
             </div>
@@ -55,17 +81,11 @@ const emit = defineEmits(['close'])
 
         <div class="p-4 bg-muted/30 border border-border/50 rounded-2xl">
           <div class="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest mb-2">
-            国内赞助方式
+            其它方式
           </div>
           <p class="text-[11px] text-muted-foreground leading-relaxed">
-            如果您希望通过微信或支付宝支持，请点击
-            <a
-              href="https://github.com/Shirolin/Imago"
-              target="_blank"
-              class="text-primary hover:underline font-bold"
-              >GitHub 仓库</a
-            >
-            并在 README 中查看二维码（如有更新），或通过 Issue 与我取得联系。
+            您也可以通过在 GitHub 上点击
+            <span class="text-primary font-bold">Star ⭐</span> 或将项目分享给他人来表达您的支持。
           </p>
         </div>
       </div>
