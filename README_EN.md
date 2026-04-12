@@ -120,7 +120,8 @@ If you find **Imago** helpful, please consider:
 
 - Giving the project a **Star** ⭐ as encouragement.
 - Sharing it with more friends who need image processing.
-- If you find this project very valuable, you can also [Buy Me a Coffee](https://www.buymeacoffee.com/shirolin).
+- **Afdian**: [https://ifdian.net/a/shirolin](https://ifdian.net/a/shirolin)
+- **Ko-fi**: [https://ko-fi.com/shirolin](https://ko-fi.com/shirolin)
 
 ---
 

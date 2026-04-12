@@ -124,7 +124,8 @@
 
 - 给项目点一个 **Star** ⭐ 以表鼓励。
 - 将它分享给更多需要处理图片的朋友。
-- 如果您觉得这个项目非常有价值，也可以通过 [Buy Me a Coffee](https://www.buymeacoffee.com/shirolin) 为我买杯咖啡。
+- **爱发电**: [https://ifdian.net/a/shirolin](https://ifdian.net/a/shirolin)
+- **Ko-fi**: [https://ko-fi.com/shirolin](https://ko-fi.com/shirolin)
 
 ---
 

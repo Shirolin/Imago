@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppModal from './common/AppModal.vue'
 import AppButton from './common/AppButton.vue'
-import { Coffee, Heart, ExternalLink, Zap } from 'lucide-vue-next'
+import { Coffee, Heart, ExternalLink, Zap, Github } from 'lucide-vue-next'
 
 defineProps<{
   show: boolean
@@ -27,6 +27,31 @@ const emit = defineEmits(['close'])
       </div>
 
       <div class="grid gap-3">
+        <!-- GitHub -->
+        <a
+          href="https://github.com/Shirolin/Imago"
+          target="_blank"
+          class="flex items-center justify-between p-4 bg-foreground/5 hover:bg-foreground/10 border border-border/50 rounded-2xl transition-all group"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 bg-foreground rounded-xl flex items-center justify-center text-background shadow-lg group-hover:scale-110 transition-transform"
+            >
+              <Github :size="20" />
+            </div>
+            <div>
+              <div class="font-bold text-sm">GitHub 仓库</div>
+              <div class="text-[10px] text-muted-foreground font-black uppercase tracking-wider">
+                开源代码 · Star ⭐ 支持
+              </div>
+            </div>
+          </div>
+          <ExternalLink
+            :size="16"
+            class="text-muted-foreground/40 group-hover:text-foreground transition-colors"
+          />
+        </a>
+
         <!-- 爱发电 -->
         <a
           href="https://ifdian.net/a/shirolin"
@@ -81,11 +106,11 @@ const emit = defineEmits(['close'])
 
         <div class="p-4 bg-muted/30 border border-border/50 rounded-2xl">
           <div class="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest mb-2">
-            其它方式
+            关于项目
           </div>
           <p class="text-[11px] text-muted-foreground leading-relaxed">
-            您也可以通过在 GitHub 上点击
-            <span class="text-primary font-bold">Star ⭐</span> 或将项目分享给他人来表达您的支持。
+            Imago 是一款开源的本地化图片处理工具。您的支持（无论是通过 Star
+            还是赞助）都将帮助项目变得更好。
           </p>
         </div>
       </div>

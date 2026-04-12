@@ -414,35 +414,11 @@ const menuGroups = [
           <button
             @click="showSponsorModal = true"
             class="text-muted-foreground hover:text-rose-500 hover:bg-rose-500/5 transition-all min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg group"
-            title="赞助支持"
-            aria-label="Sponsor Project"
+            title="支持与社区"
+            aria-label="Support and Community"
           >
             <Heart :size="18" class="group-hover:scale-110 transition-transform" />
           </button>
-
-          <div class="w-px h-6 bg-border"></div>
-
-          <a
-            href="https://github.com/Shirolin/Imago"
-            target="_blank"
-            class="text-muted-foreground hover:text-primary hover:-translate-y-0.5 transition-all min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
-            aria-label="GitHub Repository"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              width="18"
-              height="18"
-              stroke="currentColor"
-              stroke-width="2"
-              fill="none"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
-              />
-            </svg>
-          </a>
         </div>
       </header>
 
