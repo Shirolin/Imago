@@ -364,7 +364,7 @@ useResizeObserver(containerRef, resetView)
   <WorkspaceLayout show-sidebar no-scroll show-assets-tray>
     <template #header-left><ImageSelectionStatus :show-card-size="false" /></template>
     <template #header-actions
-      ><ImageActionsToolbar :is-processing="isProcessing" show-clear-all
+      ><ImageActionsToolbar view-id="combine" :is-processing="isProcessing" show-clear-all
     /></template>
 
     <template #content>

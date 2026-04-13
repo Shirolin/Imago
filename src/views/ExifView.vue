@@ -204,7 +204,7 @@ const handleCtaClick = async () => {
 <template>
   <WorkspaceLayout show-sidebar no-scroll>
     <template #header-left><ImageSelectionStatus :show-card-size="false" /></template>
-    <template #header-actions><ImageActionsToolbar show-clear-all /></template>
+    <template #header-actions><ImageActionsToolbar view-id="exif" show-clear-all /></template>
 
     <template #content>
       <div class="h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-6">
@@ -410,12 +410,12 @@ const handleCtaClick = async () => {
           size="lg"
           :variant="ctaState.action === 'download' ? 'success' : 'cta'"
           class="w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden"
-          :loading="isReadingExif"
+          :loading="isProcessing || isReadingExif"
           :disabled="ctaState.disabled"
           @click="handleCtaClick"
         >
           <template #icon>
-            <component :is="ctaState.icon" v-if="!isProcessing" :size="18" class="mr-2" />
+            <component :is="ctaState.icon" v-if="!isProcessing && !isReadingExif" :size="18" class="mr-2" />
           </template>
           <span class="font-bold text-sm tracking-tight">{{ ctaState.text }}</span>
         </AppButton>

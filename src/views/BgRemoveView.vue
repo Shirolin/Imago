@@ -434,7 +434,7 @@ const handleResetParams = () => {
 <template>
   <WorkspaceLayout show-sidebar no-scroll>
     <template #header-left><ImageSelectionStatus :show-card-size="false" /></template>
-    <template #header-actions><ImageActionsToolbar show-clear-all /></template>
+    <template #header-actions><ImageActionsToolbar view-id="bgRemove" :is-processing="isProcessing" show-clear-all zip-prefix="_BgRemoved" /></template>
 
     <template #content>
       <div class="h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-6 relative">

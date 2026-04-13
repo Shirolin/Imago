@@ -96,7 +96,7 @@ watch(height, (newHeight) => {
   }
 })
 
-const { isProcessing, processSingle } = useImageProcessor(resizeEngine)
+const { isProcessing, processSelected } = useImageProcessor(resizeEngine)
 
 const displayImages = computed(() => [...store.images].reverse())
 
@@ -200,19 +200,16 @@ const handleCtaClick = async () => {
   }
 
   if (state.action === 'process') {
-    await Array.from(store.selectedIds).reduce(async (p, id) => {
-      await p
-      await processSingle(id, {
-        mode: resizeMode.value === 'dimensions' ? 'pixels' : 'percentage',
-        width: width.value,
-        height: height.value,
-        percentage: percentage.value,
-        maintainAspectRatio: maintainAspectRatio.value,
-        format: outputFormat.value === 'original' ? undefined : outputFormat.value,
-        quality: outputQuality.value,
-        preserveExif: preserveExif.value
-      })
-    }, Promise.resolve())
+    await processSelected({
+      mode: resizeMode.value === 'dimensions' ? 'pixels' : 'percentage',
+      width: width.value,
+      height: height.value,
+      percentage: percentage.value,
+      maintainAspectRatio: maintainAspectRatio.value,
+      format: outputFormat.value === 'original' ? undefined : outputFormat.value,
+      quality: outputQuality.value,
+      preserveExif: preserveExif.value
+    })
   }
 }
 </script>
@@ -223,6 +220,7 @@ const handleCtaClick = async () => {
       <template #header-left><ImageSelectionStatus :show-card-size="false" /></template>
       <template #header-actions
         ><ImageActionsToolbar
+          view-id="resize"
           :is-processing="isProcessing"
           show-clear-all
           zip-prefix="_Imago_Resized"

@@ -154,7 +154,11 @@ const handleCtaClick = async () => {
     <WorkspaceLayout show-sidebar no-scroll show-assets-tray>
       <template #header-left><ImageSelectionStatus /></template>
       <template #header-actions
-        ><ImageActionsToolbar :is-processing="isProcessing" show-clear-all zip-prefix="_Compressed"
+        ><ImageActionsToolbar
+          view-id="compress"
+          :is-processing="isProcessing"
+          show-clear-all
+          zip-prefix="_Compressed"
       /></template>
 
       <template #content>

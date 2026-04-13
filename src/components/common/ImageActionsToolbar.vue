@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useImageStore } from '../../stores/imageStore'
 import { useFileHelpers } from '../../composables/useFileHelpers'
 import { useLayoutStore } from '../../stores/layoutStore'
+import { VIEW_CONFIGS } from '../../lib/ui-config'
 import AppButton from './AppButton.vue'
 import AppModal from './AppModal.vue'
 import {
@@ -17,19 +18,31 @@ import {
 } from 'lucide-vue-next'
 
 interface Props {
+  viewId?: string
   showDeleteSelected?: boolean
   showClearAll?: boolean
   showDownloadAll?: boolean
+  showLayoutToggle?: boolean
   isProcessing?: boolean
   zipPrefix?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  viewId: '',
   showDeleteSelected: true,
   showClearAll: false,
   showDownloadAll: true,
+  showLayoutToggle: undefined,
   isProcessing: false,
   zipPrefix: 'Processed'
+})
+
+const finalShowLayoutToggle = computed(() => {
+  if (typeof props.showLayoutToggle === 'boolean') return props.showLayoutToggle
+  if (props.viewId && VIEW_CONFIGS[props.viewId]) {
+    return VIEW_CONFIGS[props.viewId]!.features.showLayoutToggle
+  }
+  return false
 })
 
 const store = useImageStore()
@@ -69,6 +82,25 @@ const handleConfirmAction = () => {
 
     <!-- 1. 核心操作组 (添加与下载) -->
     <div class="flex items-center gap-1.5 md:gap-2">
+      <!-- 布局切换 -->
+      <AppButton
+        v-if="finalShowLayoutToggle"
+        variant="ghost"
+        size="md"
+        @click="layoutStore.toggleCardSize"
+        class="h-9 w-9 md:h-10 md:w-10 !p-0 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all group shrink-0"
+        :title="layoutStore.cardSizeMode === 'compact' ? '切换到大卡片' : '切换到紧凑模式'"
+      >
+        <template #icon>
+          <LayoutGrid
+            v-if="layoutStore.cardSizeMode === 'compact'"
+            :size="18"
+            class="opacity-60 group-hover:opacity-100"
+          />
+          <Layout v-else :size="18" class="opacity-60 group-hover:opacity-100" />
+        </template>
+      </AppButton>
+
       <AppButton
         variant="secondary"
         size="md"
@@ -110,24 +142,6 @@ const handleConfirmAction = () => {
       v-if="store.images.length > 0"
       class="flex items-center gap-1 animate-in fade-in slide-in-from-right-2 duration-300"
     >
-      <!-- 布局切换 -->
-      <AppButton
-        variant="ghost"
-        size="md"
-        @click="layoutStore.toggleCardSize"
-        class="h-9 w-9 md:h-10 md:w-10 !p-0 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all group shrink-0 hidden sm:flex"
-        :title="layoutStore.cardSizeMode === 'compact' ? '切换到大卡片' : '切换到紧凑模式'"
-      >
-        <template #icon>
-          <LayoutGrid
-            v-if="layoutStore.cardSizeMode === 'compact'"
-            :size="16"
-            class="opacity-60 group-hover:opacity-100"
-          />
-          <Layout v-else :size="16" class="opacity-60 group-hover:opacity-100" />
-        </template>
-      </AppButton>
-
       <!-- 恢复原图 -->
       <AppButton
         v-if="store.doneCount > 0"

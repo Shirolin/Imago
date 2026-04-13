@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { Component } from 'vue'
 import { Button } from '@/components/ui/button'
+import { Loader2 } from 'lucide-vue-next'
 
 interface Props {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'tool' | 'cta' | 'link' | 'success'
@@ -128,33 +129,28 @@ const iconClass = computed(() => {
     :class="extraClasses"
     :aria-label="ariaLabel"
   >
-    <!-- 核心修复：纯 CSS 硬件加速加载圆环 -->
-    <div
+    <!-- 核心修复：Lucide 加载图标 -->
+    <Loader2
       v-if="loading"
-      class="animate-spin shrink-0 rounded-full border-2 border-current border-t-transparent transform-gpu"
-      :style="{
-        width: iconSize + 'px',
-        height: iconSize + 'px',
-        willChange: 'transform'
-      }"
-    ></div>
-    <template v-else>
-      <slot name="icon">
-        <component
-          v-if="icon && iconPosition === 'left'"
-          :is="icon"
-          :size="iconSize"
-          :class="iconClass"
-        />
-      </slot>
-      <slot></slot>
+      class="animate-spin shrink-0"
+      :size="iconSize"
+    />
+
+    <slot name="icon" v-if="!loading">
       <component
-        v-if="icon && iconPosition === 'right' && !$slots.icon"
+        v-if="icon && iconPosition === 'left'"
         :is="icon"
         :size="iconSize"
         :class="iconClass"
-        class="group-hover:translate-x-1"
       />
-    </template>
+    </slot>
+    <slot></slot>
+    <component
+      v-if="!loading && icon && iconPosition === 'right' && !$slots.icon"
+      :is="icon"
+      :size="iconSize"
+      :class="iconClass"
+      class="group-hover:translate-x-1"
+    />
   </Button>
 </template>
