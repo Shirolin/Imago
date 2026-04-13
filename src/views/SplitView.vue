@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../stores/imageStore'
 import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
@@ -29,6 +30,7 @@ import { useBreakpoints } from '../composables/useBreakpoints'
 
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
+const { t } = useI18n()
 const store = useImageStore()
 const { downloadImage } = useFileHelpers()
 const { isMobile } = useBreakpoints()
@@ -46,13 +48,13 @@ const viewSettings = ref<ViewSettings>({
   lineColor: 'white',
   lineOpacity: 0.95
 })
-const colorOptions = [
-  { value: 'primary', label: '主题色', color: 'primary' },
-  { value: 'white', label: '高亮白 (默认)', color: '#ffffff' },
-  { value: 'black', label: '深邃黑', color: '#000000' },
-  { value: 'blue', label: '科技蓝', color: '#3b82f6' },
-  { value: 'red', label: '警示红', color: '#ef4444' }
-] as const
+const colorOptions = computed(() => [
+  { value: 'primary' as const, label: t('tools.split.colors.primary'), color: 'primary' },
+  { value: 'white' as const, label: t('tools.split.colors.white'), color: '#ffffff' },
+  { value: 'black' as const, label: t('tools.split.colors.black'), color: '#000000' },
+  { value: 'blue' as const, label: t('tools.split.colors.blue'), color: '#3b82f6' },
+  { value: 'red' as const, label: t('tools.split.colors.red'), color: '#ef4444' }
+])
 
 const resetViewSettings = () => {
   viewSettings.value = {
@@ -60,25 +62,25 @@ const resetViewSettings = () => {
     lineColor: 'white',
     lineOpacity: 0.95
   }
-  srMessage.value = '已恢复默认视图设置'
+  srMessage.value = t('tools.split.messages.defaultRestored')
 }
 
 const colorButtonRefs = ref<HTMLElement[]>([])
 
 const handleColorKeydown = (e: KeyboardEvent) => {
-  const index = colorOptions.findIndex((c) => c.value === viewSettings.value.lineColor)
+  const index = colorOptions.value.findIndex((c) => c.value === viewSettings.value.lineColor)
   let nextIndex = index
 
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-    nextIndex = (index + 1) % colorOptions.length
+    nextIndex = (index + 1) % colorOptions.value.length
   } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-    nextIndex = (index - 1 + colorOptions.length) % colorOptions.length
+    nextIndex = (index - 1 + colorOptions.value.length) % colorOptions.value.length
   } else {
     return
   }
 
   e.preventDefault()
-  viewSettings.value.lineColor = colorOptions[nextIndex]!.value
+  viewSettings.value.lineColor = colorOptions.value[nextIndex]!.value
   nextTick(() => {
     colorButtonRefs.value[nextIndex]?.focus()
   })
@@ -325,7 +327,10 @@ const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Delete' || e.key === 'Backspace') {
     if (axis === 'x') linesX.value.splice(index, 1)
     else linesY.value.splice(index, 1)
-    srMessage.value = `已通过键盘删除第 ${index + 1} 条${axis === 'x' ? '垂直' : '水平'}线`
+    srMessage.value = t('tools.split.messages.lineDeletedKey', {
+      index: index + 1,
+      axis: axis === 'x' ? t('tools.split.verticalLine') : t('tools.split.horizontalLine')
+    })
     selectedLine.value = null
     saveMeta()
     e.preventDefault()
@@ -444,7 +449,7 @@ const handlePointerDown = (e: PointerEvent) => {
       linesX.value = newLinesX
       linesY.value = newLinesY
       editMode.value = 'custom'
-      srMessage.value = '已切换至自由编辑模式'
+      srMessage.value = t('tools.split.messages.switchedToFree')
     }
     draggingLine.value = { ...hoveredLine.value }
     selectedLine.value = { ...hoveredLine.value } // 选中线以支持键盘操作
@@ -460,7 +465,10 @@ const handlePointerDown = (e: PointerEvent) => {
       const { pos: snappedX, snapped } = snapLine(pos.x, 'x')
       linesX.value.push(snappedX)
       linesX.value.sort((a, b) => a - b)
-      srMessage.value = `已在垂直方向 ${Math.round(snappedX)} 像素处添加切分线`
+      srMessage.value = t('tools.split.messages.lineAdded', {
+        axis: t('tools.split.verticalLine'),
+        pos: Math.round(snappedX)
+      })
       // 自动选中新添加的线
       const newIndex = linesX.value.indexOf(snappedX)
       selectedLine.value = { axis: 'x', index: newIndex }
@@ -469,7 +477,10 @@ const handlePointerDown = (e: PointerEvent) => {
       const { pos: snappedY, snapped } = snapLine(pos.y, 'y')
       linesY.value.push(snappedY)
       linesY.value.sort((a, b) => a - b)
-      srMessage.value = `已在水平方向 ${Math.round(snappedY)} 像素处添加切分线`
+      srMessage.value = t('tools.split.messages.lineAdded', {
+        axis: t('tools.split.horizontalLine'),
+        pos: Math.round(snappedY)
+      })
       // 自动选中新添加的线
       const newIndex = linesY.value.indexOf(snappedY)
       selectedLine.value = { axis: 'y', index: newIndex }
@@ -568,7 +579,10 @@ const handlePointerUp = (e: PointerEvent) => {
       if (val < -outThreshold || val > max + outThreshold) {
         if (axis === 'x') linesX.value.splice(index, 1)
         else linesY.value.splice(index, 1)
-        srMessage.value = `已删除第 ${index + 1} 条${axis === 'x' ? '垂直' : '水平'}线`
+        srMessage.value = t('tools.split.messages.lineDeleted', {
+          index: index + 1,
+          axis: axis === 'x' ? t('tools.split.verticalLine') : t('tools.split.horizontalLine')
+        })
       }
     }
     draggingLine.value = null
@@ -585,14 +599,14 @@ const handleResetToGrid = () => {
   for (let i = 1; i < rows.value; i++) newLinesY.push((img.height! / rows.value) * i)
   linesX.value = newLinesX
   linesY.value = newLinesY
-  srMessage.value = '已根据网格设置数值重置线条位置'
+  srMessage.value = t('tools.split.messages.resetToGrid')
   saveMeta()
 }
 
 const clearLines = () => {
   linesX.value = []
   linesY.value = []
-  srMessage.value = '已清空所有自定义切分线'
+  srMessage.value = t('tools.split.messages.cleared')
   saveMeta()
 }
 
@@ -623,17 +637,20 @@ useResizeObserver(containerRef, resetView)
 
 const ctaState = computed(() => {
   const img = selectedImage.value
-  if (!img) return { text: '请选择图片', icon: Scissors, action: 'none', disabled: true }
+  if (!img)
+    return { text: t('tools.split.cta.select'), icon: Scissors, action: 'none', disabled: true }
 
   if (isAborting.value) {
-    return { text: '已中止', icon: RotateCcw, action: 'none', disabled: true }
+    return { text: t('tools.split.cta.aborted'), icon: RotateCcw, action: 'none', disabled: true }
   }
 
   if (isProcessing.value) {
     const progressText =
-      progress.value > 0 ? `渲染中 ${Math.round(progress.value * 100)}%` : '渲染中...'
+      progress.value > 0
+        ? t('tools.split.cta.rendering', { progress: Math.round(progress.value * 100) })
+        : t('tools.split.cta.renderingNoProgress')
     return {
-      text: `${progressText} (点击中止)`,
+      text: `${progressText} ${t('tools.split.cta.clickToAbort')}`,
       icon: Trash2,
       action: 'abort',
       disabled: false
@@ -641,11 +658,16 @@ const ctaState = computed(() => {
   }
 
   if (img.status === 'done' && (img.processedBlob || img.processedBlobs) && !img.isDirty) {
-    return { text: '导出切片', icon: Download, action: 'download', disabled: false }
+    return {
+      text: t('tools.split.cta.exportSlices'),
+      icon: Download,
+      action: 'download',
+      disabled: false
+    }
   }
 
   return {
-    text: img.isDirty ? '更新切分' : '切分图片',
+    text: img.isDirty ? t('tools.split.cta.updateSplit') : t('tools.split.cta.splitImage'),
     icon: Scissors,
     action: 'process',
     disabled: false
@@ -659,7 +681,7 @@ const handleCtaClick = async () => {
   if (state.action === 'abort') {
     isAborting.value = true
     abortProcessing()
-    srMessage.value = '已中止渲染任务'
+    srMessage.value = t('tools.split.messages.abortedTask')
     setTimeout(() => {
       isAborting.value = false
     }, 800)
@@ -696,7 +718,7 @@ const handleCtaClick = async () => {
       <div class="sr-only" aria-live="polite">{{ srMessage }}</div>
       <AppCanvasWorkspace
         ref="workspaceRef"
-        aria-label="图片分割画布"
+        :aria-label="t('tools.split.canvas.ariaLabel')"
         :aria-describedby="'canvas-instructions'"
         @reset="resetView"
         @pointerdown="handlePointerDown"
@@ -708,9 +730,7 @@ const handleCtaClick = async () => {
         <template #default>
           <!-- 隐藏的 A11y 指引文本 -->
           <div id="canvas-instructions" class="sr-only">
-            使用鼠标点击添加切分线。按住空格键并拖拽可以平移画布。
-            选中线条后，使用方向键进行像素级微调，Shift + 方向键快速移动，Delete 或 Backspace
-            键删除选中线。
+            {{ t('tools.split.canvas.instructions') }}
           </div>
           <div class="relative shadow-2xl">
             <canvas ref="canvasRef" class="block rounded-sm" />
@@ -726,7 +746,9 @@ const handleCtaClick = async () => {
                 tabindex="0"
                 @focus="selectedLine = { axis: 'x', index: i }"
                 @blur="selectedLine = null"
-                :aria-label="`垂直切分线 ${i + 1}，当前位置 ${Math.round(lx)} 像素`"
+                :aria-label="
+                  t('tools.split.canvas.vLineAria', { index: i + 1, pos: Math.round(lx) })
+                "
               />
               <!-- 水平线焦点 -->
               <button
@@ -737,7 +759,9 @@ const handleCtaClick = async () => {
                 tabindex="0"
                 @focus="selectedLine = { axis: 'y', index: i }"
                 @blur="selectedLine = null"
-                :aria-label="`水平切分线 ${i + 1}，当前位置 ${Math.round(ly)} 像素`"
+                :aria-label="
+                  t('tools.split.canvas.hLineAria', { index: i + 1, pos: Math.round(ly) })
+                "
               />
             </div>
           </div>
@@ -756,7 +780,10 @@ const handleCtaClick = async () => {
               >
                 <Scissors :size="12" />
               </div>
-              <span>点击画布添加线 <span class="mx-1 opacity-40">·</span> 拖拽线条移动</span>
+              <span
+                >{{ t('tools.split.canvas.clickToAdd') }} <span class="mx-1 opacity-40">·</span>
+                {{ t('tools.split.canvas.dragToMove') }}</span
+              >
             </div>
           </Transition>
         </template>
@@ -765,13 +792,13 @@ const handleCtaClick = async () => {
 
     <template #sidebar>
       <section class="space-y-4">
-        <AppSectionHeader title="网格设置" :icon="Grid3X3" />
+        <AppSectionHeader :title="t('tools.split.gridSettings')" :icon="Grid3X3" />
         <div class="space-y-4 px-1">
           <AppSegmentedControl
             v-model="editMode"
             :options="[
-              { label: '均分网格', value: 'grid', icon: Grid3X3 },
-              { label: '自由编辑', value: 'custom', icon: Scissors }
+              { label: t('tools.split.uniformGrid'), value: 'grid', icon: Grid3X3 },
+              { label: t('tools.split.freeEdit'), value: 'custom', icon: Scissors }
             ]"
           />
           <div
@@ -781,9 +808,9 @@ const handleCtaClick = async () => {
             <div class="space-y-1">
               <AppSlider
                 v-model="rows"
-                label="垂直行数"
+                :label="t('tools.split.verticalRows')"
                 :icon="AlignCenter"
-                unit=" 行"
+                :unit="t('tools.split.unitRow')"
                 :min="1"
                 :max="10"
                 :step="1"
@@ -793,9 +820,9 @@ const handleCtaClick = async () => {
             <div class="space-y-1">
               <AppSlider
                 v-model="cols"
-                label="水平列数"
+                :label="t('tools.split.horizontalCols')"
                 :icon="Grid3X3"
-                unit=" 列"
+                :unit="t('tools.split.unitCol')"
                 :min="1"
                 :max="10"
                 :step="1"
@@ -815,7 +842,7 @@ const handleCtaClick = async () => {
                 class="rounded-xl h-11 border-2 text-xs"
                 :class="{ 'border-primary shadow-md': activeAxis === 'x' }"
               >
-                垂直线
+                {{ t('tools.split.verticalLine') }}
               </AppButton>
               <AppButton
                 @click="activeAxis = 'y'"
@@ -824,7 +851,7 @@ const handleCtaClick = async () => {
                 class="rounded-xl h-11 border-2 text-xs"
                 :class="{ 'border-primary shadow-md': activeAxis === 'y' }"
               >
-                水平线
+                {{ t('tools.split.horizontalLine') }}
               </AppButton>
             </div>
             <div class="flex gap-2.5">
@@ -834,9 +861,9 @@ const handleCtaClick = async () => {
                 size="sm"
                 class="flex-1 rounded-xl h-10 text-[11px] font-black uppercase tracking-widest border-border/40 bg-muted/5"
                 :icon="Grid3X3"
-                title="根据网格设置数值重置线条"
+                :title="t('tools.split.syncGridTip')"
               >
-                同步网格
+                {{ t('tools.split.syncGrid') }}
               </AppButton>
               <AppButton
                 @click="clearLines"
@@ -845,7 +872,7 @@ const handleCtaClick = async () => {
                 class="flex-1 rounded-xl h-10 text-[11px] font-black uppercase tracking-widest border-border/40 bg-muted/5 hover:text-destructive hover:border-destructive hover:bg-destructive/5"
                 :icon="Trash2"
               >
-                全部清空
+                {{ t('tools.split.clearAll') }}
               </AppButton>
             </div>
           </div>
@@ -854,13 +881,13 @@ const handleCtaClick = async () => {
 
       <section class="space-y-4 pt-6 border-t border-border/40">
         <div class="flex items-center justify-between pr-1">
-          <AppSectionHeader title="视图设置" :icon="Box" />
+          <AppSectionHeader :title="t('tools.split.viewSettings')" :icon="Box" />
           <AppButton
             variant="ghost"
             size="sm"
             @click="resetViewSettings"
             class="w-8 h-8 p-0 rounded-lg text-muted-foreground/40 hover:text-primary"
-            title="恢复默认视图"
+            :title="t('tools.split.restoreDefaultView')"
             :icon="RotateCcw"
           />
         </div>
@@ -869,7 +896,7 @@ const handleCtaClick = async () => {
             <div class="space-y-1">
               <AppSlider
                 v-model="viewSettings.lineWidth"
-                label="线宽"
+                :label="t('tools.split.lineWidth')"
                 :icon="Scissors"
                 unit="px"
                 :min="0.5"
@@ -883,7 +910,7 @@ const handleCtaClick = async () => {
               <span
                 id="line-color-label"
                 class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block px-1"
-                >线条颜色</span
+                >{{ t('tools.split.lineColor') }}</span
               >
               <div
                 class="grid grid-cols-4 gap-2"
@@ -921,7 +948,7 @@ const handleCtaClick = async () => {
             <div class="space-y-1">
               <AppSlider
                 v-model="viewSettings.lineOpacity"
-                label="不透明度"
+                :label="t('tools.split.lineOpacity')"
                 :icon="Layers"
                 unit=""
                 :min="0.1"
@@ -935,23 +962,24 @@ const handleCtaClick = async () => {
       </section>
 
       <section class="space-y-4 pt-6 border-t border-border/40">
-        <AppSectionHeader title="增强处理" :icon="Layers" />
+        <AppSectionHeader :title="t('tools.split.enhanced')" :icon="Layers" />
         <div class="space-y-4 px-1">
           <div class="space-y-4">
             <div class="flex flex-col gap-1 px-1">
-              <span class="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
-                >对齐模式</span
+              <span
+                class="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
+                >{{ t('tools.split.alignMode') }}</span
               >
               <p class="text-[10px] text-muted-foreground/60 leading-relaxed">
-                自动探测并裁剪主体内容，支持居中对齐或强制正方形填充。
+                {{ t('tools.split.alignModeDesc') }}
               </p>
             </div>
             <AppSegmentedControl
               v-model="centerMode"
               :options="[
-                { label: '标准', value: 'none', icon: Grid3X3 },
-                { label: '居中', value: 'center', icon: AlignCenter },
-                { label: '正方形', value: 'square', icon: Box }
+                { label: t('tools.split.standard'), value: 'none', icon: Grid3X3 },
+                { label: t('tools.split.center'), value: 'center', icon: AlignCenter },
+                { label: t('tools.split.square'), value: 'square', icon: Box }
               ]"
             />
           </div>
@@ -960,7 +988,7 @@ const handleCtaClick = async () => {
             <div class="space-y-1">
               <AppSlider
                 v-model="shave"
-                label="边缘收缩 (Shave)"
+                :label="t('tools.split.shave')"
                 :icon="Box"
                 unit="px"
                 :min="0"
@@ -976,7 +1004,7 @@ const handleCtaClick = async () => {
       <AppExportSettings
         v-model:format="outputFormat"
         v-model:quality="outputQuality"
-        title="导出配置"
+        :title="t('tools.split.exportConfig')"
         class="pt-6 border-t border-border/40 pb-4"
       />
     </template>

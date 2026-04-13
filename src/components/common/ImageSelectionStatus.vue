@@ -1,100 +1,117 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../../stores/imageStore'
-import { Square, CheckSquare, CheckCircle2 } from 'lucide-vue-next'
+import { useLayoutStore } from '../../stores/layoutStore'
+import { CheckCircle2, ChevronRight, LayoutGrid, LayoutList } from 'lucide-vue-next'
 import { useBreakpoints } from '../../composables/useBreakpoints'
 
-const store = useImageStore()
-const { isPC } = useBreakpoints()
+defineProps<{
+  showCardSize?: boolean
+}>()
 
-const isAllDone = computed(() => {
-  return store.images.length > 0 && store.images.every((img) => img.status === 'done')
-})
+const store = useImageStore()
+const layoutStore = useLayoutStore()
+const { isPC } = useBreakpoints()
+const { t } = useI18n()
+
+const allDone = computed(() => store.doneCount === store.selectedCount && store.selectedCount > 0)
 </script>
 
 <template>
-  <div class="flex items-center gap-2">
-    <div
-      class="relative flex items-center cursor-pointer transition-all duration-500 hover:-translate-y-0.5 active:scale-[0.96] group shrink-0 select-none overflow-hidden"
-      :class="[
-        isAllDone
-          ? 'bg-primary/[0.03] border-primary/30 shadow-primary'
-          : 'bg-muted/40 border-border/50 hover:border-primary/40 hover:bg-background shadow-md hover:shadow-lg',
-        isPC ? 'px-5 h-11 rounded-2xl border gap-4' : 'px-3 h-10 rounded-xl border gap-2.5'
-      ]"
-      @click="store.toggleAll"
-    >
-      <!-- 成功状态的扩散背景 (Success Ripple) -->
+  <div class="flex items-center gap-3 md:gap-5 overflow-hidden">
+    <!-- 状态指示器 (核心视觉焦点) -->
+    <div class="flex items-center gap-2.5 group relative">
       <div
-        v-if="isAllDone"
-        class="absolute inset-0 bg-primary/5 animate-pulse pointer-events-none"
-      ></div>
-
-      <!-- 图标区 -->
-      <div
-        class="flex items-center justify-center transition-all duration-300 relative z-10"
+        class="w-10 h-10 md:w-11 md:h-11 rounded-2xl flex items-center justify-center transition-all duration-500 relative"
         :class="[
-          isAllDone
-            ? 'text-primary scale-110'
-            : store.isAllSelected
-              ? 'text-primary'
-              : 'text-muted-foreground group-hover:text-primary/80'
+          allDone
+            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 rotate-0'
+            : 'bg-primary/10 text-primary rotate-[-4deg] group-hover:rotate-0'
         ]"
       >
-        <CheckCircle2
-          v-if="isAllDone"
-          :size="isPC ? 20 : 18"
-          class="drop-shadow-[0_0_8px_rgba(var(--primary-rgb),0.4)]"
-          stroke-width="2.5"
-        />
-        <CheckSquare
-          v-else-if="store.isAllSelected"
-          :size="isPC ? 20 : 18"
-          class="drop-shadow-sm"
-        />
-        <Square v-else :size="isPC ? 20 : 18" stroke-width="2.5" />
+        <!-- 成功状态的扩散背景 (Success Ripple) -->
+        <div
+          v-if="allDone"
+          class="absolute inset-0 rounded-2xl bg-emerald-500 animate-ping opacity-20"
+        ></div>
+
+        <!-- 图标区 -->
+        <div class="relative z-10">
+          <CheckCircle2
+            v-if="allDone"
+            :size="isPC ? 22 : 20"
+            class="animate-in zoom-in duration-300"
+          />
+          <div v-else class="relative">
+            <span class="text-sm md:text-base font-black tabular-nums">{{
+              store.selectedCount
+            }}</span>
+            <div
+              class="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-primary animate-pulse"
+            ></div>
+          </div>
+        </div>
       </div>
 
       <!-- 文字区 -->
-      <div class="flex flex-col justify-center relative z-10 min-w-0">
-        <div class="flex items-center gap-1.5 md:gap-2">
+      <div class="flex flex-col min-w-0">
+        <div class="flex items-center gap-2">
           <span
-            class="font-black text-muted-foreground leading-none tracking-tight transition-colors whitespace-nowrap"
-            :class="[isPC ? 'text-[0.95rem]' : 'text-[0.85rem]', { 'text-primary/80': isAllDone }]"
+            class="text-xs md:text-sm font-black text-foreground tracking-tight whitespace-nowrap"
           >
-            <span v-if="isPC">已选择 </span>
-            <span class="font-mono">{{ store.selectedCount }}</span>
-            <span v-if="store.images.length > 0" class="opacity-30 mx-0.5">/</span>
-            <span v-if="store.images.length > 0" class="opacity-30 font-mono">{{
-              store.images.length
-            }}</span>
+            <span v-if="isPC">{{ t('common.image.selection.selected') }} </span>
+            <span class="tabular-nums text-primary">{{ store.selectedCount }}</span>
+            <span class="text-muted-foreground/40 mx-1">/</span>
+            <span class="tabular-nums opacity-40">{{ store.images.length }}</span>
           </span>
 
           <!-- Ready 状态标签 (仅在 PC 或全选完成时展示) -->
           <div
-            v-if="isAllDone"
-            class="px-1.5 py-0.5 rounded bg-primary text-primary-foreground text-[0.6rem] font-black uppercase tracking-widest animate-in fade-in zoom-in duration-500 hidden sm:block"
+            v-if="allDone"
+            class="hidden sm:flex items-center gap-1 px-1.5 py-0.5 bg-emerald-500/10 text-emerald-600 rounded-md text-[9px] font-black uppercase tracking-wider border border-emerald-500/20 animate-in fade-in slide-in-from-left-2"
           >
-            Selected
+            {{ t('common.image.selection.complete') }}
           </div>
         </div>
 
         <!-- 副标题 (仅 PC 展示) -->
-        <span
-          v-if="isPC"
-          class="text-[0.6rem] font-black uppercase tracking-[0.25em] mt-1 opacity-30 leading-none group-hover:opacity-60 transition-opacity truncate"
-        >
-          {{ isAllDone ? 'Processing Complete' : 'Toggle Selection' }}
-        </span>
+        <div v-if="isPC" class="flex items-center gap-1.5 mt-0.5">
+          <div
+            class="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-[0.15em] whitespace-nowrap"
+          >
+            {{
+              allDone ? t('common.image.selection.allSelected') : t('common.image.selection.toggle')
+            }}
+          </div>
+          <ChevronRight :size="10" class="text-muted-foreground/20" />
+        </div>
       </div>
+    </div>
+
+    <div v-if="showCardSize" class="hidden lg:flex items-center gap-1 self-center ml-2">
+      <button
+        @click="layoutStore.cardSizeMode = 'large'"
+        class="p-1.5 rounded-lg transition-all"
+        :class="
+          layoutStore.cardSizeMode === 'large'
+            ? 'bg-primary/10 text-primary'
+            : 'text-muted-foreground/40 hover:text-muted-foreground'
+        "
+      >
+        <LayoutGrid :size="16" />
+      </button>
+      <button
+        @click="layoutStore.cardSizeMode = 'compact'"
+        class="p-1.5 rounded-lg transition-all"
+        :class="
+          layoutStore.cardSizeMode === 'compact'
+            ? 'bg-primary/10 text-primary'
+            : 'text-muted-foreground/40 hover:text-muted-foreground'
+        "
+      >
+        <LayoutList :size="16" />
+      </button>
     </div>
   </div>
 </template>
-
-<style scoped>
-.shadow-primary {
-  box-shadow:
-    0 10px 15px -3px hsla(var(--primary) / 0.15),
-    0 4px 6px -2px hsla(var(--primary) / 0.1);
-}
-</style>

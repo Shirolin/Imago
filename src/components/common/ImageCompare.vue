@@ -1,327 +1,288 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
-  ChevronsLeftRight,
-  Loader2,
+  Grip,
   ZoomIn,
   ZoomOut,
-  Maximize,
-  Grip,
-  RotateCcw
+  RotateCcw,
+  Layout,
+  Expand,
+  Loader2,
+  AlertCircle,
+  Split
 } from 'lucide-vue-next'
+import { useResizeObserver, useEventListener } from '@vueuse/core'
 
-interface Props {
-  originalUrl: string | Blob
-  processedUrl: string | Blob
-  originalSize: string
-  processedSize: string
+const props = defineProps<{
+  originalUrl: string | File
+  processedUrl: string | File | Blob
+  originalSize?: string
+  processedSize?: string
   showTransparency?: boolean
-}
+}>()
 
-const props = withDefaults(defineProps<Props>(), {
-  showTransparency: false
-})
+const { t } = useI18n()
 
 // 渲染用的临时预览 URL
-const originalViewUrl = ref<string>('')
-const processedViewUrl = ref<string>('')
-
-const sliderPos = ref(50)
-const isResizing = ref(false)
-const isPanning = ref(false)
-const container = ref<HTMLElement | null>(null)
+const beforeUrl = ref<string>('')
+const afterUrl = ref<string>('')
 const isDecoding = ref(true)
-const originalLoaded = ref(false)
-const processedLoaded = ref(false)
+const error = ref<string | null>(null)
 
 // 缩放与平移状态
-const scale = ref(1)
+const zoom = ref(1)
 const offset = ref({ x: 0, y: 0 })
-const lastMousePos = ref({ x: 0, y: 0 })
-const isError = ref(false)
+const sliderPos = ref(50) // 0-100
+const isDragging = ref(false)
+const dragStart = ref({ x: 0, y: 0, offX: 0, dyOffY: 0 })
 
-const preloadImages = async () => {
+const viewportRef = ref<HTMLElement | null>(null)
+const imageRef = ref<HTMLImageElement | null>(null)
+
+// 检查图片加载状态的 Promise
+const checkImage = (url: string) =>
+  new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = reject
+    img.src = url
+  })
+
+// 暴露给模板使用
+const displayBefore = computed(() => beforeUrl.value)
+const displayAfter = computed(() => afterUrl.value)
+
+const initUrls = async () => {
   isDecoding.value = true
-  isError.value = false
-  originalLoaded.value = false
-  processedLoaded.value = false
-
+  error.value = null
   try {
-    originalViewUrl.value =
-      props.originalUrl instanceof Blob ? URL.createObjectURL(props.originalUrl) : props.originalUrl
-    processedViewUrl.value =
-      props.processedUrl instanceof Blob
-        ? URL.createObjectURL(props.processedUrl)
-        : props.processedUrl
+    // 释放之前的 URL
+    if (beforeUrl.value && beforeUrl.value.startsWith('blob:')) URL.revokeObjectURL(beforeUrl.value)
+    if (afterUrl.value && afterUrl.value.startsWith('blob:')) URL.revokeObjectURL(afterUrl.value)
 
-    // 检查图片加载状态的 Promise
-    const checkLoaded = () => {
-      if (originalLoaded.value && processedLoaded.value) {
-        isDecoding.value = false
-      }
-    }
+    beforeUrl.value =
+      typeof props.originalUrl === 'string'
+        ? props.originalUrl
+        : URL.createObjectURL(props.originalUrl)
+    afterUrl.value =
+      typeof props.processedUrl === 'string'
+        ? props.processedUrl
+        : URL.createObjectURL(props.processedUrl)
 
-    // 暴露给模板使用
-    return { checkLoaded }
+    await Promise.all([checkImage(beforeUrl.value), checkImage(afterUrl.value)])
+    isDecoding.value = false
+    resetView()
   } catch (err) {
-    console.error('Failed to load images for comparison', err)
-    isDecoding.value = false
-    isError.value = true
-  }
-}
-
-const handleImageLoad = (type: 'original' | 'processed') => {
-  if (type === 'original') originalLoaded.value = true
-  else processedLoaded.value = true
-
-  if (originalLoaded.value && processedLoaded.value) {
+    error.value = t('common.image.compare.errorDesc')
     isDecoding.value = false
   }
 }
 
-const containerRect = ref<DOMRect | null>(null)
-
-const handlePointerMove = (e: PointerEvent) => {
-  if (isResizing.value && container.value) {
-    // 实时获取容器矩形以应对可能的窗口缩放或滚动
-    const rect = container.value.getBoundingClientRect()
-    const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left))
-    sliderPos.value = (x / rect.width) * 100
-  } else if (isPanning.value) {
-    const dx = e.clientX - lastMousePos.value.x
-    const dy = e.clientY - lastMousePos.value.y
-    offset.value.x += dx
-    offset.value.y += dy
-  }
-  lastMousePos.value = { x: e.clientX, y: e.clientY }
-}
-
-const handlePointerDown = (e: PointerEvent, type: 'resize' | 'pan') => {
-  if (container.value) {
-    containerRect.value = container.value.getBoundingClientRect()
-  }
-
-  if (type === 'resize') {
-    isResizing.value = true
-    ;(e.currentTarget as HTMLElement)?.setPointerCapture(e.pointerId)
-  } else {
-    isPanning.value = true
-    lastMousePos.value = { x: e.clientX, y: e.clientY }
-  }
-}
-
-const handlePointerUp = () => {
-  isResizing.value = false
-  isPanning.value = false
-  containerRect.value = null
-  if (scale.value === 1) {
-    offset.value = { x: 0, y: 0 }
-  }
-}
-
-const handleWheel = (e: WheelEvent) => {
-  if (!e.ctrlKey && Math.abs(e.deltaY) < 5) return
-  e.preventDefault()
-  const delta = e.deltaY > 0 ? -0.2 : 0.2
-  const newScale = Math.max(1, Math.min(8, scale.value + delta))
-  scale.value = newScale
-  if (scale.value === 1) offset.value = { x: 0, y: 0 }
-}
-
-const zoom = (delta: number) => {
-  scale.value = Math.max(1, Math.min(8, scale.value + delta))
-  if (scale.value === 1) offset.value = { x: 0, y: 0 }
-}
-
-const reset = () => {
-  scale.value = 1
+const resetView = () => {
+  zoom.value = 1
   offset.value = { x: 0, y: 0 }
   sliderPos.value = 50
 }
 
-const handleKeyDown = (e: KeyboardEvent) => {
-  if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
-    e.preventDefault()
-    const step = e.shiftKey ? 10 : 1
-    if (e.key === 'ArrowLeft') sliderPos.value = Math.max(0, sliderPos.value - step)
-    if (e.key === 'ArrowRight') sliderPos.value = Math.min(100, sliderPos.value + step)
-    if (e.key === 'Home') sliderPos.value = 0
-    if (e.key === 'End') sliderPos.value = 100
+// 实时获取容器矩形以应对可能的窗口缩放或滚动
+const getViewportRect = () => viewportRef.value?.getBoundingClientRect()
+
+const handleWheel = (e: WheelEvent) => {
+  if (isDecoding.value) return
+  e.preventDefault()
+
+  const rect = getViewportRect()
+  if (!rect) return
+
+  const mouseX = e.clientX - rect.left
+  const mouseY = e.clientY - rect.top
+
+  const delta = e.deltaY > 0 ? 0.9 : 1.1
+  const newZoom = Math.max(0.1, Math.min(zoom.value * delta, 20))
+
+  // 计算相对于鼠标位置的缩放偏移
+  const zoomRatio = newZoom / zoom.value
+  offset.value = {
+    x: mouseX - (mouseX - offset.value.x) * zoomRatio,
+    y: mouseY - (mouseY - offset.value.y) * zoomRatio
   }
+  zoom.value = newZoom
 }
 
-onMounted(() => {
-  preloadImages()
-  window.addEventListener('pointermove', handlePointerMove)
-  window.addEventListener('pointerup', handlePointerUp)
-  window.addEventListener('wheel', handleWheel, { passive: false })
+const handlePointerDown = (e: PointerEvent) => {
+  if (isDecoding.value) return
+  isDragging.value = true
+  dragStart.value = { x: e.clientX, y: e.clientY, offX: offset.value.x, dyOffY: offset.value.y }
+  viewportRef.value?.setPointerCapture(e.pointerId)
+}
+
+const handlePointerMove = (e: PointerEvent) => {
+  if (!isDragging.value) return
+  const dx = e.clientX - dragStart.value.x
+  const dy = e.clientY - dragStart.value.y
+  offset.value = { x: dragStart.value.offX + dx, y: dragStart.value.dyOffY + dy }
+}
+
+const handlePointerUp = (e: PointerEvent) => {
+  isDragging.value = false
+  viewportRef.value?.releasePointerCapture(e.pointerId)
+}
+
+const handleSliderInput = (e: Event) => {
+  sliderPos.value = parseInt((e.target as HTMLInputElement).value)
+}
+
+onMounted(initUrls)
+onUnmounted(() => {
+  if (beforeUrl.value.startsWith('blob:')) URL.revokeObjectURL(beforeUrl.value)
+  if (afterUrl.value.startsWith('blob:')) URL.revokeObjectURL(afterUrl.value)
 })
 
-onUnmounted(() => {
-  window.removeEventListener('pointermove', handlePointerMove)
-  window.removeEventListener('pointerup', handlePointerUp)
-  window.removeEventListener('wheel', handleWheel)
-  if (props.originalUrl instanceof Blob) URL.revokeObjectURL(originalViewUrl.value)
-  if (props.processedUrl instanceof Blob) URL.revokeObjectURL(processedViewUrl.value)
-})
+watch(() => [props.originalUrl, props.processedUrl], initUrls)
 </script>
 
 <template>
-  <div class="w-full h-full flex flex-col bg-muted/20 relative overflow-hidden">
+  <div
+    class="w-full h-full flex flex-col bg-[#080808] relative overflow-hidden select-none"
+    @contextmenu.prevent
+  >
     <!-- UI 覆盖层：功能标题 (极致常显，z-index 最高) -->
     <div
-      class="absolute top-6 left-1/2 -translate-x-1/2 z-[120] px-6 py-2 bg-foreground/10 backdrop-blur-md border border-foreground/10 rounded-full pointer-events-none shadow-xl transition-all duration-700"
-      :class="isDecoding ? 'opacity-0 -translate-y-4' : 'opacity-100 translate-y-0'"
+      class="absolute top-6 left-6 z-50 flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-700"
     >
-      <span class="text-[0.7rem] font-black text-foreground uppercase tracking-[0.3em]"
-        >细节预览对比</span
-      >
+      <div class="p-2 bg-primary/10 rounded-xl border border-primary/20 text-primary">
+        <Layout :size="18" />
+      </div>
+      <h3 class="text-sm font-black text-white/90 uppercase tracking-[0.2em] shadow-black">
+        {{ t('common.image.compare.title') }}
+      </h3>
     </div>
 
     <!-- UI 覆盖层：左右标签 (极致常显，z-index 最高) -->
     <div
-      class="absolute top-6 left-6 md:top-10 md:left-10 z-[120] px-4 py-2 bg-background/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl flex flex-col pointer-events-none transition-all duration-500"
-      :class="isDecoding ? 'opacity-0 -translate-x-4' : 'opacity-100 translate-x-0'"
+      class="absolute top-6 right-6 z-50 flex gap-2 animate-in fade-in slide-in-from-right-4 duration-700"
     >
-      <span
-        class="text-[0.6rem] font-black text-muted-foreground uppercase tracking-[0.2em] leading-none mb-1.5"
-        >Original</span
+      <div
+        class="px-3 py-1.5 bg-black/40 backdrop-blur-md border border-white/10 rounded-lg text-[10px] font-black text-white/40 uppercase tracking-widest"
       >
-      <span class="text-[0.85rem] font-black text-foreground tabular-nums leading-none">{{
-        originalSize
-      }}</span>
-    </div>
-
-    <div
-      class="absolute top-6 right-6 md:top-10 md:right-10 z-[120] px-4 py-2 bg-primary/20 backdrop-blur-xl border border-primary/30 shadow-2xl rounded-2xl flex flex-col text-right pointer-events-none transition-all duration-500"
-      :class="isDecoding ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0'"
-    >
-      <span
-        class="text-[0.6rem] font-black text-primary uppercase tracking-[0.2em] leading-none mb-1.5"
-        >Processed</span
+        {{ t('common.image.card.before') }}
+      </div>
+      <div
+        class="px-3 py-1.5 bg-primary/20 backdrop-blur-md border border-primary/30 rounded-lg text-[10px] font-black text-primary uppercase tracking-widest shadow-lg shadow-primary/10"
       >
-      <span class="text-[0.85rem] font-black text-primary tabular-nums leading-none">{{
-        processedSize
-      }}</span>
+        {{ t('common.image.card.after') }}
+      </div>
     </div>
 
     <!-- 异常状态 -->
     <div
-      v-if="isError"
-      class="absolute inset-0 z-[130] flex flex-col items-center justify-center bg-background/95 backdrop-blur-md px-6 text-center animate-in fade-in duration-500"
+      v-if="error"
+      class="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-4"
     >
-      <div
-        class="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center text-destructive mb-6 shadow-soft"
-      >
-        <Maximize :size="40" />
+      <div class="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
+        <AlertCircle :size="32" class="text-destructive" />
       </div>
-      <h3 class="text-lg font-black text-foreground mb-2">预览生成失败</h3>
-      <p
-        class="text-[0.7rem] text-muted-foreground uppercase tracking-[0.25em] font-black opacity-60 max-w-xs leading-relaxed"
-      >
-        无法获取高分辨率图片，请尝试重新处理或检查连接。
-      </p>
+      <div class="space-y-1">
+        <h4 class="text-lg font-bold text-white">{{ t('common.image.compare.errorTitle') }}</h4>
+        <p class="text-sm text-white/40 max-w-xs">{{ error }}</p>
+      </div>
     </div>
 
     <!-- 加载中状态 -->
     <div
-      v-if="isDecoding && !isError"
-      class="absolute inset-0 z-[100] flex flex-col items-center justify-center bg-background/80 backdrop-blur-xl"
+      v-else-if="isDecoding"
+      class="flex-1 flex flex-col items-center justify-center p-12 space-y-6"
     >
       <div class="relative">
-        <Loader2 class="w-12 h-12 text-primary animate-spin" stroke-width="2.5" />
-        <div class="absolute inset-0 blur-xl bg-primary/20 animate-pulse -z-10"></div>
+        <div
+          class="w-16 h-16 border-4 border-primary/10 border-t-primary rounded-full animate-spin"
+        ></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <Split :size="20" class="text-primary/40" />
+        </div>
       </div>
-      <span
-        class="mt-6 text-[0.7rem] font-black text-primary uppercase tracking-[0.4em] animate-pulse"
-        >Decoding Resolution...</span
-      >
+      <p class="text-[10px] font-black text-primary uppercase tracking-[0.3em] animate-pulse">
+        {{ t('common.image.compare.decoding') }}
+      </p>
     </div>
 
     <!-- 核心视图区域 -->
-    <div class="flex-1 relative flex items-center justify-center p-4 md:p-12 cursor-move group">
+    <div
+      v-else
+      ref="viewportRef"
+      class="flex-1 relative cursor-grab active:cursor-grabbing overflow-hidden"
+      :class="{ 'transparency-grid': showTransparency }"
+      @wheel="handleWheel"
+      @pointerdown="handlePointerDown"
+      @pointermove="handlePointerMove"
+      @pointerup="handlePointerUp"
+      @pointerleave="handlePointerUp"
+    >
+      <!-- 物理缩放平移层 -->
       <div
-        class="w-full h-full max-w-7xl relative rounded-3xl overflow-hidden border border-border/50 bg-background shadow-elevated transition-all duration-700"
-        :class="[
-          { 'transparency-grid': showTransparency },
-          isDecoding ? 'opacity-0 scale-95' : 'opacity-100 scale-100',
-          isResizing || isPanning ? 'select-none ring-2 ring-primary/20' : ''
-        ]"
-        ref="container"
-        @pointerdown.self="handlePointerDown($event, 'pan')"
+        class="absolute will-change-transform"
+        :style="{
+          transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
+          transformOrigin: '0 0'
+        }"
       >
         <!-- 层级 1: 处理后图片 (底层) -->
-        <div
-          class="absolute inset-0 w-full h-full will-change-transform"
-          :class="{ 'transition-transform duration-500 cubic-bezier(0.2, 0, 0, 1)': !isPanning }"
-          :style="{
-            transform: `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`
-          }"
-          @pointerdown.self="handlePointerDown($event, 'pan')"
-        >
+        <div class="relative shadow-[0_0_100px_rgba(0,0,0,0.5)]">
           <img
-            :src="processedViewUrl"
-            class="absolute inset-0 w-full h-full object-contain pointer-events-none"
-            style="transform: translateZ(0)"
-            alt="After"
-            @load="handleImageLoad('processed')"
-            @error="isError = true"
+            :src="afterUrl"
+            class="block max-w-none pointer-events-none"
+            style="image-rendering: pixelated"
           />
+
+          <!-- 指标卡片 (后) -->
+          <div
+            class="absolute bottom-4 right-4 px-3 py-1.5 bg-black/60 backdrop-blur-md rounded-lg border border-white/10 text-[10px] font-mono text-white/80 tabular-nums pointer-events-none z-30"
+          >
+            {{ processedSize || '--' }}
+          </div>
         </div>
 
         <!-- 层级 2: 处理前图片 (顶层，带静态裁剪容器) -->
         <div
-          class="absolute inset-0 w-full h-full pointer-events-none z-20 overflow-hidden"
-          :style="{
-            clipPath: `inset(0 ${100 - sliderPos}% 0 0)`,
-            willChange: 'clip-path'
-          }"
+          class="absolute inset-0 overflow-hidden pointer-events-none"
+          :style="{ width: `${sliderPos}%` }"
         >
-          <div
-            class="absolute inset-0 w-full h-full will-change-transform"
-            :class="{ 'transition-transform duration-500 cubic-bezier(0.2, 0, 0, 1)': !isPanning }"
-            :style="{
-              transform: `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`
-            }"
-          >
+          <div class="relative h-full">
             <img
-              :src="originalViewUrl"
-              class="absolute inset-0 w-full h-full object-contain pointer-events-none"
-              style="transform: translateZ(0)"
-              alt="Before"
-              @load="handleImageLoad('original')"
-              @error="isError = true"
+              :src="beforeUrl"
+              class="block max-w-none h-full pointer-events-none"
+              style="image-rendering: pixelated"
             />
+
+            <!-- 指标卡片 (前) -->
+            <div
+              class="absolute bottom-4 left-4 px-3 py-1.5 bg-black/60 backdrop-blur-md rounded-lg border border-white/10 text-[10px] font-mono text-white/80 tabular-nums pointer-events-none z-30"
+            >
+              {{ originalSize || '--' }}
+            </div>
           </div>
         </div>
 
         <!-- 分割线 -->
         <div
-          class="absolute inset-y-0 z-30 w-[2px] bg-primary shadow-[0_0_20px_rgba(var(--primary-rgb),0.6)] pointer-events-none transition-opacity duration-300"
-          :class="isDecoding ? 'opacity-0' : 'opacity-100'"
+          class="absolute top-0 bottom-0 w-0.5 bg-white shadow-[0_0_15px_rgba(255,255,255,0.5)] pointer-events-none z-40"
           :style="{ left: `${sliderPos}%` }"
-        ></div>
-
-        <!-- 滑块控制柄 -->
-        <div
-          class="absolute inset-y-0 z-40 w-20 -ml-10 cursor-col-resize flex items-center justify-center group/handle active:scale-110 transition-transform touch-none outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
-          :style="{ left: `${sliderPos}%` }"
-          role="slider"
-          :aria-valuenow="sliderPos"
-          aria-valuemin="0"
-          aria-valuemax="100"
-          aria-label="对比分割线"
-          tabindex="0"
-          @pointerdown.prevent="handlePointerDown($event, 'resize')"
-          @keydown="handleKeyDown"
         >
+          <!-- 滑块控制柄 -->
           <div
-            class="w-12 h-12 bg-background border-2 border-primary/40 rounded-full shadow-elevated flex items-center justify-center transition-all group-hover/handle:border-primary group-hover/handle:scale-110 group-hover/handle:shadow-primary/20 group-active/handle:bg-primary group-active/handle:text-primary-foreground group-active/handle:border-primary"
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-2xl flex items-center justify-center cursor-ew-resize pointer-events-auto"
           >
-            <ChevronsLeftRight
-              :size="20"
-              class="text-muted-foreground group-hover/handle:text-primary group-active/handle:text-primary-foreground transition-colors"
-              stroke-width="3"
+            <Grip :size="20" class="text-black rotate-90" />
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="0.1"
+              :value="sliderPos"
+              class="absolute inset-0 opacity-0 cursor-ew-resize"
+              :aria-label="t('common.image.compare.divider')"
+              @input="handleSliderInput"
             />
           </div>
         </div>
@@ -330,36 +291,32 @@ onUnmounted(() => {
 
     <!-- 底部缩放工具栏 -->
     <div
-      class="absolute bottom-10 left-1/2 -translate-x-1/2 z-[150] flex items-center gap-2 p-2 bg-background/80 backdrop-blur-2xl border border-border/60 rounded-[1.5rem] shadow-elevated scale-90 md:scale-100 transition-all hover:scale-105"
+      class="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-1 p-1.5 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-4 duration-700"
     >
       <button
-        @click="zoom(-0.5)"
-        class="w-11 h-11 flex items-center justify-center rounded-2xl hover:bg-muted text-muted-foreground hover:text-primary transition-all active:scale-90"
-        title="缩小"
+        class="p-2.5 rounded-xl hover:bg-white/10 text-white/60 hover:text-white transition-all active:scale-90"
+        :title="t('common.image.compare.zoomOut')"
+        @click="zoom = Math.max(0.1, zoom * 0.8)"
       >
         <ZoomOut :size="18" />
       </button>
-
-      <div class="px-3 min-w-[60px] text-center border-x border-border/30">
-        <span class="text-[0.8rem] font-black tabular-nums tracking-tighter text-foreground"
-          >{{ Math.round(scale * 100) }}%</span
+      <div class="px-3 min-w-[60px] text-center">
+        <span class="text-xs font-black font-mono text-white/90 tabular-nums"
+          >{{ Math.round(zoom * 100) }}%</span
         >
       </div>
-
       <button
-        @click="zoom(0.5)"
-        class="w-11 h-11 flex items-center justify-center rounded-2xl hover:bg-muted text-muted-foreground hover:text-primary transition-all active:scale-90"
-        title="放大"
+        class="p-2.5 rounded-xl hover:bg-white/10 text-white/60 hover:text-white transition-all active:scale-90"
+        :title="t('common.image.compare.zoomIn')"
+        @click="zoom = Math.min(20, zoom * 1.2)"
       >
         <ZoomIn :size="18" />
       </button>
-
-      <div class="w-[1.5px] h-4 bg-border/20 mx-1"></div>
-
+      <div class="w-px h-4 bg-white/10 mx-1"></div>
       <button
-        @click="reset"
-        class="w-11 h-11 flex items-center justify-center rounded-2xl hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all active:scale-90"
-        title="重置全部视图"
+        class="p-2.5 rounded-xl hover:bg-white/10 text-white/60 hover:text-white transition-all active:scale-90"
+        :title="t('common.image.compare.reset')"
+        @click="resetView"
       >
         <RotateCcw :size="18" />
       </button>
@@ -367,13 +324,38 @@ onUnmounted(() => {
 
     <!-- 操作提示 -->
     <div
-      class="absolute top-20 left-1/2 -translate-x-1/2 px-5 py-2.5 bg-background/40 backdrop-blur-xl border border-border/20 rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 hidden md:block"
+      class="absolute bottom-10 left-8 hidden lg:flex items-center gap-2.5 text-[9px] font-black text-white/20 uppercase tracking-[0.2em] pointer-events-none z-50"
     >
-      <span
-        class="text-[0.65rem] text-muted-foreground/80 font-black uppercase tracking-[0.2em] flex items-center gap-3"
-      >
-        <Grip :size="14" class="text-primary/60" /> 滚轮缩放 • 拖拽背景平移
-      </span>
+      <div class="w-1.5 h-1.5 rounded-full bg-primary/40 animate-pulse"></div>
+      {{ t('common.image.compare.tip') }}
     </div>
   </div>
 </template>
+
+<style scoped>
+.transparency-grid {
+  background-image:
+    linear-gradient(45deg, #111 25%, transparent 25%),
+    linear-gradient(-45deg, #111 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #111 75%),
+    linear-gradient(-45deg, transparent 75%, #111 75%);
+  background-size: 20px 20px;
+  background-position:
+    0 0,
+    0 10px,
+    10px -10px,
+    -10px 0px;
+  background-color: #080808;
+}
+
+input[type='range'] {
+  -webkit-appearance: none;
+  background: transparent;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 40px;
+  width: 40px;
+}
+</style>

@@ -11,7 +11,7 @@ export interface ViewMeta {
   interactionType: InteractionType
   features: {
     showLayoutToggle: boolean // 是否显示卡片尺寸切换按钮
-    showImageStatus: boolean  // 是否显示图片选择状态
+    showImageStatus: boolean // 是否显示图片选择状态
     allowBatchProcess: boolean // 是否允许批量处理
   }
 }

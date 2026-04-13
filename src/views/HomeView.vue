@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   Minimize2,
   Maximize2,
@@ -14,77 +15,78 @@ import {
 } from 'lucide-vue-next'
 import AppButton from '../components/common/AppButton.vue'
 
+const { t } = useI18n()
 const toolsGrid = ref<HTMLElement | null>(null)
 
 const scrollToTools = () => {
   toolsGrid.value?.scrollIntoView({ behavior: 'smooth' })
 }
 
-const tools = [
+const tools = computed(() => [
   {
-    name: '压缩转换',
-    desc: '极致压缩并互转 WebP / AVIF 等格式',
+    name: t('tools.compress.name'),
+    desc: t('tools.compress.desc'),
     path: '/compress',
     icon: Minimize2,
     colorClass: 'text-emerald-500'
   },
   {
-    name: '调整尺寸',
-    desc: '按比例或固定像素缩放',
+    name: t('tools.resize.name'),
+    desc: t('tools.resize.desc'),
     path: '/resize',
     icon: Maximize2,
     colorClass: 'text-blue-500'
   },
   {
-    name: '裁剪图片',
-    desc: '自由裁切或固定比例',
+    name: t('tools.crop.name'),
+    desc: t('tools.crop.desc'),
     path: '/crop',
     icon: Scissors,
     colorClass: 'text-amber-500'
   },
   {
-    name: '清除 EXIF',
-    desc: '删除拍摄地点等隐私元数据',
+    name: t('tools.exif.name'),
+    desc: t('tools.exif.desc'),
     path: '/exif',
     icon: Trash2,
     colorClass: 'text-red-500'
   },
   {
-    name: '图片分割',
-    desc: '将大图分割为多个网格',
+    name: t('tools.split.name'),
+    desc: t('tools.split.desc'),
     path: '/split',
     icon: Split,
     colorClass: 'text-purple-500'
   },
   {
-    name: '图片拼接',
-    desc: '水平或垂直拼接多张图',
+    name: t('tools.combine.name'),
+    desc: t('tools.combine.desc'),
     path: '/combine',
     icon: Layers,
     colorClass: 'text-pink-500'
   },
   {
-    name: '去除背景',
-    desc: '基于本地 AI 技术的全自动背景移除',
+    name: t('tools.bgRemove.name'),
+    desc: t('tools.bgRemove.desc'),
     path: '/bg-remove',
     icon: Sparkles,
     colorClass: 'text-violet-500'
   },
   {
-    name: '色彩滤镜',
-    desc: '亮度、对比度与艺术滤镜',
+    name: t('tools.filters.name'),
+    desc: t('tools.filters.desc'),
     path: '/filters',
     icon: Palette,
     colorClass: 'text-indigo-500'
   },
   {
-    name: '站标生成',
-    desc: '自动生成全套网站 Favicon 图标',
+    name: t('tools.favicon.name'),
+    desc: t('tools.favicon.desc'),
     path: '/favicon',
     icon: Box,
     colorClass: 'text-teal-500'
   }
-]
+])
 </script>
 
 <template>
@@ -95,23 +97,21 @@ const tools = [
           class="inline-flex items-center gap-2 px-4 py-1.5 bg-green-500/10 text-green-600 dark:text-green-500 rounded-full font-bold text-[0.7rem] uppercase tracking-[0.2em] border border-green-500/20 mb-8 backdrop-blur-sm"
         >
           <div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-          Privacy First
+          {{ t('app.privacyFirst') }}
         </div>
         <h1
           class="text-4xl md:text-[5rem] font-black leading-[1.05] mb-8 text-foreground tracking-tighter"
         >
-          简单、快速、<br class="hidden md:block" />
+          {{ t('common.heroTitle1') }}<br class="hidden md:block" />
           <span
             class="bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 bg-clip-text text-transparent drop-shadow-sm"
-            >隐私安全</span
+            >{{ t('common.heroTitle2') }}</span
           >
         </h1>
         <p
           class="text-lg md:text-xl text-muted-foreground leading-relaxed mb-12 max-w-2xl font-medium opacity-90"
         >
-          所有图片处理均在您的浏览器本地完成，文件永远不会上传服务器。<br
-            class="hidden md:block"
-          />真正的离线式生产力工具。
+          {{ t('common.heroDesc') }}
         </p>
         <div class="flex flex-col md:flex-row gap-4">
           <AppButton
@@ -121,7 +121,7 @@ const tools = [
             @click="scrollToTools"
             class="text-lg px-10 h-14 active:scale-95 transition-all duration-300"
           >
-            快速开始
+            {{ t('common.start') }}
           </AppButton>
         </div>
       </section>
@@ -151,7 +151,7 @@ const tools = [
             <div
               class="text-[0.6rem] font-black bg-muted text-muted-foreground/80 px-2.5 py-1 rounded-full uppercase tracking-widest group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
             >
-              Ready
+              {{ t('common.ready') }}
             </div>
           </div>
           <div class="mb-6 relative z-10">
@@ -170,7 +170,7 @@ const tools = [
             <div
               class="flex items-center text-primary font-bold text-xs tracking-tight opacity-0 group-hover:opacity-100 translate-x-[-8px] group-hover:translate-x-0 transition-all duration-300"
             >
-              即刻开始 <ArrowRight :size="14" class="ml-1.5" />
+              {{ t('common.go') }} <ArrowRight :size="14" class="ml-1.5" />
             </div>
           </div>
         </router-link>

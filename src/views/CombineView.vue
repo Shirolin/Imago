@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, watch, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useImageStore, type ImageItem } from '../stores/imageStore'
 import { useResizeObserver } from '@vueuse/core'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
@@ -37,6 +38,7 @@ import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
 const store = useImageStore()
 const { downloadImage, triggerFileInput } = useFileHelpers()
+const { t } = useI18n()
 
 // 状态
 const srMessage = ref('')
@@ -275,34 +277,34 @@ const resetView = () => {
   workspaceRef.value?.triggerAutoFit(canvas.width, canvas.height)
 }
 
-const combineDirections = [
-  { label: '纵向', value: 'vertical', icon: ArrowDown },
-  { label: '横向', value: 'horizontal', icon: ArrowRight },
-  { label: '网格', value: 'grid', icon: Grid3X3 }
-]
+const combineDirections = computed(() => [
+  { label: t('tools.combine.dirVertical'), value: 'vertical', icon: ArrowDown },
+  { label: t('tools.combine.dirHorizontal'), value: 'horizontal', icon: ArrowRight },
+  { label: t('tools.combine.grid'), value: 'grid', icon: Grid3X3 }
+])
 
-const layoutModes = [
-  { label: '智能缩放', value: 'smart', icon: Layers },
-  { label: '原始尺寸', value: 'original', icon: Box }
-]
+const layoutModes = computed(() => [
+  { label: t('tools.combine.smartScale'), value: 'smart', icon: Layers },
+  { label: t('tools.combine.originalSize'), value: 'original', icon: Box }
+])
 
 const alignmentOptions = computed(() => {
   if (combineDirection.value === 'vertical')
     return [
-      { label: '左对齐', value: 'start', icon: AlignLeft },
-      { label: '居中', value: 'center', icon: AlignCenter },
-      { label: '右对齐', value: 'end', icon: AlignRight }
+      { label: t('tools.combine.alignLeft'), value: 'start', icon: AlignLeft },
+      { label: t('tools.combine.alignCenter'), value: 'center', icon: AlignCenter },
+      { label: t('tools.combine.alignRight'), value: 'end', icon: AlignRight }
     ]
   if (combineDirection.value === 'horizontal')
     return [
-      { label: '顶对齐', value: 'start', icon: AlignStartVertical },
-      { label: '居中', value: 'center', icon: AlignCenterVertical },
-      { label: '底对齐', value: 'end', icon: AlignEndVertical }
+      { label: t('tools.combine.alignTop'), value: 'start', icon: AlignStartVertical },
+      { label: t('tools.combine.alignCenter'), value: 'center', icon: AlignCenterVertical },
+      { label: t('tools.combine.alignBottom'), value: 'end', icon: AlignEndVertical }
     ]
   return [
-    { label: '起点', value: 'start', icon: AlignLeft },
-    { label: '居中', value: 'center', icon: AlignCenter },
-    { label: '终点', value: 'end', icon: AlignRight }
+    { label: t('tools.combine.start'), value: 'start', icon: AlignLeft },
+    { label: t('tools.combine.center'), value: 'center', icon: AlignCenter },
+    { label: t('tools.combine.end'), value: 'end', icon: AlignRight }
   ]
 })
 
@@ -341,7 +343,7 @@ const handleMoveImage = (index: number, direction: -1 | 1) => {
   store.images = newImages
 
   triggerHaptic(5) // 排序反馈
-  srMessage.value = `已将第 ${index + 1} 张图片移至第 ${newIndex + 1} 位`
+  srMessage.value = t('tools.combine.messages.moved', { from: index + 1, to: newIndex + 1 })
 
   nextTick(() => {
     const el = document.querySelector(`[data-order-item="${newIndex}"]`) as HTMLElement
@@ -352,7 +354,7 @@ const handleMoveImage = (index: number, direction: -1 | 1) => {
 const handleRemoveImage = (id: string, name: string) => {
   store.removeImage(id)
   triggerHaptic(12) // 删除反馈
-  srMessage.value = `已从拼接列表中移除图片: ${name}`
+  srMessage.value = t('tools.combine.messages.removed', { name })
 }
 
 const hasEnoughImages = computed(() => store.images.length >= 2)
@@ -372,14 +374,13 @@ useResizeObserver(containerRef, resetView)
       <AppCanvasWorkspace
         ref="workspaceRef"
         transform-duration="duration-300"
-        aria-label="图片拼接预览"
+        :aria-label="t('tools.combine.canvas.ariaLabel')"
         :aria-describedby="'combine-instructions'"
         @reset="resetView"
       >
         <template #default>
           <div id="combine-instructions" class="sr-only">
-            这是图片拼接的实时预览。您可以通过 AssetsTray 托盘或下方的无障碍排序列表调整图片顺序。
-            在排序列表中，使用键盘方向键左/右移动图片顺序，使用 Delete 键从拼接列表中移除图片。
+            {{ t('tools.combine.canvas.instructions') }}
           </div>
 
           <Transition name="preview-layout">
@@ -393,7 +394,7 @@ useResizeObserver(containerRef, resetView)
               />
 
               <!-- 【无障碍层】：逻辑排序层 -->
-              <div class="sr-only" role="list" aria-label="拼接图片排序列表">
+              <div class="sr-only" role="list" :aria-label="t('tools.combine.canvas.sortListAria')">
                 <TransitionGroup name="sort-list">
                   <div
                     v-for="(img, index) in store.images"
@@ -402,7 +403,9 @@ useResizeObserver(containerRef, resetView)
                     tabindex="0"
                     role="listitem"
                     class="focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 focus:bg-background/95 focus:backdrop-blur-md focus:p-3 focus:rounded-2xl focus:border-2 focus:border-primary focus:shadow-2xl focus:animate-in focus:fade-in focus:zoom-in-95 focus:duration-200"
-                    :aria-label="`图片 ${index + 1}: ${img.file.name}。按左右方向键排序，Delete 键移除。`"
+                    :aria-label="
+                      t('tools.combine.canvas.itemAria', { index: index + 1, name: img.file.name })
+                    "
                     @keydown.left.prevent="handleMoveImage(index, -1)"
                     @keydown.right.prevent="handleMoveImage(index, 1)"
                     @keydown.delete.prevent="handleRemoveImage(img.id, img.file.name)"
@@ -416,21 +419,21 @@ useResizeObserver(containerRef, resetView)
                         <button
                           @click="handleMoveImage(index, -1)"
                           class="p-1 hover:bg-muted rounded"
-                          aria-label="前移"
+                          :aria-label="t('tools.combine.canvas.movePrev')"
                         >
                           <ArrowUp :size="12" class="-rotate-90" />
                         </button>
                         <button
                           @click="handleMoveImage(index, 1)"
                           class="p-1 hover:bg-muted rounded"
-                          aria-label="后移"
+                          :aria-label="t('tools.combine.canvas.moveNext')"
                         >
                           <ArrowUp :size="12" class="rotate-90" />
                         </button>
                         <button
                           @click="handleRemoveImage(img.id, img.file.name)"
                           class="p-1 hover:text-destructive rounded"
-                          aria-label="移除"
+                          :aria-label="t('common.image.card.remove')"
                         >
                           <Trash2 :size="12" />
                         </button>
@@ -458,7 +461,7 @@ useResizeObserver(containerRef, resetView)
                 class="rounded-full px-10 pointer-events-auto shadow-xl shadow-primary/20 transition-all active:scale-95"
                 @click="triggerFileInput"
               >
-                <Plus :size="18" class="mr-1.5" />立即导入图片
+                <Plus :size="18" class="mr-1.5" />{{ t('tools.combine.importNow') }}
               </AppButton>
             </div>
           </Transition>
@@ -472,20 +475,20 @@ useResizeObserver(containerRef, resetView)
           class="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500"
           style="--stagger: 1"
         >
-          <AppSectionHeader title="拼接模式" :icon="Settings2" /><AppSegmentedControl
-            v-model="combineDirection"
-            :options="combineDirections"
-          />
+          <AppSectionHeader
+            :title="t('tools.combine.direction')"
+            :icon="Settings2"
+          /><AppSegmentedControl v-model="combineDirection" :options="combineDirections" />
         </section>
 
         <section
           class="space-y-4 pt-6 border-t border-border/40 animate-in fade-in slide-in-from-right-4 duration-500"
           style="--stagger: 2"
         >
-          <AppSectionHeader title="填充逻辑" :icon="Layers" /><AppSegmentedControl
-            v-model="layoutMode"
-            :options="layoutModes"
-          />
+          <AppSectionHeader
+            :title="t('tools.combine.layoutMode')"
+            :icon="Layers"
+          /><AppSegmentedControl v-model="layoutMode" :options="layoutModes" />
         </section>
 
         <section
@@ -493,24 +496,24 @@ useResizeObserver(containerRef, resetView)
           class="space-y-4 pt-6 border-t border-border/40 animate-in fade-in slide-in-from-right-4 duration-500"
           style="--stagger: 3"
         >
-          <AppSectionHeader title="对齐方式" :icon="AlignCenter" /><AppSegmentedControl
-            v-model="alignment"
-            :options="alignmentOptions"
-          />
+          <AppSectionHeader
+            :title="t('tools.combine.alignment')"
+            :icon="AlignCenter"
+          /><AppSegmentedControl v-model="alignment" :options="alignmentOptions" />
         </section>
 
         <section
           class="space-y-4 pt-6 border-t border-border/40 animate-in fade-in slide-in-from-right-4 duration-500"
           style="--stagger: 4"
         >
-          <AppSectionHeader title="排版参数" :icon="Settings2" />
+          <AppSectionHeader :title="t('tools.combine.params')" :icon="Settings2" />
           <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-5">
             <div v-if="combineDirection === 'grid'" class="space-y-3">
               <AppSlider
                 v-model="columns"
-                label="网格列数"
+                :label="t('tools.combine.gridCols')"
                 :icon="Grid3X3"
-                unit=" 列"
+                :unit="t('tools.combine.unitCol')"
                 :min="1"
                 :max="10"
                 :default-value="3"
@@ -520,7 +523,7 @@ useResizeObserver(containerRef, resetView)
             <div class="space-y-3">
               <AppSlider
                 v-model="spacing"
-                label="图片间距"
+                :label="t('tools.combine.spacing')"
                 :icon="Layers"
                 unit="px"
                 :min="0"
@@ -532,7 +535,7 @@ useResizeObserver(containerRef, resetView)
             <div class="space-y-3">
               <AppSlider
                 v-model="padding"
-                label="外边距"
+                :label="t('tools.combine.padding')"
                 :icon="Box"
                 unit="px"
                 :min="0"
@@ -544,7 +547,7 @@ useResizeObserver(containerRef, resetView)
             <div class="space-y-3">
               <AppSlider
                 v-model="borderRadius"
-                label="图片圆角"
+                :label="t('tools.combine.borderRadius')"
                 :icon="Settings2"
                 unit="px"
                 :min="0"
@@ -559,11 +562,11 @@ useResizeObserver(containerRef, resetView)
           class="space-y-4 pt-6 border-t border-border/40 animate-in fade-in slide-in-from-right-4 duration-500"
           style="--stagger: 5"
         >
-          <AppSectionHeader title="画布外观" :icon="Settings2" />
+          <AppSectionHeader :title="t('tools.combine.canvasAppearance')" :icon="Settings2" />
           <div
             class="bg-muted/10 rounded-2xl p-4 border border-border/60 hover:border-border transition-colors"
           >
-            <AppColorPicker v-model="backgroundColor" label="背景填充色" />
+            <AppColorPicker v-model="backgroundColor" :label="t('tools.combine.bgFill')" />
           </div>
         </section>
 
@@ -589,7 +592,7 @@ useResizeObserver(containerRef, resetView)
             <Layers v-if="!isProcessing" :size="19" class="mr-2 animate-in zoom-in duration-300" />
           </template>
           <span class="font-bold text-sm tracking-tight">{{
-            isProcessing ? '正在拼接...' : '生成并导出'
+            isProcessing ? t('tools.combine.cta.processing') : t('tools.combine.cta.export')
           }}</span>
         </AppButton>
       </InspectorFooter>

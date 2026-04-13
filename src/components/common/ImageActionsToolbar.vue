@@ -1,247 +1,207 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../../stores/imageStore'
-import { useFileHelpers } from '../../composables/useFileHelpers'
 import { useLayoutStore } from '../../stores/layoutStore'
-import { VIEW_CONFIGS } from '../../lib/ui-config'
-import AppButton from './AppButton.vue'
+import { useFileHelpers } from '../../composables/useFileHelpers'
 import AppModal from './AppModal.vue'
 import {
-  Plus,
-  Trash2,
-  X,
-  AlertTriangle,
   Download,
   RotateCcw,
+  Trash2,
+  Plus,
+  AlertCircle,
   LayoutGrid,
-  Layout
+  LayoutList
 } from 'lucide-vue-next'
 
-interface Props {
-  viewId?: string
+const props = defineProps<{
+  viewId: string
+  isProcessing?: boolean
+  showDownloadAll?: boolean
+  showResetAll?: boolean
   showDeleteSelected?: boolean
   showClearAll?: boolean
-  showDownloadAll?: boolean
-  showLayoutToggle?: boolean
-  isProcessing?: boolean
   zipPrefix?: string
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  viewId: '',
-  showDeleteSelected: true,
-  showClearAll: false,
-  showDownloadAll: true,
-  showLayoutToggle: undefined,
-  isProcessing: false,
-  zipPrefix: 'Processed'
-})
-
-const finalShowLayoutToggle = computed(() => {
-  if (typeof props.showLayoutToggle === 'boolean') return props.showLayoutToggle
-  if (props.viewId && VIEW_CONFIGS[props.viewId]) {
-    return VIEW_CONFIGS[props.viewId]!.features.showLayoutToggle
-  }
-  return false
-})
+}>()
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
-const { fileInput, triggerFileInput, handleFileChange, downloadAllAsZip, isDownloadingAll } =
-  useFileHelpers()
+const { downloadAllAsZip, triggerFileInput } = useFileHelpers()
+const { t } = useI18n()
+
+// 默认值
+const showDownloadAll = props.showDownloadAll ?? true
+const showResetAll = props.showResetAll ?? true
+const showDeleteSelected = props.showDeleteSelected ?? true
+const showClearAll = props.showClearAll ?? true
 
 // 确认框状态
 const showConfirm = ref(false)
-const confirmMode = ref<'delete' | 'clear'>('delete')
+const confirmMode = ref<'clear' | 'delete'>('clear')
 
-const openConfirm = (mode: 'delete' | 'clear') => {
+const openConfirm = (mode: 'clear' | 'delete') => {
   confirmMode.value = mode
   showConfirm.value = true
 }
 
-const handleConfirmAction = () => {
-  if (confirmMode.value === 'delete') {
-    store.removeSelected()
-  } else {
+const handleConfirm = () => {
+  if (confirmMode.value === 'clear') {
     store.clearImages()
+  } else {
+    store.removeSelected()
   }
   showConfirm.value = false
 }
 </script>
 
 <template>
-  <div class="flex items-center gap-2 md:gap-3 shrink-0">
-    <input
-      type="file"
-      ref="fileInput"
-      multiple
-      accept="image/*"
-      @change="handleFileChange"
-      class="hidden"
-    />
-
+  <div class="flex items-center gap-2 md:gap-3">
     <!-- 1. 核心操作组 (添加与下载) -->
     <div class="flex items-center gap-1.5 md:gap-2">
       <!-- 布局切换 -->
-      <AppButton
-        v-if="finalShowLayoutToggle"
-        variant="ghost"
-        size="md"
-        @click="layoutStore.toggleCardSize"
-        class="h-9 w-9 md:h-10 md:w-10 !p-0 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all group shrink-0"
-        :title="layoutStore.cardSizeMode === 'compact' ? '切换到大卡片' : '切换到紧凑模式'"
+      <button
+        @click="
+          layoutStore.cardSizeMode = layoutStore.cardSizeMode === 'compact' ? 'large' : 'compact'
+        "
+        class="p-2 md:p-2.5 rounded-xl border border-border/40 hover:bg-muted/50 hover:border-primary/20 text-muted-foreground transition-all active:scale-95 group shrink-0"
+        :title="
+          layoutStore.cardSizeMode === 'compact'
+            ? t('common.image.toolbar.layoutLarge')
+            : t('common.image.toolbar.layoutCompact')
+        "
       >
-        <template #icon>
-          <LayoutGrid
-            v-if="layoutStore.cardSizeMode === 'compact'"
-            :size="18"
-            class="opacity-60 group-hover:opacity-100"
-          />
-          <Layout v-else :size="18" class="opacity-60 group-hover:opacity-100" />
-        </template>
-      </AppButton>
+        <component
+          :is="layoutStore.cardSizeMode === 'compact' ? LayoutGrid : LayoutList"
+          :size="18"
+          class="group-hover:text-primary transition-colors"
+        />
+      </button>
 
-      <AppButton
-        variant="secondary"
-        size="md"
+      <button
         @click="triggerFileInput"
-        class="!px-3 md:!px-4 h-9 md:h-10 text-foreground/80 hover:text-primary transition-all group shrink-0"
-        title="导入图片"
-        aria-label="从本地选择并导入图片"
+        class="flex items-center gap-2 px-3 md:px-4 h-10 md:h-11 rounded-xl bg-background border border-border/40 hover:bg-muted/50 hover:border-primary/20 text-muted-foreground transition-all active:scale-95 group whitespace-nowrap"
+        :title="t('common.image.toolbar.import')"
+        :aria-label="t('common.image.toolbar.importAria')"
       >
-        <template #icon>
-          <Plus :size="16" class="opacity-70 group-hover:opacity-100 transition-opacity" />
-        </template>
-        <span class="hidden md:inline text-[0.75rem] font-bold">导入图片</span>
-      </AppButton>
+        <Plus
+          :size="18"
+          class="text-muted-foreground/60 group-hover:text-primary transition-colors"
+        />
+        <span class="hidden md:inline text-[0.75rem] font-bold">{{
+          t('common.image.toolbar.import')
+        }}</span>
+      </button>
 
-      <AppButton
+      <button
         v-if="showDownloadAll && store.doneCount > 0"
-        variant="cta"
-        size="md"
-        :loading="isDownloadingAll"
-        :disabled="isProcessing || isDownloadingAll"
-        @click="downloadAllAsZip(props.zipPrefix)"
-        class="!px-3 md:!px-4 h-9 md:h-10 transition-all shrink-0"
-        title="导出全部"
-        :aria-label="`打包并导出全部 ${store.doneCount} 张已处理图片`"
+        @click="downloadAllAsZip(zipPrefix || '_Imago')"
+        class="flex items-center gap-2 px-3 md:px-5 h-10 md:h-11 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-[1.02] hover:shadow-primary/30 transition-all active:scale-95 whitespace-nowrap"
+        :disabled="isProcessing"
+        :title="t('common.image.toolbar.exportAll')"
+        :aria-label="t('common.image.toolbar.exportAllAria', { count: store.doneCount })"
       >
-        <template #icon><Download :size="16" /></template>
-        <span class="hidden lg:inline text-[0.75rem] font-bold"
-          >导出全部 ({{ store.doneCount }})</span
+        <Download :size="18" class="animate-in zoom-in duration-300" />
+        <span class="text-[0.75rem] md:text-sm font-black tracking-tight"
+          >{{ t('common.image.toolbar.exportAll') }} ({{ store.doneCount }})</span
         >
-        <span class="lg:hidden font-mono text-[0.75rem] font-bold">{{ store.doneCount }}</span>
-      </AppButton>
+      </button>
     </div>
 
     <!-- 竖向分隔线 -->
-    <div v-if="store.images.length > 0" class="w-px h-4 bg-border/40 mx-1 shrink-0"></div>
+    <div class="w-px h-6 bg-border mx-1 hidden sm:block"></div>
 
     <!-- 2. 队列管理组 (恢复、删除、清空) -->
-    <div
-      v-if="store.images.length > 0"
-      class="flex items-center gap-1 animate-in fade-in slide-in-from-right-2 duration-300"
-    >
+    <div class="flex items-center gap-1.5 md:gap-2">
       <!-- 恢复原图 -->
-      <AppButton
-        v-if="store.doneCount > 0"
-        variant="ghost"
-        size="md"
-        :disabled="isProcessing"
-        @click="store.resetAll"
-        class="h-9 w-9 md:h-10 md:w-10 !p-0 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all group shrink-0"
-        title="恢复原图"
-        aria-label="重置所有图片到原始状态"
+      <button
+        v-if="showResetAll && store.doneCount > 0"
+        @click="store.resetAll()"
+        class="p-2 md:p-2.5 rounded-xl border border-border/40 hover:bg-muted/50 hover:border-primary/20 text-muted-foreground transition-all active:scale-95 group shrink-0"
+        :title="t('common.image.toolbar.resetAll')"
+        :aria-label="t('common.image.toolbar.resetAllAria')"
       >
-        <template #icon>
-          <RotateCcw :size="16" class="opacity-60 group-hover:opacity-100" />
-        </template>
-      </AppButton>
+        <RotateCcw
+          :size="18"
+          class="group-hover:text-primary group-hover:rotate-[-45deg] transition-all"
+        />
+      </button>
 
       <!-- 删除选中 -->
-      <AppButton
+      <button
         v-if="showDeleteSelected && store.selectedCount > 0"
-        variant="ghost"
-        size="md"
-        :disabled="isProcessing"
         @click="openConfirm('delete')"
-        class="h-9 w-9 md:h-10 md:w-10 !p-0 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-all group shrink-0"
-        title="删除选中"
-        :aria-label="`从队列中移除选中的 ${store.selectedCount} 张图片`"
+        class="p-2 md:p-2.5 rounded-xl border border-border/40 hover:bg-destructive/5 hover:border-destructive/30 text-muted-foreground hover:text-destructive transition-all active:scale-95 shrink-0"
+        :title="t('common.image.toolbar.deleteSelected')"
+        :aria-label="t('common.image.toolbar.deleteSelectedAria', { count: store.selectedCount })"
       >
-        <template #icon>
-          <Trash2 :size="16" class="opacity-60 group-hover:opacity-100" />
-        </template>
-      </AppButton>
+        <Trash2 :size="18" />
+      </button>
 
       <!-- 清空全部 -->
-      <AppButton
-        v-if="showClearAll"
-        variant="ghost"
-        size="md"
-        :disabled="isProcessing"
+      <button
+        v-if="showClearAll && store.images.length > 0"
         @click="openConfirm('clear')"
-        class="h-9 w-9 md:h-10 md:w-10 !p-0 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-all group shrink-0"
-        title="清空全部"
-        aria-label="清空当前所有处理队列"
+        class="p-2 md:p-2.5 rounded-xl border border-border/40 hover:bg-destructive/5 hover:border-destructive/30 text-muted-foreground hover:text-destructive transition-all active:scale-95 shrink-0"
+        :title="t('common.image.toolbar.clearAll')"
+        :aria-label="t('common.image.toolbar.clearAllAria')"
       >
-        <template #icon>
-          <X :size="16" class="opacity-60 group-hover:opacity-100" />
-        </template>
-      </AppButton>
+        <component :is="Trash2" :size="18" class="opacity-40" />
+      </button>
     </div>
 
     <!-- 允许插入额外的操作 -->
-    <div class="flex items-center gap-2">
-      <slot name="extra"></slot>
-    </div>
+    <slot name="extra"></slot>
 
     <!-- 统一确认对话框 -->
-    <AppModal :show="showConfirm" @close="showConfirm = false" title="确认操作" variant="dialog">
-      <template #header>
-        <div class="flex items-center gap-2 text-destructive">
-          <AlertTriangle :size="18" />
-          <span class="font-bold text-[0.7rem] uppercase tracking-[0.2em]">{{
-            confirmMode === 'clear' ? '清空队列确认' : '删除选中确认'
-          }}</span>
+    <AppModal
+      :show="showConfirm"
+      @close="showConfirm = false"
+      :title="t('common.image.toolbar.confirmTitle')"
+      variant="dialog"
+    >
+      <div class="p-6">
+        <div class="flex items-start gap-4 mb-6">
+          <div class="p-3 bg-destructive/10 rounded-2xl text-destructive shrink-0">
+            <AlertCircle :size="24" />
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-foreground mb-1 tracking-tight">
+              {{
+                confirmMode === 'clear'
+                  ? t('common.image.toolbar.confirmClear')
+                  : t('common.image.toolbar.confirmDelete')
+              }}
+            </h3>
+            <p class="text-muted-foreground text-sm leading-relaxed font-medium">
+              {{
+                confirmMode === 'delete'
+                  ? t('common.image.toolbar.confirmDeleteTitle', { count: store.selectedCount })
+                  : t('common.image.toolbar.confirmClearTitle')
+              }}
+            </p>
+            <p class="text-muted-foreground/60 text-[11px] mt-2 italic">
+              {{
+                confirmMode === 'delete'
+                  ? t('common.image.toolbar.confirmDeleteDesc')
+                  : t('common.image.toolbar.confirmClearDesc')
+              }}
+            </p>
+          </div>
         </div>
-      </template>
-
-      <div class="p-8 flex flex-col items-center text-center gap-4">
-        <div
-          class="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center text-destructive mb-2"
-        >
-          <Trash2 v-if="confirmMode === 'delete'" :size="32" />
-          <X v-else :size="32" />
-        </div>
-        <div class="space-y-1.5">
-          <h3 class="text-lg font-black text-foreground leading-tight tracking-tight">
-            {{
-              confirmMode === 'delete'
-                ? `删除选中的 ${store.selectedCount} 张图片？`
-                : '确定要清空所有图片吗？'
-            }}
-          </h3>
-          <p class="text-xs text-muted-foreground max-w-[240px] leading-relaxed">
-            {{
-              confirmMode === 'delete'
-                ? '该操作将永久从当前队列中移除选中的文件。'
-                : '此操作将移除队列中的所有内容，无法撤销。'
-            }}
-          </p>
+        <div class="flex gap-3">
+          <AppButton variant="ghost" class="flex-1 rounded-xl h-11" @click="showConfirm = false">
+            {{ t('common.image.toolbar.cancel') }}
+          </AppButton>
+          <AppButton
+            variant="destructive"
+            class="flex-1 rounded-xl h-11 shadow-lg shadow-destructive/10"
+            @click="handleConfirm"
+          >
+            {{ t('common.image.toolbar.confirm') }}
+          </AppButton>
         </div>
       </div>
-
-      <template #footer>
-        <div class="flex items-center gap-3 w-full">
-          <AppButton variant="secondary" class="flex-1" @click="showConfirm = false">
-            取消
-          </AppButton>
-          <AppButton variant="danger" class="flex-1" @click="handleConfirmAction">
-            确认执行
-          </AppButton>
-        </div>
-      </template>
     </AppModal>
   </div>
 </template>

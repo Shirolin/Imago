@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../stores/imageStore'
 import { useLayoutStore } from '../stores/layoutStore'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
@@ -39,6 +40,7 @@ import InspectorFooter from '../components/layout/InspectorFooter.vue'
 const store = useImageStore()
 const layoutStore = useLayoutStore()
 const { downloadAllAsZip } = useFileHelpers()
+const { t } = useI18n()
 
 const activeImageId = ref<string | null>(null)
 const exifDataMap = ref<Record<string, ExifData>>({})
@@ -159,9 +161,9 @@ watch([outputFormat, outputQuality], () => store.markAllAsDirty(), { deep: true 
 
 const ctaState = computed(() => {
   if (store.selectedCount === 0)
-    return { text: '请选择图片', icon: Trash2, action: 'none', disabled: true }
+    return { text: t('tools.exif.cta.select'), icon: Trash2, action: 'none', disabled: true }
   if (isProcessing.value)
-    return { text: '正在清理...', icon: Trash2, action: 'none', disabled: true }
+    return { text: t('tools.exif.cta.processing'), icon: Trash2, action: 'none', disabled: true }
 
   const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
   const allDoneAndClean =
@@ -170,7 +172,7 @@ const ctaState = computed(() => {
 
   if (allDoneAndClean) {
     return {
-      text: `下载安全图片 (${store.selectedCount})`,
+      text: t('tools.exif.cta.export', { count: store.selectedCount }),
       icon: Download,
       action: 'download',
       disabled: false
@@ -179,7 +181,9 @@ const ctaState = computed(() => {
 
   const anyDirty = selectedImages.some((img) => img.status === 'done' && img.isDirty)
   return {
-    text: anyDirty ? `重新清理 (${store.selectedCount})` : `清除隐私数据 (${store.selectedCount})`,
+    text: anyDirty
+      ? t('tools.exif.cta.process', { count: store.selectedCount })
+      : t('tools.exif.cta.process', { count: store.selectedCount }),
     icon: Trash2,
     action: 'process',
     disabled: false
@@ -210,8 +214,8 @@ const handleCtaClick = async () => {
       <div class="h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-6">
         <AppEmptyState
           v-if="store.images.length === 0"
-          title="暂无图片"
-          description="导入图片以开始隐私风险分析"
+          :title="t('tools.exif.empty.title')"
+          :description="t('tools.exif.empty.desc')"
           :icon="FileSearch"
         />
         <div
@@ -242,7 +246,7 @@ const handleCtaClick = async () => {
                 v-if="activeImageId === image.id"
                 class="px-2 py-0.5 rounded-md text-[10px] font-black flex items-center gap-1 shadow-lg bg-primary text-primary-foreground animate-in fade-in zoom-in duration-300"
               >
-                <Eye :size="10" />正在检查
+                <Eye :size="10" />{{ t('tools.exif.checking') }}
               </div></template
             >
             <template #meta="{ image }">
@@ -265,10 +269,10 @@ const handleCtaClick = async () => {
               >
                 {{
                   image.isExifUnsupported
-                    ? '不支持格式'
+                    ? t('tools.exif.unsupported')
                     : image.exifCount > 0
-                      ? `${image.exifCount} 隐私风险`
-                      : '安全'
+                      ? t('tools.exif.riskCount', { count: image.exifCount })
+                      : t('tools.exif.safe')
                 }}
               </AppBadge>
               <div v-else class="h-6 flex items-center">
@@ -295,7 +299,7 @@ const handleCtaClick = async () => {
         </div>
       </div>
       <section class="space-y-4">
-        <AppSectionHeader title="隐私分析" :icon="Info" />
+        <AppSectionHeader :title="t('tools.exif.privacyList')" :icon="Info" />
         <AppSidebarCard
           v-if="activeImageId && !isReadingExif"
           class="space-y-4 animate-in fade-in duration-500"
@@ -306,25 +310,29 @@ const handleCtaClick = async () => {
           >
             <ShieldAlert :size="18" class="text-destructive shrink-0" />
             <div class="text-[13px] font-bold text-destructive">
-              含有 {{ activeExifData.metaCount }} 条隐私数据
+              {{ t('tools.exif.riskDetail', { count: activeExifData.metaCount }) }}
             </div>
           </div>
           <div v-if="activeExifData?.metaCount" class="space-y-4 px-1">
             <AppInfoItem
               v-if="activeExifData?.model"
-              label="拍摄设备"
+              :label="t('tools.exif.items.device')"
               :icon="activeExifData.model.includes('iPhone') ? Smartphone : Camera"
             >
               {{ activeExifData.make }} {{ activeExifData.model }}
             </AppInfoItem>
 
-            <AppInfoItem v-if="activeExifData?.dateTime" label="拍摄时间" :icon="Calendar">
+            <AppInfoItem
+              v-if="activeExifData?.dateTime"
+              :label="t('tools.exif.items.time')"
+              :icon="Calendar"
+            >
               {{ activeExifData.dateTime }}
             </AppInfoItem>
 
             <AppInfoItem
               v-if="activeExifData?.latitude !== undefined"
-              label="地理位置"
+              :label="t('tools.exif.items.location')"
               :icon="MapPin"
               mono
             >
@@ -338,9 +346,9 @@ const handleCtaClick = async () => {
               :aria-expanded="isAllTagsExpanded"
               aria-controls="exif-tags-details"
             >
-              <span class="text-[0.65rem] font-bold uppercase tracking-widest leading-none"
-                >所有标记详情</span
-              >
+              <span class="text-[0.65rem] font-bold uppercase tracking-widest leading-none">{{
+                t('tools.exif.allTags')
+              }}</span>
               <component
                 :is="isAllTagsExpanded ? ChevronUp : ChevronDown"
                 :size="14"
@@ -372,12 +380,12 @@ const handleCtaClick = async () => {
             <div class="text-xs font-bold text-muted-foreground px-4 leading-relaxed">
               {{
                 activeExifData?.unsupported
-                  ? '该文件格式暂不支持或不含元数据'
-                  : '未检测到敏感数据，隐私安全'
+                  ? t('tools.exif.unsupportedTip')
+                  : t('tools.exif.safeTip')
               }}
             </div>
             <p v-if="activeExifData?.unsupported" class="text-[10px] text-muted-foreground/40 px-6">
-              支持检测 JPEG, TIFF, PNG, WebP, HEIC, AVIF 等主流图片格式。
+              {{ t('tools.exif.supportedFormats') }}
             </p>
           </div>
         </AppSidebarCard>
@@ -387,13 +395,13 @@ const handleCtaClick = async () => {
         >
           <RefreshCcw :size="24" class="animate-spin" /><span
             class="text-xs font-medium uppercase tracking-widest"
-            >正在分析中...</span
+            >{{ t('tools.exif.analyzing') }}</span
           >
         </div>
         <div v-else class="py-20 flex flex-col items-center gap-4 opacity-30">
-          <Fingerprint :size="32" /><span class="text-xs font-bold uppercase tracking-widest"
-            >选择图片查看详情</span
-          >
+          <Fingerprint :size="32" /><span class="text-xs font-bold uppercase tracking-widest">{{
+            t('tools.exif.selectToView')
+          }}</span>
         </div>
       </section>
 
@@ -415,7 +423,7 @@ const handleCtaClick = async () => {
           @click="handleCtaClick"
         >
           <template #icon>
-            <component :is="ctaState.icon" v-if="!isProcessing && !isReadingExif" :size="18" class="mr-2" />
+            <component :is="ctaState.icon" v-if="!isProcessing" :size="18" class="mr-2" />
           </template>
           <span class="font-bold text-sm tracking-tight">{{ ctaState.text }}</span>
         </AppButton>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useResizeObserver, useEventListener } from '@vueuse/core'
 import AppModal from './common/AppModal.vue'
 import AppButton from './common/AppButton.vue'
@@ -11,10 +12,11 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['close', 'apply'])
+const { t } = useI18n()
 
 // 状态管理
 const isLoading = ref(true)
-const statusMessage = ref('连接计算引擎...')
+const statusMessage = ref(t('common.modal.interactive.connecting'))
 const isEncoding = ref(false)
 const points = ref<{ x: number; y: number; label: number }[]>([])
 const maskUrl = ref<string | null>(null)
@@ -133,6 +135,7 @@ const initWorker = () => {
 
       switch (type) {
         case 'status':
+          // 这里的 message 如果是内置状态字符串，可能需要映射
           statusMessage.value = message
           break
         case 'ready':
@@ -141,7 +144,7 @@ const initWorker = () => {
           break
         case 'encoded':
           isEncoding.value = false
-          statusMessage.value = '就绪：请点击画面进行标注'
+          statusMessage.value = t('common.modal.interactive.readyTip')
           break
         case 'mask':
           if (maskUrl.value) URL.revokeObjectURL(maskUrl.value)
@@ -149,7 +152,7 @@ const initWorker = () => {
           break
         case 'error':
           console.error('[SAM2 Editor] Error:', message)
-          statusMessage.value = `错误: ${message}`
+          statusMessage.value = `${t('common.modal.interactive.error')}: ${message}`
           break
       }
     }
@@ -347,7 +350,12 @@ watch(
 </script>
 
 <template>
-  <AppModal :show="show" pane-only title="高级交互编辑器 (SAM2)" @close="emit('close')">
+  <AppModal
+    :show="show"
+    pane-only
+    :title="t('common.modal.interactive.title')"
+    @close="emit('close')"
+  >
     <div class="flex-1 flex flex-col bg-[#050505] select-none overflow-hidden min-h-0">
       <!-- 顶部工具栏 -->
       <div class="h-14 border-b border-white/5 flex items-center justify-between px-4 shrink-0">
@@ -362,9 +370,9 @@ watch(
             v-if="points.length > 0"
             class="text-xs text-white/40 hover:text-white transition-colors"
             @click="resetPoints"
-            title="清空"
+            :title="t('common.modal.interactive.clear')"
           >
-            清空所有标注
+            {{ t('common.modal.interactive.clearAll') }}
           </button>
 
           <div class="h-4 w-px bg-white/10 mx-2"></div>
@@ -372,7 +380,7 @@ watch(
           <div class="flex items-center gap-1.5">
             <button
               class="p-1.5 rounded-md text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-white/40 transition-colors"
-              title="撤销 (Ctrl+Z)"
+              :title="t('common.modal.interactive.undo')"
               :disabled="!historyPast.length"
               @click="undo"
             >
@@ -380,7 +388,7 @@ watch(
             </button>
             <button
               class="p-1.5 rounded-md text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-white/40 transition-colors"
-              title="重做 (Ctrl+Y)"
+              :title="t('common.modal.interactive.redo')"
               :disabled="!historyFuture.length"
               @click="redo"
             >
@@ -393,7 +401,7 @@ watch(
           <div class="flex items-center gap-1.5">
             <button
               class="p-1.5 rounded-md text-white/40 hover:text-white hover:bg-white/10 transition-colors"
-              title="缩小"
+              :title="t('common.modal.interactive.zoomOut')"
               @click="zoomOut"
             >
               <ZoomOut :size="16" />
@@ -403,7 +411,7 @@ watch(
             >
             <button
               class="p-1.5 rounded-md text-white/40 hover:text-white hover:bg-white/10 transition-colors"
-              title="放大"
+              :title="t('common.modal.interactive.zoomIn')"
               @click="zoomIn"
             >
               <ZoomIn :size="16" />
@@ -416,7 +424,7 @@ watch(
                   ? 'bg-primary/20 text-primary'
                   : 'text-white/40 hover:text-white hover:bg-white/10'
               "
-              title="1:1 原生尺寸"
+              :title="t('common.modal.interactive.zoomOne')"
               @click="setOneToOne"
             >
               1:1
@@ -428,7 +436,7 @@ watch(
                   ? 'bg-primary/20 text-primary'
                   : 'text-white/40 hover:text-white hover:bg-white/10'
               "
-              title="最佳贴合窗口"
+              :title="t('common.modal.interactive.zoomFit')"
               @click="setFitToWindow"
             >
               <Maximize :size="16" />
@@ -436,9 +444,11 @@ watch(
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <AppButton variant="ghost" size="sm" @click="emit('close')">取消</AppButton>
+          <AppButton variant="ghost" size="sm" @click="emit('close')">{{
+            t('common.image.toolbar.cancel')
+          }}</AppButton>
           <AppButton variant="primary" size="sm" :disabled="!maskUrl" @click="handleApply">
-            应用遮罩
+            {{ t('common.modal.interactive.apply') }}
           </AppButton>
         </div>
       </div>
@@ -514,14 +524,14 @@ watch(
           class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-6 px-6 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/5 text-[10px] font-bold text-white/40 pointer-events-none transition-all duration-300 group-hover:opacity-100 opacity-60 uppercase tracking-widest italic"
         >
           <div class="flex items-center gap-2">
-            <span class="text-emerald-400">Left Click</span>
+            <span class="text-emerald-400">{{ t('common.modal.interactive.leftClick') }}</span>
             <span class="text-white/20">/</span>
-            <span>Add</span>
+            <span>{{ t('common.modal.interactive.add') }}</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-rose-400">Right Click</span>
+            <span class="text-rose-400">{{ t('common.modal.interactive.rightClick') }}</span>
             <span class="text-white/20">/</span>
-            <span>Remove</span>
+            <span>{{ t('common.modal.interactive.remove') }}</span>
           </div>
         </div>
       </div>

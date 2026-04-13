@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../stores/imageStore'
 import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
@@ -31,6 +32,7 @@ import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
 const store = useImageStore()
 const { downloadImage } = useFileHelpers()
+const { t } = useI18n()
 
 // 状态
 const isProcessing = ref(false)
@@ -118,7 +120,7 @@ const handleGenerate = async () => {
   <WorkspaceLayout show-sidebar show-assets-tray no-scroll>
     <template #header-left><ImageSelectionStatus :show-card-size="false" /></template>
     <template #header-actions>
-      <ImageActionsToolbar :is-processing="isProcessing" show-clear-all />
+      <ImageActionsToolbar view-id="favicon" :is-processing="isProcessing" show-clear-all />
     </template>
 
     <template #content>
@@ -138,9 +140,9 @@ const handleGenerate = async () => {
             >
               <div class="flex items-center gap-2.5 text-muted-foreground/40 pl-1">
                 <Globe :size="14" />
-                <span class="text-[10px] font-black uppercase tracking-[0.3em]"
-                  >Environment Mockup</span
-                >
+                <span class="text-[10px] font-black uppercase tracking-[0.3em]">{{
+                  t('tools.favicon.mockup')
+                }}</span>
               </div>
               <div
                 class="bg-card border border-border/60 rounded-2xl overflow-hidden shadow-elevated w-full"
@@ -173,8 +175,9 @@ const handleGenerate = async () => {
                         alt="favicon"
                       />
                     </div>
-                    <span class="text-[9px] font-black opacity-60 tracking-tight uppercase truncate"
-                      >New Tab</span
+                    <span
+                      class="text-[9px] font-black opacity-60 tracking-tight uppercase truncate"
+                      >{{ t('tools.favicon.newTab') }}</span
                     >
                   </div>
                 </div>
@@ -253,8 +256,8 @@ const handleGenerate = async () => {
                     <button
                       @click="rotateMaskShape"
                       class="flex items-center gap-1.5 text-[9px] font-black text-primary uppercase hover:opacity-80 transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 rounded-sm outline-none"
-                      aria-label="切换预览形状"
-                      :title="`当前形状: ${activeMaskShape}`"
+                      :aria-label="t('tools.favicon.rotateShape')"
+                      :title="`${t('tools.favicon.currentShape')}: ${activeMaskShape}`"
                     >
                       <RefreshCw :size="10" />
                       Shape: {{ activeMaskShape }}
@@ -273,12 +276,16 @@ const handleGenerate = async () => {
                           ? 'bg-primary border-primary text-primary-foreground'
                           : 'bg-background border-border text-muted-foreground'
                       "
-                      :aria-label="autoPadding ? '禁用安全边距保护' : '开启安全边距保护'"
+                      :aria-label="
+                        autoPadding
+                          ? t('tools.favicon.disableSafeZone')
+                          : t('tools.favicon.enableSafeZone')
+                      "
                     >
                       <LayoutIcon :size="12" />
-                      <span class="text-[9px] font-black uppercase tracking-widest"
-                        >Auto Safe-Zone</span
-                      >
+                      <span class="text-[9px] font-black uppercase tracking-widest">{{
+                        t('tools.favicon.safeZone')
+                      }}</span>
                     </button>
                   </div>
 
@@ -303,7 +310,7 @@ const handleGenerate = async () => {
                           height: autoPadding ? '128px' : '160px',
                           maxWidth: 'none'
                         }"
-                        alt="物理画布边界参考"
+                        alt="Canvas Boundary Reference"
                       />
                     </div>
 
@@ -355,7 +362,7 @@ const handleGenerate = async () => {
                                   : '125%',
                             maxWidth: 'none'
                           }"
-                          :alt="`裁切后的预览 (${activeMaskShape})`"
+                          :alt="`Cropped Preview (${activeMaskShape})`"
                         />
                       </div>
                     </div>
@@ -368,15 +375,15 @@ const handleGenerate = async () => {
                       >
                         {{
                           activeMaskShape === 'full'
-                            ? '物理资产预览 (Full Asset)'
-                            : `系统裁切实测 (Environment: ${activeMaskShape})`
+                            ? 'Full Asset Preview'
+                            : `System Mask Simulation (${activeMaskShape})`
                         }}
                       </span>
                       <p class="text-[9px] font-bold text-primary/70 leading-relaxed max-w-[280px]">
                         {{
                           autoPadding
-                            ? '安全保护已开启：Logo 已缩回 80% 核心区，确保在任何形状下都完整可见。'
-                            : '警告：原始满铺模式下，图标边缘可能会被系统遮罩裁切。'
+                            ? t('tools.favicon.safeZoneTipOn')
+                            : t('tools.favicon.safeZoneTipOff')
                         }}
                       </p>
                     </div>
@@ -412,7 +419,7 @@ const handleGenerate = async () => {
                     tabindex="0"
                     @keydown.enter.prevent="toggleSpec(spec.id)"
                     @keydown.space.prevent="toggleSpec(spec.id)"
-                    :aria-label="`切换选中 ${spec.name}`"
+                    :aria-label="t('tools.favicon.toggleSpec', { name: spec.name })"
                     :aria-pressed="selectedIds.has(spec.id)"
                   >
                     <div
@@ -445,7 +452,15 @@ const handleGenerate = async () => {
                           transform:
                             spec.id === 'maskable512' && autoPadding ? 'scale(0.8)' : 'scale(1.0)'
                         }"
-                        :alt="`${spec.platform.toUpperCase()} ${spec.size}x${spec.size} 图标预览${spec.id === 'maskable512' && autoPadding ? ' (已开启 80% 安全保护)' : ''}`"
+                        :alt="
+                          t('tools.favicon.specPreviewAria', {
+                            platform: spec.platform.toUpperCase(),
+                            size: spec.size
+                          }) +
+                          (spec.id === 'maskable512' && autoPadding
+                            ? t('tools.favicon.safeZoneAria')
+                            : '')
+                        "
                       />
                       <div
                         v-if="spec.id === 'ico'"
@@ -480,14 +495,15 @@ const handleGenerate = async () => {
     <template #sidebar>
       <div class="space-y-8 py-2">
         <section class="space-y-4">
-          <AppSectionHeader title="外观配置" :icon="Monitor" />
+          <AppSectionHeader :title="t('tools.favicon.appearance')" :icon="Monitor" />
           <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4">
             <div class="flex flex-col gap-1 px-1">
-              <span class="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
-                >背景填充</span
+              <span
+                class="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
+                >{{ t('tools.favicon.bgFill') }}</span
               >
               <p class="text-[10px] text-muted-foreground/60 leading-relaxed">
-                若原始图标包含透明区域，可设置统一的底色。
+                {{ t('tools.favicon.bgFillDesc') }}
               </p>
             </div>
             <AppColorPicker v-model="backgroundColor" show-transparent />
@@ -495,7 +511,7 @@ const handleGenerate = async () => {
         </section>
 
         <section class="space-y-4 pt-6 border-t border-border/40 pb-4">
-          <AppSectionHeader title="导出控制" :icon="Info" />
+          <AppSectionHeader :title="t('tools.favicon.exportControl')" :icon="Info" />
           <div class="space-y-4">
             <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-6">
               <div v-for="(specs, groupName) in groupedSpecs" :key="groupName" class="space-y-3">
@@ -543,11 +559,19 @@ const handleGenerate = async () => {
                       <div class="flex flex-col gap-0 min-w-0">
                         <span
                           class="text-[10px] font-bold text-foreground truncate leading-tight"
-                          >{{ spec.name }}</span
+                          >{{
+                            spec.id === 'manifest' || spec.id === 'readme'
+                              ? spec.name
+                              : t(`tools.favicon.specs.${spec.id}`)
+                          }}</span
                         >
                         <span
                           class="text-[8px] font-medium text-muted-foreground/50 leading-tight"
-                          >{{ spec.description }}</span
+                          >{{
+                            spec.id === 'manifest' || spec.id === 'readme'
+                              ? t(`tools.favicon.specs.${spec.id}`)
+                              : spec.size + 'x' + spec.size
+                          }}</span
                         >
                       </div>
                     </div>
@@ -569,12 +593,11 @@ const handleGenerate = async () => {
                 <span class="text-[10px] font-black uppercase tracking-widest">Maskable Guide</span>
               </div>
               <p class="text-[9px] text-primary/70 leading-relaxed font-medium">
-                Android 建议图标内容应保持在
-                <b>80% 中心区</b> 内，其余区域作为背景以自适应各种裁切形状。
+                {{ t('tools.favicon.safeZoneGuide') }}
               </p>
             </div>
 
-            <AppTip class="mt-2">ZIP 将自动包含满足各商店审核要求的全套资源。</AppTip>
+            <AppTip class="mt-2">{{ t('tools.favicon.zipTip') }}</AppTip>
           </div>
         </section>
       </div>
@@ -593,7 +616,7 @@ const handleGenerate = async () => {
           <template #icon>
             <Download v-if="!isProcessing" :size="18" class="mr-2" />
           </template>
-          导出 {{ selectedIds.size }} 个项目
+          {{ t('tools.favicon.cta', { count: selectedIds.size }) }}
         </AppButton>
       </InspectorFooter>
     </template>

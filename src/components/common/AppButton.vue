@@ -130,11 +130,7 @@ const iconClass = computed(() => {
     :aria-label="ariaLabel"
   >
     <!-- 核心修复：Lucide 加载图标 -->
-    <Loader2
-      v-if="loading"
-      class="animate-spin shrink-0"
-      :size="iconSize"
-    />
+    <Loader2 v-if="loading" class="animate-spin shrink-0" :size="iconSize" />
 
     <slot name="icon" v-if="!loading">
       <component

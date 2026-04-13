@@ -1,0 +1,419 @@
+{
+  "app": {
+    "title": "imago",
+    "subtitle": "Minimalist Resim İşleme Araçları",
+    "privacyFirst": "Önce Gizlilik",
+    "localProcessing": "Yerel İşleme",
+    "processing": "İşleniyor"
+  },
+  "nav": {
+    "allTools": "Tüm Araçlar",
+    "groups": {
+      "core": "Temel Araçlar",
+      "edit": "Düzenleme Araçları",
+      "creative": "Yaratıcı Araçlar"
+    },
+    "collapse": "Menüyü daralt",
+    "expand": "Menüyü genişlet",
+    "toggleMobile": "Mobil menüyü aç/kapat",
+    "sponsor": "Destek ve Topluluk"
+  },
+  "tools": {
+    "compress": {
+      "name": "Sıkıştır ve Dönüştür",
+      "title": "Resim Sıkıştırma ve Format Dönüştürme (WebP/AVIF) - %100 Yerel",
+      "desc": "WebP / AVIF formatları arasında yüksek sıkıştırma ve dönüştürme",
+      "settingsTitle": "Sıkıştırma Ayarları",
+      "infoTip": "Görsel kaliteyi korurken dosya boyutunu önemli ölçüde azaltmak için gelişmiş Web sıkıştırma algoritmalarını kullanır.",
+      "original": "Orijinal",
+      "compressed": "Sıkıştırılmış",
+      "compareTitle": "Sıkıştırma Karşılaştırma Detayları",
+      "cta": {
+        "select": "Lütfen görüntüleri seçin",
+        "rendering": "İşleniyor",
+        "exportResults": "Sonuçları Dışa Aktar",
+        "updateCompress": "Sıkıştırmayı Güncelle",
+        "startCompress": "Sıkıştırmayı Başlat"
+      }
+    },
+    "resize": {
+      "name": "Boyutlandır",
+      "title": "Resimleri Yeniden Boyutlandır ve Ölçeklendir - Yüksek Kaliteli Çıktı",
+      "desc": "Yüzdeye veya sabit ölçülere göre ölçeklendirin",
+      "resizeMode": "Ayarlama Modu",
+      "byPercentage": "Yüzdeye Göre",
+      "byDimensions": "Boyuta Göre",
+      "scaleRatio": "Ölçek Oranı",
+      "width": "Genişlik",
+      "height": "Yükseklik",
+      "lockAspectRatio": "En Boy Oranını Koru",
+      "resetDimensions": "Boyutları Sıfırla",
+      "status": {
+        "noImages": "Görüntü Yok",
+        "importTip": "Toplu yeniden boyutlandırmaya başlamak için görüntüleri içe aktarın",
+        "original": "Orijinal",
+        "target": "Hedef"
+      },
+      "cta": {
+        "select": "Lütfen görüntüleri seçin",
+        "rendering": "İşleniyor...",
+        "exportResults": "Sonuçları Dışa Aktar ({count})",
+        "updateDimensions": "Boyutları Güncelle ({count})",
+        "adjustDimensions": "Boyutları Ayarla ({count})"
+      }
+    },
+    "crop": {
+      "name": "Kırp",
+      "title": "Resim Kırpma ve En Boy Oranı Ayarlama",
+      "desc": "Serbest kırpma veya sabit oranlar",
+      "aspectRatio": "Ön Ayarlı Oran",
+      "lockRatio": "Oranı Kilitle",
+      "freeRatio": "Serbest Oran",
+      "reset": "Kırpmayı Sıfırla",
+      "empty": {
+        "title": "Görüntü Yok",
+        "desc": "Çevrimiçi kırpmaya başlamak için görüntüleri içe aktarın"
+      },
+      "cta": {
+        "select": "Lütfen görüntüleri seçin",
+        "export": "Kırpmayı Dışa Aktar ({count})",
+        "apply": "Kırpmayı Uygula ({count})"
+      }
+    },
+    "exif": {
+      "name": "EXIF'i Temizle",
+      "title": "Resim Meta Verilerini (EXIF) Kaldır - Gizlilik Koruması",
+      "desc": "Konum gibi gizlilik meta verilerini kaldırın",
+      "privacyList": "Gizlilik Temizleme Listesi",
+      "selectAll": "Tümünü Seç",
+      "deselectAll": "Seçimi Kaldır",
+      "items": {
+        "location": "Konum (GPS)",
+        "device": "Cihaz Modeli",
+        "software": "Yazılım Bilgisi",
+        "time": "Çekim Zamanı",
+        "params": "Parametreler (Deklanşör/Diyafram vb.)"
+      },
+      "empty": {
+        "title": "Görüntü Yok",
+        "desc": "Gizlilik bilgilerini toplu olarak temizlemek için görüntüleri içe aktarın"
+      },
+      "cta": {
+        "select": "Lütfen görüntüleri seçin",
+        "export": "Temizlenmiş Sonuçları Dışa Aktar ({count})",
+        "process": "Gizlilik Verilerini Kaldır ({count})"
+      }
+    },
+    "split": {
+      "name": "Resmi Böl",
+      "title": "Resim Bölücü ve Izgara Dilimleme Aracı",
+      "desc": "Bölge resimleri birden fazla ızgaraya bölün",
+      "gridSettings": "Izgara Ayarları",
+      "uniformGrid": "Düzgün Izgara",
+      "freeEdit": "Serbest Düzenleme",
+      "verticalRows": "Dikey Satırlar",
+      "horizontalCols": "Yatay Sütunlar",
+      "unitRow": " Satır",
+      "unitCol": " Sütun",
+      "verticalLine": "Dikey Çizgi",
+      "horizontalLine": "Yatay Çizgi",
+      "syncGrid": "Izgarayı Senkronize Et",
+      "syncGridTip": "Çizgileri ızgara değerlerine göre sıfırla",
+      "clearAll": "Tümünü Temizle",
+      "viewSettings": "Görünüm Ayarları",
+      "restoreDefaultView": "Varsayılan Görünümü Geri Yükle",
+      "lineWidth": "Çizgi Genişliği",
+      "lineColor": "Çizgi Rengi",
+      "lineOpacity": "Opaklık",
+      "enhanced": "Gelişmiş İşleme",
+      "alignMode": "Hizalama Modu",
+      "alignModeDesc": "Ana içeriği otomatik olarak algıla ve kırp, orta hizalamayı veya zorunlu kare doldurmayı destekler.",
+      "standard": "Standart",
+      "center": "Ortalı",
+      "square": "Kare",
+      "shave": "Kenar Daraltma (Shave)",
+      "exportConfig": "Dışa Aktarma Ayarları",
+      "colors": {
+        "primary": "Tema Rengi",
+        "white": "Parlak Beyaz (Varsayılan)",
+        "black": "Derin Siyah",
+        "blue": "Teknoloji Mavisi",
+        "red": "Uyarı Kırmızısı"
+      },
+      "messages": {
+        "defaultRestored": "Varsayılan görünüm ayarları geri yüklendi",
+        "lineDeletedKey": "{index}. {axis} çizgi klavye ile silindi",
+        "lineAdded": "{pos} px konumuna {axis} çizgi eklendi",
+        "lineDeleted": "{index}. {axis} çizgi silindi",
+        "resetToGrid": "Çizgiler ızgara değerlerine göre sıfırlandı",
+        "cleared": "Tüm özel bölme çizgileri temizlendi",
+        "switchedToFree": "Serbest düzenleme moduna geçildi",
+        "abortedTask": "İşleme görevi iptal edildi"
+      },
+      "canvas": {
+        "ariaLabel": "Görüntü Bölme Tuvali",
+        "instructions": "Bölme çizgileri eklemek için tıklayın. Kaydırmak için Boşluk tuşuna basılı tutun ve sürükleyin.\nBir çizgi seçtikten sonra piksel düzeyinde ayar için ok tuşlarını, hızlı hareket için Shift + ok tuşlarını, silmek için Delete veya Backspace tuşlarını kullanın.",
+        "vLineAria": "Dikey bölme çizgisi {index}, konum {pos} piksel",
+        "hLineAria": "Yatay bölme çizgisi {index}, konum {pos} piksel",
+        "clickToAdd": "Çizgi eklemek için tuvale tıklayın",
+        "dragToMove": "Taşımak için çizgileri sürükleyin"
+      },
+      "cta": {
+        "select": "Lütfen görüntüyü seçin",
+        "aborted": "İptal Edildi",
+        "rendering": "İşleniyor %{progress}",
+        "renderingNoProgress": "İşleniyor...",
+        "clickToAbort": "(İptal etmek için tıklayın)",
+        "exportSlices": "Dilimleri Dışa Aktar",
+        "updateSplit": "Bölmeyi Güncelle",
+        "splitImage": "Görüntüyü Böl"
+      }
+    },
+    "combine": {
+      "name": "Resmi Birleştir",
+      "title": "Birden Fazla Resmi Dikey veya Yatay Olarak Birleştir",
+      "desc": "Birden fazla resmi yatay veya dikey olarak birleştirin",
+      "direction": "Birleştirme Yönü",
+      "dirVertical": "Dikey",
+      "dirHorizontal": "Yatay",
+      "spacing": "Resim Boşluğu",
+      "order": "Sıralama Düzeni",
+      "empty": {
+        "title": "Görüntü Yok",
+        "desc": "Birleştirmeye başlamak için en az iki görüntü içe aktarın"
+      },
+      "cta": {
+        "select": "Lütfen daha fazla görüntü ekleyin",
+        "export": "Uzun Resmi Dışa Aktar",
+        "process": "Birleştirmeyi Uygula"
+      }
+    },
+    "bgRemove": {
+      "name": "Arka Planı Kaldır",
+      "title": "AI Otomatik Arka Plan Kaldırma - Yükleme Gerektirmez",
+      "desc": "Yerel AI teknolojisine dayalı otomatik arka plan kaldırma",
+      "modelStatus": "Model Durumu",
+      "modelLoading": "Model Yükleniyor...",
+      "modelReady": "Model Hazır",
+      "mode": "İşleme Modu",
+      "modeAuto": "Tam Otomatik",
+      "modeInteractive": "Etkileşimli (SAM2)",
+      "tip": "Tüm AI işlemleri yerel olarak yapılır; resimleriniz asla yüklenmez.",
+      "empty": {
+        "title": "Görüntü Yok",
+        "desc": "Otomatik arka plan kaldırmaya başlamak için görüntüleri içe aktarın"
+      },
+      "cta": {
+        "select": "Lütfen görüntüleri seçin",
+        "export": "Şeffaf Resmi Dışa Aktar ({count})",
+        "process": "Kaldırmayı Başlat ({count})"
+      }
+    },
+    "filters": {
+      "name": "Sanatsal Filtreler",
+      "title": "Görüntü Filtreleri ve Renk Ayarı - Hızlı Yerel Düzenleme",
+      "desc": "Parlaklık, kontrast ve sanatsal ön ayarlar",
+      "quickPresets": "Hızlı Ön ayarlar",
+      "fineAdjustment": "Hassas Ayar",
+      "brightness": "Parlaklık",
+      "contrast": "Kontrast",
+      "saturation": "Doygunluk",
+      "blur": "Bulanıklık",
+      "sepia": "Sepya",
+      "realtimeTitle": "Gerçek Zamanlı Filtreler",
+      "realtimeDesc": "Sürgülerle gerçek zamanlı önizleme yapın. İşleme gizlilik için tamamen yereldir.",
+      "scrollLeft": "Sola kaydır",
+      "scrollRight": "Sağa kaydır",
+      "resetAll": "Tüm parametreleri sıfırla",
+      "presets": {
+        "none": "Yok",
+        "clarendon": "Clarendon",
+        "lofi": "Lo-fi",
+        "valencia": "Valencia",
+        "gingham": "Gingham",
+        "f1977": "1977",
+        "aden": "Aden",
+        "reyes": "Reyes",
+        "inkwell": "Inkwell",
+        "lark": "Lark"
+      },
+      "cta": {
+        "select": "Resim seçin",
+        "rendering": "İşleniyor...",
+        "export": "Sonuçları dışa aktar ({count})",
+        "update": "Filtreleri güncelle ({count})",
+        "apply": "Filtreleri uygula ({count})"
+      }
+    },
+    "favicon": {
+      "name": "Favicon Oluşturucu",
+      "title": "Çok Platformlu Web Sitesi Favicon Oluşturucu",
+      "desc": "Web sitesi Favicon simge setini otomatik olarak oluşturun",
+      "mockup": "Ortam Simülasyonu",
+      "newTab": "Yeni Sekme",
+      "appearance": "Görünüm Yapılandırması",
+      "bgFill": "Arka Plan Doldurma",
+      "bgFillDesc": "Orijinal simgede şeffaf alanlar varsa tek tip bir arka plan rengi ayarlayabilirsiniz.",
+      "exportControl": "Dışa Aktarma Kontrolü",
+      "safeZone": "Otomatik Güvenli Alan",
+      "safeZoneGuide": "Android, simge içeriğinin %80'lik merkez alan içinde tutulmasını önerir; geri kalan alan, çeşitli kırpma şekillerine uyum sağlamak için arka plan olarak kullanılır.",
+      "zipTip": "ZIP, çeşitli mağaza gereksinimlerini karşılayan tam bir kaynak setini otomatik olarak içerecektir.",
+      "cta": "{count} öğeyi dışa aktar",
+      "specs": {
+        "ico": "favicon.ico (Eski)",
+        "png16": "16x16 (Modern Tarayıcı)",
+        "png32": "32x32 (Modern Tarayıcı)",
+        "chrome128": "128x128 (Chrome Mağazası)",
+        "chrome48": "48x48 (Uzantı Sayfası)",
+        "chrome16": "16x16 (Araç Çubuğu)",
+        "apple": "Apple Touch Icon",
+        "android192": "Android 192x192",
+        "android512": "Android 512x512",
+        "maskable512": "Android Maskable",
+        "manifest": "site.webmanifest",
+        "readme": "README.txt (Kılavuz)"
+      }
+    }
+  },
+  "common": {
+    "start": "Hızlı Başlangıç",
+    "heroTitle1": "Basit, Hızlı",
+    "heroTitle2": "Güvenli ve Özel",
+    "heroDesc": "Tüm resim işleme işlemleri tarayıcınızda yerel olarak yapılır; dosyalar asla bir sunucuya yüklenmez. Gerçek bir çevrimdışı üretkenlik aracı.",
+    "pageTitleHome": "Gizlilik öncelikli, çevrimdışı kullanıma uygun minimalist resim araçları",
+    "ready": "Hazır",
+    "go": "Hemen Başla",
+    "workspace": "Çalışma Alanı",
+    "ui": {
+      "select": "Lütfen seçin",
+      "clickToEdit": "Değeri doğrudan düzenlemek için tıklayın",
+      "resetToDefault": "Varsayılana sıfırla"
+    },
+    "theme": {
+      "light": "Açık Mod",
+      "system": "Sistem Modu",
+      "dark": "Karanlık Mod"
+    },
+    "image": {
+      "upload": {
+        "title": "İşlemeye Başla",
+        "subtitle": "Resimleri sürükleyin, tıklayın veya yapıştırın · %100 Gizli ve Güvenli",
+        "button": "Dosyaları Seç",
+        "dropTip": "İşlemeye başlamak için bırakın",
+        "quickPaste": "Hızlı Yapıştır",
+        "pureOffline": "Tamamen çevrimdışı",
+        "errorSize": "[{name}] resmi çok büyük ({size}MB). Maksimum 50 MB."
+      },
+      "card": {
+        "select": "Resmi Seç",
+        "remove": "Resmi Kaldır",
+        "reset": "Orijinale Sıفırla",
+        "compare": "Detayları Karşılaştır",
+        "download": "İşleneni İndir",
+        "dirty": "Güncelleme Bekliyor",
+        "ready": "Hazır",
+        "wait": "Bekle",
+        "idle": "Boşta",
+        "before": "ÖNCE",
+        "after": "SONRA",
+        "sam2": "Gelişmiş Etkileşimli Segmentasyon (SAM2)"
+      },
+      "compare": {
+        "title": "Detaylı Karşılaştırma",
+        "errorTitle": "Önizleme Başarısız",
+        "errorDesc": "Yüksek çözünürlüklü resim alınamadı. Yeniden işlemeyi deneyin veya bağlantıyı kontrol edin.",
+        "decoding": "Çözünürlük çözülüyor...",
+        "original": "Orijinal",
+        "processed": "İşlendi",
+        "zoomIn": "Yakınlaştır",
+        "zoomOut": "Uzaklaştır",
+        "reset": "Görünümü Sıfırla",
+        "tip": "Kaydırma ile Yakınlaştır • Sürükleyerek Kaydır",
+        "divider": "Karşılaştırma Bölücü"
+      },
+      "toolbar": {
+        "layoutLarge": "Büyük Kartlar",
+        "layoutCompact": "Sıkışık Mod",
+        "import": "Resimleri İçe Aktar",
+        "importAria": "Yerel resimleri seç ve içe aktar",
+        "exportAll": "Tümünü Dışa Aktar",
+        "exportAllAria": "Tüm {count} işlenmiş resmi dışa aktar",
+        "resetAll": "Tümünü Sıfırla",
+        "resetAllAria": "Tüm resimleri orijinal haline sıfırla",
+        "deleteSelected": "Seçileni Sil",
+        "deleteSelectedAria": "{count} seçili resmi kuyruktan kaldır",
+        "clearAll": "Tümünü Temizle",
+        "clearAllAria": "İşlem kuyruğunu temizle",
+        "confirmTitle": "İşlemi Onayla",
+        "confirmClear": "Kuyruğu temizlemeyi onayla",
+        "confirmDelete": "Silmeyi onayla",
+        "confirmClearTitle": "Tüm resimleri temizlemek istediğinize emin misiniz?",
+        "confirmDeleteTitle": "{count} seçili resmi sil?",
+        "confirmClearDesc": "Bu işlem geri alınamaz.",
+        "confirmDeleteDesc": "Seçilen dosyalar kalıcı olarak kaldırılacaktır.",
+        "cancel": "İptal",
+        "confirm": "Onayla"
+      },
+      "selection": {
+        "selected": "Seçildi",
+        "allSelected": "Tümü Seçildi",
+        "complete": "İşlem Tamamlandı",
+        "toggle": "Seçimi Değiştir"
+      }
+    },
+    "export": {
+      "title": "Dışa Aktarma Ayarları",
+      "advanced": "Gelişmiş Ayarlar",
+      "format": "Format",
+      "qualityMode": "Kalite Öncelikli",
+      "targetSizeMode": "Hedef Boyut",
+      "outputQuality": "Çıkış Kalitesi",
+      "targetSize": "Hedef Boyut",
+      "maxColors": "Maks. Renk",
+      "effort": "Kodlama Çabası",
+      "resolutionLimit": "Çözünürlük Sınırı (Opsiyonel)",
+      "width": "Genişlik",
+      "height": "Yükseklik",
+      "skipIfLarger": "Boyut artarsa atla",
+      "preserveExif": "EXIF Metasını Koru",
+      "showMagnifier": "Akıllı Merceği Etkinleştir",
+      "formatOriginal": "Orijinal Formatı Koru",
+      "formatWebp": "WebP (Önerilen)",
+      "formatJpeg": "JPEG (En İyi Uyumluluk)",
+      "formatPng": "PNG (Kayıpsız/Şeffaf)",
+      "formatAvif": "AVIF (Gelişmiş)",
+      "formatJxl": "JPEG XL (Yeni Nesil)",
+      "formatWebp2": "WebP2 (Deneysel)"
+    },
+    "modal": {
+      "interactive": {
+        "title": "Etkileşimli Segmentasyon (SAM2)",
+        "guide": "Nesne eklemek için tıklayın veya sürükleyin, alanları hariç tutmak için Alt tuşuna basın.",
+        "brushSize": "Fırça Boyutu",
+        "confirm": "Çıkarmayı Tamamla",
+        "cancel": "Vazgeç"
+      },
+      "download": {
+        "title": "İndirmeye Hazır",
+        "fileName": "Dosya Adı",
+        "confirm": "İndirmeyi Onayla"
+      },
+      "sponsor": {
+        "title": "Imago'yu Destekleyin",
+        "desc": "Imago açık kaynaklıdır ve tamamen yerel olarak çalışır. Yararlı buluyorsanız, lütfen geliştirmemizi destekleyin.",
+        "heroTitle": "Imago'nun Gelişimini Destekleyin",
+        "community": "Topluluğa Katıl",
+        "githubAria": "Imago deposunu GitHub'da görüntüle (yeni sekmede açılır)",
+        "githubStar": "GitHub'da Yıldızla",
+        "githubDesc": "Açık kaynaklı depo. Yıldızınız bizim için en büyük onaydır.",
+        "afdian": "Afdian",
+        "afdianAria": "Imago'ya Afdian üzerinden sponsor olun, WeChat ve Alipay'i destekler (yeni sekmede açılır)",
+        "afdianTip": "Çin için önerilir",
+        "kofi": "Ko-fi",
+        "kofiAria": "Imago'ya Ko-fi üzerinden sponsor olun, uluslararası ödemeleri destekler (yeni sekmede açılır)",
+        "kofiTip": "Uluslararası Ödeme",
+        "footer": "Her bir destek Imago'nun gelişmesine yardımcı olur."
+      }
+    }
+  }
+}

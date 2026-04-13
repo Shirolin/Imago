@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { ImageItem } from '../stores/imageStore'
 import { useImageStore } from '../stores/imageStore'
 import { useLayoutStore } from '../stores/layoutStore'
@@ -37,6 +38,7 @@ import InspectorFooter from '../components/layout/InspectorFooter.vue'
 const store = useImageStore()
 const layoutStore = useLayoutStore()
 const { downloadImage, downloadAllAsZip } = useFileHelpers()
+const { t } = useI18n()
 
 // 状态
 const resizeMode = ref<'percentage' | 'dimensions'>('percentage')
@@ -100,10 +102,10 @@ const { isProcessing, processSelected } = useImageProcessor(resizeEngine)
 
 const displayImages = computed(() => [...store.images].reverse())
 
-const modeOptions = [
-  { label: '按比例', value: 'percentage', icon: Percent },
-  { label: '按尺寸', value: 'dimensions', icon: Maximize2 }
-]
+const modeOptions = computed(() => [
+  { label: t('tools.resize.byPercentage'), value: 'percentage', icon: Percent },
+  { label: t('tools.resize.byDimensions'), value: 'dimensions', icon: Maximize2 }
+])
 
 const resetDimensions = () => {
   width.value = 1920
@@ -163,9 +165,14 @@ watch(
 
 const ctaState = computed(() => {
   if (store.selectedCount === 0)
-    return { text: '请选择图片', icon: RefreshCw, action: 'none', disabled: true }
+    return { text: t('tools.resize.cta.select'), icon: RefreshCw, action: 'none', disabled: true }
   if (isProcessing.value)
-    return { text: '渲染中...', icon: RefreshCw, action: 'none', disabled: true }
+    return {
+      text: t('tools.resize.cta.rendering'),
+      icon: RefreshCw,
+      action: 'none',
+      disabled: true
+    }
 
   const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
   const allDoneAndClean =
@@ -174,7 +181,7 @@ const ctaState = computed(() => {
 
   if (allDoneAndClean) {
     return {
-      text: `导出成果 (${store.selectedCount})`,
+      text: t('tools.resize.cta.exportResults', { count: store.selectedCount }),
       icon: Download,
       action: 'download',
       disabled: false
@@ -183,7 +190,9 @@ const ctaState = computed(() => {
 
   const anyDirty = selectedImages.some((img) => img.status === 'done' && img.isDirty)
   return {
-    text: anyDirty ? `更新尺寸 (${store.selectedCount})` : `调整尺寸 (${store.selectedCount})`,
+    text: anyDirty
+      ? t('tools.resize.cta.updateDimensions', { count: store.selectedCount })
+      : t('tools.resize.cta.adjustDimensions', { count: store.selectedCount }),
     icon: RefreshCw,
     action: 'process',
     disabled: false
@@ -230,8 +239,8 @@ const handleCtaClick = async () => {
         <div class="h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-6">
           <AppEmptyState
             v-if="store.images.length === 0"
-            title="暂无图片"
-            description="导入图片以开始批量缩放"
+            :title="t('tools.resize.status.noImages')"
+            :description="t('tools.resize.status.importTip')"
             :icon="FileSearch"
           />
           <div
@@ -255,9 +264,9 @@ const handleCtaClick = async () => {
             >
               <template #meta="{ image }">
                 <AppComparisonBadge
-                  before-label="原始"
+                  :before-label="t('tools.resize.status.original')"
                   :before-value="`${image.width}x${image.height}`"
-                  after-label="目标"
+                  :after-label="t('tools.resize.status.target')"
                   :after-value="`${image.processedWidth}x${image.processedHeight}`"
                   :status="image.status"
                   :compact="layoutStore.cardSizeMode === 'compact'"
@@ -270,14 +279,14 @@ const handleCtaClick = async () => {
 
       <template #sidebar>
         <section class="space-y-4">
-          <AppSectionHeader title="调整模式" :icon="Settings2" />
+          <AppSectionHeader :title="t('tools.resize.resizeMode')" :icon="Settings2" />
           <AppSegmentedControl v-model="resizeMode" :options="modeOptions" />
 
           <AppSidebarCard>
             <div v-if="resizeMode === 'percentage'" class="space-y-3">
               <AppSlider
                 v-model="percentage"
-                label="缩放比例"
+                :label="t('tools.resize.scaleRatio')"
                 :icon="Percent"
                 unit="%"
                 :min="1"
@@ -291,24 +300,27 @@ const handleCtaClick = async () => {
                 <AppInput
                   v-model.number="width"
                   type="number"
-                  placeholder="宽度"
+                  :placeholder="t('tools.resize.width')"
                   suffix="W"
-                  aria-label="宽度"
+                  :aria-label="t('tools.resize.width')"
                 />
                 <AppInput
                   v-model.number="height"
                   type="number"
-                  placeholder="高度"
+                  :placeholder="t('tools.resize.height')"
                   suffix="H"
-                  aria-label="高度"
+                  :aria-label="t('tools.resize.height')"
                 />
               </div>
               <div class="flex items-center justify-between px-1">
-                <AppCheckbox v-model="maintainAspectRatio" label="锁定纵横比" />
+                <AppCheckbox
+                  v-model="maintainAspectRatio"
+                  :label="t('tools.resize.lockAspectRatio')"
+                />
                 <button
                   @click="resetDimensions"
-                  aria-label="重置尺寸"
-                  title="重置尺寸"
+                  :aria-label="t('tools.resize.resetDimensions')"
+                  :title="t('tools.resize.resetDimensions')"
                   class="p-1.5 hover:bg-muted rounded-lg transition-colors text-muted-foreground"
                 >
                   <RotateCcw :size="14" />

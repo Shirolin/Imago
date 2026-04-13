@@ -1,0 +1,419 @@
+{
+  "app": {
+    "title": "imago",
+    "subtitle": "Herramientas minimalistas de procesamiento de imágenes",
+    "privacyFirst": "Privacidad primero",
+    "localProcessing": "Procesamiento local",
+    "processing": "Procesando"
+  },
+  "nav": {
+    "allTools": "Todas las herramientas",
+    "groups": {
+      "core": "Herramientas básicas",
+      "edit": "Herramientas de edición",
+      "creative": "Herramientas creativas"
+    },
+    "collapse": "Contraer menú",
+    "expand": "Expandir menú",
+    "toggleMobile": "Alternar menú móvil",
+    "sponsor": "Soporte y comunidad"
+  },
+  "tools": {
+    "compress": {
+      "name": "Comprimir y convertir",
+      "title": "Compresión de imágenes y conversión de formatos (WebP/AVIF) - 100% local",
+      "desc": "Compresión extrema y conversión entre formatos WebP / AVIF",
+      "settingsTitle": "Ajustes de compresión",
+      "infoTip": "Utiliza algoritmos de compresión web avanzados para reducir significativamente el tamaño del archivo manteniendo la calidad visual.",
+      "original": "Original",
+      "compressed": "Comprimido",
+      "compareTitle": "Detalles de la comparativa de compresión",
+      "cta": {
+        "select": "Por favor, seleccione imágenes",
+        "rendering": "Renderizando",
+        "exportResults": "Exportar resultados",
+        "updateCompress": "Actualizar compresión",
+        "startCompress": "Iniciar compresión"
+      }
+    },
+    "resize": {
+      "name": "Redimensionar",
+      "title": "Redimensionar y escalar imágenes - Exportación de alta calidad",
+      "desc": "Escalado por porcentaje o por dimensiones fijas",
+      "resizeMode": "Modo de ajuste",
+      "byPercentage": "Por porcentaje",
+      "byDimensions": "Por dimensiones",
+      "scaleRatio": "Relación de escala",
+      "width": "Ancho",
+      "height": "Alto",
+      "lockAspectRatio": "Bloquear relación de aspecto",
+      "resetDimensions": "Restablecer dimensiones",
+      "status": {
+        "noImages": "Sin imágenes",
+        "importTip": "Importe imágenes para comenzar el redimensionamiento por lotes",
+        "original": "Original",
+        "target": "Objetivo"
+      },
+      "cta": {
+        "select": "Por favor, seleccione imágenes",
+        "rendering": "Renderizando...",
+        "exportResults": "Exportar resultados ({count})",
+        "updateDimensions": "Actualizar dimensiones ({count})",
+        "adjustDimensions": "Ajustar dimensiones ({count})"
+      }
+    },
+    "crop": {
+      "name": "Recortar",
+      "title": "Recortar imágenes y ajustar relación de aspecto",
+      "desc": "Recorte libre o relaciones fijas",
+      "aspectRatio": "Relación preestablecida",
+      "lockRatio": "Bloquear relación",
+      "freeRatio": "Relación libre",
+      "reset": "Restablecer recorte",
+      "empty": {
+        "title": "Sin imágenes",
+        "desc": "Importe imágenes para comenzar el recorte en línea"
+      },
+      "cta": {
+        "select": "Por favor, seleccione imágenes",
+        "export": "Exportar recorte ({count})",
+        "apply": "Aplicar recorte ({count})"
+      }
+    },
+    "exif": {
+      "name": "Borrar EXIF",
+      "title": "Eliminar metadatos de imagen (EXIF) - Protección de privacidad",
+      "desc": "Eliminar metadatos de privacidad como la ubicación",
+      "privacyList": "Lista de eliminación de privacidad",
+      "selectAll": "Seleccionar todo",
+      "deselectAll": "Deseleccionar todo",
+      "items": {
+        "location": "Ubicación (GPS)",
+        "device": "Modelo de dispositivo",
+        "software": "Información de software",
+        "time": "Hora de captura",
+        "params": "Parámetros (obturador/apertura, etc.)"
+      },
+      "empty": {
+        "title": "Sin imágenes",
+        "desc": "Importe imágenes para borrar metadatos de privacidad por lotes"
+      },
+      "cta": {
+        "select": "Por favor, seleccione imágenes",
+        "export": "Exportar resultados limpios ({count})",
+        "process": "Eliminar metadatos ({count})"
+      }
+    },
+    "split": {
+      "name": "Dividir imagen",
+      "title": "Divisor de imágenes y herramienta de corte en cuadrícula",
+      "desc": "Dividir imágenes grandes en múltiples cuadrículas",
+      "gridSettings": "Ajustes de cuadrícula",
+      "uniformGrid": "Cuadrícula uniforme",
+      "freeEdit": "Edición libre",
+      "verticalRows": "Filas verticales",
+      "horizontalCols": "Columnas horizontales",
+      "unitRow": " Filas",
+      "unitCol": " Cols",
+      "verticalLine": "Línea vertical",
+      "horizontalLine": "Línea horizontal",
+      "syncGrid": "Sincronizar cuadrícula",
+      "syncGridTip": "Restablecer líneas según valores de cuadrícula",
+      "clearAll": "Borrar todo",
+      "viewSettings": "Ajustes de vista",
+      "restoreDefaultView": "Restaurar vista predeterminada",
+      "lineWidth": "Grosor de línea",
+      "lineColor": "Color de línea",
+      "lineOpacity": "Opacity",
+      "enhanced": "Procesamiento mejorado",
+      "alignMode": "Modo de alineación",
+      "alignModeDesc": "Detectar y recortar automáticamente el contenido principal, admite alineación central o relleno cuadrado forzado.",
+      "standard": "Estándar",
+      "center": "Centrado",
+      "square": "Cuadrado",
+      "shave": "Reducción de bordes (Shave)",
+      "exportConfig": "Ajustes de exportación",
+      "colors": {
+        "primary": "Color del tema",
+        "white": "Blanco brillante (predeterminado)",
+        "black": "Negro profundo",
+        "blue": "Azul tech",
+        "red": "Rojo de advertencia"
+      },
+      "messages": {
+        "defaultRestored": "Ajustes de vista predeterminados restaurados",
+        "lineDeletedKey": "Línea {index} ({axis}) eliminada mediante teclado",
+        "lineAdded": "Línea {axis} añadida en {pos} px",
+        "lineDeleted": "Línea {index} ({axis}) eliminada",
+        "resetToGrid": "Líneas restablecidas según valores de cuadrícula",
+        "cleared": "Todas las líneas de división personalizadas borradas",
+        "switchedToFree": "Cambiado a modo de edición libre",
+        "abortedTask": "Tarea de renderizado abortada"
+      },
+      "canvas": {
+        "ariaLabel": "Lienzo de división de imagen",
+        "instructions": "Haga clic para añadir líneas de división. Mantenga Espacio y arrastre para desplazar.\nTras seleccionar una línea, use las flechas para un ajuste preciso por píxel, Shift + flechas para movimiento rápido, Supr o Retroceso para eliminar.",
+        "vLineAria": "Línea de división vertical {index}, posición {pos} píxeles",
+        "hLineAria": "Línea de división horizontal {index}, posición {pos} píxeles",
+        "clickToAdd": "Haga clic en el lienzo para añadir una línea",
+        "dragToMove": "Arrastre las líneas para moverlas"
+      },
+      "cta": {
+        "select": "Por favor, seleccione una imagen",
+        "aborted": "Abortado",
+        "rendering": "Renderizando {progress}%",
+        "renderingNoProgress": "Renderizando...",
+        "clickToAbort": "(Clic para abortar)",
+        "exportSlices": "Exportar fragmentos",
+        "updateSplit": "Actualizar división",
+        "splitImage": "Dividir imagen"
+      }
+    },
+    "combine": {
+      "name": "Combinar imágenes",
+      "title": "Combinar varias imágenes vertical u horizontalmente",
+      "desc": "Combinar varias imágenes horizontal o verticalmente",
+      "direction": "Dirección de combinación",
+      "dirVertical": "Vertical",
+      "dirHorizontal": "Horizontal",
+      "spacing": "Espaciado entre imágenes",
+      "order": "Orden de disposición",
+      "empty": {
+        "title": "Sin imágenes",
+        "desc": "Importe al menos dos imágenes para comenzar la combinación"
+      },
+      "cta": {
+        "select": "Por favor, importe más imágenes",
+        "export": "Exportar imagen larga",
+        "process": "Aplicar combinación"
+      }
+    },
+    "bgRemove": {
+      "name": "Quitar fondo",
+      "title": "Eliminación automática de fondos por IA - No requiere carga",
+      "desc": "Eliminación automática de fondos basada en IA local",
+      "modelStatus": "Estado del modelo",
+      "modelLoading": "Cargando modelo...",
+      "modelReady": "Modelo listo",
+      "mode": "Modo de procesamiento",
+      "modeAuto": "Totalmente automático",
+      "modeInteractive": "Interactivo (SAM2)",
+      "tip": "Todo el procesamiento de IA se realiza localmente; sus imágenes nunca se suben.",
+      "empty": {
+        "title": "Sin imágenes",
+        "desc": "Importe imágenes para comenzar la eliminación automática del fondo"
+      },
+      "cta": {
+        "select": "Por favor, seleccione imágenes",
+        "export": "Exportar imagen transparente ({count})",
+        "process": "Iniciar eliminación ({count})"
+      }
+    },
+    "filters": {
+      "name": "Filtros artísticos",
+      "title": "Filtros de imagen y ajuste de color - Edición local rápida",
+      "desc": "Brillo, contraste y ajustes artísticos",
+      "quickPresets": "Ajustes rápidos",
+      "fineAdjustment": "Ajuste fino",
+      "brightness": "Brillo",
+      "contrast": "Contraste",
+      "saturation": "Saturación",
+      "blur": "Desenfoque",
+      "sepia": "Sepia",
+      "realtimeTitle": "Filtros en tiempo real",
+      "realtimeDesc": "Arrastra los controles para vista previa en tiempo real. El procesamiento es local por privacidad.",
+      "scrollLeft": "Desplazar a la izquierda",
+      "scrollRight": "Desplazar a la derecha",
+      "resetAll": "Restablecer todos los parámetros",
+      "presets": {
+        "none": "Ninguno",
+        "clarendon": "Clarendon",
+        "lofi": "Lo-fi",
+        "valencia": "Valencia",
+        "gingham": "Gingham",
+        "f1977": "1977",
+        "aden": "Aden",
+        "reyes": "Reyes",
+        "inkwell": "Inkwell",
+        "lark": "Lark"
+      },
+      "cta": {
+        "select": "Seleccionar imágenes",
+        "rendering": "Renderizando...",
+        "export": "Exportar resultados ({count})",
+        "update": "Actualizar filtros ({count})",
+        "apply": "Aplicar filtros ({count})"
+      }
+    },
+    "favicon": {
+      "name": "Generador de favicons",
+      "title": "Generador de favicons multiplataforma para sitios web",
+      "desc": "Generar automáticamente un conjunto completo de iconos Favicon",
+      "mockup": "Simulación de entorno",
+      "newTab": "Nueva pestaña",
+      "appearance": "Configuración de apariencia",
+      "bgFill": "Relleno de fondo",
+      "bgFillDesc": "Establezca un color de fondo uniforme si el icono original tiene áreas transparentes.",
+      "exportControl": "Control de exportación",
+      "safeZone": "Zona de seguridad automática",
+      "safeZoneGuide": "Android recomienda mantener el contenido del icono dentro del 80% del área central, usando el resto como fondo para adaptarse a diversas formas de recorte.",
+      "zipTip": "El ZIP incluirá automáticamente un conjunto completo de recursos que cumplen con los requisitos de varias tiendas.",
+      "cta": "Exportar {count} elementos",
+      "specs": {
+        "ico": "favicon.ico (Legacy)",
+        "png16": "16x16 (Navegador moderno)",
+        "png32": "32x32 (Navegador moderno)",
+        "chrome128": "128x128 (Tienda Chrome)",
+        "chrome48": "48x48 (Página de extensiones)",
+        "chrome16": "16x16 (Barra de herramientas)",
+        "apple": "Apple Touch Icon",
+        "android192": "Android 192x192",
+        "android512": "Android 512x512",
+        "maskable512": "Android Maskable",
+        "manifest": "site.webmanifest",
+        "readme": "README.txt (Guía)"
+      }
+    }
+  },
+  "common": {
+    "start": "Inicio rápido",
+    "heroTitle1": "Simple, Rápido",
+    "heroTitle2": "Seguro y Privado",
+    "heroDesc": "Todo el procesamiento de imágenes se realiza localmente en su navegador; los archivos nunca se suben a un servidor. Una herramienta de productividad offline real.",
+    "pageTitleHome": "Herramientas de imagen minimalistas preparadas para trabajar sin conexión y con privacidad",
+    "ready": "Listo",
+    "go": "Empezar ahora",
+    "workspace": "Espacio de trabajo",
+    "ui": {
+      "select": "Por favor, seleccione",
+      "clickToEdit": "Haga clic para editar el valor directamente",
+      "resetToDefault": "Restablecer a valores predeterminados"
+    },
+    "theme": {
+      "light": "Modo claro",
+      "system": "Modo del sistema",
+      "dark": "Modo oscuro"
+    },
+    "image": {
+      "upload": {
+        "title": "Comienza el procesamiento",
+        "subtitle": "Arrastra, haz clic o pega imágenes · 100% privado y seguro",
+        "button": "Seleccionar archivos",
+        "dropTip": "Soltar para procesar",
+        "quickPaste": "Pegado rápido",
+        "pureOffline": "Puro offline",
+        "errorSize": "La imagen [{name}] es demasiado grande ({size}MB). Máx 50MB."
+      },
+      "card": {
+        "select": "Seleccionar imagen",
+        "remove": "Eliminar imagen",
+        "reset": "Restablecer al original",
+        "compare": "Comparar detalles",
+        "download": "Descargar procesada",
+        "dirty": "Actualización pendiente",
+        "ready": "Listo",
+        "wait": "Esperar",
+        "idle": "Inactivo",
+        "before": "ANTES",
+        "after": "DESPUÉS",
+        "sam2": "Segmentación interactiva avanzada (SAM2)"
+      },
+      "compare": {
+        "title": "Comparación detallada",
+        "errorTitle": "Error en vista previa",
+        "errorDesc": "No se pudo obtener la imagen de alta resolución.",
+        "decoding": "Decodificando resolución...",
+        "original": "Original",
+        "processed": "Procesado",
+        "zoomIn": "Acercar",
+        "zoomOut": "Alejar",
+        "reset": "Restablecer vista",
+        "tip": "Rueda para zoom • Arrastrar para desplazar",
+        "divider": "Divisor de comparación"
+      },
+      "toolbar": {
+        "layoutLarge": "Tarjetas grandes",
+        "layoutCompact": "Modo compacto",
+        "import": "Importar imágenes",
+        "importAria": "Seleccionar e importar imágenes locales",
+        "exportAll": "Exportar todo",
+        "exportAllAria": "Exportar las {count} imágenes procesadas",
+        "resetAll": "Restablecer todo",
+        "resetAllAria": "Restablecer todas al estado original",
+        "deleteSelected": "Eliminar seleccionados",
+        "deleteSelectedAria": "Eliminar {count} imágenes seleccionadas",
+        "clearAll": "Limpiar todo",
+        "clearAllAria": "Limpiar la cola de procesamiento",
+        "confirmTitle": "Confirmar acción",
+        "confirmClear": "Confirmar limpiar cola",
+        "confirmDelete": "Confirmar eliminación",
+        "confirmClearTitle": "¿Seguro que quieres limpiar todo?",
+        "confirmDeleteTitle": "¿Eliminar {count} imágenes?",
+        "confirmClearDesc": "Esta acción no se puede deshacer.",
+        "confirmDeleteDesc": "Los archivos seleccionados se eliminarán permanentemente.",
+        "cancel": "Cancelar",
+        "confirm": "Confirmar"
+      },
+      "selection": {
+        "selected": "Seleccionado",
+        "allSelected": "Todo seleccionado",
+        "complete": "Procesamiento completo",
+        "toggle": "Cambiar selección"
+      }
+    },
+    "export": {
+      "title": "Ajustes de exportación",
+      "advanced": "Ajustes avanzados",
+      "format": "Formato",
+      "qualityMode": "Prioridad de calidad",
+      "targetSizeMode": "Tamaño objetivo",
+      "outputQuality": "Calidad de salida",
+      "targetSize": "Tamaño objetivo",
+      "maxColors": "Colores máximos",
+      "effort": "Esfuerzo de codificación",
+      "resolutionLimit": "Límite de resolución (Opcional)",
+      "width": "Ancho",
+      "height": "Alto",
+      "skipIfLarger": "Omitir si es más grande",
+      "preserveExif": "Preservar metadatos EXIF",
+      "showMagnifier": "Activar lupa inteligente",
+      "formatOriginal": "Mantener formato original",
+      "formatWebp": "WebP (Recomendado)",
+      "formatJpeg": "JPEG (Mejor compatibilidad)",
+      "formatPng": "PNG (Sin pérdida/Transparente)",
+      "formatAvif": "AVIF (Avanzado)",
+      "formatJxl": "JPEG XL (Siguiente-gen)",
+      "formatWebp2": "WebP2 (Experimental)"
+    },
+    "modal": {
+      "interactive": {
+        "title": "Segmentación interactiva (SAM2)",
+        "guide": "Haz clic o arrastra para añadir objetos, mantén Alt para excluir áreas.",
+        "brushSize": "Tamaño del pincel",
+        "confirm": "Finalizar extracción",
+        "cancel": "Descartar"
+      },
+      "download": {
+        "title": "Listo para descargar",
+        "fileName": "Nombre del archivo",
+        "confirm": "Confirmar descarga"
+      },
+      "sponsor": {
+        "title": "Apoya a Imago",
+        "desc": "Imago es de código abierto y funciona completamente de forma local. Si te resulta útil, considera apoyar nuestro desarrollo.",
+        "heroTitle": "Apoya la evolución de Imago",
+        "community": "Únete a la comunidad",
+        "githubAria": "Ver el repositorio de Imago en GitHub (se abre en una nueva pestaña)",
+        "githubStar": "Dar estrella en GitHub",
+        "githubDesc": "Repositorio de código abierto. Tu estrella es el mejor reconocimiento para nosotros.",
+        "afdian": "Afdian",
+        "afdianAria": "Patrocina a Imago a través de Afdian, compatible con WeChat y Alipay (se abre en una nueva pestaña)",
+        "afdianTip": "Recomendado para China",
+        "kofi": "Ko-fi",
+        "kofiAria": "Patrocina a Imago a través de Ko-fi, admite pagos internacionales (se abre en una nueva pestaña)",
+        "kofiTip": "Pagos internacionales",
+        "footer": "Cada pequeña ayuda contribuye a la evolución de Imago."
+      }
+    }
+  }
+}

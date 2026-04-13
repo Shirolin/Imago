@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import AppModal from './common/AppModal.vue'
 import AppButton from './common/AppButton.vue'
 import { Coffee, Heart, ExternalLink, Zap, Github } from 'lucide-vue-next'
@@ -8,10 +9,16 @@ defineProps<{
 }>()
 
 const emit = defineEmits(['close'])
+const { t } = useI18n()
 </script>
 
 <template>
-  <AppModal :show="show" title="支持 Imago" variant="dialog" @close="emit('close')">
+  <AppModal
+    :show="show"
+    :title="t('common.modal.sponsor.title')"
+    variant="dialog"
+    @close="emit('close')"
+  >
     <div class="p-6 space-y-6 overflow-hidden">
       <div class="text-center animate-in fade-in slide-in-from-bottom-4 duration-700 ease-apple">
         <div
@@ -25,7 +32,7 @@ const emit = defineEmits(['close'])
             fill="currentColor"
           />
         </div>
-        <h3 class="text-xl font-black tracking-tight">支持 Imago 持续进化</h3>
+        <h3 class="text-xl font-black tracking-tight">{{ t('common.modal.sponsor.heroTitle') }}</h3>
       </div>
 
       <div class="grid gap-4">
@@ -34,7 +41,7 @@ const emit = defineEmits(['close'])
           href="https://github.com/Shirolin/Imago"
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="前往 GitHub 查看 Imago 开源仓库 (在新标签页中打开)"
+          :aria-label="t('common.modal.sponsor.githubAria')"
           class="flex flex-col gap-4 p-5 bg-foreground/5 hover:bg-foreground/[0.08] border border-border/50 rounded-[2rem] transition-[background-color,border-color,box-shadow] duration-300 group relative overflow-hidden shrink-0 animate-in fade-in slide-in-from-bottom-6 duration-700 ease-apple delay-100"
           style="animation-fill-mode: both"
         >
@@ -48,7 +55,7 @@ const emit = defineEmits(['close'])
               <div
                 class="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50"
               >
-                Community
+                {{ t('common.modal.sponsor.community') }}
               </div>
               <ExternalLink
                 :size="16"
@@ -57,9 +64,11 @@ const emit = defineEmits(['close'])
             </div>
           </div>
           <div class="relative z-10">
-            <div class="font-black text-lg tracking-tight mb-1 truncate">Star on GitHub</div>
+            <div class="font-black text-lg tracking-tight mb-1 truncate">
+              {{ t('common.modal.sponsor.githubStar') }}
+            </div>
             <div class="text-xs text-muted-foreground/80 leading-relaxed line-clamp-2">
-              开源代码仓库，您的 Star 是对本项目最好的肯定。
+              {{ t('common.modal.sponsor.githubDesc') }}
             </div>
           </div>
           <!-- 装饰性背景图标：优化 transition 属性 -->
@@ -76,7 +85,7 @@ const emit = defineEmits(['close'])
             href="https://ifdian.net/a/shirolin"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="通过爱发电赞助 Imago，支持微信、支付宝 (在新标签页中打开)"
+            :aria-label="t('common.modal.sponsor.afdianAria')"
             class="relative flex flex-row sm:flex-col items-center sm:items-start gap-3 p-4 bg-[oklch(0.6_0.2_300/0.08)] hover:bg-[oklch(0.6_0.2_300/0.12)] border border-[oklch(0.6_0.2_300/0.2)] rounded-[1.5rem] transition-[background-color,border-color,box-shadow] duration-300 group min-w-0 animate-in fade-in slide-in-from-bottom-8 duration-700 ease-apple delay-200"
             style="animation-fill-mode: both"
           >
@@ -91,7 +100,7 @@ const emit = defineEmits(['close'])
             <div class="min-w-0 flex-1 sm:flex-none">
               <div class="flex items-center justify-between sm:block relative">
                 <div class="font-bold text-sm text-purple-600 dark:text-purple-400 truncate">
-                  爱发电
+                  {{ t('common.modal.sponsor.afdian') }}
                 </div>
                 <ExternalLink
                   :size="14"
@@ -101,7 +110,7 @@ const emit = defineEmits(['close'])
               <div
                 class="text-[9px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5 truncate"
               >
-                国内支付推荐
+                {{ t('common.modal.sponsor.afdianTip') }}
               </div>
             </div>
           </a>
@@ -111,7 +120,7 @@ const emit = defineEmits(['close'])
             href="https://ko-fi.com/shirolin"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="通过 Ko-fi 赞助 Imago，支持国际支付 (在新标签页中打开)"
+            :aria-label="t('common.modal.sponsor.kofiAria')"
             class="relative flex flex-row sm:flex-col items-center sm:items-start gap-3 p-4 bg-[oklch(0.6_0.2_250/0.08)] hover:bg-[oklch(0.6_0.2_250/0.12)] border border-[oklch(0.6_0.2_250/0.2)] rounded-[1.5rem] transition-[background-color,border-color,box-shadow] duration-300 group min-w-0 animate-in fade-in slide-in-from-bottom-8 duration-700 ease-apple delay-300"
             style="animation-fill-mode: both"
           >
@@ -125,7 +134,9 @@ const emit = defineEmits(['close'])
             </div>
             <div class="min-w-0 flex-1 sm:flex-none">
               <div class="flex items-center justify-between sm:block relative">
-                <div class="font-bold text-sm text-blue-600 dark:text-blue-400 truncate">Ko-fi</div>
+                <div class="font-bold text-sm text-blue-600 dark:text-blue-400 truncate">
+                  {{ t('common.modal.sponsor.kofi') }}
+                </div>
                 <ExternalLink
                   :size="14"
                   class="text-blue-500/40 hidden sm:block absolute -top-1 -right-1"
@@ -134,7 +145,7 @@ const emit = defineEmits(['close'])
               <div
                 class="text-[9px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5 truncate"
               >
-                Global Support
+                {{ t('common.modal.sponsor.kofiTip') }}
               </div>
             </div>
           </a>
@@ -143,14 +154,14 @@ const emit = defineEmits(['close'])
         <p
           class="px-4 py-2 text-[10px] text-muted-foreground/60 leading-relaxed text-center italic animate-in fade-in duration-1000 delay-500"
         >
-          您的每一份支持都将助力 Imago 持续进化
+          {{ t('common.modal.sponsor.footer') }}
         </p>
       </div>
     </div>
 
     <template #footer>
       <AppButton variant="secondary" class="w-full h-11 rounded-xl" @click="emit('close')">
-        关闭
+        {{ t('common.image.toolbar.cancel') }}
       </AppButton>
     </template>
   </AppModal>

@@ -1,0 +1,419 @@
+{
+  "app": {
+    "title": "imago",
+    "subtitle": "미니멀리스트 이미지 처리 도구",
+    "privacyFirst": "프라이버시 우선",
+    "localProcessing": "로컬 처리",
+    "processing": "처리 중"
+  },
+  "nav": {
+    "allTools": "모든 도구",
+    "groups": {
+      "core": "핵심 도구",
+      "edit": "편집 도구",
+      "creative": "창의적 도구"
+    },
+    "collapse": "메뉴 접기",
+    "expand": "메뉴 펼치기",
+    "toggleMobile": "모바일 메뉴 전환",
+    "sponsor": "지원 및 커뮤니티"
+  },
+  "tools": {
+    "compress": {
+      "name": "압축 및 변환",
+      "title": "이미지 압축 및 형식 변환 (WebP/AVIF) - 100% 로컬 처리",
+      "desc": "WebP / AVIF 등의 형식으로 극한 압축 및 상호 변환",
+      "settingsTitle": "압축 설정",
+      "infoTip": "고급 Web 압축 알고리즘을 사용하여 시각적 품질을 유지하면서 파일 크기를 크게 줄입니다.",
+      "original": "원본",
+      "compressed": "압축됨",
+      "compareTitle": "압축 변환 상세 비교",
+      "cta": {
+        "select": "이미지를 선택하세요",
+        "rendering": "렌더링 중",
+        "exportResults": "결과 내보내기",
+        "updateCompress": "압축 업데이트",
+        "startCompress": "압축 시작"
+      }
+    },
+    "resize": {
+      "name": "크기 조정",
+      "title": "이미지 크기 조정 및 스케일링 - 고품질 내보내기",
+      "desc": "비율 또는 고정 픽셀로 이미지 크기 조절",
+      "resizeMode": "조정 모드",
+      "byPercentage": "비율 기준",
+      "byDimensions": "크기 기준",
+      "scaleRatio": "크기 조절 비율",
+      "width": "너비",
+      "height": "높이",
+      "lockAspectRatio": "종횡비 고정",
+      "resetDimensions": "크기 리셋",
+      "status": {
+        "noImages": "이미지 없음",
+        "importTip": "일괄 리사이징을 시작하려면 이미지를 가져오세요",
+        "original": "원본",
+        "target": "대상"
+      },
+      "cta": {
+        "select": "이미지를 선택하세요",
+        "rendering": "렌더링 중...",
+        "exportResults": "결과 내보내기 ({count})",
+        "updateDimensions": "크기 업데이트 ({count})",
+        "adjustDimensions": "크기 조정 ({count})"
+      }
+    },
+    "crop": {
+      "name": "이미지 자르기",
+      "title": "이미지 자르기 및 고정 비율 변환",
+      "desc": "자유롭게 자르거나 고정 비율 사용",
+      "aspectRatio": "사전 설정 비율",
+      "lockRatio": "비율 고정",
+      "freeRatio": "자유 비율",
+      "reset": "자르기 리셋",
+      "empty": {
+        "title": "이미지 없음",
+        "desc": "온라인 자르기를 시작하려면 이미지를 가져오세요"
+      },
+      "cta": {
+        "select": "이미지를 선택하세요",
+        "export": "자르기 내보내기 ({count})",
+        "apply": "자르기 적용 ({count})"
+      }
+    },
+    "exif": {
+      "name": "EXIF 제거",
+      "title": "이미지 메타데이터(EXIF) 제거 - 개인정보 보호",
+      "desc": "촬영 장소 등 개인정보 메타데이터 삭제",
+      "privacyList": "개인정보 삭제 목록",
+      "selectAll": "전체 선택",
+      "deselectAll": "선택 해제",
+      "items": {
+        "location": "촬영 장소 (GPS)",
+        "device": "기기 모델",
+        "software": "소프트웨어 정보",
+        "time": "촬영 시간",
+        "params": "파라미터 (셔터/조리개 등)"
+      },
+      "empty": {
+        "title": "이미지 없음",
+        "desc": "개인정보를 일괄 삭제하려면 이미지를 가져오세요"
+      },
+      "cta": {
+        "select": "이미지를 선택하세요",
+        "export": "삭제된 결과 내보내기 ({count})",
+        "process": "일괄 삭제 ({count})"
+      }
+    },
+    "split": {
+      "name": "이미지 분할",
+      "title": "이미지 그리드 분할 및 타일 자르기",
+      "desc": "큰 이미지를 여러 그리드로 분할",
+      "gridSettings": "그리드 설정",
+      "uniformGrid": "균등 분할",
+      "freeEdit": "자유 편집",
+      "verticalRows": "수직 행 수",
+      "horizontalCols": "수평 열 수",
+      "unitRow": " 행",
+      "unitCol": " 열",
+      "verticalLine": "수직선",
+      "horizontalLine": "수평선",
+      "syncGrid": "그리드 동기화",
+      "syncGridTip": "그리드 설정값에 따라 선 리셋",
+      "clearAll": "전체 삭제",
+      "viewSettings": "보기 설정",
+      "restoreDefaultView": "기본 보기로 복원",
+      "lineWidth": "선 두께",
+      "lineColor": "선 색상",
+      "lineOpacity": "불투명도",
+      "enhanced": "고급 처리",
+      "alignMode": "정렬 모드",
+      "alignModeDesc": "피사체를 자동 감지하여 자르고, 중앙 정렬 또는 강제 정사각형 채우기를 지원합니다.",
+      "standard": "표준",
+      "center": "중앙 정렬",
+      "square": "정사각형",
+      "shave": "가장자리 수축 (Shave)",
+      "exportConfig": "내보내기 설정",
+      "colors": {
+        "primary": "테마 색상",
+        "white": "하이라이트 화이트 (기본)",
+        "black": "딥 블랙",
+        "blue": "테크 블루",
+        "red": "경고 레드"
+      },
+      "messages": {
+        "defaultRestored": "기본 보기 설정이 복원되었습니다",
+        "lineDeletedKey": "키보드를 통해 {index}번째 {axis}선을 삭제했습니다",
+        "lineAdded": "{axis} 방향 {pos} 픽셀 위치에 분할선을 추가했습니다",
+        "lineDeleted": "{index}번째 {axis}선을 삭제했습니다",
+        "resetToGrid": "그리드 설정값에 따라 선 위치를 리셋했습니다",
+        "cleared": "모든 사용자 정의 분할선을 삭제했습니다",
+        "switchedToFree": "자유 편집 모드로 전환되었습니다",
+        "abortedTask": "렌더링 작업이 중단되었습니다"
+      },
+      "canvas": {
+        "ariaLabel": "이미지 분할 캔버스",
+        "instructions": "마우스를 클릭하여 분할선을 추가합니다. 스페이스 바를 누른 채 드래그하여 캔버스를 이동할 수 있습니다.\n선을 선택한 후 화살표 키로 픽셀 단위 미세 조정, Shift + 화살표 키로 빠른 이동, Delete 또는 Backspace 키로 선택한 선을 삭제할 수 있습니다.",
+        "vLineAria": "수직 분할선 {index}, 현재 위치 {pos} 픽셀",
+        "hLineAria": "수평 분할선 {index}, 현재 위치 {pos} 픽셀",
+        "clickToAdd": "캔버스를 클릭하여 선 추가",
+        "dragToMove": "선을 드래그하여 이동"
+      },
+      "cta": {
+        "select": "이미지를 선택하세요",
+        "aborted": "중단됨",
+        "rendering": "렌더링 중 {progress}%",
+        "renderingNoProgress": "렌더링 중...",
+        "clickToAbort": "(클릭하여 중단)",
+        "exportSlices": "조각 내보내기",
+        "updateSplit": "분할 업데이트",
+        "splitImage": "이미지 분할"
+      }
+    },
+    "combine": {
+      "name": "이미지 결합",
+      "title": "여러 이미지를 세로 또는 가로로 결합",
+      "desc": "여러 이미지를 가로 또는 세로로 결합",
+      "direction": "결합 방향",
+      "dirVertical": "세로 결합",
+      "dirHorizontal": "가로 결합",
+      "spacing": "이미지 간격",
+      "order": "정렬 순서",
+      "empty": {
+        "title": "이미지 없음",
+        "desc": "결합을 시작하려면 최소 2장의 이미지를 가져오세요"
+      },
+      "cta": {
+        "select": "이미지를 더 가져오세요",
+        "export": "긴 이미지 내보내기",
+        "process": "결합 적용"
+      }
+    },
+    "bgRemove": {
+      "name": "배경 제거",
+      "title": "AI 자동 배경 제거 - 업로드 불필요",
+      "desc": "로컬 AI 기술 기반의 자동 배경 제거",
+      "modelStatus": "모델 상태",
+      "modelLoading": "모델 로딩 중...",
+      "modelReady": "모델 준비 완료",
+      "mode": "처리 모드",
+      "modeAuto": "전체 자동",
+      "modeInteractive": "대화형 (SAM2)",
+      "tip": "모든 AI 처리는 로컬에서 이루어지며 이미지가 업로드되지 않습니다.",
+      "empty": {
+        "title": "이미지 없음",
+        "desc": "자동 배경 제거를 시작하려면 이미지를 가져오세요"
+      },
+      "cta": {
+        "select": "이미지를 선택하세요",
+        "export": "투명 이미지 내보내기 ({count})",
+        "process": "배경 제거 시작 ({count})"
+      }
+    },
+    "filters": {
+      "name": "아트 필터",
+      "title": "이미지 필터 및 색상 조정 - 로컬 빠른 편집",
+      "desc": "밝기, 대비 및 아트 프리셋",
+      "quickPresets": "빠른 프리셋",
+      "fineAdjustment": "세부 조정",
+      "brightness": "밝기",
+      "contrast": "대비",
+      "saturation": "채도",
+      "blur": "흐림",
+      "sepia": "세피아",
+      "realtimeTitle": "실시간 필터",
+      "realtimeDesc": "슬라이더를 드래그하여 실시간으로 효과를 확인할 수 있습니다. 모든 처리는 로컬에서 이루어집니다.",
+      "scrollLeft": "왼쪽으로 스크롤",
+      "scrollRight": "오른쪽으로 스크롤",
+      "resetAll": "모든 파라미터 초기화",
+      "presets": {
+        "none": "원본",
+        "clarendon": "클래런던",
+        "lofi": "로파이",
+        "valencia": "발렌시아",
+        "gingham": "깅엄",
+        "f1977": "1977",
+        "aden": "아덴",
+        "reyes": "레이예스",
+        "inkwell": "잉크웰",
+        "lark": "라크"
+      },
+      "cta": {
+        "select": "이미지를 선택하세요",
+        "rendering": "렌더링 중...",
+        "export": "결과 내보내기 ({count})",
+        "update": "필터 업데이트 ({count})",
+        "apply": "필터 적용 ({count})"
+      }
+    },
+    "favicon": {
+      "name": "파비콘 생성",
+      "title": "멀티 플랫폼 웹사이트 파비콘 생성기",
+      "desc": "웹사이트용 파비콘 세트 자동 생성",
+      "mockup": "환경 시뮬레이션",
+      "newTab": "새 탭",
+      "appearance": "외관 설정",
+      "bgFill": "배경 채우기",
+      "bgFillDesc": "원본 아이콘에 투명한 영역이 있는 경우 통일된 배경색을 설정할 수 있습니다.",
+      "exportControl": "내보내기 제어",
+      "safeZone": "자동 세이프 존",
+      "safeZoneGuide": "Android에서는 아이콘 콘텐츠를 중앙 80% 영역 내에 유지하는 것이 권장됩니다. 나머지 영역은 배경으로 사용되어 다양한 자르기 모양에 대응합니다.",
+      "zipTip": "ZIP에는 각 스토어의 심사 요건을 충족하는 전체 리소스 세트가 자동으로 포함됩니다.",
+      "cta": "{count}개 항목 내보내기",
+      "specs": {
+        "ico": "favicon.ico (호환용)",
+        "png16": "16x16 (최신 브라우저)",
+        "png32": "32x32 (최신 브라우저)",
+        "chrome128": "128x128 (Chrome 스토어)",
+        "chrome48": "48x48 (확장 프로그램 관리)",
+        "chrome16": "16x16 (도구 모음)",
+        "apple": "Apple Touch Icon",
+        "android192": "Android 192x192",
+        "android512": "Android 512x512",
+        "maskable512": "Android Maskable",
+        "manifest": "site.webmanifest",
+        "readme": "README.txt (가이드)"
+      }
+    }
+  },
+  "common": {
+    "start": "빠른 시작",
+    "heroTitle1": "심플, 고속",
+    "heroTitle2": "프라이버시 안전",
+    "heroDesc": "모든 이미지 처리는 브라우저 내에서 로컬로 완료되며, 파일이 서버에 업로드되지 않습니다. 진정한 오프라인 생산성 도구。",
+    "pageTitleHome": "프라이버시 중심, 오프라인 지원 미니멀리스트 이미지 도구",
+    "ready": "준비 완료",
+    "go": "지금 시작",
+    "workspace": "워크스페이스",
+    "ui": {
+      "select": "선택하세요",
+      "clickToEdit": "수치를 직접 편집하려면 클릭하세요",
+      "resetToDefault": "기본값으로 재설정"
+    },
+    "theme": {
+      "light": "라이트 모드",
+      "system": "시스템 설정",
+      "dark": "다크 모드"
+    },
+    "image": {
+      "upload": {
+        "title": "이미지 처리 시작",
+        "subtitle": "이미지 드래그, 클릭 또는 붙여넣기 · 100% 개인정보 안전",
+        "button": "파일 선택",
+        "dropTip": "놓아서 처리 시작",
+        "quickPaste": "빠른 붙여넣기",
+        "pureOffline": "완전 오프라인",
+        "errorSize": "이미지 [{name}]의 크기가 너무 큽니다 ({size}MB). 최대 50MB 지원."
+      },
+      "card": {
+        "select": "이미지 선택",
+        "remove": "이미지 제거",
+        "reset": "원본으로 복구",
+        "compare": "상세 비교",
+        "download": "처리된 파일 저장",
+        "dirty": "업데이트 대기",
+        "ready": "준비 완료",
+        "wait": "대기",
+        "idle": "대기 중",
+        "before": "처리 전",
+        "after": "처리 후",
+        "sam2": "고급 대화형 세그먼테이션 (SAM2)"
+      },
+      "compare": {
+        "title": "상세 미리보기 비교",
+        "errorTitle": "미리보기 실패",
+        "errorDesc": "고해상도 이미지를 가져올 수 없습니다. 다시 처리하거나 연결을 확인하세요.",
+        "decoding": "해상도 분석 중...",
+        "original": "원본",
+        "processed": "처리 후",
+        "zoomIn": "확대",
+        "zoomOut": "축소",
+        "reset": "보기 리셋",
+        "tip": "휠로 확대/축소 • 드래그로 이동",
+        "divider": "비교 구분선"
+      },
+      "toolbar": {
+        "layoutLarge": "큰 카드",
+        "layoutCompact": "콤팩트 모드",
+        "import": "이미지 가져오기",
+        "importAria": "로컬 이미지 가져오기",
+        "exportAll": "모두 내보내기",
+        "exportAllAria": "처리된 이미지 {count}장 내보내기",
+        "resetAll": "모두 복구",
+        "resetAllAria": "모든 이미지를 원본 상태로 복구",
+        "deleteSelected": "선택 삭제",
+        "deleteSelectedAria": "선택한 {count}장 삭제",
+        "clearAll": "모두 비우기",
+        "clearAllAria": "대기열 비우기",
+        "confirmTitle": "작업 확인",
+        "confirmClear": "비우기 확인",
+        "confirmDelete": "삭제 확인",
+        "confirmClearTitle": "모든 이미지를 비우시겠습니까?",
+        "confirmDeleteTitle": "선택한 {count}장을 삭제하시겠습니까?",
+        "confirmClearDesc": "이 작업은 되돌릴 수 없습니다.",
+        "confirmDeleteDesc": "선택한 파일이 영구적으로 제거됩니다.",
+        "cancel": "취소",
+        "confirm": "확인"
+      },
+      "selection": {
+        "selected": "선택됨",
+        "allSelected": "모두 선택됨",
+        "complete": "처리 완료",
+        "toggle": "선택 전환"
+      }
+    },
+    "export": {
+      "title": "내보내기 설정",
+      "advanced": "고급 설정",
+      "format": "형식",
+      "qualityMode": "화질 우선",
+      "targetSizeMode": "용량 지정",
+      "outputQuality": "출력 화질",
+      "targetSize": "목표 용량",
+      "maxColors": "최대 색상 수",
+      "effort": "인코딩 효율",
+      "resolutionLimit": "해상도 제한 (선택 사항)",
+      "width": "너비",
+      "height": "높이",
+      "skipIfLarger": "용량이 커지는 경우 원본 유지",
+      "preserveExif": "EXIF 메타데이터 보존",
+      "showMagnifier": "스마트 돋보기 활성화",
+      "formatOriginal": "원본 형식 유지",
+      "formatWebp": "WebP (권장)",
+      "formatJpeg": "JPEG (호환성 최적)",
+      "formatPng": "PNG (무손실/투명)",
+      "formatAvif": "AVIF (최신 형식)",
+      "formatJxl": "JPEG XL (차세대)",
+      "formatWebp2": "WebP2 (실험적)"
+    },
+    "modal": {
+      "interactive": {
+        "title": "대화형 분할 (SAM2)",
+        "guide": "클릭하거나 드래그하여 객체를 추가하고 Alt를 눌러 영역을 제외하세요.",
+        "brushSize": "브러시 크기",
+        "confirm": "추출 완료",
+        "cancel": "취소"
+      },
+      "download": {
+        "title": "다운로드 준비",
+        "fileName": "파일명",
+        "confirm": "다운로드 확인"
+      },
+      "sponsor": {
+        "title": "Imago 후원하기",
+        "desc": "Imago는 오픈 소스이며 완전히 로컬에서 실행되는 도구입니다. 유용하다고 생각하신다면 개발을 지원해 주세요.",
+        "heroTitle": "Imago의 진화를 응원해 주세요",
+        "community": "커뮤니티 참여",
+        "githubAria": "GitHub에서 Imago 저장소 보기 (새 탭에서 열림)",
+        "githubStar": "GitHub에서 스타",
+        "githubDesc": "오픈 소스 저장소입니다. 여러분의 스타는 저희에게 가장 큰 힘이 됩니다.",
+        "afdian": "Afdian (爱发电)",
+        "afdianAria": "Afdian을 통해 Imago 후원, WeChat 및 Alipay 지원 (새 탭에서 열림)",
+        "afdianTip": "중국 내 권장",
+        "kofi": "Ko-fi",
+        "kofiAria": "Ko-fi를 통해 Imago 후원, 해외 결제 지원 (새 탭에서 열림)",
+        "kofiTip": "해외 결제 지원",
+        "footer": "여러분의 소중한 후원이 Imago의 진화를 돕습니다."
+      }
+    }
+  }
+}

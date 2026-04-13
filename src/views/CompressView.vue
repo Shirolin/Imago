@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { ImageItem } from '../stores/imageStore'
 import { useImageStore } from '../stores/imageStore'
 import { useLayoutStore } from '../stores/layoutStore'
@@ -22,6 +23,7 @@ import InspectorFooter from '../components/layout/InspectorFooter.vue'
 const store = useImageStore()
 const layoutStore = useLayoutStore()
 const { formatSize, downloadImage, downloadAllAsZip } = useFileHelpers()
+const { t } = useI18n()
 
 // 状态
 const compressionMode = ref<'quality' | 'target'>('quality')
@@ -80,7 +82,13 @@ watch(
 
 const ctaState = computed(() => {
   if (store.selectedCount === 0)
-    return { text: '请选择图片', progress: '', icon: Play, action: 'none', disabled: true }
+    return {
+      text: t('tools.compress.cta.select'),
+      progress: '',
+      icon: Play,
+      action: 'none',
+      disabled: true
+    }
 
   if (isProcessing.value) {
     const total = store.selectedCount
@@ -88,7 +96,7 @@ const ctaState = computed(() => {
       (img) => store.selectedIds.has(img.id) && img.status === 'done'
     ).length
     return {
-      text: '渲染中',
+      text: t('tools.compress.cta.rendering'),
       progress: `(${processed}/${total})`,
       icon: Play,
       action: 'none',
@@ -103,7 +111,7 @@ const ctaState = computed(() => {
 
   if (allDoneAndClean) {
     return {
-      text: `导出成果`,
+      text: t('tools.compress.cta.exportResults'),
       progress: `(${store.selectedCount})`,
       icon: Download,
       action: 'download',
@@ -113,7 +121,7 @@ const ctaState = computed(() => {
 
   const anyDirty = selectedImages.some((img) => img.status === 'done' && img.isDirty)
   return {
-    text: anyDirty ? '更新压缩' : '开始压缩',
+    text: anyDirty ? t('tools.compress.cta.updateCompress') : t('tools.compress.cta.startCompress'),
     progress: `(${store.selectedCount})`,
     icon: Play,
     action: 'process',
@@ -189,7 +197,7 @@ const handleCtaClick = async () => {
                   <div class="flex-1 flex flex-col gap-0.5">
                     <span
                       class="font-black uppercase text-muted-foreground tracking-widest text-[0.55rem] md:text-[0.6rem]"
-                      >原始</span
+                      >{{ t('tools.compress.original') }}</span
                     ><span class="font-bold text-foreground text-[0.65rem] md:text-[0.75rem]">{{
                       formatSize(image.originalSize)
                     }}</span>
@@ -198,7 +206,7 @@ const handleCtaClick = async () => {
                   <div class="flex-1 flex flex-col gap-0.5">
                     <span
                       class="font-black uppercase text-muted-foreground tracking-widest text-[0.55rem] md:text-[0.6rem]"
-                      >压缩后</span
+                      >{{ t('tools.compress.compressed') }}</span
                     ><span
                       class="font-bold text-[0.65rem] md:text-[0.75rem]"
                       :class="image.status === 'done' ? 'text-primary' : 'text-foreground'"
@@ -228,7 +236,7 @@ const handleCtaClick = async () => {
           v-model:show-magnifier="store.showMagnifier"
           v-model:preserve-exif="preserveExif"
           allow-manual-quality
-          title="压缩设置"
+          :title="t('tools.compress.settingsTitle')"
         />
 
         <section class="pt-2">
@@ -237,7 +245,7 @@ const handleCtaClick = async () => {
           >
             <Info :size="16" class="text-primary shrink-0 mt-0.5" />
             <p class="text-[0.65rem] text-muted-foreground leading-relaxed">
-              采用先进的 Web 压缩算法，在保持视觉质量的同时大幅减小文件体积。
+              {{ t('tools.compress.infoTip') }}
             </p>
           </div>
         </section>
@@ -269,7 +277,7 @@ const handleCtaClick = async () => {
 
     <AppModal
       :show="showCompareModal"
-      title="压缩转换细节对比"
+      :title="t('tools.compress.compareTitle')"
       @close="closeCompare"
       @after-leave="handleModalLeave"
     >

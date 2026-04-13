@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../stores/imageStore'
 import { useLayoutStore } from '../stores/layoutStore'
 import { useFileHelpers } from '../composables/useFileHelpers'
@@ -32,6 +33,7 @@ import InspectorFooter from '../components/layout/InspectorFooter.vue'
 const store = useImageStore()
 const layoutStore = useLayoutStore()
 const { downloadImage, downloadAllAsZip } = useFileHelpers()
+const { t } = useI18n()
 
 // 状态
 const brightness = ref(100)
@@ -42,8 +44,8 @@ const sepia = ref(0)
 const outputFormat = ref<string>('original')
 const outputQuality = ref(0.9)
 const isDirty = ref(false)
-const activePresetName = ref<string>('原图')
-const lastPresetName = ref<string>('原图')
+const activePresetId = ref<string>('none')
+const lastPresetId = ref<string>('none')
 
 // 基准值（随预设变化），用于滑块的默认重置点
 const baselineValues = ref({
@@ -105,31 +107,62 @@ onMounted(() => {
 const { isProcessing, processSelected } = useImageProcessor(filterEngine)
 
 const resetFilters = () => {
-  const preset = presets.find((p) => p.name === lastPresetName.value) || presets[0]
+  const preset = presets.find((p) => p.id === lastPresetId.value) || presets[0]
   if (preset) applyPreset(preset)
 }
 
 // 滤镜预设定义 (基于工业级开源项目 CSSgram 调校)
 const presets = [
-  { name: '原图', values: { brightness: 100, contrast: 100, saturation: 100, blur: 0, sepia: 0 } },
   {
-    name: '克拉伦登',
+    id: 'none',
+    key: 'tools.filters.presets.none',
+    values: { brightness: 100, contrast: 100, saturation: 100, blur: 0, sepia: 0 }
+  },
+  {
+    id: 'clarendon',
+    key: 'tools.filters.presets.clarendon',
     values: { brightness: 110, contrast: 120, saturation: 135, blur: 0, sepia: 0 }
   }, // Clarendon: 万能通透
   {
-    name: '高保真',
+    id: 'lofi',
+    key: 'tools.filters.presets.lofi',
     values: { brightness: 100, contrast: 150, saturation: 110, blur: 0, sepia: 0 }
   }, // Lo-fi: 浓郁扫街感
   {
-    name: '瓦伦西亚',
+    id: 'valencia',
+    key: 'tools.filters.presets.valencia',
     values: { brightness: 108, contrast: 108, saturation: 100, blur: 0, sepia: 15 }
   }, // Valencia: 暖阳复古
-  { name: '银座', values: { brightness: 105, contrast: 90, saturation: 100, blur: 0, sepia: 10 } }, // Gingham: 日系柔美
-  { name: '1977', values: { brightness: 110, contrast: 110, saturation: 130, blur: 0, sepia: 30 } }, // 1977: 经典胶片
-  { name: '浅梦', values: { brightness: 120, contrast: 90, saturation: 85, blur: 0, sepia: 0 } }, // Aden: 梦幻马卡龙
-  { name: '雷耶斯', values: { brightness: 110, contrast: 85, saturation: 75, blur: 0, sepia: 22 } }, // Reyes: 古旧图片
-  { name: '水墨', values: { brightness: 110, contrast: 120, saturation: 0, blur: 0, sepia: 10 } }, // Inkwell: 质感黑白
-  { name: '云雀', values: { brightness: 105, contrast: 90, saturation: 115, blur: 0, sepia: 0 } } // Lark: 风景专用
+  {
+    id: 'gingham',
+    key: 'tools.filters.presets.gingham',
+    values: { brightness: 105, contrast: 90, saturation: 100, blur: 0, sepia: 10 }
+  }, // Gingham: 日系柔美
+  {
+    id: 'f1977',
+    key: 'tools.filters.presets.f1977',
+    values: { brightness: 110, contrast: 110, saturation: 130, blur: 0, sepia: 30 }
+  }, // 1977: 经典胶片
+  {
+    id: 'aden',
+    key: 'tools.filters.presets.aden',
+    values: { brightness: 120, contrast: 90, saturation: 85, blur: 0, sepia: 0 }
+  }, // Aden: 梦幻马卡龙
+  {
+    id: 'reyes',
+    key: 'tools.filters.presets.reyes',
+    values: { brightness: 110, contrast: 85, saturation: 75, blur: 0, sepia: 22 }
+  }, // Reyes: 古旧图片
+  {
+    id: 'inkwell',
+    key: 'tools.filters.presets.inkwell',
+    values: { brightness: 110, contrast: 120, saturation: 0, blur: 0, sepia: 10 }
+  }, // Inkwell: 质感黑白
+  {
+    id: 'lark',
+    key: 'tools.filters.presets.lark',
+    values: { brightness: 105, contrast: 90, saturation: 115, blur: 0, sepia: 0 }
+  } // Lark: 风景专用
 ]
 
 const applyPreset = (preset: (typeof presets)[0]) => {
@@ -143,8 +176,8 @@ const applyPreset = (preset: (typeof presets)[0]) => {
   // 更新基准值，使滑块的默认重置点与预设一致
   baselineValues.value = { ...preset.values }
 
-  activePresetName.value = preset.name
-  lastPresetName.value = preset.name
+  activePresetId.value = preset.id
+  lastPresetId.value = preset.id
 }
 
 const displayImages = computed(() => [...store.images].reverse())
@@ -203,9 +236,14 @@ watch(
 
 const ctaState = computed(() => {
   if (store.selectedCount === 0)
-    return { text: '请选择图片', icon: Sparkles, action: 'none', disabled: true }
+    return { text: t('tools.filters.cta.select'), icon: Sparkles, action: 'none', disabled: true }
   if (isProcessing.value)
-    return { text: '渲染中...', icon: Sparkles, action: 'none', disabled: true }
+    return {
+      text: t('tools.filters.cta.rendering'),
+      icon: Sparkles,
+      action: 'none',
+      disabled: true
+    }
 
   const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
   const allDoneAndClean =
@@ -214,7 +252,7 @@ const ctaState = computed(() => {
 
   if (allDoneAndClean) {
     return {
-      text: `导出成果 (${store.selectedCount})`,
+      text: t('tools.filters.cta.export', { count: store.selectedCount }),
       icon: Download,
       action: 'download',
       disabled: false
@@ -223,7 +261,9 @@ const ctaState = computed(() => {
 
   const anyDirty = selectedImages.some((img) => img.status === 'done' && img.isDirty)
   return {
-    text: anyDirty ? `更新滤镜 (${store.selectedCount})` : `应用滤镜 (${store.selectedCount})`,
+    text: anyDirty
+      ? t('tools.filters.cta.update', { count: store.selectedCount })
+      : t('tools.filters.cta.apply', { count: store.selectedCount }),
     icon: Sparkles,
     action: 'process',
     disabled: false
@@ -292,14 +332,14 @@ const handleCtaClick = async () => {
 
       <template #sidebar>
         <section class="space-y-4">
-          <AppSectionHeader title="快速预设" :icon="Sparkles" />
+          <AppSectionHeader :title="t('tools.filters.quickPresets')" :icon="Sparkles" />
           <div class="relative group/presets">
             <!-- 左导航箭头 -->
             <button
               v-if="canScrollLeft"
               @click="scrollPresets('left')"
               class="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-background/80 border border-border/40 rounded-full shadow-lg flex items-center justify-center text-muted-foreground hover:text-primary transition-all md:opacity-0 md:group-hover/presets:opacity-100 backdrop-blur-sm -ml-2"
-              aria-label="向左滚动"
+              :aria-label="t('tools.filters.scrollLeft')"
             >
               <ChevronLeft :size="16" />
             </button>
@@ -309,7 +349,7 @@ const handleCtaClick = async () => {
               v-if="canScrollRight"
               @click="scrollPresets('right')"
               class="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-background/80 border border-border/40 rounded-full shadow-lg flex items-center justify-center text-muted-foreground hover:text-primary transition-all md:opacity-0 md:group-hover/presets:opacity-100 backdrop-blur-sm -mr-2"
-              aria-label="向右滚动"
+              :aria-label="t('tools.filters.scrollRight')"
             >
               <ChevronRight :size="16" />
             </button>
@@ -323,35 +363,35 @@ const handleCtaClick = async () => {
             >
               <button
                 v-for="preset in presets"
-                :key="preset.name"
+                :key="preset.id"
                 @click="applyPreset(preset)"
                 class="flex-shrink-0 w-20 py-2.5 rounded-xl border transition-all active:scale-95 flex flex-col items-center gap-1.5 group"
                 :class="[
-                  activePresetName === preset.name
+                  activePresetId === preset.id
                     ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20'
                     : 'border-border/60 bg-muted/5 hover:bg-primary/5 hover:border-primary/30'
                 ]"
-                :aria-pressed="activePresetName === preset.name"
+                :aria-pressed="activePresetId === preset.id"
               >
                 <div
                   class="w-8 h-8 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform"
-                  :class="[activePresetName === preset.name ? 'bg-primary/20' : 'bg-primary/10']"
+                  :class="[activePresetId === preset.id ? 'bg-primary/20' : 'bg-primary/10']"
                 >
                   <Sparkles
                     :size="14"
                     class="text-primary"
-                    :fill="activePresetName === preset.name ? 'currentColor' : 'none'"
+                    :fill="activePresetId === preset.id ? 'currentColor' : 'none'"
                   />
                 </div>
                 <span
                   class="text-[11px] font-medium transition-colors"
                   :class="[
-                    activePresetName === preset.name
+                    activePresetId === preset.id
                       ? 'text-primary'
                       : 'text-muted-foreground group-hover:text-primary'
                   ]"
                 >
-                  {{ preset.name }}
+                  {{ t(preset.key) }}
                 </span>
               </button>
             </div>
@@ -360,7 +400,7 @@ const handleCtaClick = async () => {
 
         <section class="space-y-4 pt-6 border-t border-border/40">
           <div class="flex items-center justify-between h-10 pr-1">
-            <AppSectionHeader title="精细调整" :icon="Settings2" />
+            <AppSectionHeader :title="t('tools.filters.fineAdjustment')" :icon="Settings2" />
 
             <!-- 批量重置按钮占位符：固定宽度防止跳动 -->
             <div class="w-8 h-8 flex items-center justify-end">
@@ -376,8 +416,8 @@ const handleCtaClick = async () => {
                   v-if="isFiltersDirty"
                   @click="resetFilters"
                   class="p-1.5 hover:bg-muted rounded-lg transition-all text-muted-foreground hover:text-primary active:scale-90"
-                  title="重置所有参数"
-                  aria-label="重置所有参数"
+                  :title="t('tools.filters.resetAll')"
+                  :aria-label="t('tools.filters.resetAll')"
                 >
                   <RotateCcw :size="14" />
                 </button>
@@ -390,14 +430,14 @@ const handleCtaClick = async () => {
             <div class="space-y-3">
               <AppSlider
                 v-model="brightness"
-                label="亮度"
+                :label="t('tools.filters.brightness')"
                 :icon="Sun"
                 unit="%"
                 :min="0"
                 :max="200"
                 :step="1"
                 :default-value="baselineValues.brightness"
-                @update:model-value="activePresetName = ''"
+                @update:model-value="activePresetId = ''"
               />
             </div>
 
@@ -405,14 +445,14 @@ const handleCtaClick = async () => {
             <div class="space-y-3">
               <AppSlider
                 v-model="contrast"
-                label="对比度"
+                :label="t('tools.filters.contrast')"
                 :icon="Contrast"
                 unit="%"
                 :min="0"
                 :max="200"
                 :step="1"
                 :default-value="baselineValues.contrast"
-                @update:model-value="activePresetName = ''"
+                @update:model-value="activePresetId = ''"
               />
             </div>
 
@@ -420,14 +460,14 @@ const handleCtaClick = async () => {
             <div class="space-y-3">
               <AppSlider
                 v-model="saturation"
-                label="饱和度"
+                :label="t('tools.filters.saturation')"
                 :icon="Droplets"
                 unit="%"
                 :min="0"
                 :max="200"
                 :step="1"
                 :default-value="baselineValues.saturation"
-                @update:model-value="activePresetName = ''"
+                @update:model-value="activePresetId = ''"
               />
             </div>
 
@@ -435,14 +475,14 @@ const handleCtaClick = async () => {
             <div class="space-y-3">
               <AppSlider
                 v-model="blur"
-                label="模糊"
+                :label="t('tools.filters.blur')"
                 :icon="Layers"
                 unit="px"
                 :min="0"
                 :max="20"
                 :step="1"
                 :default-value="baselineValues.blur"
-                @update:model-value="activePresetName = ''"
+                @update:model-value="activePresetId = ''"
               />
             </div>
 
@@ -450,14 +490,14 @@ const handleCtaClick = async () => {
             <div class="space-y-3">
               <AppSlider
                 v-model="sepia"
-                label="褐色"
+                :label="t('tools.filters.sepia')"
                 :icon="Wind"
                 unit="%"
                 :min="0"
                 :max="100"
                 :step="1"
                 :default-value="baselineValues.sepia"
-                @update:model-value="activePresetName = ''"
+                @update:model-value="activePresetId = ''"
               />
             </div>
           </div>
@@ -472,10 +512,10 @@ const handleCtaClick = async () => {
             </div>
             <div class="space-y-1">
               <div class="text-[0.65rem] font-black text-primary uppercase tracking-widest">
-                实时滤镜
+                {{ t('tools.filters.realtimeTitle') }}
               </div>
               <p class="text-[0.65rem] text-muted-foreground leading-relaxed font-medium">
-                拖动滑块即可实时预览效果，处理过程完全本地化，无需担心隐私。
+                {{ t('tools.filters.realtimeDesc') }}
               </p>
             </div>
           </div>

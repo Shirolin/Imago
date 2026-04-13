@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, h, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../stores/imageStore'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
@@ -39,6 +40,7 @@ import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
 const store = useImageStore()
 const { downloadImage } = useFileHelpers()
+const { t } = useI18n()
 
 const createRatioIcon = (width: number, height: number) => {
   return () =>
@@ -274,20 +276,28 @@ watch(
 
 const ctaState = computed(() => {
   const img = selectedImage.value
-  if (!img) return { text: '请选择图片', icon: Scissors, action: 'none', disabled: true }
+  if (!img)
+    return { text: t('tools.crop.cta.select'), icon: Scissors, action: 'none', disabled: true }
 
   if (isProcessing.value) {
-    return { text: '渲染中...', icon: Scissors, action: 'none', disabled: true }
+    return { text: t('common.processing'), icon: Scissors, action: 'none', disabled: true }
   }
 
   // 如果已经处理完成且没有新改动 -> 显示下载 (绿色)
   if (img.status === 'done' && img.processedBlob && !img.isDirty) {
-    return { text: '导出图片', icon: Download, action: 'download', disabled: false }
+    return {
+      text: t('tools.crop.cta.export', { count: 1 }),
+      icon: Download,
+      action: 'download',
+      disabled: false
+    }
   }
 
   // 默认 -> 应用裁剪 (蓝色)
   return {
-    text: img.isDirty ? '更新裁剪' : '应用裁剪',
+    text: img.isDirty
+      ? t('tools.crop.cta.apply', { count: 1 })
+      : t('tools.crop.cta.apply', { count: 1 }),
     icon: Scissors,
     action: 'process',
     disabled: false
@@ -325,13 +335,13 @@ const handleCtaClick = async () => {
   }
 }
 
-const ratios = [
-  { label: '自由', value: 0, icon: Scissors },
+const ratios = computed(() => [
+  { label: t('tools.crop.freeRatio'), value: 0, icon: Scissors },
   { label: '1:1', value: 1, icon: Square },
   { label: '4:3', value: 4 / 3, icon: Icon43 },
   { label: '16:9', value: 16 / 9, icon: Icon169 },
   { label: '2:3', value: 2 / 3, icon: Icon23 }
-]
+])
 </script>
 
 <template>
@@ -370,7 +380,7 @@ const ratios = [
               v-if="isSnapping"
               class="px-3 py-1 bg-primary text-primary-foreground rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-lg"
             >
-              已吸附 (Alt停用)
+              {{ t('tools.crop.snapped') }}
             </div>
 
             <div class="flex flex-col items-center gap-1.5">
@@ -385,7 +395,7 @@ const ratios = [
                 class="px-2.5 py-1 bg-muted/20 backdrop-blur-sm rounded-lg border border-border/40 text-[9px] text-muted-foreground/60 font-medium tracking-tight flex items-center gap-1.5 shadow-sm"
               >
                 <div class="w-1 h-1 rounded-full bg-primary/40"></div>
-                双击选区快速重置全图
+                {{ t('tools.crop.doubleClickReset') }}
               </div>
             </div>
           </div>
@@ -396,19 +406,20 @@ const ratios = [
     <template #sidebar>
       <!-- 第一分区：基础变换 (地基校准) -->
       <section class="space-y-4">
-        <AppSectionHeader title="基础变换" :icon="RotateCw" />
+        <AppSectionHeader :title="t('tools.crop.basicTransform')" :icon="RotateCw" />
         <div class="bg-muted/10 rounded-2xl p-4 border border-border/60">
           <div class="grid grid-cols-3 gap-2">
             <button
               @click="handleRotate"
               class="flex flex-col items-center gap-2 p-3 rounded-xl border bg-background/50 hover:bg-primary/5 hover:border-primary/30 transition-all group"
-              title="顺时针旋转 90 度"
+              :title="t('tools.crop.rotateTip')"
             >
               <RotateCw
                 :size="18"
                 class="text-muted-foreground group-hover:text-primary transition-colors"
-              /><span class="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter"
-                >旋转</span
+              /><span
+                class="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter"
+                >{{ t('tools.crop.rotate') }}</span
               >
             </button>
             <button
@@ -419,11 +430,11 @@ const ratios = [
                   ? 'bg-primary/10 border-primary text-primary'
                   : 'bg-background/50 border-border text-muted-foreground hover:bg-primary/5 hover:border-primary/30'
               "
-              title="水平镜像翻转"
+              :title="t('tools.crop.flipHTip')"
             >
               <FlipHorizontal :size="18" class="group-hover:text-primary transition-colors" /><span
                 class="text-[9px] font-bold uppercase tracking-tighter"
-                >水平</span
+                >{{ t('tools.crop.flipH') }}</span
               >
             </button>
             <button
@@ -434,11 +445,11 @@ const ratios = [
                   ? 'bg-primary/10 border-primary text-primary'
                   : 'bg-background/50 border-border text-muted-foreground hover:bg-primary/5 hover:border-primary/30'
               "
-              title="垂直镜像翻转"
+              :title="t('tools.crop.flipVTip')"
             >
               <FlipVertical :size="18" class="group-hover:text-primary transition-colors" /><span
                 class="text-[9px] font-bold uppercase tracking-tighter"
-                >垂直</span
+                >{{ t('tools.crop.flipV') }}</span
               >
             </button>
           </div>
@@ -447,7 +458,7 @@ const ratios = [
 
       <!-- 第二分区：裁剪比例 (定形阶段) -->
       <section class="space-y-4 pt-6 border-t border-border/40">
-        <AppSectionHeader title="裁剪比例" :icon="Scissors" />
+        <AppSectionHeader :title="t('tools.crop.aspectRatio')" :icon="Scissors" />
         <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4">
           <AppButton
             variant="secondary"
@@ -458,7 +469,9 @@ const ratios = [
               :size="16"
               class="mr-2 text-muted-foreground group-hover:text-primary transition-colors"
             />
-            <span class="text-xs font-bold uppercase tracking-wider">铺满全图区域</span>
+            <span class="text-xs font-bold uppercase tracking-wider">{{
+              t('tools.crop.fillAll')
+            }}</span>
           </AppButton>
 
           <AppSegmentedControl
@@ -468,19 +481,22 @@ const ratios = [
           />
           <div class="space-y-3 pt-1">
             <div class="flex items-center justify-between ml-1">
-              <span class="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
-                >构图参考线</span
+              <span
+                class="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
+                >{{ t('tools.crop.gridLines') }}</span
               >
-              <span class="text-[9px] text-muted-foreground/40 italic">拖动时显现</span>
+              <span class="text-[9px] text-muted-foreground/40 italic">{{
+                t('tools.crop.gridLinesTip')
+              }}</span>
             </div>
             <AppSegmentedControl
               v-model="gridMode"
               size="sm"
               grid-cols="2"
               :options="[
-                { label: '无参考', value: 'none', icon: Maximize2 },
-                { label: '三分法', value: 'thirds', icon: Grid3X3 },
-                { label: '黄金分割', value: 'golden', icon: LayoutGrid }
+                { label: t('tools.crop.noGrid'), value: 'none', icon: Maximize2 },
+                { label: t('tools.crop.thirds'), value: 'thirds', icon: Grid3X3 },
+                { label: t('tools.crop.golden'), value: 'golden', icon: LayoutGrid }
               ]"
             />
           </div>
@@ -489,13 +505,13 @@ const ratios = [
 
       <!-- 第三分区：精确构图 (精度微调) -->
       <section class="space-y-4 pt-6 border-t border-border/40">
-        <AppSectionHeader title="精确构图" :icon="LayoutGrid" />
+        <AppSectionHeader :title="t('tools.crop.precision')" :icon="LayoutGrid" />
         <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4">
           <div class="grid grid-cols-2 gap-x-3 gap-y-4 relative">
             <div class="space-y-1.5">
               <label
                 class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest"
-                >X 坐标</label
+                >{{ t('tools.crop.posX') }}</label
               >
               <AppInput
                 type="number"
@@ -512,7 +528,7 @@ const ratios = [
             <div class="space-y-1.5">
               <label
                 class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest"
-                >Y 坐标</label
+                >{{ t('tools.crop.posY') }}</label
               >
               <AppInput
                 type="number"
@@ -532,7 +548,7 @@ const ratios = [
                 <label
                   class="text-[10px] font-black uppercase ml-1 tracking-widest transition-colors"
                   :class="currentRatio > 0 ? 'text-primary' : 'text-muted-foreground'"
-                  >宽度 (W)</label
+                  >{{ t('tools.crop.width') }}</label
                 >
                 <AppInput
                   type="number"
@@ -569,7 +585,7 @@ const ratios = [
                 <label
                   class="text-[10px] font-black uppercase ml-1 tracking-widest transition-colors"
                   :class="currentRatio > 0 ? 'text-primary' : 'text-muted-foreground'"
-                  >高度 (H)</label
+                  >{{ t('tools.crop.height') }}</label
                 >
                 <AppInput
                   type="number"
@@ -593,16 +609,16 @@ const ratios = [
 
       <!-- 第四分区：画布外观 (环境配置) -->
       <section class="space-y-4 pt-6 border-t border-border/40">
-        <AppSectionHeader title="画布外观" :icon="Settings2" />
+        <AppSectionHeader :title="t('tools.crop.canvasAppearance')" :icon="Settings2" />
         <div class="bg-muted/10 rounded-2xl p-4 border border-border/60">
-          <AppColorPicker v-model="fillColor" label="背景填充色" />
+          <AppColorPicker v-model="fillColor" :label="t('tools.crop.bgFill')" />
         </div>
       </section>
 
       <!-- 第五分区：边缘精修 (TRIM) - 后处理阶段 -->
       <section class="space-y-4 pt-6 border-t border-border/40">
         <div class="flex items-center justify-between pr-1">
-          <AppSectionHeader title="边缘精修" :icon="Settings2" />
+          <AppSectionHeader :title="t('tools.crop.edgeTrim')" :icon="Settings2" />
           <div class="text-[9px] text-amber-500 font-black uppercase tracking-widest italic">
             Post-Process
           </div>
@@ -613,16 +629,15 @@ const ratios = [
               <Settings2 :size="14" />
             </div>
             <p class="text-[10px] text-amber-700/80 leading-relaxed font-medium">
-              该功能属于<span class="font-bold text-amber-600">导出后处理</span
-              >。调整后的数值不会实时反映在预览选框上，而是在最终导出时从选定区域内侧扣除像素。
+              {{ t('tools.crop.trimWarning') }}
             </p>
           </div>
 
           <div class="grid grid-cols-2 gap-3">
             <div v-for="dir in ['top', 'bottom', 'left', 'right']" :key="dir" class="space-y-2">
-              <label class="text-[9px] font-black text-muted-foreground uppercase ml-1"
-                >扣除{{ { top: '顶部', bottom: '底部', left: '左侧', right: '右侧' }[dir] }}</label
-              >
+              <label class="text-[9px] font-black text-muted-foreground uppercase ml-1">{{
+                t('tools.crop.trim' + dir.charAt(0).toUpperCase() + dir.slice(1))
+              }}</label>
               <AppInput
                 type="number"
                 v-model.number="trimPx[dir as keyof typeof trimPx]"
@@ -637,7 +652,7 @@ const ratios = [
 
       <!-- 第六分区：操作管理 (终结阶段) -->
       <section class="space-y-4 pt-6 border-t border-border/40 pb-4">
-        <AppSectionHeader title="操作管理" :icon="History" />
+        <AppSectionHeader :title="t('tools.crop.history')" :icon="History" />
         <div class="flex items-center justify-between gap-3">
           <div class="flex-1 grid grid-cols-2 gap-2">
             <AppButton
@@ -646,7 +661,7 @@ const ratios = [
               :disabled="!canUndo"
               @click="undo"
               class="rounded-xl h-10 text-[10px] font-bold uppercase bg-background/50 border-border/60 hover:bg-primary/[0.02]"
-              ><Undo2 :size="14" class="mr-1.5" /> 撤销</AppButton
+              ><Undo2 :size="14" class="mr-1.5" /> {{ t('tools.crop.undo') }}</AppButton
             >
             <AppButton
               variant="secondary"
@@ -654,13 +669,13 @@ const ratios = [
               :disabled="!canRedo"
               @click="redo"
               class="rounded-xl h-10 text-[10px] font-bold uppercase bg-background/50 border-border/60 hover:bg-primary/[0.02]"
-              ><Redo2 :size="14" class="mr-1.5" /> 重做</AppButton
+              ><Redo2 :size="14" class="mr-1.5" /> {{ t('tools.crop.redo') }}</AppButton
             >
           </div>
           <button
             @click="handleReset"
             class="w-10 h-10 flex items-center justify-center hover:bg-destructive/10 rounded-xl text-muted-foreground/40 hover:text-destructive transition-all active:scale-90 border border-transparent hover:border-destructive/20"
-            title="重置所有修改"
+            :title="t('tools.crop.resetAll')"
           >
             <RotateCcw :size="18" />
           </button>
@@ -672,7 +687,7 @@ const ratios = [
         v-model:quality="outputQuality"
         v-model:preserve-exif="preserveExif"
         show-exif-option
-        title="导出"
+        :title="t('common.export.title')"
         class="pt-2 pb-6 border-t border-border/40"
       />
     </template>

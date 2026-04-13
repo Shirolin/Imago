@@ -1,146 +1,142 @@
 <script setup lang="ts">
-import { computed, ref, nextTick } from 'vue'
-import type { Component } from 'vue'
+import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { RotateCcw } from 'lucide-vue-next'
 
-interface Props {
-  modelValue: number
-  label?: string
-  icon?: Component
-  min?: number
-  max?: number
-  step?: number
-  unit?: string
-  snapValue?: number
-  defaultValue?: number
-  description?: string
-  ariaLabel?: string
-}
+const props = withDefaults(
+  defineProps<{
+    modelValue: number
+    min?: number
+    max?: number
+    step?: number
+    label?: string
+    icon?: any
+    unit?: string
+    defaultValue?: number
+    description?: string
+    ariaLabel?: string
+  }>(),
+  {
+    min: 0,
+    max: 100,
+    step: 1,
+    unit: '',
+    ariaLabel: ''
+  }
+)
 
-const props = withDefaults(defineProps<Props>(), {
-  min: 0,
-  max: 100,
-  step: 1,
-  unit: '',
-  ariaLabel: '滑动条'
-})
-
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'change'])
+const { t } = useI18n()
 
 // --- 点击即编辑逻辑 ---
 const isEditing = ref(false)
-const tempValue = ref('')
+const editValue = ref('')
 const inputRef = ref<HTMLInputElement | null>(null)
 
 const startEdit = () => {
-  tempValue.value = String(props.modelValue)
+  editValue.value = props.modelValue.toString()
   isEditing.value = true
-  nextTick(() => {
-    inputRef.value?.focus()
-    inputRef.value?.select()
-  })
+  setTimeout(() => inputRef.value?.focus(), 0)
 }
 
-const commitEdit = () => {
+const finishEdit = () => {
   if (!isEditing.value) return
-
-  let val = parseFloat(tempValue.value)
+  isEditing.value = false
 
   // 校验 1：如果不是有效数字，回滚
-  if (isNaN(val)) {
-    isEditing.value = false
+  let num = parseFloat(editValue.value)
+  if (isNaN(num)) {
     return
   }
 
   // 校验 2：钳制范围 [min, max] 并处理步长
-  const clamped = Math.max(props.min, Math.min(props.max, val))
-  const stepped = Math.round(clamped / props.step) * props.step
+  num = Math.max(props.min, Math.min(props.max, num))
+  if (props.step) {
+    const inv = 1 / props.step
+    num = Math.round(num * inv) / inv
+  }
 
-  emit('update:modelValue', Number(stepped.toFixed(2)))
-  isEditing.value = false
+  emit('update:modelValue', num)
+  emit('change', num)
 }
-
-const cancelEdit = () => {
-  isEditing.value = false
-}
-
-const progressPercent = computed(() => {
-  return ((props.modelValue - props.min) / (props.max - props.min)) * 100
-})
 
 const handleInput = (e: Event) => {
-  let value = parseFloat((e.target as HTMLInputElement).value)
-  if (props.snapValue !== undefined) {
-    const threshold = (props.max - props.min) * 0.03
-    if (Math.abs(value - props.snapValue) < threshold) value = props.snapValue
-  }
-  emit('update:modelValue', value)
+  const val = parseFloat((e.target as HTMLInputElement).value)
+  emit('update:modelValue', val)
 }
 
-const handleReset = () => {
+const handleChange = (e: Event) => {
+  const val = parseFloat((e.target as HTMLInputElement).value)
+  emit('change', val)
+}
+
+const resetToDefault = () => {
   if (props.defaultValue !== undefined) {
     emit('update:modelValue', props.defaultValue)
+    emit('change', props.defaultValue)
   }
 }
 
 // 辅助：判断是否偏离默认值（处理浮点数精度）
-const isDirty = computed(() => {
+const isModified = computed(() => {
   if (props.defaultValue === undefined) return false
   return Math.abs(props.modelValue - props.defaultValue) > 0.001
 })
 </script>
 
 <template>
-  <div class="flex flex-col gap-1.5 w-full group/slider select-none">
+  <div class="space-y-3 group/slider">
     <!-- 文字标识层：高度固定以防抖动 -->
-    <div v-if="label" class="flex justify-between items-center px-1 h-5">
+    <div class="flex items-center justify-between min-h-[20px]">
       <div class="flex items-center gap-2">
-        <div
+        <component
+          :is="icon"
           v-if="icon"
-          class="bg-primary/5 p-1 rounded-full flex items-center justify-center overflow-visible"
-        >
-          <component :is="icon" :size="13" :stroke-width="2.5" class="text-primary" />
-        </div>
-        <span class="text-[11px] font-bold text-muted-foreground leading-none">{{ label }}</span>
+          :size="14"
+          class="text-muted-foreground/60 group-hover/slider:text-primary transition-colors"
+        />
+        <span class="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{{
+          label
+        }}</span>
       </div>
-      <div class="flex items-center">
+
+      <div class="flex items-center gap-2">
         <!-- 数值显示/编辑区 -->
-        <div class="relative min-w-[40px] flex justify-end">
+        <div class="relative flex items-center">
           <input
             v-if="isEditing"
             ref="inputRef"
+            v-model="editValue"
             type="text"
-            v-model="tempValue"
-            class="w-12 h-5 px-1 bg-primary/10 border border-primary/30 rounded text-[11px] font-mono font-black text-primary text-right outline-none focus:ring-1 focus:ring-primary/50"
-            @blur="commitEdit"
-            @keydown.enter="commitEdit"
-            @keydown.esc="cancelEdit"
+            class="w-12 h-5 bg-background border border-primary/50 rounded text-[10px] font-mono font-bold text-center text-primary focus:outline-none shadow-inner"
+            @blur="finishEdit"
+            @keydown.enter="finishEdit"
           />
-          <span
+          <button
             v-else
             @click="startEdit"
-            class="text-[11px] font-mono font-black text-primary leading-none cursor-text hover:bg-primary/5 px-1 rounded transition-colors"
-            title="点击手动输入"
+            class="px-1.5 h-5 min-w-[32px] rounded hover:bg-primary/10 text-[11px] font-mono font-bold text-primary transition-colors text-right"
+            :title="t('common.ui.clickToEdit')"
           >
             {{ modelValue }}{{ unit }}
-          </span>
+          </button>
         </div>
 
         <!-- 重置按钮占位符 -->
-        <div class="w-5 h-5 flex items-center justify-end ml-1">
+        <div class="w-5 flex justify-end">
           <transition
-            enter-active-class="transition duration-300 ease-out"
-            enter-from-class="opacity-0 scale-50 translate-x-2"
-            enter-to-class="opacity-100 scale-100 translate-x-0"
-            leave-active-class="transition duration-200 ease-in"
-            leave-from-class="opacity-100 scale-100 translate-x-0"
-            leave-to-class="opacity-0 scale-50 translate-x-2"
+            enter-active-class="transition duration-200"
+            enter-from-class="opacity-0 scale-50 rotate-90"
+            enter-to-class="opacity-100 scale-100 rotate-0"
+            leave-active-class="transition duration-200"
+            leave-from-class="opacity-100 scale-100 rotate-0"
+            leave-to-class="opacity-0 scale-50 rotate-90"
           >
             <button
-              v-if="isDirty"
-              @click="handleReset"
-              class="p-1 hover:bg-primary/10 rounded-md transition-colors text-primary/60 hover:text-primary"
-              title="重置为默认值"
+              v-if="isModified"
+              @click="resetToDefault"
+              class="text-muted-foreground/30 hover:text-primary transition-colors"
+              :title="t('common.ui.resetToDefault')"
             >
               <RotateCcw :size="12" />
             </button>
@@ -149,14 +145,12 @@ const isDirty = computed(() => {
       </div>
     </div>
 
-    <div class="relative h-11 flex items-center px-1">
+    <div class="relative flex items-center h-6">
       <!-- 轨道 -->
-      <div
-        class="absolute left-1 right-1 h-1.5 bg-muted/40 rounded-full border border-border/5 overflow-hidden pointer-events-none"
-      >
+      <div class="absolute w-full h-1.5 bg-muted/40 rounded-full overflow-hidden">
         <div
-          class="h-full bg-primary transition-[width] duration-100 ease-out shadow-[0_0_15px_hsl(var(--primary)/0.4)]"
-          :style="{ width: progressPercent + '%' }"
+          class="h-full bg-primary/20 transition-all duration-300"
+          :style="{ width: ((modelValue - min) / (max - min)) * 100 + '%' }"
         ></div>
       </div>
 
@@ -164,74 +158,61 @@ const isDirty = computed(() => {
       <input
         type="range"
         :value="modelValue"
-        @input="handleInput"
         :min="min"
         :max="max"
         :step="step"
         :aria-label="ariaLabel || label"
-        :aria-valuemin="min"
-        :aria-valuemax="max"
-        :aria-valuenow="modelValue"
-        class="absolute inset-0 w-full h-full bg-transparent appearance-none cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background rounded-full z-20"
+        class="absolute w-full h-6 bg-transparent appearance-none cursor-pointer z-10 outline-none"
+        @input="handleInput"
+        @change="handleChange"
       />
     </div>
 
     <!-- 辅助说明层 -->
-    <div
-      v-if="description"
-      class="px-1 -mt-1 mb-1 animate-in fade-in slide-in-from-top-1 duration-500"
-    >
-      <p class="text-[11px] leading-relaxed text-muted-foreground/60 font-medium">
-        {{ description }}
-      </p>
-    </div>
+    <p v-if="description" class="text-[10px] text-muted-foreground/50 leading-relaxed italic">
+      {{ description }}
+    </p>
   </div>
 </template>
 
 <style scoped>
 /* Webkit 适配 (Chrome, Safari, Edge) */
 input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
   appearance: none;
   width: 16px;
   height: 16px;
-  background: hsl(var(--primary-foreground));
-  border: 2.5px solid hsl(var(--primary));
+  background: white;
+  border: 2px solid theme('colors.primary.DEFAULT');
   border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
-}
-
-input[type='range']::-webkit-slider-thumb:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    0 0 0 0 rgba(var(--primary-rgb), 0.2);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: grab;
 }
 
 input[type='range']:active::-webkit-slider-thumb {
-  transform: scale(1.25);
-  background: hsl(var(--primary));
-  border-color: hsl(var(--primary-foreground));
+  transform: scale(1.2);
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.15),
+    0 0 0 6px rgba(var(--primary-rgb), 0.15);
+  cursor: grabbing;
 }
 
 /* Firefox 适配 */
 input[type='range']::-moz-range-thumb {
   width: 16px;
   height: 16px;
-  background: hsl(var(--primary-foreground));
-  border: 2.5px solid hsl(var(--primary));
+  background: white;
+  border: 2px solid theme('colors.primary.DEFAULT');
   border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
-}
-
-input[type='range']::-moz-range-thumb:hover {
-  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+  cursor: grab;
 }
 
 input[type='range']:active::-moz-range-thumb {
-  transform: scale(1.25);
-  background: hsl(var(--primary));
-  border-color: hsl(var(--primary-foreground));
+  transform: scale(1.2);
 }
 </style>

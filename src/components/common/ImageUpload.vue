@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Upload, Image as ImageIcon, FileImage, MousePointer2 } from 'lucide-vue-next'
 import AppButton from './AppButton.vue'
 
+const { t } = useI18n()
 const emit = defineEmits(['upload'])
 const isGlobalDragging = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -24,7 +26,10 @@ const handleFiles = (files: FileList | File[]) => {
     }
     if (file.size > MAX_SIZE) {
       alert(
-        `图片 [${file.name}] 体积过大 (${(file.size / 1024 / 1024).toFixed(1)}MB)，已被拦截以免导致浏览器崩溃。最大支持 50MB。`
+        t('common.image.upload.errorSize', {
+          name: file.name,
+          size: (file.size / 1024 / 1024).toFixed(1)
+        })
       )
       return false
     }
@@ -129,7 +134,7 @@ onUnmounted(() => {
                 >Drop to Imago</span
               >
               <p class="text-primary/70 font-bold text-sm tracking-[0.2em] uppercase">
-                Release to start processing
+                {{ $t('common.image.upload.dropTip') }}
               </p>
             </div>
           </div>
@@ -175,15 +180,13 @@ onUnmounted(() => {
         <h2
           class="font-black text-foreground mb-4 md:mb-5 tracking-tight px-2 leading-[1.1] [text-wrap:balance]"
           style="font-size: clamp(1.5rem, 6cqw, 2.25rem)"
-        >
-          即刻开启您的<br /><span class="text-primary">图片处理之旅</span>
-        </h2>
+          v-html="$t('common.image.upload.title')"
+        ></h2>
         <p
           class="text-muted-foreground font-medium leading-relaxed px-4 [text-wrap:balance] opacity-80"
           style="font-size: clamp(0.9rem, 3cqw, 1.05rem)"
-        >
-          拖拽、点击或粘贴图片 · <span class="text-foreground">100% 隐私安全</span>
-        </p>
+          v-html="$t('common.image.upload.subtitle')"
+        ></p>
       </div>
 
       <!-- 快捷键提示 (Polished) -->
@@ -197,14 +200,14 @@ onUnmounted(() => {
             class="bg-background border-b-2 border-border/80 rounded px-2 py-0.5 text-[0.6rem] font-black"
             >Ctrl + V</kbd
           >
-          Quick Paste
+          {{ $t('common.image.upload.quickPaste') }}
         </div>
         <div class="w-px h-3 bg-border/60"></div>
         <div
           class="flex items-center gap-2 text-[0.7rem] text-muted-foreground font-bold uppercase tracking-widest"
         >
           <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-          Pure Offline
+          {{ $t('common.image.upload.pureOffline') }}
         </div>
       </div>
 
@@ -215,7 +218,7 @@ onUnmounted(() => {
         class="!px-10 !h-14 !text-sm md:!text-base !rounded-2xl shrink-0 active:scale-95 transition-all duration-300"
       >
         <template #icon><Upload class="mr-2.5 w-5 h-5" /></template>
-        选择文件
+        {{ $t('common.image.upload.button') }}
       </AppButton>
     </div>
 

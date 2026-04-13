@@ -1,0 +1,419 @@
+{
+  "app": {
+    "title": "imago",
+    "subtitle": "ミニマリスト画像処理ツール",
+    "privacyFirst": "プライバシー第一",
+    "localProcessing": "ローカル処理",
+    "processing": "処理中"
+  },
+  "nav": {
+    "allTools": "すべてのツール",
+    "groups": {
+      "core": "コアツール",
+      "edit": "編集ツール",
+      "creative": "クリエイティブツール"
+    },
+    "collapse": "メニューを折りたたむ",
+    "expand": "メニューを展開する",
+    "toggleMobile": "モバイルメニューを切り替える",
+    "sponsor": "サポートとコミュニティ"
+  },
+  "tools": {
+    "compress": {
+      "name": "圧縮・変換",
+      "title": "画像圧縮と形式変換 (WebP/AVIF) - 100% ローカル処理",
+      "desc": "WebP / AVIF 形式などの極限圧縮と相互変換",
+      "settingsTitle": "圧縮設定",
+      "infoTip": "先進的な Web 圧縮アルゴリズムを使用して、視覚的な品質を維持しながらファイルサイズを大幅に削減します。",
+      "original": "元画像",
+      "compressed": "圧縮後",
+      "compareTitle": "圧縮変換の詳細比較",
+      "cta": {
+        "select": "画像を選択してください",
+        "rendering": "レンダリング中",
+        "exportResults": "成果をエクスポート",
+        "updateCompress": "圧縮を更新",
+        "startCompress": "圧縮を開始"
+      }
+    },
+    "resize": {
+      "name": "サイズ変更",
+      "title": "画像のサイズ変更とスケーリング - 高品質エクスポート",
+      "desc": "比率または固定ピクセルによるスケーリング",
+      "resizeMode": "調整モード",
+      "byPercentage": "比率指定",
+      "byDimensions": "サイズ指定",
+      "scaleRatio": "スケーリング比率",
+      "width": "幅",
+      "height": "高さ",
+      "lockAspectRatio": "アスペクト比を固定",
+      "resetDimensions": "サイズをリセット",
+      "status": {
+        "noImages": "画像がありません",
+        "importTip": "画像をインポートして一括リサイズを開始",
+        "original": "オリジナル",
+        "target": "ターゲット"
+      },
+      "cta": {
+        "select": "画像を選択してください",
+        "rendering": "レンダリング中...",
+        "exportResults": "成果をエクスポート ({count})",
+        "updateDimensions": "サイズを更新 ({count})",
+        "adjustDimensions": "サイズを調整 ({count})"
+      }
+    },
+    "crop": {
+      "name": "切り抜き",
+      "title": "画像の切り抜きと固定比率変換",
+      "desc": "自由な切り抜きまたは固定比率",
+      "aspectRatio": "プリセット比率",
+      "lockRatio": "比率を固定",
+      "freeRatio": "自由比率",
+      "reset": "切り抜きをリセット",
+      "empty": {
+        "title": "画像がありません",
+        "desc": "画像をインポートしてオンライン切り抜きを開始"
+      },
+      "cta": {
+        "select": "画像を選択してください",
+        "export": "切り抜きをエクスポート ({count})",
+        "apply": "切り抜きを適用 ({count})"
+      }
+    },
+    "exif": {
+      "name": "EXIF削除",
+      "title": "画像メタデータ（EXIF）の削除 - プライバシー保護",
+      "desc": "撮影場所などのプライバシーメタデータを削除",
+      "privacyList": "プライバシー削除リスト",
+      "selectAll": "すべて選択",
+      "deselectAll": "選択解除",
+      "items": {
+        "location": "撮影場所 (GPS)",
+        "device": "デバイスモデル",
+        "software": "ソフトウェア情報",
+        "time": "撮影日時",
+        "params": "パラメータ (シャッター/絞りなど)"
+      },
+      "empty": {
+        "title": "画像がありません",
+        "desc": "画像をインポートしてプライバシー情報を一括削除"
+      },
+      "cta": {
+        "select": "画像を選択してください",
+        "export": "削除済み画像をエクスポート ({count})",
+        "process": "一括削除 ({count})"
+      }
+    },
+    "split": {
+      "name": "画像分割",
+      "title": "画像グリッド分割とタイル切り出し",
+      "desc": "大きな画像を複数のグリッドに分割",
+      "gridSettings": "グリッド設定",
+      "uniformGrid": "均等分割",
+      "freeEdit": "自由編集",
+      "verticalRows": "垂直方向の行数",
+      "horizontalCols": "水平方向の列数",
+      "unitRow": " 行",
+      "unitCol": " 列",
+      "verticalLine": "垂直線",
+      "horizontalLine": "水平線",
+      "syncGrid": "グリッド同期",
+      "syncGridTip": "グリッド設定値に基づいて線をリセット",
+      "clearAll": "すべてクリア",
+      "viewSettings": "表示設定",
+      "restoreDefaultView": "デフォルト表示に戻す",
+      "lineWidth": "線の太さ",
+      "lineColor": "線の色",
+      "lineOpacity": "不透明度",
+      "enhanced": "高度な処理",
+      "alignMode": "整列モード",
+      "alignModeDesc": "被写体を自動検出して切り抜き、中央揃えや強制正方形埋め込みをサポートします。",
+      "standard": "標準",
+      "center": "中央揃え",
+      "square": "正方形",
+      "shave": "エッジ収縮 (Shave)",
+      "exportConfig": "エクスポート設定",
+      "colors": {
+        "primary": "テーマカラー",
+        "white": "ハイライト白 (デフォルト)",
+        "black": "ディープブラック",
+        "blue": "テックブルー",
+        "red": "ワーニングレッド"
+      },
+      "messages": {
+        "defaultRestored": "デフォルトの表示設定が復元されました",
+        "lineDeletedKey": "キーボードで第 {index} 本目の{axis}線を削除しました",
+        "lineAdded": "{axis}方向の {pos} ピクセル位置に分割線を追加しました",
+        "lineDeleted": "第 {index} 本目の{axis}線を削除しました",
+        "resetToGrid": "グリッド設定値に基づいて線の位置をリセットしました",
+        "cleared": "すべてのカスタム分割線をクリアしました",
+        "switchedToFree": "自由編集モードに切り替えました",
+        "abortedTask": "レンダリングタスクが中止されました"
+      },
+      "canvas": {
+        "ariaLabel": "画像分割キャンバス",
+        "instructions": "マウスをクリックして分割線を追加します。スペースキーを押しながらドラッグしてキャンバスをパンできます。\n線を選択した後、矢印キーでピクセル単位の微調整、Shift + 矢印キーで高速移動、DeleteまたはBackspaceキーで選択した線を削除できます。",
+        "vLineAria": "垂直分割線 {index}、現在位置 {pos} ピクセル",
+        "hLineAria": "水平分割線 {index}、現在位置 {pos} ピクセル",
+        "clickToAdd": "キャンバスをクリックして線を追加",
+        "dragToMove": "線をドラッグして移動"
+      },
+      "cta": {
+        "select": "画像を選択してください",
+        "aborted": "中止",
+        "rendering": "レンダリング中 {progress}%",
+        "renderingNoProgress": "レンダリング中...",
+        "clickToAbort": "(クリックで中止)",
+        "exportSlices": "スライスをエクスポート",
+        "updateSplit": "分割を更新",
+        "splitImage": "画像を分割"
+      }
+    },
+    "combine": {
+      "name": "画像結合",
+      "title": "複数の画像を垂直または水平に結合",
+      "desc": "複数の画像を水平または垂直に結合",
+      "direction": "結合方向",
+      "dirVertical": "垂直結合",
+      "dirHorizontal": "水平結合",
+      "spacing": "画像の間隔",
+      "order": "並び順",
+      "empty": {
+        "title": "画像がありません",
+        "desc": "結合を開始するには少なくとも2枚の画像をインポートしてください"
+      },
+      "cta": {
+        "select": "さらに画像をインポートしてください",
+        "export": "長い画像をエクスポート",
+        "process": "結合を適用"
+      }
+    },
+    "bgRemove": {
+      "name": "背景削除",
+      "title": "AI自動背景削除 - アップロード不要",
+      "desc": "ローカルAI技術による全自動背景削除",
+      "modelStatus": "モデルステータス",
+      "modelLoading": "モデル読み込み中...",
+      "modelReady": "モデル準備完了",
+      "mode": "処理モード",
+      "modeAuto": "全自動",
+      "modeInteractive": "対話型 (SAM2)",
+      "tip": "すべての AI 処理はローカルで行われ、画像がアップロードされることはありません。",
+      "empty": {
+        "title": "画像がありません",
+        "desc": "画像をインポートして自動背景削除を開始"
+      },
+      "cta": {
+        "select": "画像を選択してください",
+        "export": "透過画像をエクスポート ({count})",
+        "process": "背景削除を開始 ({count})"
+      }
+    },
+    "filters": {
+      "name": "アートフィルター",
+      "title": "画像フィルターと色彩調整 - ローカルで高速編集",
+      "desc": "明るさ、コントラスト、アートプリセット",
+      "quickPresets": "クイックプリセット",
+      "fineAdjustment": "詳細調整",
+      "brightness": "明るさ",
+      "contrast": "コントラスト",
+      "saturation": "彩度",
+      "blur": "ぼかし",
+      "sepia": "セピア",
+      "realtimeTitle": "リアルタイムフィルター",
+      "realtimeDesc": "スライダーを動かすとリアルタイムでプレビューできます。処理はローカルで行われるため、プライバシーも安心です。",
+      "scrollLeft": "左にスクロール",
+      "scrollRight": "右にスクロール",
+      "resetAll": "すべてのパラメータをリセット",
+      "presets": {
+        "none": "なし",
+        "clarendon": "クラレンドン",
+        "lofi": "ローファイ",
+        "valencia": "バレンシア",
+        "gingham": "ギンガム",
+        "f1977": "1977",
+        "aden": "アデン",
+        "reyes": "レイエス",
+        "inkwell": "インクウェル",
+        "lark": "ラーク"
+      },
+      "cta": {
+        "select": "画像を選択してください",
+        "rendering": "レンダリング中...",
+        "export": "結果を書き出す ({count})",
+        "update": "フィルターを更新 ({count})",
+        "apply": "フィルターを適用 ({count})"
+      }
+    },
+    "favicon": {
+      "name": "ファビコン生成",
+      "title": "マルチプラットフォーム対応ウェブサイト Favicon 生成器",
+      "desc": "ウェブサイト用ファビコン一式を自動生成",
+      "mockup": "環境シミュレーション",
+      "newTab": "新しいタブ",
+      "appearance": "外観設定",
+      "bgFill": "背景塗りつぶし",
+      "bgFillDesc": "元のアイコンに透明な領域がある場合、統一された背景色を設定できます。",
+      "exportControl": "エクスポート設定",
+      "safeZone": "自動セーフゾーン",
+      "safeZoneGuide": "Android では、アイコンの内容を中央の 80% 領域内に収めることが推奨されています。残りの領域は背景として、様々な切り抜き形状に適応します。",
+      "zipTip": "ZIP には、各ストアの審査要件を満たす全種類のリソースが自動的に含まれます。",
+      "cta": "{count} 個のアイテムをエクスポート",
+      "specs": {
+        "ico": "favicon.ico (互換用)",
+        "png16": "16x16 (モダンブラウザ)",
+        "png32": "32x32 (モダンブラウザ)",
+        "chrome128": "128x128 (Chrome ストア)",
+        "chrome48": "48x48 (拡張機能管理)",
+        "chrome16": "16x16 (ツールバー)",
+        "apple": "Apple Touch Icon",
+        "android192": "Android 192x192",
+        "android512": "Android 512x512",
+        "maskable512": "Android Maskable",
+        "manifest": "site.webmanifest",
+        "readme": "README.txt (ガイド)"
+      }
+    }
+  },
+  "common": {
+    "start": "クイックスタート",
+    "heroTitle1": "シンプル、高速",
+    "heroTitle2": "プライバシー安全",
+    "heroDesc": "すべての画像处理はブラウザ内でローカルに完了し、ファイルがサーバーにアップロードされることはありません。真のオフライン生産性ツール。",
+    "pageTitleHome": "プライバシー優先、オフライン対応のミニマリスト画像ツール",
+    "ready": "準備完了",
+    "go": "今すぐ開始",
+    "workspace": "ワークスペース",
+    "ui": {
+      "select": "選択してください",
+      "clickToEdit": "クリックして数値を直接編集",
+      "resetToDefault": "デフォルトに戻す"
+    },
+    "theme": {
+      "light": "ライトモード",
+      "system": "システム設定に従う",
+      "dark": "ダークモード"
+    },
+    "image": {
+      "upload": {
+        "title": "画像処理を開始",
+        "subtitle": "画像をドラッグ、クリック、または貼り付け · 100% プライバシー安全",
+        "button": "ファイルを選択",
+        "dropTip": "離して処理を開始",
+        "quickPaste": "クイック貼り付け",
+        "pureOffline": "完全オフライン",
+        "errorSize": "画像 [{name}] のサイズが大きすぎます ({size}MB)。最大 50MB まで。"
+      },
+      "card": {
+        "select": "画像を選択",
+        "remove": "画像を削除",
+        "reset": "元の画像に戻す",
+        "compare": "詳細を比較",
+        "download": "処理後を保存",
+        "dirty": "更新待ち",
+        "ready": "準備完了",
+        "wait": "待機",
+        "idle": "待機中",
+        "before": "処理前",
+        "after": "処理后",
+        "sam2": "高度なインタラクティブ・セグメンテーション (SAM2)"
+      },
+      "compare": {
+        "title": "詳細比較",
+        "errorTitle": "プレビュー失敗",
+        "errorDesc": "高解像度画像を取得できませんでした。避けるために再処理するか接続を確認してください。",
+        "decoding": "解像度を解析中...",
+        "original": "元画像",
+        "processed": "処理後",
+        "zoomIn": "拡大",
+        "zoomOut": "縮小",
+        "reset": "表示をリセット",
+        "tip": "ホイールでズーム • ドラッグで移動",
+        "divider": "比較用ディバイダー"
+      },
+      "toolbar": {
+        "layoutLarge": "大きいカード",
+        "layoutCompact": "コンパクトモード",
+        "import": "画像をインポート",
+        "importAria": "ローカル画像をインポート",
+        "exportAll": "すべて書き出し",
+        "exportAllAria": "{count} 枚の処理済み画像を書き出し",
+        "resetAll": "すべてリセット",
+        "resetAllAria": "すべての画像を元の状態に戻す",
+        "deleteSelected": "選択を削除",
+        "deleteSelectedAria": "選択した {count} 枚の画像を削除",
+        "clearAll": "すべて消去",
+        "clearAllAria": "処理待ち行列を消去",
+        "confirmTitle": "操作の確認",
+        "confirmClear": "消去の確認",
+        "confirmDelete": "削除の確認",
+        "confirmClearTitle": "すべての画像を消去しますか？",
+        "confirmDeleteTitle": "選択した {count} 枚を削除しますか？",
+        "confirmClearDesc": "この操作は取り消せません。",
+        "confirmDeleteDesc": "選択したファイルは完全に削除されます。",
+        "cancel": "キャンセル",
+        "confirm": "確認"
+      },
+      "selection": {
+        "selected": "選択済み",
+        "allSelected": "すべて選択中",
+        "complete": "処理完了",
+        "toggle": "選択を切り替え"
+      }
+    },
+    "export": {
+      "title": "書き出し設定",
+      "advanced": "高度な設定",
+      "format": "形式",
+      "qualityMode": "画質優先",
+      "targetSizeMode": "サイズ指定",
+      "outputQuality": "出力画質",
+      "targetSize": "目標サイズ",
+      "maxColors": "最大色数",
+      "effort": "圧縮効率",
+      "resolutionLimit": "解像度制限 (オプション)",
+      "width": "幅",
+      "height": "高さ",
+      "skipIfLarger": "サイズが増える場合は元のファイルを使用",
+      "preserveExif": "EXIFメタデータを保持",
+      "showMagnifier": "スマート拡大鏡を有効にする",
+      "formatOriginal": "元の形式を維持",
+      "formatWebp": "WebP (推奨)",
+      "formatJpeg": "JPEG (互換性重視)",
+      "formatPng": "PNG (無損失/透過)",
+      "formatAvif": "AVIF (最新形式)",
+      "formatJxl": "JPEG XL (次世代)",
+      "formatWebp2": "WebP2 (実験的)"
+    },
+    "modal": {
+      "interactive": {
+        "title": "対話型分割 (SAM2)",
+        "guide": "クリックまたはドラッグしてオブジェクトを追加し、Alt を押しながら領域を除外します。",
+        "brushSize": "ブラシサイズ",
+        "confirm": "抽出完了",
+        "cancel": "破棄"
+      },
+      "download": {
+        "title": "ダウンロードの準備",
+        "fileName": "ファイル名",
+        "confirm": "ダウンロードを確認"
+      },
+      "sponsor": {
+        "title": "Imago を支援する",
+        "desc": "Imago はオープンソースで、完全にローカルで動作するツールです。もし役立つと感じていただけたら、開発の支援をお願いします。",
+        "heroTitle": "Imago の進化を支援する",
+        "community": "コミュニティに参加",
+        "githubAria": "GitHub で Imago リポジトリを表示 (新しいタブで開く)",
+        "githubStar": "GitHub でスター",
+        "githubDesc": "オープンソースリポジトリ。あなたのスターが私たちの最大の励みになります。",
+        "afdian": "Afdian (爱发电)",
+        "afdianAria": "Afdian 経由で Imago を支援、WeChat と Alipay をサポート (新しいタブで開く)",
+        "afdianTip": "中国国内でおすすめ",
+        "kofi": "Ko-fi",
+        "kofiAria": "Ko-fi 経由で Imago を支援、国際決済に対応 (新しいタブで開く)",
+        "kofiTip": "国際決済に対応",
+        "footer": "皆様の支援が Imago のさらなる進化を支えます。"
+      }
+    }
+  }
+}

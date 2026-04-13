@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import {
   Minimize2,
   Maximize2,
@@ -24,9 +26,11 @@ import { useImageStore } from './stores/imageStore'
 import { useLayoutStore } from './stores/layoutStore'
 import AppLogo from './components/common/AppLogo.vue'
 import SponsorModal from './components/SponsorModal.vue'
+import LanguageSwitcher from './components/common/LanguageSwitcher.vue'
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
+const { t } = useI18n()
 
 const theme = ref<'light' | 'dark' | 'system'>('system')
 const themeModes = ['light', 'system', 'dark'] as const
@@ -74,53 +78,50 @@ onMounted(() => {
   })
 })
 
-const routeNameMap: Record<string, string> = {
-  home: '概览',
-  Home: '概览',
-  compress: '压缩转换',
-  Compress: '压缩转换',
-  resize: '调整尺寸',
-  Resize: '调整尺寸',
-  crop: '裁剪图片',
-  Crop: '裁剪图片',
-  split: '图片分割',
-  Split: '图片分割',
-  exif: '清除 EXIF',
-  Exif: '清除 EXIF',
-  combine: '长图拼接',
-  Combine: '长图拼接',
-  filters: '色彩滤镜',
-  Filters: '色彩滤镜',
-  favicon: '站标生成',
-  Favicon: '站标生成'
-}
-
-const menuGroups = [
+const menuGroups = computed(() => [
   {
-    label: '核心工具',
+    label: t('nav.groups.core'),
     items: [
-      { name: '压缩转换', path: '/compress', icon: Minimize2 },
-      { name: '调整尺寸', path: '/resize', icon: Maximize2 }
+      { name: t('tools.compress.name'), path: '/compress', icon: Minimize2 },
+      { name: t('tools.resize.name'), path: '/resize', icon: Maximize2 }
     ]
   },
   {
-    label: '编辑工具',
+    label: t('nav.groups.edit'),
     items: [
-      { name: '裁剪图片', path: '/crop', icon: Scissors },
-      { name: '图片分割', path: '/split', icon: Split },
-      { name: '清除 EXIF', path: '/exif', icon: Trash2 }
+      { name: t('tools.crop.name'), path: '/crop', icon: Scissors },
+      { name: t('tools.split.name'), path: '/split', icon: Split },
+      { name: t('tools.exif.name'), path: '/exif', icon: Trash2 }
     ]
   },
   {
-    label: '创意工具',
+    label: t('nav.groups.creative'),
     items: [
-      { name: '站标生成', path: '/favicon', icon: Box },
-      { name: '长图拼接', path: '/combine', icon: Layers },
-      { name: '去除背景', path: '/bg-remove', icon: Sparkles },
-      { name: '色彩滤镜', path: '/filters', icon: Palette }
+      { name: t('tools.favicon.name'), path: '/favicon', icon: Box },
+      { name: t('tools.combine.name'), path: '/combine', icon: Layers },
+      { name: t('tools.bgRemove.name'), path: '/bg-remove', icon: Sparkles },
+      { name: t('tools.filters.name'), path: '/filters', icon: Palette }
     ]
   }
-]
+])
+
+const currentRouteName = computed(() => {
+  const routeName = useRoute().name as string
+  if (routeName === 'home') return t('nav.allTools')
+  const toolKey = [
+    'compress',
+    'resize',
+    'crop',
+    'split',
+    'exif',
+    'favicon',
+    'combine',
+    'bgRemove',
+    'filters'
+  ].find((key) => key.toLowerCase() === routeName?.toLowerCase())
+  if (toolKey) return t(`tools.${toolKey}.name`)
+  return routeName || t('nav.allTools')
+})
 </script>
 
 <template>
@@ -179,7 +180,7 @@ const menuGroups = [
               <span
                 class="text-[11px] font-extrabold text-primary/80 tracking-widest leading-none mt-[2px] ml-[2px]"
               >
-                极简图片处理工具
+                {{ t('app.subtitle') }}
               </span>
             </div>
           </transition>
@@ -206,7 +207,7 @@ const menuGroups = [
               ? 'md:justify-center h-11 md:w-[72px] md:rounded-none px-4 py-3.5 gap-3 rounded-xl'
               : 'px-4 py-3.5 gap-3 rounded-xl'
           ]"
-          :title="layoutStore.isMenuCollapsed ? '所有工具' : ''"
+          :title="layoutStore.isMenuCollapsed ? t('nav.allTools') : ''"
           @click="closeMobileSidebar"
         >
           <Settings2
@@ -218,7 +219,7 @@ const menuGroups = [
             v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
             class="whitespace-nowrap"
             :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
-            >所有工具</span
+            >{{ t('nav.allTools') }}</span
           >
           <div
             v-if="$route.path === '/' && (!layoutStore.isMenuCollapsed || isMobileSidebarOpen)"
@@ -323,7 +324,7 @@ const menuGroups = [
                   : 'flex-1 py-2'
               ]"
               @click="setTheme(mode)"
-              :title="mode"
+              :title="t('common.theme.' + mode)"
             >
               <Sun v-if="mode === 'light'" :size="14" />
               <Monitor v-if="mode === 'system'" :size="14" />
@@ -335,7 +336,7 @@ const menuGroups = [
             v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
             @click="layoutStore.toggleMenu"
             class="hidden md:flex items-center justify-center h-10 w-10 shrink-0 rounded-xl bg-muted/60 hover:bg-primary/10 hover:text-primary transition-all text-muted-foreground group"
-            title="收起菜单"
+            :title="t('nav.collapse')"
           >
             <ChevronLeft :size="18" class="group-hover:-translate-x-0.5 transition-transform" />
           </button>
@@ -345,7 +346,7 @@ const menuGroups = [
           v-if="layoutStore.isMenuCollapsed && !isMobileSidebarOpen"
           @click="layoutStore.toggleMenu"
           class="hidden md:flex items-center justify-center h-12 w-12 rounded-xl bg-muted/60 hover:bg-primary/10 hover:text-primary transition-all text-muted-foreground group"
-          title="展开菜单"
+          :title="t('nav.expand')"
         >
           <ChevronRight :size="18" class="group-hover:translate-x-0.5 transition-transform" />
         </button>
@@ -370,7 +371,7 @@ const menuGroups = [
         <div class="flex items-center gap-3">
           <button
             class="md:hidden text-foreground hover:text-primary p-2 -ml-2 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
-            aria-label="Toggle Mobile Menu"
+            :aria-label="t('nav.toggleMobile')"
             @click="toggleMobileSidebar"
           >
             <Menu :size="20" />
@@ -381,13 +382,13 @@ const menuGroups = [
               class="hidden md:flex items-center gap-2.5 text-[0.7rem] font-black text-muted-foreground/60 uppercase tracking-[0.2em]"
             >
               <div class="w-2 h-2 rounded-full bg-muted-foreground/30"></div>
-              <span>工作区</span>
+              <span>{{ t('common.workspace') }}</span>
             </div>
             <span class="hidden md:inline text-border/60 mx-1">/</span>
             <div
               class="h-8 flex items-center bg-primary/10 border border-primary/20 rounded-full text-[0.7rem] font-bold text-primary uppercase tracking-[0.1em] shadow-sm backdrop-blur-sm px-4 transition-all"
             >
-              <span>{{ routeNameMap[$route.name as string] || $route.name || '概览' }}</span>
+              <span>{{ currentRouteName }}</span>
             </div>
           </div>
         </div>
@@ -405,20 +406,24 @@ const menuGroups = [
               class="w-2 h-2 rounded-full bg-primary/70"
             ></span>
             <Loader2 v-else class="animate-spin" :size="12" />
-            <span v-if="store.processingCount === 0">本地处理</span>
-            <span v-else>处理中 ({{ store.globalProgress }}%)</span>
+            <span v-if="store.processingCount === 0">{{ t('app.localProcessing') }}</span>
+            <span v-else>{{ t('app.processing') }} ({{ store.globalProgress }}%)</span>
           </div>
 
           <div class="w-px h-6 bg-border"></div>
 
-          <button
-            @click="showSponsorModal = true"
-            class="text-muted-foreground hover:text-rose-500 hover:bg-rose-500/5 transition-all min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg group"
-            title="支持与社区"
-            aria-label="Support and Community"
-          >
-            <Heart :size="18" class="group-hover:scale-110 transition-transform" />
-          </button>
+          <div class="flex items-center gap-2">
+            <LanguageSwitcher />
+
+            <button
+              @click="showSponsorModal = true"
+              class="text-muted-foreground hover:text-rose-500 hover:bg-rose-500/5 transition-all min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg group"
+              :title="t('nav.sponsor')"
+              :aria-label="t('nav.sponsor')"
+            >
+              <Heart :size="18" class="group-hover:scale-110 transition-transform" />
+            </button>
+          </div>
         </div>
       </header>
 

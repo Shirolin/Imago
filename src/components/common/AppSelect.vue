@@ -1,116 +1,115 @@
-<script setup lang="ts" generic="T">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ChevronDown, Check } from 'lucide-vue-next'
 
-interface Option<V> {
-  label: string
-  value: V
-}
-
-interface Props<V> {
-  modelValue: V
-  options: Option<V>[]
+const props = defineProps<{
+  modelValue: string
+  options: { label: string; value: string; description?: string }[]
   placeholder?: string
-}
-
-const props = withDefaults(defineProps<Props<T>>(), {
-  options: () => []
-})
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: T): void
+  label?: string
 }>()
 
-const isOpen = ref(false)
-const containerRef = ref<HTMLElement | null>(null)
+const emit = defineEmits(['update:modelValue', 'change'])
+const { t } = useI18n()
 
-const toggle = () => {
+const isOpen = ref(false)
+const selectRef = ref<HTMLElement | null>(null)
+
+const toggleDropdown = () => {
   isOpen.value = !isOpen.value
 }
 
-const select = (value: T) => {
+const selectOption = (value: string) => {
   emit('update:modelValue', value)
+  emit('change', value)
   isOpen.value = false
 }
 
-const selectedLabel = computed(() => {
-  if (!props.options) return props.placeholder || '请选择'
-  const option = props.options.find((opt) => opt.value === props.modelValue)
-  return option ? option.label : props.placeholder || '请选择'
-})
-
 const handleClickOutside = (event: MouseEvent) => {
-  if (containerRef.value && !containerRef.value.contains(event.target as Node)) {
+  if (selectRef.value && !selectRef.value.contains(event.target as Node)) {
     isOpen.value = false
   }
 }
 
+const selectedLabel = computed(() => {
+  const option = props.options.find((opt) => opt.value === props.modelValue)
+  return option ? option.label : props.placeholder || t('common.ui.select')
+})
+
+import { computed } from 'vue'
+
 onMounted(() => {
-  window.addEventListener('mousedown', handleClickOutside)
+  document.addEventListener('click', handleClickOutside)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('mousedown', handleClickOutside)
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>
 
 <template>
-  <div class="relative w-full" ref="containerRef">
-    <!-- 触发器 -->
-    <button
-      type="button"
-      @click="toggle"
-      class="w-full flex items-center justify-between p-3 bg-muted/40 border border-border/50 rounded-xl text-sm font-bold text-muted-foreground hover:text-primary hover:bg-muted/60 transition-all focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none group"
-      :class="{ 'border-primary ring-2 ring-primary/10': isOpen }"
+  <div class="space-y-1.5" ref="selectRef">
+    <label
+      v-if="label"
+      class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest"
+      >{{ label }}</label
     >
-      <span class="truncate">{{ selectedLabel }}</span>
-      <ChevronDown
-        class="text-muted-foreground transition-transform duration-300 shrink-0"
-        :class="{ 'rotate-180 text-primary': isOpen }"
-        :size="18"
-      />
-    </button>
-
-    <!-- 下拉列表 -->
-    <transition
-      enter-active-class="transition ease-out duration-200"
-      enter-from-class="opacity-0 translate-y-1"
-      enter-to-class="opacity-100 translate-y-0"
-      leave-active-class="transition ease-in duration-150"
-      leave-from-class="opacity-100 translate-y-0"
-      leave-to-class="opacity-0 translate-y-1"
-    >
-      <div
-        v-if="isOpen"
-        class="absolute z-[100] mt-2 w-full bg-card border border-border rounded-xl shadow-2xl overflow-hidden backdrop-blur-xl"
+    <div class="relative">
+      <button
+        type="button"
+        @click="toggleDropdown"
+        class="w-full h-10 px-3 flex items-center justify-between bg-background border border-border/60 rounded-xl text-xs font-medium hover:border-primary/30 transition-all active:scale-[0.99] outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+        :class="{ 'border-primary/40 ring-2 ring-primary/10': isOpen }"
       >
-        <div class="max-h-60 overflow-y-auto custom-scrollbar p-1.5 flex flex-col gap-0.5">
-          <button
-            v-for="option in options"
-            :key="String(option.value)"
-            type="button"
-            @click="select(option.value)"
-            class="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-bold transition-all text-left"
-            :class="
-              modelValue === option.value
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:bg-muted/80 hover:text-primary'
-            "
-          >
-            <span class="truncate">{{ option.label }}</span>
-            <Check v-if="modelValue === option.value" :size="16" />
-          </button>
+        <span class="truncate" :class="{ 'text-muted-foreground/50': !modelValue }">{{
+          selectedLabel
+        }}</span>
+        <ChevronDown
+          :size="14"
+          class="text-muted-foreground/40 transition-transform duration-300"
+          :class="{ 'rotate-180': isOpen }"
+        />
+      </button>
+
+      <transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="opacity-0 translate-y-1 scale-95"
+        enter-to-class="opacity-100 translate-y-0 scale-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="opacity-100 translate-y-0 scale-100"
+        leave-to-class="opacity-0 translate-y-1 scale-95"
+      >
+        <div
+          v-if="isOpen"
+          class="absolute z-[100] mt-2 w-full bg-card border border-border/60 rounded-xl shadow-xl overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-200"
+        >
+          <div class="max-h-60 overflow-y-auto custom-scrollbar">
+            <button
+              v-for="option in options"
+              :key="option.value"
+              type="button"
+              @click="selectOption(option.value)"
+              class="w-full px-3 py-2.5 text-left text-xs transition-colors flex flex-col gap-0.5 hover:bg-primary/5 group"
+              :class="
+                modelValue === option.value
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-foreground/70 hover:text-primary'
+              "
+            >
+              <div class="flex items-center justify-between">
+                <span class="font-bold">{{ option.label }}</span>
+                <Check v-if="modelValue === option.value" :size="12" />
+              </div>
+              <span
+                v-if="option.description"
+                class="text-[10px] opacity-50 group-hover:opacity-70 transition-opacity"
+                >{{ option.description }}</span
+              >
+            </button>
+          </div>
         </div>
-      </div>
-    </transition>
+      </transition>
+    </div>
   </div>
 </template>
-
-<style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
-  border-radius: 10px;
-}
-</style>

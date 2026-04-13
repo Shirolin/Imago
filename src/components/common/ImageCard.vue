@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { CSSProperties } from 'vue'
+
+const { t } = useI18n()
 import {
   Download,
   X,
@@ -204,7 +207,7 @@ const displayUrl = computed(() => {
         class="absolute top-3 left-3 z-30 flex items-center gap-2"
         role="checkbox"
         :aria-checked="isSelected"
-        aria-label="选择图片"
+        :aria-label="$t('common.image.card.select')"
       >
         <div
           class="transition-all duration-300"
@@ -225,7 +228,7 @@ const displayUrl = computed(() => {
       <button
         @click.stop="store.removeImage(image.id)"
         class="absolute top-3 right-3 z-30 bg-background/40 hover:bg-destructive text-foreground/60 hover:text-destructive-foreground p-1.5 rounded-full opacity-100 md:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-border/40 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-        title="移除图片"
+        :title="$t('common.image.card.remove')"
       >
         <X :size="14" />
       </button>
@@ -270,11 +273,11 @@ const displayUrl = computed(() => {
           >
             <span
               class="bg-muted/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-foreground font-black border border-border/20 transition-opacity duration-300"
-              >BEFORE</span
+              >{{ $t('common.image.card.before') }}</span
             >
             <span
               class="bg-primary/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-primary-foreground font-black border border-white/20 transition-opacity duration-300"
-              >AFTER</span
+              >{{ $t('common.image.card.after') }}</span
             >
           </div>
         </div>
@@ -393,11 +396,11 @@ const displayUrl = computed(() => {
           <span v-if="layoutStore.cardSizeMode === 'large'" class="mt-0.5">{{
             image.status === 'done'
               ? image.isDirty
-                ? '待更新'
-                : 'Ready'
+                ? $t('common.image.card.dirty')
+                : $t('common.image.card.ready')
               : image.status === 'processing'
-                ? 'Wait'
-                : 'Idle'
+                ? $t('common.image.card.wait')
+                : $t('common.image.card.idle')
           }}</span>
         </div>
 
@@ -410,7 +413,7 @@ const displayUrl = computed(() => {
             @click.stop="store.resetImage(image.id)"
             class="flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-secondary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
             :class="layoutStore.cardSizeMode === 'compact' ? 'w-6 h-6' : 'w-8 h-8'"
-            title="恢复原图"
+            :title="$t('common.image.card.reset')"
           >
             <RotateCcw :size="layoutStore.cardSizeMode === 'compact' ? 12 : 16" />
           </button>
@@ -419,7 +422,7 @@ const displayUrl = computed(() => {
             @click.stop="emit('compare', image.id)"
             class="flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-secondary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
             :class="layoutStore.cardSizeMode === 'compact' ? 'w-6 h-6' : 'w-8 h-8'"
-            title="对比画质细节"
+            :title="$t('common.image.card.compare')"
           >
             <Columns2 :size="layoutStore.cardSizeMode === 'compact' ? 12 : 16" />
           </button>
@@ -428,7 +431,7 @@ const displayUrl = computed(() => {
             @click.stop="emit('interactive', image.id)"
             class="flex items-center justify-center rounded-lg hover:bg-primary/20 text-primary hover:text-primary transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary shadow-sm border border-primary/10"
             :class="layoutStore.cardSizeMode === 'compact' ? 'w-6 h-6' : 'w-8 h-8'"
-            title="高级交互式抠图 (SAM2)"
+            :title="$t('common.image.card.sam2')"
           >
             <Sparkles :size="layoutStore.cardSizeMode === 'compact' ? 12 : 16" />
           </button>
@@ -437,7 +440,7 @@ const displayUrl = computed(() => {
             @click.stop="emit('download', image.id)"
             class="flex items-center justify-center rounded-lg hover:bg-primary text-muted-foreground hover:text-primary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
             :class="layoutStore.cardSizeMode === 'compact' ? 'w-6 h-6' : 'w-8 h-8'"
-            title="导出处理后的图片"
+            :title="$t('common.image.card.download')"
           >
             <Download :size="layoutStore.cardSizeMode === 'compact' ? 12 : 16" />
           </button>

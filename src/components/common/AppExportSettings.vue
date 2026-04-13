@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, watch, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import AppSelect from './AppSelect.vue'
 import AppSlider from './AppSlider.vue'
 import AppSectionHeader from './AppSectionHeader.vue'
@@ -17,6 +18,8 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-vue-next'
+
+const { t } = useI18n()
 
 interface Props {
   format: string
@@ -45,8 +48,10 @@ const props = withDefaults(defineProps<Props>(), {
   preserveExif: false,
   allowManualQuality: false,
   showExifOption: false,
-  title: '导出设置'
+  title: ''
 })
+
+const displayTitle = computed(() => props.title || t('common.export.title'))
 
 const emit = defineEmits<{
   'update:format': [value: string]
@@ -64,15 +69,15 @@ const emit = defineEmits<{
 
 const showAdvanced = ref(false)
 
-const formatOptions = [
-  { label: '保留原格式', value: 'original' },
-  { label: 'WebP (推荐)', value: 'image/webp' },
-  { label: 'JPEG (最佳兼容)', value: 'image/jpeg-li' },
-  { label: 'PNG (无损/透明)', value: 'image/png' },
-  { label: 'AVIF (先进格式)', value: 'image/avif' },
-  { label: 'JPEG XL (次世代)', value: 'image/jxl' },
-  { label: 'WebP2 (实验性)', value: 'image/webp2' }
-]
+const formatOptions = computed(() => [
+  { label: t('common.export.formatOriginal'), value: 'original' },
+  { label: t('common.export.formatWebp'), value: 'image/webp' },
+  { label: t('common.export.formatJpeg'), value: 'image/jpeg-li' },
+  { label: t('common.export.formatPng'), value: 'image/png' },
+  { label: t('common.export.formatAvif'), value: 'image/avif' },
+  { label: t('common.export.formatJxl'), value: 'image/jxl' },
+  { label: t('common.export.formatWebp2'), value: 'image/webp2' }
+])
 
 const recommendedQualities: Record<string, number> = {
   original: 0.8,
@@ -114,7 +119,7 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
   <div class="space-y-6">
     <section class="space-y-4">
       <div class="flex items-center justify-between px-0.5">
-        <AppSectionHeader :title="title" :icon="FileType" />
+        <AppSectionHeader :title="displayTitle" :icon="FileType" />
       </div>
 
       <div class="space-y-4 px-1">
@@ -128,8 +133,8 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
           :model-value="mode"
           @update:model-value="handleModeChange"
           :options="[
-            { label: '画质优先', value: 'quality', icon: Sparkles },
-            { label: '指定体积', value: 'target', icon: Target }
+            { label: t('common.export.qualityMode'), value: 'quality', icon: Sparkles },
+            { label: t('common.export.targetSizeMode'), value: 'target', icon: Target }
           ]"
         />
 
@@ -142,7 +147,7 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
             <AppSlider
               :model-value="quality"
               @update:model-value="handleQualityChange"
-              label="输出质量"
+              :label="t('common.export.outputQuality')"
               :icon="CircleGauge"
               :min="0.1"
               :max="1.0"
@@ -163,7 +168,7 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
                 </div>
                 <span
                   class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none"
-                  >目标体积</span
+                  >{{ t('common.export.targetSize') }}</span
                 >
               </div>
               <span class="font-mono text-sm font-black text-primary"
@@ -184,7 +189,7 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
               <AppSlider
                 :model-value="colors"
                 @update:model-value="emit('update:colors', $event)"
-                label="最大颜色数"
+                :label="t('common.export.maxColors')"
                 :icon="Palette"
                 unit=" Colors"
                 :min="2"
@@ -196,7 +201,7 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
               <AppSlider
                 :model-value="effort"
                 @update:model-value="emit('update:effort', $event)"
-                label="编码精细度"
+                :label="t('common.export.effort')"
                 :icon="Activity"
                 unit=""
                 :min="1"
@@ -216,7 +221,7 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
         class="flex items-center justify-between w-full group px-0.5"
       >
         <AppSectionHeader
-          title="进阶微调"
+          :title="t('common.export.advanced')"
           :icon="SlidersHorizontal"
           class="group-hover:text-primary"
         />
@@ -230,21 +235,21 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
         <div v-if="allowManualQuality" class="space-y-3">
           <label
             class="text-[0.6rem] font-black text-muted-foreground uppercase tracking-widest px-1"
-            >分辨率限制 (可选)</label
+            >{{ t('common.export.resolutionLimit') }}</label
           >
           <div class="grid grid-cols-1 @[240px]:grid-cols-2 gap-3">
             <AppInput
               :model-value="maxWidth"
               @update:model-value="emit('update:maxWidth', $event)"
               type="number"
-              placeholder="宽度"
+              :placeholder="t('common.export.width')"
               suffix="W"
             />
             <AppInput
               :model-value="maxHeight"
               @update:model-value="emit('update:maxHeight', $event)"
               type="number"
-              placeholder="高度"
+              :placeholder="t('common.export.height')"
               suffix="H"
             />
           </div>
@@ -254,19 +259,19 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
             v-if="allowManualQuality"
             :model-value="keepOriginalIfLarger"
             @update:model-value="emit('update:keepOriginalIfLarger', $event)"
-            label="智能跳过变大文件"
+            :label="t('common.export.skipIfLarger')"
           />
           <AppCheckbox
             v-if="showExifOption || allowManualQuality"
             :model-value="preserveExif"
             @update:model-value="handleExifChange"
-            label="保留 EXIF 元数据"
+            :label="t('common.export.preserveExif')"
           />
           <AppCheckbox
             v-if="allowManualQuality"
             :model-value="showMagnifier"
             @update:model-value="emit('update:showMagnifier', $event)"
-            label="开启智能对比倍镜"
+            :label="t('common.export.showMagnifier')"
           />
         </div>
       </div>

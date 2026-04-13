@@ -1,0 +1,419 @@
+{
+  "app": {
+    "title": "imago",
+    "subtitle": "Minimalist Image Processing Tools",
+    "privacyFirst": "Privacy First",
+    "localProcessing": "Local Processing",
+    "processing": "Processing"
+  },
+  "nav": {
+    "allTools": "All Tools",
+    "groups": {
+      "core": "Core Tools",
+      "edit": "Editing Tools",
+      "creative": "Creative Tools"
+    },
+    "collapse": "Collapse Menu",
+    "expand": "Expand Menu",
+    "toggleMobile": "Toggle Mobile Menu",
+    "sponsor": "Support & Community"
+  },
+  "tools": {
+    "compress": {
+      "name": "Compress & Convert",
+      "title": "Image Compression & Format Conversion (WebP/AVIF) - 100% Local",
+      "desc": "Extreme compression and conversion between WebP / AVIF formats",
+      "settingsTitle": "Compression Settings",
+      "infoTip": "Uses advanced Web compression algorithms to significantly reduce file size while maintaining visual quality.",
+      "original": "Original",
+      "compressed": "Compressed",
+      "compareTitle": "Compression Comparison Details",
+      "cta": {
+        "select": "Please select images",
+        "rendering": "Rendering",
+        "exportResults": "Export Results",
+        "updateCompress": "Update Compression",
+        "startCompress": "Start Compression"
+      }
+    },
+    "resize": {
+      "name": "Resize",
+      "title": "Resize & Scale Images - High Quality Output",
+      "desc": "Scale by percentage or fixed dimensions",
+      "resizeMode": "Resize Mode",
+      "byPercentage": "By Percentage",
+      "byDimensions": "By Dimensions",
+      "scaleRatio": "Scale Ratio",
+      "width": "Width",
+      "height": "Height",
+      "lockAspectRatio": "Lock Aspect Ratio",
+      "resetDimensions": "Reset Dimensions",
+      "status": {
+        "noImages": "No Images",
+        "importTip": "Import images to start batch resizing",
+        "original": "Original",
+        "target": "Target"
+      },
+      "cta": {
+        "select": "Please select images",
+        "rendering": "Rendering...",
+        "exportResults": "Export Results ({count})",
+        "updateDimensions": "Update Dimensions ({count})",
+        "adjustDimensions": "Adjust Dimensions ({count})"
+      }
+    },
+    "crop": {
+      "name": "Crop",
+      "title": "Crop Images & Aspect Ratio Adjustment",
+      "desc": "Free cropping or fixed aspect ratios",
+      "aspectRatio": "Preset Ratio",
+      "lockRatio": "Lock Ratio",
+      "freeRatio": "Free Ratio",
+      "reset": "Reset Crop",
+      "empty": {
+        "title": "No Images",
+        "desc": "Import images to start online cropping"
+      },
+      "cta": {
+        "select": "Please select images",
+        "export": "Export Crop ({count})",
+        "apply": "Apply Crop ({count})"
+      }
+    },
+    "exif": {
+      "name": "Clear EXIF",
+      "title": "Remove Image Metadata (EXIF) - Privacy Protection",
+      "desc": "Remove privacy metadata such as location",
+      "privacyList": "Privacy Stripping List",
+      "selectAll": "Select All",
+      "deselectAll": "Deselect All",
+      "items": {
+        "location": "Location (GPS)",
+        "device": "Device Model",
+        "software": "Software Info",
+        "time": "Capture Time",
+        "params": "Parameters (Shutter/Aperture, etc.)"
+      },
+      "empty": {
+        "title": "No Images",
+        "desc": "Import images to batch clear privacy info"
+      },
+      "cta": {
+        "select": "Please select images",
+        "export": "Export Cleaned ({count})",
+        "process": "One-click Stripping ({count})"
+      }
+    },
+    "split": {
+      "name": "Split Image",
+      "title": "Image Splitter & Grid Slicing Tool",
+      "desc": "Divide large images into multiple grids",
+      "gridSettings": "Grid Settings",
+      "uniformGrid": "Uniform Grid",
+      "freeEdit": "Free Edit",
+      "verticalRows": "Vertical Rows",
+      "horizontalCols": "Horizontal Columns",
+      "unitRow": " Rows",
+      "unitCol": " Cols",
+      "verticalLine": "Vertical Line",
+      "horizontalLine": "Horizontal Line",
+      "syncGrid": "Sync Grid",
+      "syncGridTip": "Reset lines based on grid values",
+      "clearAll": "Clear All",
+      "viewSettings": "View Settings",
+      "restoreDefaultView": "Restore Default View",
+      "lineWidth": "Line Width",
+      "lineColor": "Line Color",
+      "lineOpacity": "Opacity",
+      "enhanced": "Enhanced",
+      "alignMode": "Alignment Mode",
+      "alignModeDesc": "Auto detect and crop main content, support center alignment or forced square filling.",
+      "standard": "Standard",
+      "center": "Center",
+      "square": "Square",
+      "shave": "Edge Shrink (Shave)",
+      "exportConfig": "Export Settings",
+      "colors": {
+        "primary": "Theme Color",
+        "white": "Highlight White (Default)",
+        "black": "Deep Black",
+        "blue": "Tech Blue",
+        "red": "Warning Red"
+      },
+      "messages": {
+        "defaultRestored": "Default view settings restored",
+        "lineDeletedKey": "Deleted line {index} ({axis}) via keyboard",
+        "lineAdded": "Added {axis} line at {pos} px",
+        "lineDeleted": "Deleted line {index} ({axis})",
+        "resetToGrid": "Lines reset based on grid values",
+        "cleared": "All custom split lines cleared",
+        "switchedToFree": "Switched to free edit mode",
+        "abortedTask": "Rendering task aborted"
+      },
+      "canvas": {
+        "ariaLabel": "Image Split Canvas",
+        "instructions": "Click to add split lines. Hold Space and drag to pan.\nAfter selecting a line, use arrow keys for pixel-level adjustment, Shift + arrow keys for fast movement, Delete or Backspace to delete selected line.",
+        "vLineAria": "Vertical split line {index}, position {pos} pixels",
+        "hLineAria": "Horizontal split line {index}, position {pos} pixels",
+        "clickToAdd": "Click canvas to add line",
+        "dragToMove": "Drag lines to move"
+      },
+      "cta": {
+        "select": "Please select image",
+        "aborted": "Aborted",
+        "rendering": "Rendering {progress}%",
+        "renderingNoProgress": "Rendering...",
+        "clickToAbort": "(Click to abort)",
+        "exportSlices": "Export Slices",
+        "updateSplit": "Update Split",
+        "splitImage": "Split Image"
+      }
+    },
+    "combine": {
+      "name": "Stitch Image",
+      "title": "Combine Multiple Images Vertically or Horizontally",
+      "desc": "Merge multiple images horizontally or vertically",
+      "direction": "Stitch Direction",
+      "dirVertical": "Vertical",
+      "dirHorizontal": "Horizontal",
+      "spacing": "Image Spacing",
+      "order": "Arrangement Order",
+      "empty": {
+        "title": "No Images",
+        "desc": "Import at least two images to start stitching"
+      },
+      "cta": {
+        "select": "Please import more images",
+        "export": "Export Long Image",
+        "process": "Apply Stitching"
+      }
+    },
+    "bgRemove": {
+      "name": "Background Removal",
+      "title": "AI Automatic Background Removal - No Upload Required",
+      "desc": "Automatic background removal based on local AI",
+      "modelStatus": "Model Status",
+      "modelLoading": "Model Loading...",
+      "modelReady": "Model Ready",
+      "mode": "Processing Mode",
+      "modeAuto": "Automatic",
+      "modeInteractive": "Interactive (SAM2)",
+      "tip": "All AI processing is done locally; your images are never uploaded.",
+      "empty": {
+        "title": "No Images",
+        "desc": "Import images to start automatic background removal"
+      },
+      "cta": {
+        "select": "Please select images",
+        "export": "Export Transparent ({count})",
+        "process": "Start Removal ({count})"
+      }
+    },
+    "filters": {
+      "name": "Artistic Filters",
+      "title": "Image Filters & Color Adjustment - Fast Local Editing",
+      "desc": "Brightness, contrast and artistic presets",
+      "quickPresets": "Quick Presets",
+      "fineAdjustment": "Fine Adjustment",
+      "brightness": "Brightness",
+      "contrast": "Contrast",
+      "saturation": "Saturation",
+      "blur": "Blur",
+      "sepia": "Sepia",
+      "realtimeTitle": "Real-time Filters",
+      "realtimeDesc": "Drag sliders to preview effects in real-time. Processing is fully local for privacy.",
+      "scrollLeft": "Scroll Left",
+      "scrollRight": "Scroll Right",
+      "resetAll": "Reset All Parameters",
+      "presets": {
+        "none": "Original",
+        "clarendon": "Clarendon",
+        "lofi": "Lo-fi",
+        "valencia": "Valencia",
+        "gingham": "Gingham",
+        "f1977": "1977",
+        "aden": "Aden",
+        "reyes": "Reyes",
+        "inkwell": "Inkwell",
+        "lark": "Lark"
+      },
+      "cta": {
+        "select": "Please select images",
+        "rendering": "Rendering...",
+        "export": "Export Results ({count})",
+        "update": "Update Filters ({count})",
+        "apply": "Apply Filters ({count})"
+      }
+    },
+    "favicon": {
+      "name": "Favicon Generator",
+      "title": "Multi-platform Website Favicon Generator",
+      "desc": "Automatically generate a full set of website Favicon icons",
+      "mockup": "Environment Mockup",
+      "newTab": "New Tab",
+      "appearance": "Appearance Config",
+      "bgFill": "Background Fill",
+      "bgFillDesc": "Set a uniform background color if the original icon has transparent areas.",
+      "exportControl": "Export Control",
+      "safeZone": "Auto Safe-Zone",
+      "safeZoneGuide": "Android recommends keeping icon content within the 80% center area, with the rest as background to adapt to various crop shapes.",
+      "zipTip": "ZIP will automatically include a full set of resources meeting various store requirements.",
+      "cta": "Export {count} Items",
+      "specs": {
+        "ico": "favicon.ico (Legacy)",
+        "png16": "16x16 (Modern Browser)",
+        "png32": "32x32 (Modern Browser)",
+        "chrome128": "128x128 (Chrome Store)",
+        "chrome48": "48x48 (Extension Page)",
+        "chrome16": "16x16 (Toolbar)",
+        "apple": "Apple Touch Icon",
+        "android192": "Android 192x192",
+        "android512": "Android 512x512",
+        "maskable512": "Android Maskable",
+        "manifest": "site.webmanifest",
+        "readme": "README.txt (Guide)"
+      }
+    }
+  },
+  "common": {
+    "start": "Quick Start",
+    "heroTitle1": "Simple, Fast",
+    "heroTitle2": "Private & Secure",
+    "heroDesc": "All image processing is done locally in your browser; files are never uploaded to a server. A truly offline productivity tool.",
+    "pageTitleHome": "Privacy-first, offline-ready minimalist image tools",
+    "ready": "Ready",
+    "go": "Start Now",
+    "workspace": "Workspace",
+    "ui": {
+      "select": "Please select",
+      "clickToEdit": "Click to edit value",
+      "resetToDefault": "Reset to default"
+    },
+    "theme": {
+      "light": "Light Mode",
+      "system": "System Mode",
+      "dark": "Dark Mode"
+    },
+    "image": {
+      "upload": {
+        "title": "Start Your Image Processing Journey",
+        "subtitle": "Drag, click or paste images · 100% Private & Secure",
+        "button": "Select Files",
+        "dropTip": "Release to start processing",
+        "quickPaste": "Quick Paste",
+        "pureOffline": "Pure Offline",
+        "errorSize": "Image [{name}] is too large ({size}MB). Blocked to prevent browser crash. Max 50MB supported."
+      },
+      "card": {
+        "select": "Select Image",
+        "remove": "Remove Image",
+        "reset": "Reset to Original",
+        "compare": "Compare Details",
+        "download": "Download Processed",
+        "dirty": "Pending Update",
+        "ready": "Ready",
+        "wait": "Wait",
+        "idle": "Idle",
+        "before": "BEFORE",
+        "after": "AFTER",
+        "sam2": "Advanced Interactive Segment (SAM2)"
+      },
+      "compare": {
+        "title": "Detailed Comparison",
+        "errorTitle": "Preview Failed",
+        "errorDesc": "Failed to fetch high-res image. Please try re-processing or check connection.",
+        "decoding": "Decoding Resolution...",
+        "original": "Original",
+        "processed": "Processed",
+        "zoomIn": "Zoom In",
+        "zoomOut": "Zoom Out",
+        "reset": "Reset View",
+        "tip": "Wheel to Zoom • Drag to Pan",
+        "divider": "Comparison Divider"
+      },
+      "toolbar": {
+        "layoutLarge": "Switch to Large Cards",
+        "layoutCompact": "Switch to Compact Mode",
+        "import": "Import Images",
+        "importAria": "Select and import images from local",
+        "exportAll": "Export All",
+        "exportAllAria": "Zip and export all {count} processed images",
+        "resetAll": "Reset to Original",
+        "resetAllAria": "Reset all images to original state",
+        "deleteSelected": "Delete Selected",
+        "deleteSelectedAria": "Remove {count} selected images from queue",
+        "clearAll": "Clear All",
+        "clearAllAria": "Clear current processing queue",
+        "confirmTitle": "Confirm Action",
+        "confirmClear": "Clear Queue Confirmation",
+        "confirmDelete": "Delete Selected Confirmation",
+        "confirmClearTitle": "Are you sure you want to clear all images?",
+        "confirmDeleteTitle": "Delete {count} selected images?",
+        "confirmClearDesc": "This will remove everything in the queue. This action cannot be undone.",
+        "confirmDeleteDesc": "This will permanently remove selected files from the queue.",
+        "cancel": "Cancel",
+        "confirm": "Confirm"
+      },
+      "selection": {
+        "selected": "Selected",
+        "allSelected": "All Selected",
+        "complete": "Processing Complete",
+        "toggle": "Toggle Selection"
+      }
+    },
+    "export": {
+      "title": "Export Settings",
+      "advanced": "Advanced Settings",
+      "format": "Format",
+      "qualityMode": "Quality First",
+      "targetSizeMode": "Target Size",
+      "outputQuality": "Output Quality",
+      "targetSize": "Target Volume",
+      "maxColors": "Max Colors",
+      "effort": "Encoding Effort",
+      "resolutionLimit": "Resolution Limit (Optional)",
+      "width": "Width",
+      "height": "Height",
+      "skipIfLarger": "Skip if file gets larger",
+      "preserveExif": "Preserve EXIF Metadata",
+      "showMagnifier": "Enable Smart Magnifier",
+      "formatOriginal": "Keep Original",
+      "formatWebp": "WebP (Recommended)",
+      "formatJpeg": "JPEG (Best Compatibility)",
+      "formatPng": "PNG (Lossless/Trans.)",
+      "formatAvif": "AVIF (Advanced)",
+      "formatJxl": "JPEG XL (Next-gen)",
+      "formatWebp2": "WebP2 (Experimental)"
+    },
+    "modal": {
+      "interactive": {
+        "title": "Interactive Slicing (SAM2)",
+        "guide": "Click or drag to add objects, hold Alt to exclude areas.",
+        "brushSize": "Brush Size",
+        "confirm": "Finish Extraction",
+        "cancel": "Discard"
+      },
+      "download": {
+        "title": "Ready to Download",
+        "fileName": "File Name",
+        "confirm": "Confirm Download"
+      },
+      "sponsor": {
+        "title": "Support Imago",
+        "desc": "Imago is open source and runs entirely locally. If you find it useful, please consider supporting our development.",
+        "heroTitle": "Support Imago's Evolution",
+        "community": "Join Community",
+        "githubAria": "View Imago repository on GitHub (opens in a new tab)",
+        "githubStar": "Star on GitHub",
+        "githubDesc": "Open source repository. Your Star is the best affirmation for us.",
+        "afdian": "Afdian",
+        "afdianAria": "Sponsor Imago via Afdian, supports WeChat and Alipay (opens in a new tab)",
+        "afdianTip": "Recommended for China",
+        "kofi": "Ko-fi",
+        "kofiAria": "Sponsor Imago via Ko-fi, supports international payments (opens in a new tab)",
+        "kofiTip": "Global Support",
+        "footer": "Every bit of support helps Imago evolve."
+      }
+    }
+  }
+}

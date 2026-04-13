@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { ImageItem } from '../stores/imageStore'
 import { useImageStore } from '../stores/imageStore'
 import { useLayoutStore } from '../stores/layoutStore'
@@ -46,15 +47,16 @@ import ImageCompare from '../components/common/ImageCompare.vue'
 const store = useImageStore()
 const layoutStore = useLayoutStore()
 const { downloadImage, downloadAllAsZip, formatSize } = useFileHelpers()
+const { t } = useI18n()
 
 // 引擎模式：Match (取色) vs Smart (智能-标准) vs Pro (专业-全量)
 const engineMode = ref<'match' | 'smart' | 'pro'>('match')
 
-const engineOptions = [
-  { label: '取色 (Match)', value: 'match', icon: Palette },
-  { label: '智能 (Smart)', value: 'smart', icon: Wand2 },
-  { label: '专业 (Pro)', value: 'pro', icon: Trophy }
-]
+const engineOptions = computed(() => [
+  { label: t('tools.bgRemove.engineMatch'), value: 'match', icon: Palette },
+  { label: t('tools.bgRemove.engineSmart'), value: 'smart', icon: Wand2 },
+  { label: t('tools.bgRemove.enginePro'), value: 'pro', icon: Trophy }
+])
 
 // --- 参数默认值 ---
 const DEFAULT_MATCH_TOLERANCE = 15
@@ -293,7 +295,7 @@ const handleInitialize = async () => {
     showInitModal.value = false
   } catch (err) {
     statusRef.value = 'error'
-    initError.value = (err as Error).message || '下载 AI 引擎资产失败'
+    initError.value = (err as Error).message || t('tools.bgRemove.initError')
   }
 }
 
@@ -304,8 +306,12 @@ const ctaState = computed(() => {
     return {
       text:
         status === 'error'
-          ? '重试下载引擎'
-          : `激活${engineMode.value === 'pro' ? '全量' : '智能'}模型 (~${size})`,
+          ? t('tools.bgRemove.retryInit')
+          : t('tools.bgRemove.activateModel', {
+              model:
+                engineMode.value === 'pro' ? t('tools.bgRemove.pro') : t('tools.bgRemove.smart'),
+              size
+            }),
       icon: Zap,
       action: 'show_init',
       disabled: false,
@@ -314,7 +320,7 @@ const ctaState = computed(() => {
   }
   if (status === 'loading') {
     return {
-      text: `正在初始化 (${initProgress.value}%)`,
+      text: t('tools.bgRemove.initializing', { progress: initProgress.value }),
       icon: Loader2,
       action: 'none',
       disabled: true,
@@ -323,7 +329,7 @@ const ctaState = computed(() => {
   }
   if (store.selectedCount === 0)
     return {
-      text: '请选择图片',
+      text: t('tools.bgRemove.cta.select'),
       icon: ImageMinus,
       action: 'none',
       disabled: true,
@@ -333,7 +339,7 @@ const ctaState = computed(() => {
     const p =
       engineMode.value === 'match' ? matchProcessor.progress.value : proProcessor.progress.value
     return {
-      text: `正在去除背景 (${p}%)`,
+      text: t('tools.bgRemove.cta.processing', { progress: p }),
       icon: Sparkles,
       action: 'none',
       disabled: true,
@@ -346,14 +352,14 @@ const ctaState = computed(() => {
     selectedImages.every((img) => img.status === 'done' && img.processedBlob && !img.isDirty)
   if (allDone)
     return {
-      text: `导出透明图片 (${store.selectedCount})`,
+      text: t('tools.bgRemove.cta.export', { count: store.selectedCount }),
       icon: Download,
       action: 'download',
       disabled: false,
       variant: 'success' as const
     }
   return {
-    text: `一键去除背景 (${store.selectedCount})`,
+    text: t('tools.bgRemove.cta.process', { count: store.selectedCount }),
     icon: Sparkles,
     action: 'process',
     disabled: false,
@@ -434,14 +440,24 @@ const handleResetParams = () => {
 <template>
   <WorkspaceLayout show-sidebar no-scroll>
     <template #header-left><ImageSelectionStatus :show-card-size="false" /></template>
-    <template #header-actions><ImageActionsToolbar view-id="bgRemove" :is-processing="isProcessing" show-clear-all zip-prefix="_BgRemoved" /></template>
+    <template #header-actions
+      ><ImageActionsToolbar
+        view-id="bgRemove"
+        :is-processing="isProcessing"
+        show-clear-all
+        zip-prefix="_BgRemoved"
+    /></template>
 
     <template #content>
       <div class="h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-6 relative">
         <AppModal
           :show="showInitModal"
           variant="dialog"
-          :title="engineMode === 'pro' ? '专业版全量 AI 引擎初始化' : '智能标准版 AI 引擎初始化'"
+          :title="
+            engineMode === 'pro'
+              ? t('tools.bgRemove.initTitlePro')
+              : t('tools.bgRemove.initTitleSmart')
+          "
           @close="showInitModal = false"
         >
           <div class="p-8 text-center">
@@ -452,18 +468,22 @@ const handleResetParams = () => {
               <Loader2 v-else :size="40" class="text-primary animate-spin" />
             </div>
             <h2 class="text-2xl font-black mb-3 tracking-tight text-foreground">
-              {{ engineMode === 'pro' ? '专业版全量 AI 引擎初始化' : '智能标准版 AI 引擎初始化' }}
+              {{
+                engineMode === 'pro'
+                  ? t('tools.bgRemove.initTitlePro')
+                  : t('tools.bgRemove.initTitleSmart')
+              }}
             </h2>
             <p class="text-sm text-muted-foreground font-medium leading-relaxed mb-8">
               <template v-if="engineMode === 'pro'"
-                >需下载约
+                >{{ t('tools.bgRemove.initDescPro1') }}
                 <span class="text-primary font-bold">176MB</span>
-                模型。采用完整精度算法，适合处理支架及复杂边缘。</template
+                {{ t('tools.bgRemove.initDescPro2') }}</template
               >
               <template v-else
-                >需下载约
+                >{{ t('tools.bgRemove.initDescSmart1') }}
                 <span class="text-primary font-bold">40MB</span>
-                模型。采用量化加速算法，适合日常快速抠图。</template
+                {{ t('tools.bgRemove.initDescSmart2') }}</template
               >
             </p>
             <div
@@ -473,7 +493,11 @@ const handleResetParams = () => {
               :aria-valuenow="initProgress"
               aria-valuemin="0"
               aria-valuemax="100"
-              :aria-label="`正在下载${engineMode === 'pro' ? '专业' : '智能'} AI 引擎资产`"
+              :aria-label="
+                t('tools.bgRemove.downloadAria', {
+                  model: engineMode === 'pro' ? t('tools.bgRemove.pro') : t('tools.bgRemove.smart')
+                })
+              "
             >
               <div class="h-2 w-full bg-muted rounded-full overflow-hidden">
                 <div
@@ -484,7 +508,8 @@ const handleResetParams = () => {
               <div
                 class="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground/60"
               >
-                <span>正在下载...</span><span aria-hidden="true">{{ initProgress }}%</span>
+                <span>{{ t('tools.bgRemove.downloading') }}</span
+                ><span aria-hidden="true">{{ initProgress }}%</span>
               </div>
             </div>
             <div
@@ -503,8 +528,10 @@ const handleResetParams = () => {
             >
               {{
                 currentStatus === 'error'
-                  ? '重试下载'
-                  : `同意并下载 (${engineMode === 'pro' ? '176MB' : '40MB'})`
+                  ? t('tools.bgRemove.retryDownload')
+                  : t('tools.bgRemove.agreeDownload', {
+                      size: engineMode === 'pro' ? '176MB' : '40MB'
+                    })
               }}
             </AppButton>
           </div>
@@ -518,10 +545,10 @@ const handleResetParams = () => {
             <ImageMinus :size="48" class="text-muted-foreground/40" />
           </div>
           <p class="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground/60 mb-2">
-            暂无图片
+            {{ t('tools.bgRemove.empty.title') }}
           </p>
           <p class="text-[11px] font-medium text-muted-foreground/40">
-            导入包含主体的图片以自动去除背景
+            {{ t('tools.bgRemove.empty.desc') }}
           </p>
         </div>
         <div
@@ -572,7 +599,7 @@ const handleResetParams = () => {
       <!-- 第一分区：方案设定 -->
       <section class="space-y-4">
         <div class="flex items-center justify-between pr-1">
-          <AppSectionHeader title="背景去除方案" :icon="Sparkles" />
+          <AppSectionHeader :title="t('tools.bgRemove.engineTitle')" :icon="Sparkles" />
           <div class="flex items-center gap-1">
             <transition name="fade">
               <div
@@ -580,9 +607,9 @@ const handleResetParams = () => {
                 class="flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 rounded-full border border-primary/20"
               >
                 <Loader2 :size="10" class="animate-spin text-primary" />
-                <span class="text-[9px] font-bold text-primary uppercase tracking-wider"
-                  >处理中</span
-                >
+                <span class="text-[9px] font-bold text-primary uppercase tracking-wider">{{
+                  t('common.processing')
+                }}</span>
               </div>
               <button
                 v-else-if="
@@ -590,8 +617,8 @@ const handleResetParams = () => {
                 "
                 @click="handleResetParams"
                 class="p-1.5 hover:bg-muted rounded-lg transition-all text-muted-foreground hover:text-primary"
-                title="重置当前模式参数"
-                aria-label="重置参数"
+                :title="t('tools.bgRemove.resetParams')"
+                :aria-label="t('tools.bgRemove.resetParams')"
               >
                 <RotateCcw :size="14" />
               </button>
@@ -601,21 +628,23 @@ const handleResetParams = () => {
         <AppSegmentedControl
           v-model="engineMode"
           :options="engineOptions"
-          aria-label="选择背景去除引擎"
+          :aria-label="t('tools.bgRemove.engineAria')"
         />
         <AppTip :icon="Info">
           <span v-if="engineMode === 'match'"
-            >智能取色：通过算法识别背景色自动移除，适合纯色背景。需下载约
-            <span class="text-primary font-bold uppercase">0MB</span> 资产。</span
+            >{{ t('tools.bgRemove.tipMatch1') }}
+            <span class="text-primary font-bold uppercase">0MB</span>
+            {{ t('tools.bgRemove.tipMatch2') }}</span
           >
           <span v-else-if="engineMode === 'smart'"
-            >智能标准版：采用中量级 AI 模型。适合处理日常物体，光影过渡细腻。需下载约
-            <span class="text-primary font-bold uppercase">40MB</span> 资产。</span
+            >{{ t('tools.bgRemove.tipSmart1') }}
+            <span class="text-primary font-bold uppercase">40MB</span>
+            {{ t('tools.bgRemove.tipSmart2') }}</span
           >
           <span v-else
-            >专业全量版：采用全精度 ISNet 模型。边缘识别更稳健，配合下方 “高级精修”
-            功能可大幅优化复杂背景的残留。需下载约
-            <span class="text-primary font-black uppercase">176MB</span> 资产。</span
+            >{{ t('tools.bgRemove.tipPro1') }}
+            <span class="text-primary font-black uppercase">176MB</span>
+            {{ t('tools.bgRemove.tipPro2') }}</span
           >
         </AppTip>
       </section>
@@ -625,22 +654,24 @@ const handleResetParams = () => {
         <div class="flex items-center justify-between group">
           <div class="flex items-center gap-2">
             <Database :size="14" class="text-muted-foreground" />
-            <span class="text-[11px] font-bold text-muted-foreground uppercase tracking-widest"
-              >AI 引擎状态仪表盘</span
-            >
+            <span class="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{{
+              t('tools.bgRemove.engineDashboard')
+            }}</span>
           </div>
           <button
             @click="handleResetEngine"
             class="text-[10px] text-muted-foreground/40 hover:text-destructive flex items-center gap-1 transition-colors"
-            title="强制重新初始化并下载"
+            :title="t('tools.bgRemove.forceInit')"
           >
-            <Trash2 :size="10" /> <span>删除模型</span>
+            <Trash2 :size="10" /> <span>{{ t('tools.bgRemove.deleteModel') }}</span>
           </button>
         </div>
 
         <div class="p-3 bg-muted/5 rounded-xl border border-border/40 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="text-[10px] text-muted-foreground/60 font-medium">当前模型</span>
+            <span class="text-[10px] text-muted-foreground/60 font-medium">{{
+              t('tools.bgRemove.currentModel')
+            }}</span>
             <span
               class="text-[10px] font-bold"
               :class="engineMode === 'pro' ? 'text-primary' : 'text-foreground'"
@@ -649,7 +680,9 @@ const handleResetParams = () => {
             </span>
           </div>
           <div class="flex items-center justify-between">
-            <span class="text-[10px] text-muted-foreground/60 font-medium">连接状态</span>
+            <span class="text-[10px] text-muted-foreground/60 font-medium">{{
+              t('tools.bgRemove.connectionStatus')
+            }}</span>
             <div class="flex items-center gap-1.5">
               <span
                 class="h-1.5 w-1.5 rounded-full"
@@ -660,7 +693,9 @@ const handleResetParams = () => {
                 :class="currentStatus === 'ready' ? 'text-emerald-500' : 'text-amber-500'"
               >
                 {{
-                  currentStatus === 'ready' ? '连接成功 - 本地已就绪' : '发现更新 - 待引导初始化'
+                  currentStatus === 'ready'
+                    ? t('tools.bgRemove.statusReady')
+                    : t('tools.bgRemove.statusUpdate')
                 }}
               </span>
             </div>
@@ -671,7 +706,7 @@ const handleResetParams = () => {
       <!-- 第二分区：细分参数 -->
       <transition name="fade" mode="out-in">
         <section v-if="engineMode === 'match'" class="space-y-4 pt-6 border-t border-border/40">
-          <AppSectionHeader title="取色调整" :icon="Palette" />
+          <AppSectionHeader :title="t('tools.bgRemove.matchAdjust')" :icon="Palette" />
           <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-5">
             <div class="space-y-2">
               <div class="flex items-center gap-2 px-1 h-5">
@@ -681,7 +716,7 @@ const handleResetParams = () => {
                 <span
                   id="bg-color-label"
                   class="text-[11px] font-bold text-muted-foreground leading-none"
-                  >要去除的背景色</span
+                  >{{ t('tools.bgRemove.bgColorToRemove') }}</span
                 >
               </div>
               <AppColorPicker
@@ -695,26 +730,26 @@ const handleResetParams = () => {
               v-model="matchTolerance"
               :min="0"
               :max="50"
-              label="容差范围"
+              :label="t('tools.bgRemove.tolerance')"
               unit="%"
               :default-value="DEFAULT_MATCH_TOLERANCE"
-              description="数值越大，识别范围越宽。"
+              :description="t('tools.bgRemove.toleranceDesc')"
             />
             <AppSlider
               v-model="matchFeather"
               :min="0"
               :max="30"
-              label="边缘羽化"
+              :label="t('tools.bgRemove.feather')"
               unit="%"
               :default-value="DEFAULT_MATCH_FEATHER"
-              description="数值越大，边缘越圆润。"
+              :description="t('tools.bgRemove.featherDesc')"
             />
           </div>
         </section>
 
         <section v-else class="space-y-4 pt-6 border-t border-border/40">
           <div class="flex items-center justify-between">
-            <AppSectionHeader title="高级精修 (Refiner)" :icon="SlidersHorizontal" />
+            <AppSectionHeader :title="t('tools.bgRemove.refinerTitle')" :icon="SlidersHorizontal" />
             <div
               class="flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 rounded-md border border-primary/20 scale-90 origin-right"
             >
@@ -729,29 +764,29 @@ const handleResetParams = () => {
               v-model="aiStrictness"
               :min="0"
               :max="100"
-              label="判定严格度 (Strictness)"
+              :label="t('tools.bgRemove.strictness')"
               unit="%"
               :default-value="DEFAULT_AI_STRICTNESS"
-              description="提高此值可强制切断半透明的支架或残影。"
+              :description="t('tools.bgRemove.strictnessDesc')"
             />
             <AppSlider
               v-model="aiOffset"
               :min="0"
               :max="50"
-              label="边缘向内偏移 (Offset)"
+              :label="t('tools.bgRemove.offset')"
               unit="%"
               :default-value="DEFAULT_AI_OFFSET"
-              description="物理收缩遮罩边缘，有效剔除粘连的细碎物体。"
+              :description="t('tools.bgRemove.offsetDesc')"
             />
             <AppSlider
               v-model="aiSmoothness"
               :min="0"
               :max="10"
               :step="0.5"
-              label="边缘平滑度 (Smooth)"
+              :label="t('tools.bgRemove.smoothness')"
               unit="px"
               :default-value="DEFAULT_AI_SMOOTHNESS"
-              description="消除 AI 产生的阶梯状锯齿，使边缘更圆润。"
+              :description="t('tools.bgRemove.smoothnessDesc')"
             />
           </div>
         </section>
@@ -759,12 +794,12 @@ const handleResetParams = () => {
 
       <!-- 第三分区：处理选项 -->
       <section v-if="engineMode !== 'match'" class="space-y-4 pt-6 border-t border-border/40">
-        <AppSectionHeader title="处理选项" :icon="Zap" />
+        <AppSectionHeader :title="t('tools.bgRemove.processOptions')" :icon="Zap" />
         <div class="bg-muted/10 rounded-2xl p-4 border border-border/60">
           <AppCheckbox
             v-model="useHighFidelity"
-            label="禁用预缩放 (原图推理)"
-            description="跳过尺寸压缩，AI 直接在原始分辨率下运行。边缘最精准，但消耗更多内存。"
+            :label="t('tools.bgRemove.disableScaling')"
+            :description="t('tools.bgRemove.disableScalingDesc')"
           />
         </div>
       </section>
@@ -800,7 +835,7 @@ const handleResetParams = () => {
 
   <AppModal
     :show="showCompareModal"
-    title="去除背景细节对比"
+    :title="t('tools.bgRemove.compareTitle')"
     @close="closeCompare"
     @after-leave="handleModalLeave"
   >
