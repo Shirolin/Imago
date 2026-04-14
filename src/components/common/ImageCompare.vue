@@ -1,18 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import {
-  Grip,
-  ZoomIn,
-  ZoomOut,
-  RotateCcw,
-  Layout,
-  Expand,
-  Loader2,
-  AlertCircle,
-  Split
-} from 'lucide-vue-next'
-import { useResizeObserver, useEventListener } from '@vueuse/core'
+import { Grip, ZoomIn, ZoomOut, RotateCcw, Layout, AlertCircle, Split } from 'lucide-vue-next'
 
 const props = defineProps<{
   originalUrl: string | File
@@ -38,7 +27,6 @@ const isDragging = ref(false)
 const dragStart = ref({ x: 0, y: 0, offX: 0, dyOffY: 0 })
 
 const viewportRef = ref<HTMLElement | null>(null)
-const imageRef = ref<HTMLImageElement | null>(null)
 
 // 检查图片加载状态的 Promise
 const checkImage = (url: string) =>
@@ -48,10 +36,6 @@ const checkImage = (url: string) =>
     img.onerror = reject
     img.src = url
   })
-
-// 暴露给模板使用
-const displayBefore = computed(() => beforeUrl.value)
-const displayAfter = computed(() => afterUrl.value)
 
 const initUrls = async () => {
   isDecoding.value = true
@@ -73,7 +57,7 @@ const initUrls = async () => {
     await Promise.all([checkImage(beforeUrl.value), checkImage(afterUrl.value)])
     isDecoding.value = false
     resetView()
-  } catch (err) {
+  } catch {
     error.value = t('common.image.compare.errorDesc')
     isDecoding.value = false
   }

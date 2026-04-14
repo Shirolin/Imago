@@ -16,29 +16,29 @@
     "collapse": "收起選單",
     "expand": "展開選單",
     "toggleMobile": "切換行動端選單",
-    "sponsor": "支持與社群"
+    "sponsor": "支援與社群"
   },
   "tools": {
     "compress": {
       "name": "壓縮轉換",
       "title": "圖片壓縮與格式轉換 (WebP/AVIF) - 100% 在地處理",
       "desc": "極致壓縮並互轉 WebP / AVIF 等格式",
-      "settingsTitle": "壓縮設置",
-      "infoTip": "採用先進的 Web 壓縮算法，在保持視覺質量的同時大幅減小文件體積。",
+      "settingsTitle": "壓縮設定",
+      "infoTip": "採用先進的 Web 壓縮算法，在保持視覺質量的同時大幅減小檔案體積。",
       "original": "原始",
       "compressed": "壓縮後",
       "compareTitle": "壓縮轉換細節對比",
       "cta": {
         "select": "請選擇圖片",
         "rendering": "渲染中",
-        "exportResults": "導出成果",
+        "exportResults": "匯出成果",
         "updateCompress": "更新壓縮",
         "startCompress": "開始壓縮"
       }
     },
     "resize": {
       "name": "調整尺寸",
-      "title": "調整圖片尺寸與縮放 - 高質量導出",
+      "title": "調整圖片尺寸與縮放 - 高質量匯出",
       "desc": "按比例或固定像素縮放",
       "resizeMode": "調整模式",
       "byPercentage": "按比例",
@@ -50,14 +50,14 @@
       "resetDimensions": "重置尺寸",
       "status": {
         "noImages": "暫無圖片",
-        "importTip": "導入圖片以開始批量縮放",
+        "importTip": "匯入圖片以開始批量縮放",
         "original": "原始",
         "target": "目標"
       },
       "cta": {
         "select": "請選擇圖片",
         "rendering": "渲染中...",
-        "exportResults": "導出成果 ({count})",
+        "exportResults": "匯出成果 ({count})",
         "updateDimensions": "更新尺寸 ({count})",
         "adjustDimensions": "調整尺寸 ({count})"
       }
@@ -72,13 +72,45 @@
       "reset": "重置裁剪",
       "empty": {
         "title": "暫無圖片",
-        "desc": "導入圖片以開始在線裁剪"
+        "desc": "匯入圖片以開始在線裁剪"
       },
       "cta": {
         "select": "請選擇圖片",
-        "export": "導出裁剪 ({count})",
+        "export": "匯出裁剪 ({count})",
         "apply": "應用裁剪 ({count})"
-      }
+      },
+      "snapped": "已對齊參考線",
+      "doubleClickReset": "雙擊畫布重置視圖",
+      "basicTransform": "基礎變換",
+      "rotateTip": "向右順時針旋轉 90°",
+      "rotate": "旋轉 90°",
+      "flipHTip": "水平翻轉",
+      "flipH": "水平翻轉",
+      "flipVTip": "垂直翻轉",
+      "flipV": "垂直翻轉",
+      "fillAll": "填充全圖",
+      "gridLines": "輔助參考線",
+      "gridLinesTip": "切換構圖參考線",
+      "noGrid": "無參考線",
+      "thirds": "三分法",
+      "golden": "黃金分割線",
+      "precision": "精準控制",
+      "posX": "水平位置 (X)",
+      "posY": "垂直位置 (Y)",
+      "width": "寬度 (W)",
+      "height": "高度 (H)",
+      "canvasAppearance": "畫布外觀",
+      "bgFill": "填充底色",
+      "edgeTrim": "邊緣修剪",
+      "trimWarning": "修剪將永久移除超出畫框的內容。",
+      "trimLeft": "左",
+      "trimRight": "右",
+      "trimTop": "上",
+      "trimBottom": "下",
+      "history": "操作歷史",
+      "undo": "復原",
+      "redo": "重做",
+      "resetAll": "重置所有裁剪"
     },
     "exif": {
       "name": "清除 EXIF",
@@ -90,25 +122,37 @@
       "items": {
         "location": "拍攝地點 (GPS)",
         "device": "設備型號",
-        "software": "軟件信息",
+        "software": "軟體資訊",
         "time": "拍攝時間",
         "params": "參數 (快門/光圈等)"
       },
       "empty": {
         "title": "暫無圖片",
-        "desc": "導入圖片以批量清除隱私信息"
+        "desc": "匯入圖片以批量清除隱私資訊"
       },
       "cta": {
         "select": "請選擇圖片",
-        "export": "導出脫敏成果 ({count})",
-        "process": "一鍵脫敏 ({count})"
-      }
+        "export": "匯出脫敏成果 ({count})",
+        "process": "一鍵脫敏 ({count})",
+        "processing": "掃描中..."
+      },
+      "checking": "安全掃描中",
+      "unsupported": "不支援的格式",
+      "riskCount": "發現 {count} 處隱私風險",
+      "safe": "未發現隱私元數據",
+      "riskDetail": "包含 {count} 項敏感標籤",
+      "allTags": "完整 EXIF 標籤列表",
+      "unsupportedTip": "該格式不支援或不包含可讀元數據。",
+      "safeTip": "圖片很乾淨，未檢測到敏感地理或設備資訊。",
+      "supportedFormats": "支援 JPG, PNG, WebP, HEIC 等常見格式。",
+      "analyzing": "正在深度解析元數據...",
+      "selectToView": "請在左側選擇圖片以查看詳細資訊"
     },
     "split": {
       "name": "圖片分割",
       "title": "圖片網格分割與宮格切圖",
       "desc": "將大圖分割為多個網格",
-      "gridSettings": "網格設置",
+      "gridSettings": "網格設定",
       "uniformGrid": "均分網格",
       "freeEdit": "自由編輯",
       "verticalRows": "垂直行數",
@@ -118,34 +162,34 @@
       "verticalLine": "垂直線",
       "horizontalLine": "水平線",
       "syncGrid": "同步網格",
-      "syncGridTip": "根據網格設置數值重置線條",
+      "syncGridTip": "根據網格設定數值重置線條",
       "clearAll": "全部清空",
-      "viewSettings": "視圖設置",
-      "restoreDefaultView": "恢復默認視圖",
+      "viewSettings": "視圖設定",
+      "restoreDefaultView": "恢復預設視圖",
       "lineWidth": "線寬",
       "lineColor": "線條顏色",
       "lineOpacity": "不透明度",
       "enhanced": "增強處理",
       "alignMode": "對齊模式",
-      "alignModeDesc": "自動探測並裁剪主體內容，支持居中對齊或強制正方形填充。",
+      "alignModeDesc": "自動探測並裁剪主體內容，支援居中對齊或強制正方形填充。",
       "standard": "標準",
       "center": "居中",
       "square": "正方形",
       "shave": "邊緣收縮 (Shave)",
-      "exportConfig": "導出配置",
+      "exportConfig": "匯出配置",
       "colors": {
         "primary": "主題色",
-        "white": "高亮白 (默認)",
+        "white": "高亮白 (預設)",
         "black": "深邃黑",
         "blue": "科技藍",
         "red": "警示紅"
       },
       "messages": {
-        "defaultRestored": "已恢復默認視圖設置",
-        "lineDeletedKey": "已通過鍵盤刪除第 {index} 條{axis}線",
+        "defaultRestored": "已恢復預設視圖設定",
+        "lineDeletedKey": "已透過鍵盤刪除第 {index} 條{axis}線",
         "lineAdded": "已在{axis}方向 {pos} 像素處添加切分線",
         "lineDeleted": "已刪除第 {index} 條{axis}線",
-        "resetToGrid": "已根據網格設置數值重置線條位置",
+        "resetToGrid": "已根據網格設定數值重置線條位置",
         "cleared": "已清空所有自定義切分線",
         "switchedToFree": "已切換至自由編輯模式",
         "abortedTask": "已中止渲染任務"
@@ -164,7 +208,7 @@
         "rendering": "渲染中 {progress}%",
         "renderingNoProgress": "渲染中...",
         "clickToAbort": "(點擊中止)",
-        "exportSlices": "導出切片",
+        "exportSlices": "匯出切片",
         "updateSplit": "更新切分",
         "splitImage": "切分圖片"
       }
@@ -180,34 +224,121 @@
       "order": "排列順序",
       "empty": {
         "title": "暫無圖片",
-        "desc": "導入至少兩張圖片以開始拼接"
+        "desc": "匯入至少兩張圖片以開始拼接"
       },
       "cta": {
-        "select": "請導入更多圖片",
-        "export": "導出長圖",
-        "process": "應用拼接"
-      }
+        "select": "請匯入更多圖片",
+        "export": "匯出長圖",
+        "process": "應用拼接",
+        "processing": "正在生成長圖..."
+      },
+      "grid": "宮格拼接",
+      "smartScale": "智慧縮放",
+      "originalSize": "原始尺寸",
+      "alignLeft": "靠左對齊",
+      "alignCenter": "居中對齊",
+      "alignRight": "靠右對齊",
+      "alignTop": "靠上對齊",
+      "alignBottom": "靠下對齊",
+      "start": "起點",
+      "center": "居中",
+      "end": "終點",
+      "messages": {
+        "moved": "已將圖片從第 {from} 位移動到第 {to} 位",
+        "removed": "已移除圖片 {name}"
+      },
+      "canvas": {
+        "ariaLabel": "拼接預覽畫布",
+        "instructions": "拖拽圖片可以調整拼接順序",
+        "sortListAria": "拼接順序列表",
+        "itemAria": "第 {index} 張圖片: {name}",
+        "movePrev": "向前移動",
+        "moveNext": "向後移動"
+      },
+      "importNow": "立即匯入",
+      "layoutMode": "排列佈局",
+      "alignment": "對齊方式",
+      "params": "間距設定",
+      "gridCols": "宮格列數",
+      "unitCol": " 列",
+      "padding": "外邊距",
+      "borderRadius": "圖片圓角",
+      "canvasAppearance": "背景設定",
+      "bgFill": "畫布背景"
     },
     "bgRemove": {
       "name": "去除背景",
-      "title": "AI 自動摳圖與背景移除 - 無需上傳",
-      "desc": "基於本地 AI 技術的全自動背景移除",
+      "title": "AI 自動去背與背景移除 - 無需上傳",
+      "desc": "基於在地 AI 技術的全自動背景移除",
       "modelStatus": "模型狀態",
-      "modelLoading": "模型加載中...",
+      "modelLoading": "模型載入中...",
       "modelReady": "模型就緒",
       "mode": "處理模式",
       "modeAuto": "全自動",
       "modeInteractive": "交互式 (SAM2)",
-      "tip": "所有 AI 處理均在本地完成，不會上傳您的圖片。",
+      "tip": "所有 AI 處理均在在地完成，不會上傳您的圖片。",
       "empty": {
         "title": "暫無圖片",
-        "desc": "導入圖片以開始自動摳圖"
+        "desc": "匯入圖片以開始自動去背"
       },
       "cta": {
         "select": "請選擇圖片",
-        "export": "導出透明圖 ({count})",
-        "process": "開始摳圖 ({count})"
-      }
+        "export": "匯出透明圖 ({count})",
+        "process": "開始去背 ({count})",
+        "processing": "處理中... {progress}%"
+      },
+      "engineMatch": "取色識別 (0MB)",
+      "engineSmart": "智慧識別 (輕量)",
+      "enginePro": "專業去背 (全量)",
+      "initError": "初始化失敗",
+      "retryInit": "重試初始化",
+      "activateModel": "激活 {model} 模型 ({size})",
+      "pro": "專業版",
+      "smart": "智慧版",
+      "initializing": "正在初始化... {progress}%",
+      "initTitlePro": "下載專業 AI 模型",
+      "initTitleSmart": "下載智慧 AI 模型",
+      "initDescPro1": "專業版模型大小約",
+      "initDescPro2": "，基於 ISNet 架構，能提供更精細的邊緣處理。模型將下載至瀏覽器快取，僅需下載一次。",
+      "initDescSmart1": "智慧版模型大小約",
+      "initDescSmart2": "，能在平衡速度與質量同時快速處理。模型將下載至瀏覽器快取，僅需下載一次。",
+      "downloadAria": "下載 {model} 模型進度",
+      "downloading": "正在下載模型資源...",
+      "retryDownload": "重試下載",
+      "agreeDownload": "確認並開始下載 ({size})",
+      "engineTitle": "去背方案",
+      "resetParams": "重置參數",
+      "engineAria": "切換去背引擎",
+      "tipMatch1": "取色模式：透過背景顏色識別，",
+      "tipMatch2": "，適合純色背景。",
+      "tipSmart1": "智慧模式：通用 AI 識別，",
+      "tipSmart2": "，適合日常簡單場景。",
+      "tipPro1": "專業模式：工業級 AI 演算法，",
+      "tipPro2": "，適合複雜人像與產品拍攝。",
+      "engineDashboard": "模型看板",
+      "forceInit": "強制重置",
+      "deleteModel": "刪除模型",
+      "currentModel": "當前載入模型",
+      "connectionStatus": "運行狀態",
+      "statusReady": "就緒 (Local Ready)",
+      "statusUpdate": "待同步",
+      "matchAdjust": "取色調節",
+      "bgColorToRemove": "要移除的背景顏色",
+      "tolerance": "容差範圍",
+      "toleranceDesc": "增加容差以包含更多相近顏色。",
+      "feather": "邊緣羽化",
+      "featherDesc": "平滑去背邊緣，使其不那麼生硬。",
+      "refinerTitle": "AI 邊緣精修",
+      "strictness": "識別強度",
+      "strictnessDesc": "控制 AI 對主體的判定嚴格程度。",
+      "offset": "邊緣偏移",
+      "offsetDesc": "收縮或擴張摳出的邊緣範圍。",
+      "smoothness": "平滑度",
+      "smoothnessDesc": "減少邊緣鋸齒，提升整體觀感。",
+      "processOptions": "處理選項",
+      "disableScaling": "禁用預縮放 (高保真)",
+      "disableScalingDesc": "對於超大圖片，關閉預縮放將消耗更多顯存，但能獲得最佳細節。",
+      "compareTitle": "背景移除細節對比"
     },
     "filters": {
       "name": "色彩濾鏡",
@@ -240,7 +371,7 @@
       "cta": {
         "select": "請選擇圖片",
         "rendering": "渲染中...",
-        "export": "導出成果 ({count})",
+        "export": "匯出成果 ({count})",
         "update": "更新濾鏡 ({count})",
         "apply": "應用濾鏡 ({count})"
       }
@@ -248,17 +379,17 @@
     "favicon": {
       "name": "站標生成",
       "title": "全平台網站圖示 (Favicon) 生成器",
-      "desc": "自動生成全套網站 Favicon 圖標",
+      "desc": "自動生成全套網站 Favicon 圖示",
       "mockup": "環境模擬",
       "newTab": "新標籤頁",
       "appearance": "外觀配置",
       "bgFill": "背景填充",
-      "bgFillDesc": "若原始圖示包含透明區域，可設置統一的底色。",
-      "exportControl": "導出控制",
-      "safeZone": "自動安全邊距",
+      "bgFillDesc": "若原始圖示包含透明區域，可設定統一的底色。",
+      "exportControl": "匯出控制",
+      "safeZone": "安全邊距 (Padding)",
       "safeZoneGuide": "Android 建議圖示內容應保持在 80% 中心區內，其餘區域作為背景以自適應各種裁切形狀。",
       "zipTip": "ZIP 將自動包含滿足各商店審核要求的全套資源。",
-      "cta": "導出 {count} 個項目",
+      "cta": "匯出 {count} 個項目",
       "specs": {
         "ico": "favicon.ico (相容)",
         "png16": "16x16 (現代瀏覽器)",
@@ -272,7 +403,16 @@
         "maskable512": "Android Maskable",
         "manifest": "site.webmanifest",
         "readme": "README.txt (指南)"
-      }
+      },
+      "rotateShape": "旋轉預覽形狀",
+      "currentShape": "當前形狀",
+      "disableSafeZone": "禁用安全邊距",
+      "enableSafeZone": "開啟安全邊距",
+      "safeZoneTipOn": "已應用 80% 安全區縮放，確保適配各平台。",
+      "safeZoneTipOff": "當前為原始比例，邊緣內容可能會被平台截斷。",
+      "toggleSpec": "切換 {name} 規格",
+      "specPreviewAria": "{name} 規格預覽",
+      "safeZoneAria": "安全區指示"
     }
   },
   "common": {
@@ -280,7 +420,7 @@
     "heroTitle1": "簡單、快速",
     "heroTitle2": "隱私安全",
     "heroDesc": "所有圖片處理均在您的瀏覽器在地完成，檔案永遠不會上傳伺服器。真正的離線式生產力工具。",
-    "pageTitleHome": "隱私安全、離線可用的極簡本地圖片處理工具",
+    "pageTitleHome": "隱私安全、離線可用的極簡在地圖片處理工具",
     "ready": "Ready",
     "go": "即刻開始",
     "workspace": "工作區",
@@ -294,6 +434,7 @@
       "system": "跟隨系統",
       "dark": "深色模式"
     },
+    "processing": "處理中",
     "image": {
       "upload": {
         "title": "即刻開啟您的圖片處理之旅",
@@ -316,7 +457,7 @@
         "idle": "Idle",
         "before": "BEFORE",
         "after": "AFTER",
-        "sam2": "高級交互式摳圖 (SAM2)"
+        "sam2": "高級交互式去背 (SAM2)"
       },
       "compare": {
         "title": "細節預覽對比",
@@ -335,7 +476,7 @@
         "layoutLarge": "切換到大卡片",
         "layoutCompact": "切換到緊湊模式",
         "import": "匯入圖片",
-        "importAria": "從本地選擇並匯入圖片",
+        "importAria": "從在地選擇並匯入圖片",
         "exportAll": "匯出全部",
         "exportAllAria": "打包並匯出全部 {count} 張已處理圖片",
         "resetAll": "恢復原圖",
@@ -362,7 +503,7 @@
       }
     },
     "export": {
-      "title": "導出設置",
+      "title": "匯出設定",
       "advanced": "進階微調",
       "format": "格式",
       "qualityMode": "畫質優先",
@@ -374,9 +515,9 @@
       "resolutionLimit": "解析度限制 (可選)",
       "width": "寬度",
       "height": "高度",
-      "skipIfLarger": "智能跳過變大文件",
+      "skipIfLarger": "智慧跳過變大文件",
       "preserveExif": "保留 EXIF 元數據",
-      "showMagnifier": "開啟智能對比倍鏡",
+      "showMagnifier": "開啟智慧對比倍鏡",
       "formatOriginal": "保留原格式",
       "formatWebp": "WebP (推薦)",
       "formatJpeg": "JPEG (最佳相容)",
@@ -391,17 +532,44 @@
         "guide": "點擊或框選以添加對象，按住 Alt 排除區域。",
         "brushSize": "畫筆大小",
         "confirm": "完成提取",
-        "cancel": "放棄"
+        "cancel": "放棄",
+        "connecting": "正在連接 AI 引擎...",
+        "readyTip": "連接成功，請開始點選主體",
+        "error": "引擎錯誤",
+        "clear": "清空當前點選",
+        "clearAll": "全部重置",
+        "undo": "復原",
+        "redo": "重做",
+        "zoomOut": "縮小",
+        "zoomIn": "放大",
+        "zoomOne": "1:1",
+        "zoomFit": "適應螢幕",
+        "apply": "應用提取",
+        "leftClick": "左鍵點擊",
+        "add": "添加主體",
+        "rightClick": "右鍵點擊 (或 Alt)",
+        "remove": "排除區域",
+        "confirmTitle": "模型使用確認",
+        "downloadTitle": "激活交互式 AI 去背",
+        "downloadDesc1": "此功能需要下載高性能 SAM-2 模型 (約 12MB)。",
+        "downloadDesc2": "下載後將完全在在地運行，保護您的隱私。",
+        "featuresAria": "模型特性列表",
+        "gpuAccel": "硬體加速",
+        "gpuAccelDesc": "支援 WebGPU 加速，處理極速。",
+        "privacy": "隱私安全",
+        "privacyDesc": "模型在在地執行，圖片不離身。",
+        "later": "稍後再說",
+        "agreeDownload": "確認激活"
       },
       "download": {
         "title": "準備下載",
-        "fileName": "文件名",
+        "fileName": "檔名",
         "confirm": "確認下載"
       },
       "sponsor": {
-        "title": "支持 Imago",
-        "desc": "Imago 是開源且完全在地運行的工具。如果您覺得有用，歡迎支持我們的開發。",
-        "heroTitle": "支持 Imago 持續進化",
+        "title": "支援 Imago",
+        "desc": "Imago 是開源且完全在地運行的工具。如果您覺得有用，歡迎支援我們的開發。",
+        "heroTitle": "支援 Imago 持續進化",
         "community": "加入社群",
         "githubAria": "前往 GitHub 查看 Imago 開源倉庫 (在新分頁中開啟)",
         "githubStar": "在 GitHub 上點亮 Star",
@@ -412,7 +580,7 @@
         "kofi": "Ko-fi",
         "kofiAria": "透過 Ko-fi 贊助 Imago，支援國際支付 (在新分頁中開啟)",
         "kofiTip": "支援國際支付",
-        "footer": "您的每一份支持都將助力 Imago 持續進化"
+        "footer": "您的每一份支援都將助力 Imago 持續進化"
       }
     }
   }
