@@ -138,7 +138,33 @@ export const useImageStore = defineStore('image', () => {
     })
   }
 
+  const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
+  const VALID_IMAGE_TYPES = [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'image/avif',
+    'image/gif',
+    'image/svg+xml',
+    'image/heic',
+    'image/heif'
+  ]
+
   const addImages = async (files: File[]) => {
+    // 1. 基础验证与过滤
+    const validFiles = files.filter((file) => {
+      if (!file.type.startsWith('image/') && !VALID_IMAGE_TYPES.includes(file.type)) {
+        return false
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        // 具体的错误处理由调用方或全局提示处理，Store 这里只负责拦截
+        return false
+      }
+      return true
+    })
+
+    if (validFiles.length === 0) return
+
     const existingKeys = new Set(
       images.value.map((img) => `${img.file.name}-${img.file.size}-${img.file.lastModified}`)
     )

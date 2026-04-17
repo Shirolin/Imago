@@ -72,8 +72,6 @@ async function audit() {
 
   files.forEach(file => {
     const missingInFile = Array.from(baseKeys).filter(k => !data[file][k]);
-    const undefinedInCode = Object.keys(data[file]).filter(k => !codeKeys.has(k) && !k.startsWith('tools.filters.presets.')); // 忽略动态生成的 key 或已知的 preset
-
     if (missingInFile.length > 0) {
       console.log(`\n🌐 语言包: ${file}`);
       console.log(`  ❌ 缺失键位 (${missingInFile.length}):`);

@@ -122,6 +122,29 @@ const currentRouteName = computed(() => {
   if (toolKey) return t(`tools.${toolKey}.name`)
   return routeName || t('nav.allTools')
 })
+
+const onGlobalFileSelect = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  if (target.files) {
+    const files = Array.from(target.files)
+    const MAX_SIZE = 50 * 1024 * 1024
+    const oversized = files.filter((f) => f.size > MAX_SIZE)
+
+    const firstOversized = oversized[0]
+    if (firstOversized) {
+      alert(
+        t('common.image.upload.errorSize', {
+          name: firstOversized.name,
+          size: (firstOversized.size / 1024 / 1024).toFixed(1)
+        })
+      )
+    }
+
+    store.addImages(files)
+  }
+  // 重置以允许重复导入相同文件
+  target.value = ''
+}
 </script>
 
 <template>
@@ -366,7 +389,7 @@ const currentRouteName = computed(() => {
     <main class="flex-1 min-h-0 flex flex-col relative z-20">
       <!-- Toolbar (Header) -->
       <header
-        class="shrink-0 flex items-center justify-between px-4 md:px-8 bg-background border-b border-border z-0 md:z-10 sticky top-0 h-16"
+        class="shrink-0 flex items-center justify-between px-4 md:px-8 bg-background border-b border-border z-50 md:z-[110] sticky top-0 h-16"
       >
         <div class="flex items-center gap-3">
           <button
@@ -448,6 +471,16 @@ const currentRouteName = computed(() => {
     </main>
 
     <SponsorModal :show="showSponsorModal" @close="showSponsorModal = false" />
+
+    <!-- 全局隐藏导入控件 -->
+    <input
+      id="global-file-input"
+      type="file"
+      multiple
+      accept="image/*"
+      class="hidden"
+      @change="onGlobalFileSelect"
+    />
   </div>
 </template>
 

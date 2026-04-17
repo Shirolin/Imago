@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import type { Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RotateCcw } from 'lucide-vue-next'
 
@@ -10,7 +11,7 @@ const props = withDefaults(
     max?: number
     step?: number
     label?: string
-    icon?: any
+    icon?: Component
     unit?: string
     defaultValue?: number
     description?: string

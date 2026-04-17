@@ -1,0 +1,2814 @@
+{
+  "src/views/FiltersView.vue": {
+    "hash": "ee01b8ee03ae85dbbee2db3fbeb3fc69",
+    "results": [
+      {
+        "text": "ts",
+        "line": 1,
+        "context": "<script setup lang=\"ts\">\nimport { ref, computed, watch, onMounted } from 'vue'",
+        "is_masked": false
+      },
+      {
+        "text": "vue",
+        "line": 2,
+        "context": "<script setup lang=\"ts\">\nimport { ref, computed, watch, onMounted } from 'vue'\nimport { useI18n } from 'vue-i18n'",
+        "is_masked": false
+      },
+      {
+        "text": "vue-i18n",
+        "line": 3,
+        "context": "import { ref, computed, watch, onMounted } from 'vue'\nimport { useI18n } from 'vue-i18n'\nimport { useImageStore } from '../stores/imageStore'",
+        "is_masked": false
+      },
+      {
+        "text": "../stores/imageStore",
+        "line": 4,
+        "context": "import { useI18n } from 'vue-i18n'\nimport { useImageStore } from '../stores/imageStore'\nimport { useLayoutStore } from '../stores/layoutStore'",
+        "is_masked": false
+      },
+      {
+        "text": "../stores/layoutStore",
+        "line": 5,
+        "context": "import { useImageStore } from '../stores/imageStore'\nimport { useLayoutStore } from '../stores/layoutStore'\nimport { useFileHelpers } from '../composables/useFileHelpers'",
+        "is_masked": false
+      },
+      {
+        "text": "../composables/useFileHelpers",
+        "line": 6,
+        "context": "import { useLayoutStore } from '../stores/layoutStore'\nimport { useFileHelpers } from '../composables/useFileHelpers'\nimport WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'",
+        "is_masked": false
+      },
+      {
+        "text": "../components/layout/WorkspaceLayout.vue",
+        "line": 7,
+        "context": "import { useFileHelpers } from '../composables/useFileHelpers'\nimport WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'\nimport AppButton from '../components/common/AppButton.vue'",
+        "is_masked": false
+      },
+      {
+        "text": "../components/common/AppButton.vue",
+        "line": 8,
+        "context": "import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'\nimport AppButton from '../components/common/AppButton.vue'\nimport AppSlider from '../components/common/AppSlider.vue'",
+        "is_masked": false
+      },
+      {
+        "text": "../components/common/AppSlider.vue",
+        "line": 9,
+        "context": "import AppButton from '../components/common/AppButton.vue'\nimport AppSlider from '../components/common/AppSlider.vue'\nimport AppSectionHeader from '../components/common/AppSectionHeader.vue'",
+        "is_masked": false
+      },
+      {
+        "text": "../components/common/AppSectionHeader.vue",
+        "line": 10,
+        "context": "import AppSlider from '../components/common/AppSlider.vue'\nimport AppSectionHeader from '../components/common/AppSectionHeader.vue'\nimport ImageCard from '../components/common/ImageCard.vue'",
+        "is_masked": false
+      },
+      {
+        "text": "../components/common/ImageCard.vue",
+        "line": 11,
+        "context": "import AppSectionHeader from '../components/common/AppSectionHeader.vue'\nimport ImageCard from '../components/common/ImageCard.vue'\nimport ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'",
+        "is_masked": false
+      },
+      {
+        "text": "../components/common/ImageSelectionStatus.vue",
+        "line": 12,
+        "context": "import ImageCard from '../components/common/ImageCard.vue'\nimport ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'\nimport ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'",
+        "is_masked": false
+      },
+      {
+        "text": "../components/common/ImageActionsToolbar.vue",
+        "line": 13,
+        "context": "import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'\nimport ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'\nimport AppExportSettings from '../components/common/AppExportSettings.vue'",
+        "is_masked": false
+      },
+      {
+        "text": "../components/common/AppExportSettings.vue",
+        "line": 14,
+        "context": "import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'\nimport AppExportSettings from '../components/common/AppExportSettings.vue'\nimport {",
+        "is_masked": false
+      },
+      {
+        "text": "lucide-vue-next",
+        "line": 27,
+        "context": "  Download\n} from 'lucide-vue-next'\nimport { filterEngine } from '../lib/engines/filterEngine'",
+        "is_masked": false
+      },
+      {
+        "text": "../lib/engines/filterEngine",
+        "line": 28,
+        "context": "} from 'lucide-vue-next'\nimport { filterEngine } from '../lib/engines/filterEngine'\nimport { useImageProcessor } from '../composables/useImageProcessor'",
+        "is_masked": false
+      },
+      {
+        "text": "../composables/useImageProcessor",
+        "line": 29,
+        "context": "import { filterEngine } from '../lib/engines/filterEngine'\nimport { useImageProcessor } from '../composables/useImageProcessor'\n",
+        "is_masked": false
+      },
+      {
+        "text": "../components/layout/InspectorFooter.vue",
+        "line": 31,
+        "context": "\nimport InspectorFooter from '../components/layout/InspectorFooter.vue'\n",
+        "is_masked": false
+      },
+      {
+        "text": "original",
+        "line": 44,
+        "context": "const sepia = ref(0)\nconst outputFormat = ref<string>('original')\nconst outputQuality = ref(0.9)",
+        "is_masked": false
+      },
+      {
+        "text": "none",
+        "line": 47,
+        "context": "const isDirty = ref(false)\nconst activePresetId = ref<string>('none')\nconst lastPresetId = ref<string>('none')",
+        "is_masked": false
+      },
+      {
+        "text": "none",
+        "line": 48,
+        "context": "const activePresetId = ref<string>('none')\nconst lastPresetId = ref<string>('none')\n",
+        "is_masked": false
+      },
+      {
+        "text": "right",
+        "line": 83,
+        "context": "\nconst scrollPresets = (direction: 'left' | 'right') => {\n  const el = scrollContainer.value",
+        "is_masked": false
+      },
+      {
+        "text": "left",
+        "line": 83,
+        "context": "\nconst scrollPresets = (direction: 'left' | 'right') => {\n  const el = scrollContainer.value",
+        "is_masked": false
+      },
+      {
+        "text": "left",
+        "line": 88,
+        "context": "    el.scrollBy({\n      left: direction === 'left' ? -scrollAmount : scrollAmount,\n      behavior: 'smooth'",
+        "is_masked": false
+      },
+      {
+        "text": "smooth",
+        "line": 89,
+        "context": "      left: direction === 'left' ? -scrollAmount : scrollAmount,\n      behavior: 'smooth'\n    })",
+        "is_masked": false
+      },
+      {
+        "text": "none",
+        "line": 117,
+        "context": "  {\n    id: 'none',\n    key: 'tools.filters.presets.none',",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.presets.none",
+        "line": 118,
+        "context": "    id: 'none',\n    key: 'tools.filters.presets.none',\n    values: { brightness: 100, contrast: 100, saturation: 100, blur: 0, sepia: 0 }",
+        "is_masked": false
+      },
+      {
+        "text": "clarendon",
+        "line": 122,
+        "context": "  {\n    id: 'clarendon',\n    key: 'tools.filters.presets.clarendon',",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.presets.clarendon",
+        "line": 123,
+        "context": "    id: 'clarendon',\n    key: 'tools.filters.presets.clarendon',\n    values: { brightness: 110, contrast: 120, saturation: 135, blur: 0, sepia: 0 }",
+        "is_masked": false
+      },
+      {
+        "text": "lofi",
+        "line": 127,
+        "context": "  {\n    id: 'lofi',\n    key: 'tools.filters.presets.lofi',",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.presets.lofi",
+        "line": 128,
+        "context": "    id: 'lofi',\n    key: 'tools.filters.presets.lofi',\n    values: { brightness: 100, contrast: 150, saturation: 110, blur: 0, sepia: 0 }",
+        "is_masked": false
+      },
+      {
+        "text": "valencia",
+        "line": 132,
+        "context": "  {\n    id: 'valencia',\n    key: 'tools.filters.presets.valencia',",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.presets.valencia",
+        "line": 133,
+        "context": "    id: 'valencia',\n    key: 'tools.filters.presets.valencia',\n    values: { brightness: 108, contrast: 108, saturation: 100, blur: 0, sepia: 15 }",
+        "is_masked": false
+      },
+      {
+        "text": "gingham",
+        "line": 137,
+        "context": "  {\n    id: 'gingham',\n    key: 'tools.filters.presets.gingham',",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.presets.gingham",
+        "line": 138,
+        "context": "    id: 'gingham',\n    key: 'tools.filters.presets.gingham',\n    values: { brightness: 105, contrast: 90, saturation: 100, blur: 0, sepia: 10 }",
+        "is_masked": false
+      },
+      {
+        "text": "f1977",
+        "line": 142,
+        "context": "  {\n    id: 'f1977',\n    key: 'tools.filters.presets.f1977',",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.presets.f1977",
+        "line": 143,
+        "context": "    id: 'f1977',\n    key: 'tools.filters.presets.f1977',\n    values: { brightness: 110, contrast: 110, saturation: 130, blur: 0, sepia: 30 }",
+        "is_masked": false
+      },
+      {
+        "text": "aden",
+        "line": 147,
+        "context": "  {\n    id: 'aden',\n    key: 'tools.filters.presets.aden',",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.presets.aden",
+        "line": 148,
+        "context": "    id: 'aden',\n    key: 'tools.filters.presets.aden',\n    values: { brightness: 120, contrast: 90, saturation: 85, blur: 0, sepia: 0 }",
+        "is_masked": false
+      },
+      {
+        "text": "reyes",
+        "line": 152,
+        "context": "  {\n    id: 'reyes',\n    key: 'tools.filters.presets.reyes',",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.presets.reyes",
+        "line": 153,
+        "context": "    id: 'reyes',\n    key: 'tools.filters.presets.reyes',\n    values: { brightness: 110, contrast: 85, saturation: 75, blur: 0, sepia: 22 }",
+        "is_masked": false
+      },
+      {
+        "text": "inkwell",
+        "line": 157,
+        "context": "  {\n    id: 'inkwell',\n    key: 'tools.filters.presets.inkwell',",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.presets.inkwell",
+        "line": 158,
+        "context": "    id: 'inkwell',\n    key: 'tools.filters.presets.inkwell',\n    values: { brightness: 110, contrast: 120, saturation: 0, blur: 0, sepia: 10 }",
+        "is_masked": false
+      },
+      {
+        "text": "lark",
+        "line": 162,
+        "context": "  {\n    id: 'lark',\n    key: 'tools.filters.presets.lark',",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.presets.lark",
+        "line": 163,
+        "context": "    id: 'lark',\n    key: 'tools.filters.presets.lark',\n    values: { brightness: 105, contrast: 90, saturation: 115, blur: 0, sepia: 0 }",
+        "is_masked": false
+      },
+      {
+        "text": "transparent",
+        "line": 195,
+        "context": "const presetsMaskStyle = computed(() => {\n  const left = canScrollLeft.value ? 'transparent' : 'black'\n  const right = canScrollRight.value ? 'transparent' : 'black'",
+        "is_masked": false
+      },
+      {
+        "text": "black",
+        "line": 195,
+        "context": "const presetsMaskStyle = computed(() => {\n  const left = canScrollLeft.value ? 'transparent' : 'black'\n  const right = canScrollRight.value ? 'transparent' : 'black'",
+        "is_masked": false
+      },
+      {
+        "text": "transparent",
+        "line": 196,
+        "context": "  const left = canScrollLeft.value ? 'transparent' : 'black'\n  const right = canScrollRight.value ? 'transparent' : 'black'\n  const mask = `linear-gradient(to right, ${left}, black 20px, black calc(100% - 20px), ${right})`",
+        "is_masked": false
+      },
+      {
+        "text": "black",
+        "line": 196,
+        "context": "  const left = canScrollLeft.value ? 'transparent' : 'black'\n  const right = canScrollRight.value ? 'transparent' : 'black'\n  const mask = `linear-gradient(to right, ${left}, black 20px, black calc(100% - 20px), ${right})`",
+        "is_masked": false
+      },
+      {
+        "text": "_Filtered",
+        "line": 225,
+        "context": "  const item = store.images.find((img) => img.id === id)\n  if (item?.processedBlob) downloadImage(item.processedBlob, item.file.name, '_Filtered')\n}",
+        "is_masked": false
+      },
+      {
+        "text": "none",
+        "line": 239,
+        "context": "  if (store.selectedCount === 0)\n    return { text: t('tools.filters.cta.select'), icon: Sparkles, action: 'none', disabled: true }\n  if (isProcessing.value)",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.cta.select",
+        "line": 239,
+        "context": "  if (store.selectedCount === 0)\n    return { text: t('tools.filters.cta.select'), icon: Sparkles, action: 'none', disabled: true }\n  if (isProcessing.value)",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.cta.rendering",
+        "line": 242,
+        "context": "    return {\n      text: t('tools.filters.cta.rendering'),\n      icon: Sparkles,",
+        "is_masked": false
+      },
+      {
+        "text": "none",
+        "line": 244,
+        "context": "      icon: Sparkles,\n      action: 'none',\n      disabled: true",
+        "is_masked": false
+      },
+      {
+        "text": "done",
+        "line": 251,
+        "context": "    selectedImages.length > 0 &&\n    selectedImages.every((img) => img.status === 'done' && img.processedBlob && !img.isDirty)\n",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.cta.export",
+        "line": 255,
+        "context": "    return {\n      text: t('tools.filters.cta.export', { count: store.selectedCount }),\n      icon: Download,",
+        "is_masked": false
+      },
+      {
+        "text": "download",
+        "line": 257,
+        "context": "      icon: Download,\n      action: 'download',\n      disabled: false",
+        "is_masked": false
+      },
+      {
+        "text": "done",
+        "line": 262,
+        "context": "\n  const anyDirty = selectedImages.some((img) => img.status === 'done' && img.isDirty)\n  return {",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.cta.update",
+        "line": 265,
+        "context": "    text: anyDirty\n      ? t('tools.filters.cta.update', { count: store.selectedCount })\n      : t('tools.filters.cta.apply', { count: store.selectedCount }),",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.cta.apply",
+        "line": 266,
+        "context": "      ? t('tools.filters.cta.update', { count: store.selectedCount })\n      : t('tools.filters.cta.apply', { count: store.selectedCount }),\n    icon: Sparkles,",
+        "is_masked": false
+      },
+      {
+        "text": "process",
+        "line": 268,
+        "context": "    icon: Sparkles,\n    action: 'process',\n    disabled: false",
+        "is_masked": false
+      },
+      {
+        "text": "none",
+        "line": 275,
+        "context": "  const state = ctaState.value\n  if (state.action === 'none') return\n",
+        "is_masked": false
+      },
+      {
+        "text": "download",
+        "line": 277,
+        "context": "\n  if (state.action === 'download') {\n    await downloadAllAsZip('_Filtered')",
+        "is_masked": false
+      },
+      {
+        "text": "_Filtered",
+        "line": 278,
+        "context": "  if (state.action === 'download') {\n    await downloadAllAsZip('_Filtered')\n    return",
+        "is_masked": false
+      },
+      {
+        "text": "process",
+        "line": 282,
+        "context": "\n  if (state.action === 'process') {\n    await handleApplyFilters()",
+        "is_masked": false
+      },
+      {
+        "text": "h-full w-full flex flex-col overflow-hidden",
+        "line": 289,
+        "context": "<template>\n  <div class=\"h-full w-full flex flex-col overflow-hidden\">\n    <WorkspaceLayout show-sidebar no-scroll show-assets-tray>",
+        "is_masked": false
+      },
+      {
+        "text": "filters",
+        "line": 294,
+        "context": "        ><ImageActionsToolbar\n          view-id=\"filters\"\n          :is-processing=\"isProcessing\"",
+        "is_masked": false
+      },
+      {
+        "text": "isProcessing",
+        "line": 295,
+        "context": "          view-id=\"filters\"\n          :is-processing=\"isProcessing\"\n          show-clear-all",
+        "is_masked": false
+      },
+      {
+        "text": "_Filtered",
+        "line": 297,
+        "context": "          show-clear-all\n          zip-prefix=\"_Filtered\"\n      /></template>",
+        "is_masked": false
+      },
+      {
+        "text": "h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-6",
+        "line": 301,
+        "context": "      <template #content>\n        <div class=\"h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-6\">\n          <div",
+        "is_masked": false
+      },
+      {
+        "text": "grid transition-all duration-300",
+        "line": 303,
+        "context": "          <div\n            class=\"grid transition-all duration-300\"\n            :class=\"[",
+        "is_masked": false
+      },
+      {
+        "text": "compact",
+        "line": 305,
+        "context": "            :class=\"[\n              layoutStore.cardSizeMode === 'compact'\n                ? 'grid-cols-[repeat(auto-fill,minmax(130px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 md:gap-8'",
+        "is_masked": false
+      },
+      {
+        "text": "img in displayImages",
+        "line": 311,
+        "context": "            <ImageCard\n              v-for=\"img in displayImages\"\n              :key=\"img.id\"",
+        "is_masked": false
+      },
+      {
+        "text": "img.id",
+        "line": 312,
+        "context": "              v-for=\"img in displayImages\"\n              :key=\"img.id\"\n              :image=\"img\"",
+        "is_masked": false
+      },
+      {
+        "text": "img",
+        "line": 313,
+        "context": "              :key=\"img.id\"\n              :image=\"img\"\n              :is-selected=\"store.selectedIds.has(img.id)\"",
+        "is_masked": false
+      },
+      {
+        "text": "none",
+        "line": 315,
+        "context": "              :is-selected=\"store.selectedIds.has(img.id)\"\n              :image-style=\"{ filter: 'none' }\"\n              :allow-magnifier=\"false\"",
+        "is_masked": false
+      },
+      {
+        "text": "false",
+        "line": 316,
+        "context": "              :image-style=\"{ filter: 'none' }\"\n              :allow-magnifier=\"false\"\n              @toggle=\"store.toggleSelection\"",
+        "is_masked": false
+      },
+      {
+        "text": "store.toggleSelection",
+        "line": 317,
+        "context": "              :allow-magnifier=\"false\"\n              @toggle=\"store.toggleSelection\"\n              @remove=\"store.removeImage\"",
+        "is_masked": false
+      },
+      {
+        "text": "store.removeImage",
+        "line": 318,
+        "context": "              @toggle=\"store.toggleSelection\"\n              @remove=\"store.removeImage\"\n              @download=\"handleDownload\"",
+        "is_masked": false
+      },
+      {
+        "text": "handleDownload",
+        "line": 319,
+        "context": "              @remove=\"store.removeImage\"\n              @download=\"handleDownload\"\n            >",
+        "is_masked": false
+      },
+      {
+        "text": "done",
+        "line": 323,
+        "context": "                <div\n                  v-if=\"img.status !== 'done' || isDirty\"\n                  class=\"absolute inset-0 w-full h-full z-10 pointer-events-none transition-all duration-300 rounded-[inherit] overflow-hidden\"",
+        "is_masked": false
+      },
+      {
+        "text": "previewFilterStyle",
+        "line": 325,
+        "context": "                  class=\"absolute inset-0 w-full h-full z-10 pointer-events-none transition-all duration-300 rounded-[inherit] overflow-hidden\"\n                  :style=\"previewFilterStyle\"\n                ></div>",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-4",
+        "line": 334,
+        "context": "      <template #sidebar>\n        <section class=\"space-y-4\">\n          <AppSectionHeader :title=\"t('tools.filters.quickPresets')\" :icon=\"Sparkles\" />",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.quickPresets",
+        "line": 335,
+        "context": "        <section class=\"space-y-4\">\n          <AppSectionHeader :title=\"t('tools.filters.quickPresets')\" :icon=\"Sparkles\" />\n          <div class=\"relative group/presets\">",
+        "is_masked": false
+      },
+      {
+        "text": "Sparkles",
+        "line": 335,
+        "context": "        <section class=\"space-y-4\">\n          <AppSectionHeader :title=\"t('tools.filters.quickPresets')\" :icon=\"Sparkles\" />\n          <div class=\"relative group/presets\">",
+        "is_masked": false
+      },
+      {
+        "text": "relative group/presets",
+        "line": 336,
+        "context": "          <AppSectionHeader :title=\"t('tools.filters.quickPresets')\" :icon=\"Sparkles\" />\n          <div class=\"relative group/presets\">\n            <!-- 左导航箭头 -->",
+        "is_masked": false
+      },
+      {
+        "text": "canScrollLeft",
+        "line": 339,
+        "context": "            <button\n              v-if=\"canScrollLeft\"\n              @click=\"scrollPresets('left')\"",
+        "is_masked": false
+      },
+      {
+        "text": "left",
+        "line": 340,
+        "context": "              v-if=\"canScrollLeft\"\n              @click=\"scrollPresets('left')\"\n              class=\"absolute left-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-background/80 border border-border/40 rounded-full shadow-lg flex items-center justify-center text-muted-foreground hover:text-primary transition-all md:opacity-0 md:group-hover/presets:opacity-100 backdrop-blur-sm -ml-2\"",
+        "is_masked": false
+      },
+      {
+        "text": "absolute left-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-background/80 border border-border/40 rounded-full shadow-lg flex items-center justify-center text-muted-foreground hover:text-primary transition-all md:opacity-0 md:group-hover/presets:opacity-100 backdrop-blur-sm -ml-2",
+        "line": 341,
+        "context": "              @click=\"scrollPresets('left')\"\n              class=\"absolute left-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-background/80 border border-border/40 rounded-full shadow-lg flex items-center justify-center text-muted-foreground hover:text-primary transition-all md:opacity-0 md:group-hover/presets:opacity-100 backdrop-blur-sm -ml-2\"\n              :aria-label=\"t('tools.filters.scrollLeft')\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.scrollLeft",
+        "line": 342,
+        "context": "              class=\"absolute left-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-background/80 border border-border/40 rounded-full shadow-lg flex items-center justify-center text-muted-foreground hover:text-primary transition-all md:opacity-0 md:group-hover/presets:opacity-100 backdrop-blur-sm -ml-2\"\n              :aria-label=\"t('tools.filters.scrollLeft')\"\n            >",
+        "is_masked": false
+      },
+      {
+        "text": "16",
+        "line": 344,
+        "context": "            >\n              <ChevronLeft :size=\"16\" />\n            </button>",
+        "is_masked": false
+      },
+      {
+        "text": "canScrollRight",
+        "line": 349,
+        "context": "            <button\n              v-if=\"canScrollRight\"\n              @click=\"scrollPresets('right')\"",
+        "is_masked": false
+      },
+      {
+        "text": "right",
+        "line": 350,
+        "context": "              v-if=\"canScrollRight\"\n              @click=\"scrollPresets('right')\"\n              class=\"absolute right-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-background/80 border border-border/40 rounded-full shadow-lg flex items-center justify-center text-muted-foreground hover:text-primary transition-all md:opacity-0 md:group-hover/presets:opacity-100 backdrop-blur-sm -mr-2\"",
+        "is_masked": false
+      },
+      {
+        "text": "absolute right-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-background/80 border border-border/40 rounded-full shadow-lg flex items-center justify-center text-muted-foreground hover:text-primary transition-all md:opacity-0 md:group-hover/presets:opacity-100 backdrop-blur-sm -mr-2",
+        "line": 351,
+        "context": "              @click=\"scrollPresets('right')\"\n              class=\"absolute right-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-background/80 border border-border/40 rounded-full shadow-lg flex items-center justify-center text-muted-foreground hover:text-primary transition-all md:opacity-0 md:group-hover/presets:opacity-100 backdrop-blur-sm -mr-2\"\n              :aria-label=\"t('tools.filters.scrollRight')\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.scrollRight",
+        "line": 352,
+        "context": "              class=\"absolute right-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-background/80 border border-border/40 rounded-full shadow-lg flex items-center justify-center text-muted-foreground hover:text-primary transition-all md:opacity-0 md:group-hover/presets:opacity-100 backdrop-blur-sm -mr-2\"\n              :aria-label=\"t('tools.filters.scrollRight')\"\n            >",
+        "is_masked": false
+      },
+      {
+        "text": "16",
+        "line": 354,
+        "context": "            >\n              <ChevronRight :size=\"16\" />\n            </button>",
+        "is_masked": false
+      },
+      {
+        "text": "scrollContainer",
+        "line": 358,
+        "context": "            <div\n              ref=\"scrollContainer\"\n              class=\"flex gap-2 overflow-x-auto pb-2 no-scrollbar -mx-1 px-1 scroll-smooth\"",
+        "is_masked": false
+      },
+      {
+        "text": "flex gap-2 overflow-x-auto pb-2 no-scrollbar -mx-1 px-1 scroll-smooth",
+        "line": 359,
+        "context": "              ref=\"scrollContainer\"\n              class=\"flex gap-2 overflow-x-auto pb-2 no-scrollbar -mx-1 px-1 scroll-smooth\"\n              @scroll=\"checkScroll\"",
+        "is_masked": false
+      },
+      {
+        "text": "checkScroll",
+        "line": 360,
+        "context": "              class=\"flex gap-2 overflow-x-auto pb-2 no-scrollbar -mx-1 px-1 scroll-smooth\"\n              @scroll=\"checkScroll\"\n              @wheel=\"handleWheel\"",
+        "is_masked": false
+      },
+      {
+        "text": "handleWheel",
+        "line": 361,
+        "context": "              @scroll=\"checkScroll\"\n              @wheel=\"handleWheel\"\n              :style=\"presetsMaskStyle\"",
+        "is_masked": false
+      },
+      {
+        "text": "presetsMaskStyle",
+        "line": 362,
+        "context": "              @wheel=\"handleWheel\"\n              :style=\"presetsMaskStyle\"\n            >",
+        "is_masked": false
+      },
+      {
+        "text": "preset in presets",
+        "line": 365,
+        "context": "              <button\n                v-for=\"preset in presets\"\n                :key=\"preset.id\"",
+        "is_masked": false
+      },
+      {
+        "text": "preset.id",
+        "line": 366,
+        "context": "                v-for=\"preset in presets\"\n                :key=\"preset.id\"\n                @click=\"applyPreset(preset)\"",
+        "is_masked": false
+      },
+      {
+        "text": "flex-shrink-0 w-20 py-2.5 rounded-xl border transition-all active:scale-95 flex flex-col items-center gap-1.5 group",
+        "line": 368,
+        "context": "                @click=\"applyPreset(preset)\"\n                class=\"flex-shrink-0 w-20 py-2.5 rounded-xl border transition-all active:scale-95 flex flex-col items-center gap-1.5 group\"\n                :class=\"[",
+        "is_masked": false
+      },
+      {
+        "text": "border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20",
+        "line": 371,
+        "context": "                  activePresetId === preset.id\n                    ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20'\n                    : 'border-border/60 bg-muted/5 hover:bg-primary/5 hover:border-primary/30'",
+        "is_masked": false
+      },
+      {
+        "text": "border-border/60 bg-muted/5 hover:bg-primary/5 hover:border-primary/30",
+        "line": 372,
+        "context": "                    ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20'\n                    : 'border-border/60 bg-muted/5 hover:bg-primary/5 hover:border-primary/30'\n                ]\"",
+        "is_masked": false
+      },
+      {
+        "text": "w-8 h-8 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform",
+        "line": 377,
+        "context": "                <div\n                  class=\"w-8 h-8 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform\"\n                  :class=\"[activePresetId === preset.id ? 'bg-primary/20' : 'bg-primary/10']\"",
+        "is_masked": false
+      },
+      {
+        "text": "bg-primary/10",
+        "line": 378,
+        "context": "                  class=\"w-8 h-8 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform\"\n                  :class=\"[activePresetId === preset.id ? 'bg-primary/20' : 'bg-primary/10']\"\n                >",
+        "is_masked": false
+      },
+      {
+        "text": "bg-primary/20",
+        "line": 378,
+        "context": "                  class=\"w-8 h-8 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform\"\n                  :class=\"[activePresetId === preset.id ? 'bg-primary/20' : 'bg-primary/10']\"\n                >",
+        "is_masked": false
+      },
+      {
+        "text": "14",
+        "line": 381,
+        "context": "                  <Sparkles\n                    :size=\"14\"\n                    class=\"text-primary\"",
+        "is_masked": false
+      },
+      {
+        "text": "text-primary",
+        "line": 382,
+        "context": "                    :size=\"14\"\n                    class=\"text-primary\"\n                    :fill=\"activePresetId === preset.id ? 'currentColor' : 'none'\"",
+        "is_masked": false
+      },
+      {
+        "text": "none",
+        "line": 383,
+        "context": "                    class=\"text-primary\"\n                    :fill=\"activePresetId === preset.id ? 'currentColor' : 'none'\"\n                  />",
+        "is_masked": false
+      },
+      {
+        "text": "currentColor",
+        "line": 383,
+        "context": "                    class=\"text-primary\"\n                    :fill=\"activePresetId === preset.id ? 'currentColor' : 'none'\"\n                  />",
+        "is_masked": false
+      },
+      {
+        "text": "text-primary",
+        "line": 390,
+        "context": "                    activePresetId === preset.id\n                      ? 'text-primary'\n                      : 'text-muted-foreground group-hover:text-primary'",
+        "is_masked": false
+      },
+      {
+        "text": "text-muted-foreground group-hover:text-primary",
+        "line": 391,
+        "context": "                      ? 'text-primary'\n                      : 'text-muted-foreground group-hover:text-primary'\n                  ]\"",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-4 pt-6 border-t border-border/40",
+        "line": 401,
+        "context": "\n        <section class=\"space-y-4 pt-6 border-t border-border/40\">\n          <div class=\"flex items-center justify-between h-10 pr-1\">",
+        "is_masked": false
+      },
+      {
+        "text": "flex items-center justify-between h-10 pr-1",
+        "line": 402,
+        "context": "        <section class=\"space-y-4 pt-6 border-t border-border/40\">\n          <div class=\"flex items-center justify-between h-10 pr-1\">\n            <AppSectionHeader :title=\"t('tools.filters.fineAdjustment')\" :icon=\"Settings2\" />",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.fineAdjustment",
+        "line": 403,
+        "context": "          <div class=\"flex items-center justify-between h-10 pr-1\">\n            <AppSectionHeader :title=\"t('tools.filters.fineAdjustment')\" :icon=\"Settings2\" />\n",
+        "is_masked": false
+      },
+      {
+        "text": "Settings2",
+        "line": 403,
+        "context": "          <div class=\"flex items-center justify-between h-10 pr-1\">\n            <AppSectionHeader :title=\"t('tools.filters.fineAdjustment')\" :icon=\"Settings2\" />\n",
+        "is_masked": false
+      },
+      {
+        "text": "w-8 h-8 flex items-center justify-end",
+        "line": 406,
+        "context": "            <!-- 批量重置按钮占位符：固定宽度防止跳动 -->\n            <div class=\"w-8 h-8 flex items-center justify-end\">\n              <transition",
+        "is_masked": false
+      },
+      {
+        "text": "transition duration-300 ease-out",
+        "line": 408,
+        "context": "              <transition\n                enter-active-class=\"transition duration-300 ease-out\"\n                enter-from-class=\"opacity-0 scale-50 translate-x-2\"",
+        "is_masked": false
+      },
+      {
+        "text": "opacity-0 scale-50 translate-x-2",
+        "line": 409,
+        "context": "                enter-active-class=\"transition duration-300 ease-out\"\n                enter-from-class=\"opacity-0 scale-50 translate-x-2\"\n                enter-to-class=\"opacity-100 scale-100 translate-x-0\"",
+        "is_masked": false
+      },
+      {
+        "text": "opacity-100 scale-100 translate-x-0",
+        "line": 410,
+        "context": "                enter-from-class=\"opacity-0 scale-50 translate-x-2\"\n                enter-to-class=\"opacity-100 scale-100 translate-x-0\"\n                leave-active-class=\"transition duration-200 ease-in\"",
+        "is_masked": false
+      },
+      {
+        "text": "transition duration-200 ease-in",
+        "line": 411,
+        "context": "                enter-to-class=\"opacity-100 scale-100 translate-x-0\"\n                leave-active-class=\"transition duration-200 ease-in\"\n                leave-from-class=\"opacity-100 scale-100 translate-x-0\"",
+        "is_masked": false
+      },
+      {
+        "text": "opacity-100 scale-100 translate-x-0",
+        "line": 412,
+        "context": "                leave-active-class=\"transition duration-200 ease-in\"\n                leave-from-class=\"opacity-100 scale-100 translate-x-0\"\n                leave-to-class=\"opacity-0 scale-50 translate-x-2\"",
+        "is_masked": false
+      },
+      {
+        "text": "opacity-0 scale-50 translate-x-2",
+        "line": 413,
+        "context": "                leave-from-class=\"opacity-100 scale-100 translate-x-0\"\n                leave-to-class=\"opacity-0 scale-50 translate-x-2\"\n              >",
+        "is_masked": false
+      },
+      {
+        "text": "isFiltersDirty",
+        "line": 416,
+        "context": "                <button\n                  v-if=\"isFiltersDirty\"\n                  @click=\"resetFilters\"",
+        "is_masked": false
+      },
+      {
+        "text": "resetFilters",
+        "line": 417,
+        "context": "                  v-if=\"isFiltersDirty\"\n                  @click=\"resetFilters\"\n                  class=\"p-1.5 hover:bg-muted rounded-lg transition-all text-muted-foreground hover:text-primary active:scale-90\"",
+        "is_masked": false
+      },
+      {
+        "text": "p-1.5 hover:bg-muted rounded-lg transition-all text-muted-foreground hover:text-primary active:scale-90",
+        "line": 418,
+        "context": "                  @click=\"resetFilters\"\n                  class=\"p-1.5 hover:bg-muted rounded-lg transition-all text-muted-foreground hover:text-primary active:scale-90\"\n                  :title=\"t('tools.filters.resetAll')\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.resetAll",
+        "line": 419,
+        "context": "                  class=\"p-1.5 hover:bg-muted rounded-lg transition-all text-muted-foreground hover:text-primary active:scale-90\"\n                  :title=\"t('tools.filters.resetAll')\"\n                  :aria-label=\"t('tools.filters.resetAll')\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.resetAll",
+        "line": 420,
+        "context": "                  :title=\"t('tools.filters.resetAll')\"\n                  :aria-label=\"t('tools.filters.resetAll')\"\n                >",
+        "is_masked": false
+      },
+      {
+        "text": "14",
+        "line": 422,
+        "context": "                >\n                  <RotateCcw :size=\"14\" />\n                </button>",
+        "is_masked": false
+      },
+      {
+        "text": "bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4",
+        "line": 428,
+        "context": "\n          <div class=\"bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4\">\n            <!-- 亮度 -->",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-3",
+        "line": 430,
+        "context": "            <!-- 亮度 -->\n            <div class=\"space-y-3\">\n              <AppSlider",
+        "is_masked": false
+      },
+      {
+        "text": "brightness",
+        "line": 432,
+        "context": "              <AppSlider\n                v-model=\"brightness\"\n                :label=\"t('tools.filters.brightness')\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.brightness",
+        "line": 433,
+        "context": "                v-model=\"brightness\"\n                :label=\"t('tools.filters.brightness')\"\n                :icon=\"Sun\"",
+        "is_masked": false
+      },
+      {
+        "text": "Sun",
+        "line": 434,
+        "context": "                :label=\"t('tools.filters.brightness')\"\n                :icon=\"Sun\"\n                unit=\"%\"",
+        "is_masked": false
+      },
+      {
+        "text": "200",
+        "line": 437,
+        "context": "                :min=\"0\"\n                :max=\"200\"\n                :step=\"1\"",
+        "is_masked": false
+      },
+      {
+        "text": "baselineValues.brightness",
+        "line": 439,
+        "context": "                :step=\"1\"\n                :default-value=\"baselineValues.brightness\"\n                @update:model-value=\"activePresetId = ''\"",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-3",
+        "line": 445,
+        "context": "            <!-- 对比度 -->\n            <div class=\"space-y-3\">\n              <AppSlider",
+        "is_masked": false
+      },
+      {
+        "text": "contrast",
+        "line": 447,
+        "context": "              <AppSlider\n                v-model=\"contrast\"\n                :label=\"t('tools.filters.contrast')\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.contrast",
+        "line": 448,
+        "context": "                v-model=\"contrast\"\n                :label=\"t('tools.filters.contrast')\"\n                :icon=\"Contrast\"",
+        "is_masked": false
+      },
+      {
+        "text": "Contrast",
+        "line": 449,
+        "context": "                :label=\"t('tools.filters.contrast')\"\n                :icon=\"Contrast\"\n                unit=\"%\"",
+        "is_masked": false
+      },
+      {
+        "text": "200",
+        "line": 452,
+        "context": "                :min=\"0\"\n                :max=\"200\"\n                :step=\"1\"",
+        "is_masked": false
+      },
+      {
+        "text": "baselineValues.contrast",
+        "line": 454,
+        "context": "                :step=\"1\"\n                :default-value=\"baselineValues.contrast\"\n                @update:model-value=\"activePresetId = ''\"",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-3",
+        "line": 460,
+        "context": "            <!-- 饱和度 -->\n            <div class=\"space-y-3\">\n              <AppSlider",
+        "is_masked": false
+      },
+      {
+        "text": "saturation",
+        "line": 462,
+        "context": "              <AppSlider\n                v-model=\"saturation\"\n                :label=\"t('tools.filters.saturation')\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.saturation",
+        "line": 463,
+        "context": "                v-model=\"saturation\"\n                :label=\"t('tools.filters.saturation')\"\n                :icon=\"Droplets\"",
+        "is_masked": false
+      },
+      {
+        "text": "Droplets",
+        "line": 464,
+        "context": "                :label=\"t('tools.filters.saturation')\"\n                :icon=\"Droplets\"\n                unit=\"%\"",
+        "is_masked": false
+      },
+      {
+        "text": "200",
+        "line": 467,
+        "context": "                :min=\"0\"\n                :max=\"200\"\n                :step=\"1\"",
+        "is_masked": false
+      },
+      {
+        "text": "baselineValues.saturation",
+        "line": 469,
+        "context": "                :step=\"1\"\n                :default-value=\"baselineValues.saturation\"\n                @update:model-value=\"activePresetId = ''\"",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-3",
+        "line": 475,
+        "context": "            <!-- 模糊 -->\n            <div class=\"space-y-3\">\n              <AppSlider",
+        "is_masked": false
+      },
+      {
+        "text": "blur",
+        "line": 477,
+        "context": "              <AppSlider\n                v-model=\"blur\"\n                :label=\"t('tools.filters.blur')\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.blur",
+        "line": 478,
+        "context": "                v-model=\"blur\"\n                :label=\"t('tools.filters.blur')\"\n                :icon=\"Layers\"",
+        "is_masked": false
+      },
+      {
+        "text": "Layers",
+        "line": 479,
+        "context": "                :label=\"t('tools.filters.blur')\"\n                :icon=\"Layers\"\n                unit=\"px\"",
+        "is_masked": false
+      },
+      {
+        "text": "px",
+        "line": 480,
+        "context": "                :icon=\"Layers\"\n                unit=\"px\"\n                :min=\"0\"",
+        "is_masked": false
+      },
+      {
+        "text": "20",
+        "line": 482,
+        "context": "                :min=\"0\"\n                :max=\"20\"\n                :step=\"1\"",
+        "is_masked": false
+      },
+      {
+        "text": "baselineValues.blur",
+        "line": 484,
+        "context": "                :step=\"1\"\n                :default-value=\"baselineValues.blur\"\n                @update:model-value=\"activePresetId = ''\"",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-3",
+        "line": 490,
+        "context": "            <!-- 褐色 -->\n            <div class=\"space-y-3\">\n              <AppSlider",
+        "is_masked": false
+      },
+      {
+        "text": "sepia",
+        "line": 492,
+        "context": "              <AppSlider\n                v-model=\"sepia\"\n                :label=\"t('tools.filters.sepia')\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.sepia",
+        "line": 493,
+        "context": "                v-model=\"sepia\"\n                :label=\"t('tools.filters.sepia')\"\n                :icon=\"Wind\"",
+        "is_masked": false
+      },
+      {
+        "text": "Wind",
+        "line": 494,
+        "context": "                :label=\"t('tools.filters.sepia')\"\n                :icon=\"Wind\"\n                unit=\"%\"",
+        "is_masked": false
+      },
+      {
+        "text": "100",
+        "line": 497,
+        "context": "                :min=\"0\"\n                :max=\"100\"\n                :step=\"1\"",
+        "is_masked": false
+      },
+      {
+        "text": "baselineValues.sepia",
+        "line": 499,
+        "context": "                :step=\"1\"\n                :default-value=\"baselineValues.sepia\"\n                @update:model-value=\"activePresetId = ''\"",
+        "is_masked": false
+      },
+      {
+        "text": "pt-6 border-t border-border/40",
+        "line": 506,
+        "context": "\n        <section class=\"pt-6 border-t border-border/40\">\n          <div",
+        "is_masked": false
+      },
+      {
+        "text": "p-4 bg-muted/20 border border-border/40 rounded-2xl flex items-start gap-3 transition-all group hover:bg-muted/30",
+        "line": 508,
+        "context": "          <div\n            class=\"p-4 bg-muted/20 border border-border/40 rounded-2xl flex items-start gap-3 transition-all group hover:bg-muted/30\"\n          >",
+        "is_masked": false
+      },
+      {
+        "text": "bg-primary/10 p-2 rounded-xl group-hover:scale-110 transition-transform",
+        "line": 510,
+        "context": "          >\n            <div class=\"bg-primary/10 p-2 rounded-xl group-hover:scale-110 transition-transform\">\n              <Sparkles :size=\"16\" class=\"text-primary\" />",
+        "is_masked": false
+      },
+      {
+        "text": "text-primary",
+        "line": 511,
+        "context": "            <div class=\"bg-primary/10 p-2 rounded-xl group-hover:scale-110 transition-transform\">\n              <Sparkles :size=\"16\" class=\"text-primary\" />\n            </div>",
+        "is_masked": false
+      },
+      {
+        "text": "16",
+        "line": 511,
+        "context": "            <div class=\"bg-primary/10 p-2 rounded-xl group-hover:scale-110 transition-transform\">\n              <Sparkles :size=\"16\" class=\"text-primary\" />\n            </div>",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-1",
+        "line": 513,
+        "context": "            </div>\n            <div class=\"space-y-1\">\n              <div class=\"text-[0.65rem] font-black text-primary uppercase tracking-widest\">",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.realtimeTitle",
+        "line": 515,
+        "context": "              <div class=\"text-[0.65rem] font-black text-primary uppercase tracking-widest\">\n                {{ t('tools.filters.realtimeTitle') }}\n              </div>",
+        "is_masked": false
+      },
+      {
+        "text": "tools.filters.realtimeDesc",
+        "line": 518,
+        "context": "              <p class=\"text-[0.65rem] text-muted-foreground leading-relaxed font-medium\">\n                {{ t('tools.filters.realtimeDesc') }}\n              </p>",
+        "is_masked": false
+      },
+      {
+        "text": "outputFormat",
+        "line": 525,
+        "context": "        <AppExportSettings\n          v-model:format=\"outputFormat\"\n          v-model:quality=\"outputQuality\"",
+        "is_masked": false
+      },
+      {
+        "text": "outputQuality",
+        "line": 526,
+        "context": "          v-model:format=\"outputFormat\"\n          v-model:quality=\"outputQuality\"\n          class=\"pt-6 border-t border-border/40\"",
+        "is_masked": false
+      },
+      {
+        "text": "pt-6 border-t border-border/40",
+        "line": 527,
+        "context": "          v-model:quality=\"outputQuality\"\n          class=\"pt-6 border-t border-border/40\"\n        />",
+        "is_masked": false
+      },
+      {
+        "text": "lg",
+        "line": 534,
+        "context": "          <AppButton\n            size=\"lg\"\n            :variant=\"ctaState.action === 'download' ? 'success' : 'cta'\"",
+        "is_masked": false
+      },
+      {
+        "text": "success",
+        "line": 535,
+        "context": "            size=\"lg\"\n            :variant=\"ctaState.action === 'download' ? 'success' : 'cta'\"\n            class=\"w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden\"",
+        "is_masked": false
+      },
+      {
+        "text": "download",
+        "line": 535,
+        "context": "            size=\"lg\"\n            :variant=\"ctaState.action === 'download' ? 'success' : 'cta'\"\n            class=\"w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden\"",
+        "is_masked": false
+      },
+      {
+        "text": "cta",
+        "line": 535,
+        "context": "            size=\"lg\"\n            :variant=\"ctaState.action === 'download' ? 'success' : 'cta'\"\n            class=\"w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden\"",
+        "is_masked": false
+      },
+      {
+        "text": "w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden",
+        "line": 536,
+        "context": "            :variant=\"ctaState.action === 'download' ? 'success' : 'cta'\"\n            class=\"w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden\"\n            :loading=\"isProcessing\"",
+        "is_masked": false
+      },
+      {
+        "text": "isProcessing",
+        "line": 537,
+        "context": "            class=\"w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden\"\n            :loading=\"isProcessing\"\n            :disabled=\"ctaState.disabled\"",
+        "is_masked": false
+      },
+      {
+        "text": "ctaState.disabled",
+        "line": 538,
+        "context": "            :loading=\"isProcessing\"\n            :disabled=\"ctaState.disabled\"\n            @click=\"handleCtaClick\"",
+        "is_masked": false
+      },
+      {
+        "text": "handleCtaClick",
+        "line": 539,
+        "context": "            :disabled=\"ctaState.disabled\"\n            @click=\"handleCtaClick\"\n          >",
+        "is_masked": false
+      },
+      {
+        "text": "mr-2",
+        "line": 542,
+        "context": "            <template #icon>\n              <component :is=\"ctaState.icon\" v-if=\"!isProcessing\" :size=\"18\" class=\"mr-2\" />\n            </template>",
+        "is_masked": false
+      },
+      {
+        "text": "!isProcessing",
+        "line": 542,
+        "context": "            <template #icon>\n              <component :is=\"ctaState.icon\" v-if=\"!isProcessing\" :size=\"18\" class=\"mr-2\" />\n            </template>",
+        "is_masked": false
+      },
+      {
+        "text": "18",
+        "line": 542,
+        "context": "            <template #icon>\n              <component :is=\"ctaState.icon\" v-if=\"!isProcessing\" :size=\"18\" class=\"mr-2\" />\n            </template>",
+        "is_masked": false
+      },
+      {
+        "text": "ctaState.icon",
+        "line": 542,
+        "context": "            <template #icon>\n              <component :is=\"ctaState.icon\" v-if=\"!isProcessing\" :size=\"18\" class=\"mr-2\" />\n            </template>",
+        "is_masked": false
+      },
+      {
+        "text": "font-bold text-sm tracking-tight",
+        "line": 544,
+        "context": "            </template>\n            <span class=\"font-bold text-sm tracking-tight\">{{ ctaState.text }}</span>\n          </AppButton>",
+        "is_masked": false
+      }
+    ]
+  },
+  "src/views/SplitView.vue": {
+    "hash": "23035aa6926a5b6bf3242667f3ccd6c3",
+    "results": [
+      {
+        "text": "ts",
+        "line": 1,
+        "context": "<script setup lang=\"ts\">\nimport { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'",
+        "is_masked": false
+      },
+      {
+        "text": "vue",
+        "line": 2,
+        "context": "<script setup lang=\"ts\">\nimport { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'\nimport { useI18n } from 'vue-i18n'",
+        "is_masked": false
+      },
+      {
+        "text": "vue-i18n",
+        "line": 3,
+        "context": "import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'\nimport { useI18n } from 'vue-i18n'\nimport { useImageStore } from '../stores/imageStore'",
+        "is_masked": false
+      },
+      {
+        "text": "../stores/imageStore",
+        "line": 4,
+        "context": "import { useI18n } from 'vue-i18n'\nimport { useImageStore } from '../stores/imageStore'\nimport { useFileHelpers } from '../composables/useFileHelpers'",
+        "is_masked": false
+      },
+      {
+        "text": "../composables/useFileHelpers",
+        "line": 5,
+        "context": "import { useImageStore } from '../stores/imageStore'\nimport { useFileHelpers } from '../composables/useFileHelpers'\nimport WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'",
+        "is_masked": false
+      },
+      {
+        "text": "../components/layout/WorkspaceLayout.vue",
+        "line": 6,
+        "context": "import { useFileHelpers } from '../composables/useFileHelpers'\nimport WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'\nimport AppButton from '../components/common/AppButton.vue'",
+        "is_masked": false
+      },
+      {
+        "text": "../components/common/AppButton.vue",
+        "line": 7,
+        "context": "import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'\nimport AppButton from '../components/common/AppButton.vue'\nimport AppCanvasWorkspace from '../components/common/AppCanvasWorkspace.vue'",
+        "is_masked": false
+      },
+      {
+        "text": "../components/common/AppCanvasWorkspace.vue",
+        "line": 8,
+        "context": "import AppButton from '../components/common/AppButton.vue'\nimport AppCanvasWorkspace from '../components/common/AppCanvasWorkspace.vue'\nimport ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'",
+        "is_masked": false
+      },
+      {
+        "text": "../components/common/ImageSelectionStatus.vue",
+        "line": 9,
+        "context": "import AppCanvasWorkspace from '../components/common/AppCanvasWorkspace.vue'\nimport ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'\nimport ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'",
+        "is_masked": false
+      },
+      {
+        "text": "../components/common/ImageActionsToolbar.vue",
+        "line": 10,
+        "context": "import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'\nimport ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'\nimport AppSectionHeader from '../components/common/AppSectionHeader.vue'",
+        "is_masked": false
+      },
+      {
+        "text": "../components/common/AppSectionHeader.vue",
+        "line": 11,
+        "context": "import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'\nimport AppSectionHeader from '../components/common/AppSectionHeader.vue'\nimport AppSegmentedControl from '../components/common/AppSegmentedControl.vue'",
+        "is_masked": false
+      },
+      {
+        "text": "../components/common/AppSegmentedControl.vue",
+        "line": 12,
+        "context": "import AppSectionHeader from '../components/common/AppSectionHeader.vue'\nimport AppSegmentedControl from '../components/common/AppSegmentedControl.vue'\nimport AppSlider from '../components/common/AppSlider.vue'",
+        "is_masked": false
+      },
+      {
+        "text": "../components/common/AppSlider.vue",
+        "line": 13,
+        "context": "import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'\nimport AppSlider from '../components/common/AppSlider.vue'\nimport AppExportSettings from '../components/common/AppExportSettings.vue'",
+        "is_masked": false
+      },
+      {
+        "text": "../components/common/AppExportSettings.vue",
+        "line": 14,
+        "context": "import AppSlider from '../components/common/AppSlider.vue'\nimport AppExportSettings from '../components/common/AppExportSettings.vue'\nimport {",
+        "is_masked": false
+      },
+      {
+        "text": "lucide-vue-next",
+        "line": 24,
+        "context": "  RotateCcw\n} from 'lucide-vue-next'\nimport { splitEngine } from '../lib/engines/splitEngine'",
+        "is_masked": false
+      },
+      {
+        "text": "../lib/engines/splitEngine",
+        "line": 25,
+        "context": "} from 'lucide-vue-next'\nimport { splitEngine } from '../lib/engines/splitEngine'\nimport type { ViewSettings } from '../lib/engines/types'",
+        "is_masked": false
+      },
+      {
+        "text": "../lib/engines/types",
+        "line": 26,
+        "context": "import { splitEngine } from '../lib/engines/splitEngine'\nimport type { ViewSettings } from '../lib/engines/types'\nimport { useImageProcessor } from '../composables/useImageProcessor'",
+        "is_masked": false
+      },
+      {
+        "text": "../composables/useImageProcessor",
+        "line": 27,
+        "context": "import type { ViewSettings } from '../lib/engines/types'\nimport { useImageProcessor } from '../composables/useImageProcessor'\nimport { useResizeObserver } from '@vueuse/core'",
+        "is_masked": false
+      },
+      {
+        "text": "@vueuse/core",
+        "line": 28,
+        "context": "import { useImageProcessor } from '../composables/useImageProcessor'\nimport { useResizeObserver } from '@vueuse/core'\nimport { useBreakpoints } from '../composables/useBreakpoints'",
+        "is_masked": false
+      },
+      {
+        "text": "../composables/useBreakpoints",
+        "line": 29,
+        "context": "import { useResizeObserver } from '@vueuse/core'\nimport { useBreakpoints } from '../composables/useBreakpoints'\n",
+        "is_masked": false
+      },
+      {
+        "text": "../components/layout/InspectorFooter.vue",
+        "line": 31,
+        "context": "\nimport InspectorFooter from '../components/layout/InspectorFooter.vue'\n",
+        "is_masked": false
+      },
+      {
+        "text": "none",
+        "line": 41,
+        "context": "const cols = ref(3)\nconst centerMode = ref<'none' | 'center' | 'square'>('none')\nconst shave = ref(0)",
+        "is_masked": false
+      },
+      {
+        "text": "center",
+        "line": 41,
+        "context": "const cols = ref(3)\nconst centerMode = ref<'none' | 'center' | 'square'>('none')\nconst shave = ref(0)",
+        "is_masked": false
+      },
+      {
+        "text": "square",
+        "line": 41,
+        "context": "const cols = ref(3)\nconst centerMode = ref<'none' | 'center' | 'square'>('none')\nconst shave = ref(0)",
+        "is_masked": false
+      },
+      {
+        "text": "original",
+        "line": 43,
+        "context": "const shave = ref(0)\nconst outputFormat = ref<string>('original')\nconst outputQuality = ref(0.9)",
+        "is_masked": false
+      },
+      {
+        "text": "white",
+        "line": 48,
+        "context": "  lineWidth: 1.5,\n  lineColor: 'white',\n  lineOpacity: 0.95",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.colors.primary",
+        "line": 52,
+        "context": "const colorOptions = computed(() => [\n  { value: 'primary' as const, label: t('tools.split.colors.primary'), color: 'primary' },\n  { value: 'white' as const, label: t('tools.split.colors.white'), color: '#ffffff' },",
+        "is_masked": false
+      },
+      {
+        "text": "primary",
+        "line": 52,
+        "context": "const colorOptions = computed(() => [\n  { value: 'primary' as const, label: t('tools.split.colors.primary'), color: 'primary' },\n  { value: 'white' as const, label: t('tools.split.colors.white'), color: '#ffffff' },",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.colors.white",
+        "line": 53,
+        "context": "  { value: 'primary' as const, label: t('tools.split.colors.primary'), color: 'primary' },\n  { value: 'white' as const, label: t('tools.split.colors.white'), color: '#ffffff' },\n  { value: 'black' as const, label: t('tools.split.colors.black'), color: '#000000' },",
+        "is_masked": false
+      },
+      {
+        "text": "white",
+        "line": 53,
+        "context": "  { value: 'primary' as const, label: t('tools.split.colors.primary'), color: 'primary' },\n  { value: 'white' as const, label: t('tools.split.colors.white'), color: '#ffffff' },\n  { value: 'black' as const, label: t('tools.split.colors.black'), color: '#000000' },",
+        "is_masked": false
+      },
+      {
+        "text": "black",
+        "line": 54,
+        "context": "  { value: 'white' as const, label: t('tools.split.colors.white'), color: '#ffffff' },\n  { value: 'black' as const, label: t('tools.split.colors.black'), color: '#000000' },\n  { value: 'blue' as const, label: t('tools.split.colors.blue'), color: '#3b82f6' },",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.colors.black",
+        "line": 54,
+        "context": "  { value: 'white' as const, label: t('tools.split.colors.white'), color: '#ffffff' },\n  { value: 'black' as const, label: t('tools.split.colors.black'), color: '#000000' },\n  { value: 'blue' as const, label: t('tools.split.colors.blue'), color: '#3b82f6' },",
+        "is_masked": false
+      },
+      {
+        "text": "blue",
+        "line": 55,
+        "context": "  { value: 'black' as const, label: t('tools.split.colors.black'), color: '#000000' },\n  { value: 'blue' as const, label: t('tools.split.colors.blue'), color: '#3b82f6' },\n  { value: 'red' as const, label: t('tools.split.colors.red'), color: '#ef4444' }",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.colors.blue",
+        "line": 55,
+        "context": "  { value: 'black' as const, label: t('tools.split.colors.black'), color: '#000000' },\n  { value: 'blue' as const, label: t('tools.split.colors.blue'), color: '#3b82f6' },\n  { value: 'red' as const, label: t('tools.split.colors.red'), color: '#ef4444' }",
+        "is_masked": false
+      },
+      {
+        "text": "red",
+        "line": 56,
+        "context": "  { value: 'blue' as const, label: t('tools.split.colors.blue'), color: '#3b82f6' },\n  { value: 'red' as const, label: t('tools.split.colors.red'), color: '#ef4444' }\n])",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.colors.red",
+        "line": 56,
+        "context": "  { value: 'blue' as const, label: t('tools.split.colors.blue'), color: '#3b82f6' },\n  { value: 'red' as const, label: t('tools.split.colors.red'), color: '#ef4444' }\n])",
+        "is_masked": false
+      },
+      {
+        "text": "white",
+        "line": 62,
+        "context": "    lineWidth: 1.5,\n    lineColor: 'white',\n    lineOpacity: 0.95",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.messages.defaultRestored",
+        "line": 65,
+        "context": "  }\n  srMessage.value = t('tools.split.messages.defaultRestored')\n}",
+        "is_masked": false
+      },
+      {
+        "text": "ArrowRight",
+        "line": 74,
+        "context": "\n  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {\n    nextIndex = (index + 1) % colorOptions.value.length",
+        "is_masked": false
+      },
+      {
+        "text": "ArrowDown",
+        "line": 74,
+        "context": "\n  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {\n    nextIndex = (index + 1) % colorOptions.value.length",
+        "is_masked": false
+      },
+      {
+        "text": "ArrowLeft",
+        "line": 76,
+        "context": "    nextIndex = (index + 1) % colorOptions.value.length\n  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {\n    nextIndex = (index - 1 + colorOptions.value.length) % colorOptions.value.length",
+        "is_masked": false
+      },
+      {
+        "text": "ArrowUp",
+        "line": 76,
+        "context": "    nextIndex = (index + 1) % colorOptions.value.length\n  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {\n    nextIndex = (index - 1 + colorOptions.value.length) % colorOptions.value.length",
+        "is_masked": false
+      },
+      {
+        "text": "undefined",
+        "line": 91,
+        "context": "const triggerHaptic = (intensity = 5) => {\n  if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {\n    window.navigator.vibrate(intensity)",
+        "is_masked": false
+      },
+      {
+        "text": "custom",
+        "line": 110,
+        "context": "\nconst editMode = ref<'grid' | 'custom'>('grid')\nconst activeAxis = ref<'x' | 'y'>('x')",
+        "is_masked": false
+      },
+      {
+        "text": "grid",
+        "line": 110,
+        "context": "\nconst editMode = ref<'grid' | 'custom'>('grid')\nconst activeAxis = ref<'x' | 'y'>('x')",
+        "is_masked": false
+      },
+      {
+        "text": "--primary",
+        "line": 133,
+        "context": "  const root = document.documentElement\n  const colorPrimary = getComputedStyle(root).getPropertyValue('--primary').trim()\n  if (colorPrimary) {",
+        "is_masked": false
+      },
+      {
+        "text": "hsl",
+        "line": 135,
+        "context": "  if (colorPrimary) {\n    const newColor = colorPrimary.includes('hsl') ? colorPrimary : `hsl(${colorPrimary})`\n    if (newColor !== cachedPrimaryColor) {",
+        "is_masked": false
+      },
+      {
+        "text": "canvas",
+        "line": 154,
+        "context": "    if (loadId !== lastLoadId) return\n    offscreenCanvas = document.createElement('canvas')\n    offscreenCanvas.width = imgData.width!",
+        "is_masked": false
+      },
+      {
+        "text": "2d",
+        "line": 157,
+        "context": "    offscreenCanvas.height = imgData.height!\n    const octx = offscreenCanvas.getContext('2d')\n    octx?.drawImage(img, 0, 0)",
+        "is_masked": false
+      },
+      {
+        "text": "2d",
+        "line": 168,
+        "context": "  const canvas = canvasRef.value\n  const ctx = canvas?.getContext('2d')\n  const img = selectedImage.value",
+        "is_masked": false
+      },
+      {
+        "text": "primary",
+        "line": 213,
+        "context": "    } else {\n      if (lineColor === 'primary') coreColor = activeColor\n      else if (lineColor === 'blue') coreColor = '#3b82f6'",
+        "is_masked": false
+      },
+      {
+        "text": "blue",
+        "line": 214,
+        "context": "      if (lineColor === 'primary') coreColor = activeColor\n      else if (lineColor === 'blue') coreColor = '#3b82f6'\n      else if (lineColor === 'red') coreColor = '#ef4444'",
+        "is_masked": false
+      },
+      {
+        "text": "red",
+        "line": 215,
+        "context": "      else if (lineColor === 'blue') coreColor = '#3b82f6'\n      else if (lineColor === 'red') coreColor = '#ef4444'\n      else if (lineColor === 'black') coreColor = 'rgba(0, 0, 0, 0.95)'",
+        "is_masked": false
+      },
+      {
+        "text": "black",
+        "line": 216,
+        "context": "      else if (lineColor === 'red') coreColor = '#ef4444'\n      else if (lineColor === 'black') coreColor = 'rgba(0, 0, 0, 0.95)'\n      else coreColor = `rgba(255, 255, 255, ${lineOpacity})`",
+        "is_masked": false
+      },
+      {
+        "text": "grid",
+        "line": 241,
+        "context": "  // 绘制网格线 (均分模式)\n  if (editMode.value === 'grid') {\n    for (let i = 1; i < cols.value; i++) {",
+        "is_masked": false
+      },
+      {
+        "text": "INPUT",
+        "line": 321,
+        "context": "  const target = e.target as HTMLElement\n  if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return\n  if (!selectedLine.value || !selectedImage.value) return",
+        "is_masked": false
+      },
+      {
+        "text": "TEXTAREA",
+        "line": 321,
+        "context": "  const target = e.target as HTMLElement\n  if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return\n  if (!selectedLine.value || !selectedImage.value) return",
+        "is_masked": false
+      },
+      {
+        "text": "Backspace",
+        "line": 327,
+        "context": "  // 【新】：支持 Delete/Backspace 删除选中的线\n  if (e.key === 'Delete' || e.key === 'Backspace') {\n    if (axis === 'x') linesX.value.splice(index, 1)",
+        "is_masked": false
+      },
+      {
+        "text": "Delete",
+        "line": 327,
+        "context": "  // 【新】：支持 Delete/Backspace 删除选中的线\n  if (e.key === 'Delete' || e.key === 'Backspace') {\n    if (axis === 'x') linesX.value.splice(index, 1)",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.messages.lineDeletedKey",
+        "line": 330,
+        "context": "    else linesY.value.splice(index, 1)\n    srMessage.value = t('tools.split.messages.lineDeletedKey', {\n      index: index + 1,",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.horizontalLine",
+        "line": 332,
+        "context": "      index: index + 1,\n      axis: axis === 'x' ? t('tools.split.verticalLine') : t('tools.split.horizontalLine')\n    })",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.verticalLine",
+        "line": 332,
+        "context": "      index: index + 1,\n      axis: axis === 'x' ? t('tools.split.verticalLine') : t('tools.split.horizontalLine')\n    })",
+        "is_masked": false
+      },
+      {
+        "text": "ArrowLeft",
+        "line": 344,
+        "context": "  if (axis === 'x') {\n    if (e.key === 'ArrowLeft') linesX.value[index] = Math.max(0, linesX.value[index]! - step)\n    else if (e.key === 'ArrowRight')",
+        "is_masked": false
+      },
+      {
+        "text": "ArrowRight",
+        "line": 345,
+        "context": "    if (e.key === 'ArrowLeft') linesX.value[index] = Math.max(0, linesX.value[index]! - step)\n    else if (e.key === 'ArrowRight')\n      linesX.value[index] = Math.min(max, linesX.value[index]! + step)",
+        "is_masked": false
+      },
+      {
+        "text": "ArrowUp",
+        "line": 349,
+        "context": "  } else {\n    if (e.key === 'ArrowUp') linesY.value[index] = Math.max(0, linesY.value[index]! - step)\n    else if (e.key === 'ArrowDown') linesY.value[index] = Math.min(max, linesY.value[index]! + step)",
+        "is_masked": false
+      },
+      {
+        "text": "ArrowDown",
+        "line": 350,
+        "context": "    if (e.key === 'ArrowUp') linesY.value[index] = Math.max(0, linesY.value[index]! - step)\n    else if (e.key === 'ArrowDown') linesY.value[index] = Math.min(max, linesY.value[index]! + step)\n    else return",
+        "is_masked": false
+      },
+      {
+        "text": "keydown",
+        "line": 360,
+        "context": "  updateThemeColor()\n  window.addEventListener('keydown', handleKeyDown)\n",
+        "is_masked": false
+      },
+      {
+        "text": "data-theme",
+        "line": 368,
+        "context": "    attributes: true,\n    attributeFilter: ['class', 'style', 'data-theme']\n  })",
+        "is_masked": false
+      },
+      {
+        "text": "class",
+        "line": 368,
+        "context": "    attributes: true,\n    attributeFilter: ['class', 'style', 'data-theme']\n  })",
+        "is_masked": false
+      },
+      {
+        "text": "style",
+        "line": 368,
+        "context": "    attributes: true,\n    attributeFilter: ['class', 'style', 'data-theme']\n  })",
+        "is_masked": false
+      },
+      {
+        "text": "keydown",
+        "line": 373,
+        "context": "onUnmounted(() => {\n  window.removeEventListener('keydown', handleKeyDown)\n  if (themeObserver) {",
+        "is_masked": false
+      },
+      {
+        "text": "grid",
+        "line": 444,
+        "context": "    // 如果是在 Grid 模式点中的，先执行转换\n    if (editMode.value === 'grid') {\n      const newLinesX: number[] = []",
+        "is_masked": false
+      },
+      {
+        "text": "custom",
+        "line": 451,
+        "context": "      linesY.value = newLinesY\n      editMode.value = 'custom'\n      srMessage.value = t('tools.split.messages.switchedToFree')",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.messages.switchedToFree",
+        "line": 452,
+        "context": "      editMode.value = 'custom'\n      srMessage.value = t('tools.split.messages.switchedToFree')\n    }",
+        "is_masked": false
+      },
+      {
+        "text": "custom",
+        "line": 463,
+        "context": "\n  if (editMode.value === 'custom') {\n    if (activeAxis.value === 'x') {",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.messages.lineAdded",
+        "line": 468,
+        "context": "      linesX.value.sort((a, b) => a - b)\n      srMessage.value = t('tools.split.messages.lineAdded', {\n        axis: t('tools.split.verticalLine'),",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.verticalLine",
+        "line": 469,
+        "context": "      srMessage.value = t('tools.split.messages.lineAdded', {\n        axis: t('tools.split.verticalLine'),\n        pos: Math.round(snappedX)",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.messages.lineAdded",
+        "line": 480,
+        "context": "      linesY.value.sort((a, b) => a - b)\n      srMessage.value = t('tools.split.messages.lineAdded', {\n        axis: t('tools.split.horizontalLine'),",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.horizontalLine",
+        "line": 481,
+        "context": "      srMessage.value = t('tools.split.messages.lineAdded', {\n        axis: t('tools.split.horizontalLine'),\n        pos: Math.round(snappedY)",
+        "is_masked": false
+      },
+      {
+        "text": "touch",
+        "line": 519,
+        "context": "  // 【优化】：移动端判定半径扩大\n  const threshold = (e.pointerType === 'touch' ? 20 : 12) / scale\n  const img = selectedImage.value",
+        "is_masked": false
+      },
+      {
+        "text": "custom",
+        "line": 525,
+        "context": "  const checkLinesX =\n    editMode.value === 'custom'\n      ? linesX.value",
+        "is_masked": false
+      },
+      {
+        "text": "custom",
+        "line": 532,
+        "context": "  const checkLinesY =\n    editMode.value === 'custom'\n      ? linesY.value",
+        "is_masked": false
+      },
+      {
+        "text": " : ",
+        "line": 559,
+        "context": "    if (found) {\n      container.style.cursor = hoveredLine.value?.axis === 'x' ? 'col-resize' : 'row-resize'\n    } else {",
+        "is_masked": false
+      },
+      {
+        "text": " ? ",
+        "line": 559,
+        "context": "    if (found) {\n      container.style.cursor = hoveredLine.value?.axis === 'x' ? 'col-resize' : 'row-resize'\n    } else {",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.messages.lineDeleted",
+        "line": 582,
+        "context": "        else linesY.value.splice(index, 1)\n        srMessage.value = t('tools.split.messages.lineDeleted', {\n          index: index + 1,",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.horizontalLine",
+        "line": 584,
+        "context": "          index: index + 1,\n          axis: axis === 'x' ? t('tools.split.verticalLine') : t('tools.split.horizontalLine')\n        })",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.verticalLine",
+        "line": 584,
+        "context": "          index: index + 1,\n          axis: axis === 'x' ? t('tools.split.verticalLine') : t('tools.split.horizontalLine')\n        })",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.messages.resetToGrid",
+        "line": 602,
+        "context": "  linesY.value = newLinesY\n  srMessage.value = t('tools.split.messages.resetToGrid')\n  saveMeta()",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.messages.cleared",
+        "line": 609,
+        "context": "  linesY.value = []\n  srMessage.value = t('tools.split.messages.cleared')\n  saveMeta()",
+        "is_masked": false
+      },
+      {
+        "text": "custom",
+        "line": 624,
+        "context": "  await processSingle(selectedImage.value.id, {\n    rows: editMode.value === 'custom' ? linesY.value.length + 1 : rows.value,\n    cols: editMode.value === 'custom' ? linesX.value.length + 1 : cols.value,",
+        "is_masked": false
+      },
+      {
+        "text": "custom",
+        "line": 625,
+        "context": "    rows: editMode.value === 'custom' ? linesY.value.length + 1 : rows.value,\n    cols: editMode.value === 'custom' ? linesX.value.length + 1 : cols.value,\n    mode: editMode.value,",
+        "is_masked": false
+      },
+      {
+        "text": "custom",
+        "line": 628,
+        "context": "    customLines:\n      editMode.value === 'custom' ? { x: [...linesX.value], y: [...linesY.value] } : undefined,\n    centerMode: centerMode.value,",
+        "is_masked": false
+      },
+      {
+        "text": "original",
+        "line": 631,
+        "context": "    shave: shave.value,\n    format: outputFormat.value === 'original' ? undefined : outputFormat.value,\n    quality: outputQuality.value",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.cta.select",
+        "line": 641,
+        "context": "  if (!img)\n    return { text: t('tools.split.cta.select'), icon: Scissors, action: 'none', disabled: true }\n",
+        "is_masked": false
+      },
+      {
+        "text": "none",
+        "line": 641,
+        "context": "  if (!img)\n    return { text: t('tools.split.cta.select'), icon: Scissors, action: 'none', disabled: true }\n",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.cta.aborted",
+        "line": 644,
+        "context": "  if (isAborting.value) {\n    return { text: t('tools.split.cta.aborted'), icon: RotateCcw, action: 'none', disabled: true }\n  }",
+        "is_masked": false
+      },
+      {
+        "text": "none",
+        "line": 644,
+        "context": "  if (isAborting.value) {\n    return { text: t('tools.split.cta.aborted'), icon: RotateCcw, action: 'none', disabled: true }\n  }",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.cta.rendering",
+        "line": 650,
+        "context": "      progress.value > 0\n        ? t('tools.split.cta.rendering', { progress: Math.round(progress.value * 100) })\n        : t('tools.split.cta.renderingNoProgress')",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.cta.renderingNoProgress",
+        "line": 651,
+        "context": "        ? t('tools.split.cta.rendering', { progress: Math.round(progress.value * 100) })\n        : t('tools.split.cta.renderingNoProgress')\n    return {",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.cta.clickToAbort",
+        "line": 653,
+        "context": "    return {\n      text: `${progressText} ${t('tools.split.cta.clickToAbort')}`,\n      icon: Trash2,",
+        "is_masked": false
+      },
+      {
+        "text": "abort",
+        "line": 655,
+        "context": "      icon: Trash2,\n      action: 'abort',\n      disabled: false",
+        "is_masked": false
+      },
+      {
+        "text": "done",
+        "line": 660,
+        "context": "\n  if (img.status === 'done' && (img.processedBlob || img.processedBlobs) && !img.isDirty) {\n    return {",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.cta.exportSlices",
+        "line": 662,
+        "context": "    return {\n      text: t('tools.split.cta.exportSlices'),\n      icon: Download,",
+        "is_masked": false
+      },
+      {
+        "text": "download",
+        "line": 664,
+        "context": "      icon: Download,\n      action: 'download',\n      disabled: false",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.cta.updateSplit",
+        "line": 670,
+        "context": "  return {\n    text: img.isDirty ? t('tools.split.cta.updateSplit') : t('tools.split.cta.splitImage'),\n    icon: Scissors,",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.cta.splitImage",
+        "line": 670,
+        "context": "  return {\n    text: img.isDirty ? t('tools.split.cta.updateSplit') : t('tools.split.cta.splitImage'),\n    icon: Scissors,",
+        "is_masked": false
+      },
+      {
+        "text": "process",
+        "line": 672,
+        "context": "    icon: Scissors,\n    action: 'process',\n    disabled: false",
+        "is_masked": false
+      },
+      {
+        "text": "none",
+        "line": 679,
+        "context": "  const state = ctaState.value\n  if (state.action === 'none') return\n",
+        "is_masked": false
+      },
+      {
+        "text": "abort",
+        "line": 681,
+        "context": "\n  if (state.action === 'abort') {\n    isAborting.value = true",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.messages.abortedTask",
+        "line": 684,
+        "context": "    abortProcessing()\n    srMessage.value = t('tools.split.messages.abortedTask')\n    setTimeout(() => {",
+        "is_masked": false
+      },
+      {
+        "text": "download",
+        "line": 691,
+        "context": "\n  if (state.action === 'download') {\n    const img = selectedImage.value",
+        "is_masked": false
+      },
+      {
+        "text": "_Split",
+        "line": 694,
+        "context": "    if (img && (img.processedBlob || img.processedBlobs)) {\n      downloadImage(img.processedBlobs || img.processedBlob!, img.file.name, '_Split')\n    }",
+        "is_masked": false
+      },
+      {
+        "text": "process",
+        "line": 699,
+        "context": "\n  if (state.action === 'process') {\n    await handleApplyProcess()",
+        "is_masked": false
+      },
+      {
+        "text": "false",
+        "line": 707,
+        "context": "  <WorkspaceLayout show-sidebar no-scroll show-assets-tray>\n    <template #header-left><ImageSelectionStatus :show-card-size=\"false\" /></template>\n    <template #header-actions",
+        "is_masked": false
+      },
+      {
+        "text": "split",
+        "line": 710,
+        "context": "      ><ImageActionsToolbar\n        view-id=\"split\"\n        :is-processing=\"isProcessing\"",
+        "is_masked": false
+      },
+      {
+        "text": "isProcessing",
+        "line": 711,
+        "context": "        view-id=\"split\"\n        :is-processing=\"isProcessing\"\n        :show-download-all=\"false\"",
+        "is_masked": false
+      },
+      {
+        "text": "false",
+        "line": 712,
+        "context": "        :is-processing=\"isProcessing\"\n        :show-download-all=\"false\"\n        show-clear-all",
+        "is_masked": false
+      },
+      {
+        "text": "polite",
+        "line": 718,
+        "context": "      <!-- 无障碍实时播报 -->\n      <div class=\"sr-only\" aria-live=\"polite\">{{ srMessage }}</div>\n      <AppCanvasWorkspace",
+        "is_masked": false
+      },
+      {
+        "text": "sr-only",
+        "line": 718,
+        "context": "      <!-- 无障碍实时播报 -->\n      <div class=\"sr-only\" aria-live=\"polite\">{{ srMessage }}</div>\n      <AppCanvasWorkspace",
+        "is_masked": false
+      },
+      {
+        "text": "workspaceRef",
+        "line": 720,
+        "context": "      <AppCanvasWorkspace\n        ref=\"workspaceRef\"\n        :aria-label=\"t('tools.split.canvas.ariaLabel')\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.canvas.ariaLabel",
+        "line": 721,
+        "context": "        ref=\"workspaceRef\"\n        :aria-label=\"t('tools.split.canvas.ariaLabel')\"\n        :aria-describedby=\"'canvas-instructions'\"",
+        "is_masked": false
+      },
+      {
+        "text": "canvas-instructions",
+        "line": 722,
+        "context": "        :aria-label=\"t('tools.split.canvas.ariaLabel')\"\n        :aria-describedby=\"'canvas-instructions'\"\n        @reset=\"resetView\"",
+        "is_masked": false
+      },
+      {
+        "text": "resetView",
+        "line": 723,
+        "context": "        :aria-describedby=\"'canvas-instructions'\"\n        @reset=\"resetView\"\n        @pointerdown=\"handlePointerDown\"",
+        "is_masked": false
+      },
+      {
+        "text": "handlePointerDown",
+        "line": 724,
+        "context": "        @reset=\"resetView\"\n        @pointerdown=\"handlePointerDown\"\n        @pointermove=\"handlePointerMove\"",
+        "is_masked": false
+      },
+      {
+        "text": "handlePointerMove",
+        "line": 725,
+        "context": "        @pointerdown=\"handlePointerDown\"\n        @pointermove=\"handlePointerMove\"\n        @pointerup=\"handlePointerUp\"",
+        "is_masked": false
+      },
+      {
+        "text": "handlePointerUp",
+        "line": 726,
+        "context": "        @pointermove=\"handlePointerMove\"\n        @pointerup=\"handlePointerUp\"\n        @pointerleave=\"handlePointerUp\"",
+        "is_masked": false
+      },
+      {
+        "text": "handlePointerUp",
+        "line": 727,
+        "context": "        @pointerup=\"handlePointerUp\"\n        @pointerleave=\"handlePointerUp\"\n        @pointercancel=\"handlePointerUp\"",
+        "is_masked": false
+      },
+      {
+        "text": "handlePointerUp",
+        "line": 728,
+        "context": "        @pointerleave=\"handlePointerUp\"\n        @pointercancel=\"handlePointerUp\"\n      >",
+        "is_masked": false
+      },
+      {
+        "text": "canvas-instructions",
+        "line": 732,
+        "context": "          <!-- 隐藏的 A11y 指引文本 -->\n          <div id=\"canvas-instructions\" class=\"sr-only\">\n            {{ t('tools.split.canvas.instructions') }}",
+        "is_masked": false
+      },
+      {
+        "text": "sr-only",
+        "line": 732,
+        "context": "          <!-- 隐藏的 A11y 指引文本 -->\n          <div id=\"canvas-instructions\" class=\"sr-only\">\n            {{ t('tools.split.canvas.instructions') }}",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.canvas.instructions",
+        "line": 733,
+        "context": "          <div id=\"canvas-instructions\" class=\"sr-only\">\n            {{ t('tools.split.canvas.instructions') }}\n          </div>",
+        "is_masked": false
+      },
+      {
+        "text": "relative shadow-2xl",
+        "line": 735,
+        "context": "          </div>\n          <div class=\"relative shadow-2xl\">\n            <canvas ref=\"canvasRef\" class=\"block rounded-sm\" />",
+        "is_masked": false
+      },
+      {
+        "text": "block rounded-sm",
+        "line": 736,
+        "context": "          <div class=\"relative shadow-2xl\">\n            <canvas ref=\"canvasRef\" class=\"block rounded-sm\" />\n",
+        "is_masked": false
+      },
+      {
+        "text": "canvasRef",
+        "line": 736,
+        "context": "          <div class=\"relative shadow-2xl\">\n            <canvas ref=\"canvasRef\" class=\"block rounded-sm\" />\n",
+        "is_masked": false
+      },
+      {
+        "text": "absolute inset-0 pointer-events-none overflow-hidden",
+        "line": 739,
+        "context": "            <!-- 【无障碍层】：物理焦点锚点 -->\n            <div class=\"absolute inset-0 pointer-events-none overflow-hidden\">\n              <!-- 垂直线焦点 -->",
+        "is_masked": false
+      },
+      {
+        "text": "absolute top-0 bottom-0 w-4 -ml-2 pointer-events-auto opacity-0 focus:opacity-100 focus:bg-primary/20 focus:ring-2 focus:ring-primary/40 focus:outline-none transition-all z-20 cursor-col-resize",
+        "line": 744,
+        "context": "                :key=\"`focus-x-${i}`\"\n                class=\"absolute top-0 bottom-0 w-4 -ml-2 pointer-events-auto opacity-0 focus:opacity-100 focus:bg-primary/20 focus:ring-2 focus:ring-primary/40 focus:outline-none transition-all z-20 cursor-col-resize\"\n                :style=\"{ left: `${lx}px` }\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.canvas.vLineAria",
+        "line": 750,
+        "context": "                :aria-label=\"\n                  t('tools.split.canvas.vLineAria', { index: i + 1, pos: Math.round(lx) })\n                \"",
+        "is_masked": false
+      },
+      {
+        "text": "absolute left-0 right-0 h-4 -mt-2 pointer-events-auto opacity-0 focus:opacity-100 focus:bg-primary/20 focus:ring-2 focus:ring-primary/40 focus:outline-none transition-all z-20 cursor-row-resize",
+        "line": 757,
+        "context": "                :key=\"`focus-y-${i}`\"\n                class=\"absolute left-0 right-0 h-4 -mt-2 pointer-events-auto opacity-0 focus:opacity-100 focus:bg-primary/20 focus:ring-2 focus:ring-primary/40 focus:outline-none transition-all z-20 cursor-row-resize\"\n                :style=\"{ top: `${ly}px` }\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.canvas.hLineAria",
+        "line": 763,
+        "context": "                :aria-label=\"\n                  t('tools.split.canvas.hLineAria', { index: i + 1, pos: Math.round(ly) })\n                \"",
+        "is_masked": false
+      },
+      {
+        "text": "fade-fast",
+        "line": 772,
+        "context": "        <template #floating>\n          <Transition name=\"fade-fast\">\n            <div",
+        "is_masked": false
+      },
+      {
+        "text": "custom",
+        "line": 774,
+        "context": "            <div\n              v-if=\"editMode === 'custom' && !draggingLine\"\n              class=\"absolute left-1/2 -translate-x-1/2 bg-background/60 backdrop-blur-md px-4 py-2 rounded-2xl text-foreground text-[10px] font-bold border border-border/40 pointer-events-none shadow-lg z-50 whitespace-nowrap tracking-wider flex items-center gap-2 transition-all duration-500\"",
+        "is_masked": false
+      },
+      {
+        "text": " : ",
+        "line": 776,
+        "context": "              class=\"absolute left-1/2 -translate-x-1/2 bg-background/60 backdrop-blur-md px-4 py-2 rounded-2xl text-foreground text-[10px] font-bold border border-border/40 pointer-events-none shadow-lg z-50 whitespace-nowrap tracking-wider flex items-center gap-2 transition-all duration-500\"\n              :class=\"[isMobile ? 'bottom-[140px]' : 'bottom-24']\"\n            >",
+        "is_masked": false
+      },
+      {
+        "text": "flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary",
+        "line": 779,
+        "context": "              <div\n                class=\"flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary\"\n              >",
+        "is_masked": false
+      },
+      {
+        "text": "12",
+        "line": 781,
+        "context": "              >\n                <Scissors :size=\"12\" />\n              </div>",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.canvas.clickToAdd",
+        "line": 784,
+        "context": "              <span\n                >{{ t('tools.split.canvas.clickToAdd') }} <span class=\"mx-1 opacity-40\">·</span>\n                {{ t('tools.split.canvas.dragToMove') }}</span",
+        "is_masked": false
+      },
+      {
+        "text": "mx-1 opacity-40",
+        "line": 784,
+        "context": "              <span\n                >{{ t('tools.split.canvas.clickToAdd') }} <span class=\"mx-1 opacity-40\">·</span>\n                {{ t('tools.split.canvas.dragToMove') }}</span",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.canvas.dragToMove",
+        "line": 785,
+        "context": "                >{{ t('tools.split.canvas.clickToAdd') }} <span class=\"mx-1 opacity-40\">·</span>\n                {{ t('tools.split.canvas.dragToMove') }}</span\n              >",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-4",
+        "line": 794,
+        "context": "    <template #sidebar>\n      <section class=\"space-y-4\">\n        <AppSectionHeader :title=\"t('tools.split.gridSettings')\" :icon=\"Grid3X3\" />",
+        "is_masked": false
+      },
+      {
+        "text": "Grid3X3",
+        "line": 795,
+        "context": "      <section class=\"space-y-4\">\n        <AppSectionHeader :title=\"t('tools.split.gridSettings')\" :icon=\"Grid3X3\" />\n        <div class=\"space-y-4 px-1\">",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.gridSettings",
+        "line": 795,
+        "context": "      <section class=\"space-y-4\">\n        <AppSectionHeader :title=\"t('tools.split.gridSettings')\" :icon=\"Grid3X3\" />\n        <div class=\"space-y-4 px-1\">",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-4 px-1",
+        "line": 796,
+        "context": "        <AppSectionHeader :title=\"t('tools.split.gridSettings')\" :icon=\"Grid3X3\" />\n        <div class=\"space-y-4 px-1\">\n          <AppSegmentedControl",
+        "is_masked": false
+      },
+      {
+        "text": "editMode",
+        "line": 798,
+        "context": "          <AppSegmentedControl\n            v-model=\"editMode\"\n            :options=\"[",
+        "is_masked": false
+      },
+      {
+        "text": "grid",
+        "line": 800,
+        "context": "            :options=\"[\n              { label: t('tools.split.uniformGrid'), value: 'grid', icon: Grid3X3 },\n              { label: t('tools.split.freeEdit'), value: 'custom', icon: Scissors }",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.uniformGrid",
+        "line": 800,
+        "context": "            :options=\"[\n              { label: t('tools.split.uniformGrid'), value: 'grid', icon: Grid3X3 },\n              { label: t('tools.split.freeEdit'), value: 'custom', icon: Scissors }",
+        "is_masked": false
+      },
+      {
+        "text": "custom",
+        "line": 801,
+        "context": "              { label: t('tools.split.uniformGrid'), value: 'grid', icon: Grid3X3 },\n              { label: t('tools.split.freeEdit'), value: 'custom', icon: Scissors }\n            ]\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.freeEdit",
+        "line": 801,
+        "context": "              { label: t('tools.split.uniformGrid'), value: 'grid', icon: Grid3X3 },\n              { label: t('tools.split.freeEdit'), value: 'custom', icon: Scissors }\n            ]\"",
+        "is_masked": false
+      },
+      {
+        "text": "grid",
+        "line": 805,
+        "context": "          <div\n            v-if=\"editMode === 'grid'\"\n            class=\"bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4\"",
+        "is_masked": false
+      },
+      {
+        "text": "bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4",
+        "line": 806,
+        "context": "            v-if=\"editMode === 'grid'\"\n            class=\"bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4\"\n          >",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-1",
+        "line": 808,
+        "context": "          >\n            <div class=\"space-y-1\">\n              <AppSlider",
+        "is_masked": false
+      },
+      {
+        "text": "rows",
+        "line": 810,
+        "context": "              <AppSlider\n                v-model=\"rows\"\n                :label=\"t('tools.split.verticalRows')\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.verticalRows",
+        "line": 811,
+        "context": "                v-model=\"rows\"\n                :label=\"t('tools.split.verticalRows')\"\n                :icon=\"AlignCenter\"",
+        "is_masked": false
+      },
+      {
+        "text": "AlignCenter",
+        "line": 812,
+        "context": "                :label=\"t('tools.split.verticalRows')\"\n                :icon=\"AlignCenter\"\n                :unit=\"t('tools.split.unitRow')\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.unitRow",
+        "line": 813,
+        "context": "                :icon=\"AlignCenter\"\n                :unit=\"t('tools.split.unitRow')\"\n                :min=\"1\"",
+        "is_masked": false
+      },
+      {
+        "text": "10",
+        "line": 815,
+        "context": "                :min=\"1\"\n                :max=\"10\"\n                :step=\"1\"",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-1",
+        "line": 820,
+        "context": "            </div>\n            <div class=\"space-y-1\">\n              <AppSlider",
+        "is_masked": false
+      },
+      {
+        "text": "cols",
+        "line": 822,
+        "context": "              <AppSlider\n                v-model=\"cols\"\n                :label=\"t('tools.split.horizontalCols')\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.horizontalCols",
+        "line": 823,
+        "context": "                v-model=\"cols\"\n                :label=\"t('tools.split.horizontalCols')\"\n                :icon=\"Grid3X3\"",
+        "is_masked": false
+      },
+      {
+        "text": "Grid3X3",
+        "line": 824,
+        "context": "                :label=\"t('tools.split.horizontalCols')\"\n                :icon=\"Grid3X3\"\n                :unit=\"t('tools.split.unitCol')\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.unitCol",
+        "line": 825,
+        "context": "                :icon=\"Grid3X3\"\n                :unit=\"t('tools.split.unitCol')\"\n                :min=\"1\"",
+        "is_masked": false
+      },
+      {
+        "text": "10",
+        "line": 827,
+        "context": "                :min=\"1\"\n                :max=\"10\"\n                :step=\"1\"",
+        "is_masked": false
+      },
+      {
+        "text": "bg-primary/5 rounded-2xl p-4 border border-primary/20 flex flex-col gap-4",
+        "line": 835,
+        "context": "            v-else\n            class=\"bg-primary/5 rounded-2xl p-4 border border-primary/20 flex flex-col gap-4\"\n          >",
+        "is_masked": false
+      },
+      {
+        "text": "grid grid-cols-2 gap-3",
+        "line": 837,
+        "context": "          >\n            <div class=\"grid grid-cols-2 gap-3\">\n              <AppButton",
+        "is_masked": false
+      },
+      {
+        "text": " : ",
+        "line": 840,
+        "context": "                @click=\"activeAxis = 'x'\"\n                :variant=\"activeAxis === 'x' ? 'primary' : 'secondary'\"\n                size=\"md\"",
+        "is_masked": false
+      },
+      {
+        "text": " ? ",
+        "line": 840,
+        "context": "                @click=\"activeAxis = 'x'\"\n                :variant=\"activeAxis === 'x' ? 'primary' : 'secondary'\"\n                size=\"md\"",
+        "is_masked": false
+      },
+      {
+        "text": "md",
+        "line": 841,
+        "context": "                :variant=\"activeAxis === 'x' ? 'primary' : 'secondary'\"\n                size=\"md\"\n                class=\"rounded-xl h-11 border-2 text-xs\"",
+        "is_masked": false
+      },
+      {
+        "text": "rounded-xl h-11 border-2 text-xs",
+        "line": 842,
+        "context": "                size=\"md\"\n                class=\"rounded-xl h-11 border-2 text-xs\"\n                :class=\"{ 'border-primary shadow-md': activeAxis === 'x' }\"",
+        "is_masked": false
+      },
+      {
+        "text": "border-primary shadow-md",
+        "line": 843,
+        "context": "                class=\"rounded-xl h-11 border-2 text-xs\"\n                :class=\"{ 'border-primary shadow-md': activeAxis === 'x' }\"\n              >",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.verticalLine",
+        "line": 845,
+        "context": "              >\n                {{ t('tools.split.verticalLine') }}\n              </AppButton>",
+        "is_masked": false
+      },
+      {
+        "text": " : ",
+        "line": 849,
+        "context": "                @click=\"activeAxis = 'y'\"\n                :variant=\"activeAxis === 'y' ? 'primary' : 'secondary'\"\n                size=\"md\"",
+        "is_masked": false
+      },
+      {
+        "text": " ? ",
+        "line": 849,
+        "context": "                @click=\"activeAxis = 'y'\"\n                :variant=\"activeAxis === 'y' ? 'primary' : 'secondary'\"\n                size=\"md\"",
+        "is_masked": false
+      },
+      {
+        "text": "md",
+        "line": 850,
+        "context": "                :variant=\"activeAxis === 'y' ? 'primary' : 'secondary'\"\n                size=\"md\"\n                class=\"rounded-xl h-11 border-2 text-xs\"",
+        "is_masked": false
+      },
+      {
+        "text": "rounded-xl h-11 border-2 text-xs",
+        "line": 851,
+        "context": "                size=\"md\"\n                class=\"rounded-xl h-11 border-2 text-xs\"\n                :class=\"{ 'border-primary shadow-md': activeAxis === 'y' }\"",
+        "is_masked": false
+      },
+      {
+        "text": "border-primary shadow-md",
+        "line": 852,
+        "context": "                class=\"rounded-xl h-11 border-2 text-xs\"\n                :class=\"{ 'border-primary shadow-md': activeAxis === 'y' }\"\n              >",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.horizontalLine",
+        "line": 854,
+        "context": "              >\n                {{ t('tools.split.horizontalLine') }}\n              </AppButton>",
+        "is_masked": false
+      },
+      {
+        "text": "flex gap-2.5",
+        "line": 857,
+        "context": "            </div>\n            <div class=\"flex gap-2.5\">\n              <AppButton",
+        "is_masked": false
+      },
+      {
+        "text": "handleResetToGrid",
+        "line": 859,
+        "context": "              <AppButton\n                @click=\"handleResetToGrid\"\n                variant=\"secondary\"",
+        "is_masked": false
+      },
+      {
+        "text": "secondary",
+        "line": 860,
+        "context": "                @click=\"handleResetToGrid\"\n                variant=\"secondary\"\n                size=\"sm\"",
+        "is_masked": false
+      },
+      {
+        "text": "sm",
+        "line": 861,
+        "context": "                variant=\"secondary\"\n                size=\"sm\"\n                class=\"flex-1 rounded-xl h-10 text-[11px] font-black uppercase tracking-widest border-border/40 bg-muted/5\"",
+        "is_masked": false
+      },
+      {
+        "text": "Grid3X3",
+        "line": 863,
+        "context": "                class=\"flex-1 rounded-xl h-10 text-[11px] font-black uppercase tracking-widest border-border/40 bg-muted/5\"\n                :icon=\"Grid3X3\"\n                :title=\"t('tools.split.syncGridTip')\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.syncGridTip",
+        "line": 864,
+        "context": "                :icon=\"Grid3X3\"\n                :title=\"t('tools.split.syncGridTip')\"\n              >",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.syncGrid",
+        "line": 866,
+        "context": "              >\n                {{ t('tools.split.syncGrid') }}\n              </AppButton>",
+        "is_masked": false
+      },
+      {
+        "text": "clearLines",
+        "line": 869,
+        "context": "              <AppButton\n                @click=\"clearLines\"\n                variant=\"secondary\"",
+        "is_masked": false
+      },
+      {
+        "text": "secondary",
+        "line": 870,
+        "context": "                @click=\"clearLines\"\n                variant=\"secondary\"\n                size=\"sm\"",
+        "is_masked": false
+      },
+      {
+        "text": "sm",
+        "line": 871,
+        "context": "                variant=\"secondary\"\n                size=\"sm\"\n                class=\"flex-1 rounded-xl h-10 text-[11px] font-black uppercase tracking-widest border-border/40 bg-muted/5 hover:text-destructive hover:border-destructive hover:bg-destructive/5\"",
+        "is_masked": false
+      },
+      {
+        "text": "Trash2",
+        "line": 873,
+        "context": "                class=\"flex-1 rounded-xl h-10 text-[11px] font-black uppercase tracking-widest border-border/40 bg-muted/5 hover:text-destructive hover:border-destructive hover:bg-destructive/5\"\n                :icon=\"Trash2\"\n              >",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.clearAll",
+        "line": 875,
+        "context": "              >\n                {{ t('tools.split.clearAll') }}\n              </AppButton>",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-4 pt-6 border-t border-border/40",
+        "line": 882,
+        "context": "\n      <section class=\"space-y-4 pt-6 border-t border-border/40\">\n        <div class=\"flex items-center justify-between pr-1\">",
+        "is_masked": false
+      },
+      {
+        "text": "flex items-center justify-between pr-1",
+        "line": 883,
+        "context": "      <section class=\"space-y-4 pt-6 border-t border-border/40\">\n        <div class=\"flex items-center justify-between pr-1\">\n          <AppSectionHeader :title=\"t('tools.split.viewSettings')\" :icon=\"Box\" />",
+        "is_masked": false
+      },
+      {
+        "text": "Box",
+        "line": 884,
+        "context": "        <div class=\"flex items-center justify-between pr-1\">\n          <AppSectionHeader :title=\"t('tools.split.viewSettings')\" :icon=\"Box\" />\n          <AppButton",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.viewSettings",
+        "line": 884,
+        "context": "        <div class=\"flex items-center justify-between pr-1\">\n          <AppSectionHeader :title=\"t('tools.split.viewSettings')\" :icon=\"Box\" />\n          <AppButton",
+        "is_masked": false
+      },
+      {
+        "text": "ghost",
+        "line": 886,
+        "context": "          <AppButton\n            variant=\"ghost\"\n            size=\"sm\"",
+        "is_masked": false
+      },
+      {
+        "text": "sm",
+        "line": 887,
+        "context": "            variant=\"ghost\"\n            size=\"sm\"\n            @click=\"resetViewSettings\"",
+        "is_masked": false
+      },
+      {
+        "text": "resetViewSettings",
+        "line": 888,
+        "context": "            size=\"sm\"\n            @click=\"resetViewSettings\"\n            class=\"w-8 h-8 p-0 rounded-lg text-muted-foreground/40 hover:text-primary\"",
+        "is_masked": false
+      },
+      {
+        "text": "w-8 h-8 p-0 rounded-lg text-muted-foreground/40 hover:text-primary",
+        "line": 889,
+        "context": "            @click=\"resetViewSettings\"\n            class=\"w-8 h-8 p-0 rounded-lg text-muted-foreground/40 hover:text-primary\"\n            :title=\"t('tools.split.restoreDefaultView')\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.restoreDefaultView",
+        "line": 890,
+        "context": "            class=\"w-8 h-8 p-0 rounded-lg text-muted-foreground/40 hover:text-primary\"\n            :title=\"t('tools.split.restoreDefaultView')\"\n            :icon=\"RotateCcw\"",
+        "is_masked": false
+      },
+      {
+        "text": "RotateCcw",
+        "line": 891,
+        "context": "            :title=\"t('tools.split.restoreDefaultView')\"\n            :icon=\"RotateCcw\"\n          />",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-4 px-1",
+        "line": 894,
+        "context": "        </div>\n        <div class=\"space-y-4 px-1\">\n          <div class=\"bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4\">",
+        "is_masked": false
+      },
+      {
+        "text": "bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4",
+        "line": 895,
+        "context": "        <div class=\"space-y-4 px-1\">\n          <div class=\"bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4\">\n            <div class=\"space-y-1\">",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-1",
+        "line": 896,
+        "context": "          <div class=\"bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4\">\n            <div class=\"space-y-1\">\n              <AppSlider",
+        "is_masked": false
+      },
+      {
+        "text": "viewSettings.lineWidth",
+        "line": 898,
+        "context": "              <AppSlider\n                v-model=\"viewSettings.lineWidth\"\n                :label=\"t('tools.split.lineWidth')\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.lineWidth",
+        "line": 899,
+        "context": "                v-model=\"viewSettings.lineWidth\"\n                :label=\"t('tools.split.lineWidth')\"\n                :icon=\"Scissors\"",
+        "is_masked": false
+      },
+      {
+        "text": "Scissors",
+        "line": 900,
+        "context": "                :label=\"t('tools.split.lineWidth')\"\n                :icon=\"Scissors\"\n                unit=\"px\"",
+        "is_masked": false
+      },
+      {
+        "text": "px",
+        "line": 901,
+        "context": "                :icon=\"Scissors\"\n                unit=\"px\"\n                :min=\"0.5\"",
+        "is_masked": false
+      },
+      {
+        "text": "0.5",
+        "line": 902,
+        "context": "                unit=\"px\"\n                :min=\"0.5\"\n                :max=\"5\"",
+        "is_masked": false
+      },
+      {
+        "text": "0.1",
+        "line": 904,
+        "context": "                :max=\"5\"\n                :step=\"0.1\"\n                :default-value=\"1.5\"",
+        "is_masked": false
+      },
+      {
+        "text": "1.5",
+        "line": 905,
+        "context": "                :step=\"0.1\"\n                :default-value=\"1.5\"\n              />",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-3",
+        "line": 909,
+        "context": "\n            <div class=\"space-y-3\">\n              <span",
+        "is_masked": false
+      },
+      {
+        "text": "line-color-label",
+        "line": 911,
+        "context": "              <span\n                id=\"line-color-label\"\n                class=\"text-[10px] font-bold text-muted-foreground uppercase tracking-wider block px-1\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.lineColor",
+        "line": 913,
+        "context": "                class=\"text-[10px] font-bold text-muted-foreground uppercase tracking-wider block px-1\"\n                >{{ t('tools.split.lineColor') }}</span\n              >",
+        "is_masked": false
+      },
+      {
+        "text": "grid grid-cols-4 gap-2",
+        "line": 916,
+        "context": "              <div\n                class=\"grid grid-cols-4 gap-2\"\n                role=\"radiogroup\"",
+        "is_masked": false
+      },
+      {
+        "text": "radiogroup",
+        "line": 917,
+        "context": "                class=\"grid grid-cols-4 gap-2\"\n                role=\"radiogroup\"\n                aria-labelledby=\"line-color-label\"",
+        "is_masked": false
+      },
+      {
+        "text": "line-color-label",
+        "line": 918,
+        "context": "                role=\"radiogroup\"\n                aria-labelledby=\"line-color-label\"\n                @keydown=\"handleColorKeydown\"",
+        "is_masked": false
+      },
+      {
+        "text": "handleColorKeydown",
+        "line": 919,
+        "context": "                aria-labelledby=\"line-color-label\"\n                @keydown=\"handleColorKeydown\"\n              >",
+        "is_masked": false
+      },
+      {
+        "text": "c in colorOptions",
+        "line": 922,
+        "context": "                <button\n                  v-for=\"c in colorOptions\"\n                  :key=\"c.value\"",
+        "is_masked": false
+      },
+      {
+        "text": "c.value",
+        "line": 923,
+        "context": "                  v-for=\"c in colorOptions\"\n                  :key=\"c.value\"\n                  @click=\"viewSettings.lineColor = c.value\"",
+        "is_masked": false
+      },
+      {
+        "text": "h-8 rounded-lg border-2 transition-all flex items-center justify-center focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background outline-none active:scale-95",
+        "line": 925,
+        "context": "                  @click=\"viewSettings.lineColor = c.value\"\n                  class=\"h-8 rounded-lg border-2 transition-all flex items-center justify-center focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background outline-none active:scale-95\"\n                  :class=\"",
+        "is_masked": false
+      },
+      {
+        "text": "border-primary ring-2 ring-primary/20 shadow-sm",
+        "line": 928,
+        "context": "                    viewSettings.lineColor === c.value\n                      ? 'border-primary ring-2 ring-primary/20 shadow-sm'\n                      : 'border-transparent bg-muted/20 hover:bg-muted/40'",
+        "is_masked": false
+      },
+      {
+        "text": "border-transparent bg-muted/20 hover:bg-muted/40",
+        "line": 929,
+        "context": "                      ? 'border-primary ring-2 ring-primary/20 shadow-sm'\n                      : 'border-transparent bg-muted/20 hover:bg-muted/40'\n                  \"",
+        "is_masked": false
+      },
+      {
+        "text": "c.label",
+        "line": 931,
+        "context": "                  \"\n                  :title=\"c.label\"\n                  role=\"radio\"",
+        "is_masked": false
+      },
+      {
+        "text": "radio",
+        "line": 932,
+        "context": "                  :title=\"c.label\"\n                  role=\"radio\"\n                  :aria-checked=\"viewSettings.lineColor === c.value\"",
+        "is_masked": false
+      },
+      {
+        "text": "c.label",
+        "line": 934,
+        "context": "                  :aria-checked=\"viewSettings.lineColor === c.value\"\n                  :aria-label=\"c.label\"\n                  :tabindex=\"viewSettings.lineColor === c.value ? 0 : -1\"",
+        "is_masked": false
+      },
+      {
+        "text": "w-4 h-4 rounded-full border border-black/10",
+        "line": 939,
+        "context": "                  <div\n                    class=\"w-4 h-4 rounded-full border border-black/10\"\n                    :style=\"{",
+        "is_masked": false
+      },
+      {
+        "text": "primary",
+        "line": 941,
+        "context": "                    :style=\"{\n                      backgroundColor: c.value === 'primary' ? cachedPrimaryColor : c.color\n                    }\"",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-1",
+        "line": 948,
+        "context": "\n            <div class=\"space-y-1\">\n              <AppSlider",
+        "is_masked": false
+      },
+      {
+        "text": "viewSettings.lineOpacity",
+        "line": 950,
+        "context": "              <AppSlider\n                v-model=\"viewSettings.lineOpacity\"\n                :label=\"t('tools.split.lineOpacity')\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.lineOpacity",
+        "line": 951,
+        "context": "                v-model=\"viewSettings.lineOpacity\"\n                :label=\"t('tools.split.lineOpacity')\"\n                :icon=\"Layers\"",
+        "is_masked": false
+      },
+      {
+        "text": "Layers",
+        "line": 952,
+        "context": "                :label=\"t('tools.split.lineOpacity')\"\n                :icon=\"Layers\"\n                unit=\"\"",
+        "is_masked": false
+      },
+      {
+        "text": "0.1",
+        "line": 954,
+        "context": "                unit=\"\"\n                :min=\"0.1\"\n                :max=\"1\"",
+        "is_masked": false
+      },
+      {
+        "text": "0.05",
+        "line": 956,
+        "context": "                :max=\"1\"\n                :step=\"0.05\"\n                :default-value=\"0.95\"",
+        "is_masked": false
+      },
+      {
+        "text": "0.95",
+        "line": 957,
+        "context": "                :step=\"0.05\"\n                :default-value=\"0.95\"\n              />",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-4 pt-6 border-t border-border/40",
+        "line": 964,
+        "context": "\n      <section class=\"space-y-4 pt-6 border-t border-border/40\">\n        <AppSectionHeader :title=\"t('tools.split.enhanced')\" :icon=\"Layers\" />",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.enhanced",
+        "line": 965,
+        "context": "      <section class=\"space-y-4 pt-6 border-t border-border/40\">\n        <AppSectionHeader :title=\"t('tools.split.enhanced')\" :icon=\"Layers\" />\n        <div class=\"space-y-4 px-1\">",
+        "is_masked": false
+      },
+      {
+        "text": "Layers",
+        "line": 965,
+        "context": "      <section class=\"space-y-4 pt-6 border-t border-border/40\">\n        <AppSectionHeader :title=\"t('tools.split.enhanced')\" :icon=\"Layers\" />\n        <div class=\"space-y-4 px-1\">",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-4 px-1",
+        "line": 966,
+        "context": "        <AppSectionHeader :title=\"t('tools.split.enhanced')\" :icon=\"Layers\" />\n        <div class=\"space-y-4 px-1\">\n          <div class=\"space-y-4\">",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-4",
+        "line": 967,
+        "context": "        <div class=\"space-y-4 px-1\">\n          <div class=\"space-y-4\">\n            <div class=\"flex flex-col gap-1 px-1\">",
+        "is_masked": false
+      },
+      {
+        "text": "flex flex-col gap-1 px-1",
+        "line": 968,
+        "context": "          <div class=\"space-y-4\">\n            <div class=\"flex flex-col gap-1 px-1\">\n              <span",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.alignMode",
+        "line": 971,
+        "context": "                class=\"text-[10px] font-black text-muted-foreground uppercase tracking-widest\"\n                >{{ t('tools.split.alignMode') }}</span\n              >",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.alignModeDesc",
+        "line": 974,
+        "context": "              <p class=\"text-[10px] text-muted-foreground/60 leading-relaxed\">\n                {{ t('tools.split.alignModeDesc') }}\n              </p>",
+        "is_masked": false
+      },
+      {
+        "text": "centerMode",
+        "line": 978,
+        "context": "            <AppSegmentedControl\n              v-model=\"centerMode\"\n              :options=\"[",
+        "is_masked": false
+      },
+      {
+        "text": "none",
+        "line": 980,
+        "context": "              :options=\"[\n                { label: t('tools.split.standard'), value: 'none', icon: Grid3X3 },\n                { label: t('tools.split.center'), value: 'center', icon: AlignCenter },",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.standard",
+        "line": 980,
+        "context": "              :options=\"[\n                { label: t('tools.split.standard'), value: 'none', icon: Grid3X3 },\n                { label: t('tools.split.center'), value: 'center', icon: AlignCenter },",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.center",
+        "line": 981,
+        "context": "                { label: t('tools.split.standard'), value: 'none', icon: Grid3X3 },\n                { label: t('tools.split.center'), value: 'center', icon: AlignCenter },\n                { label: t('tools.split.square'), value: 'square', icon: Box }",
+        "is_masked": false
+      },
+      {
+        "text": "center",
+        "line": 981,
+        "context": "                { label: t('tools.split.standard'), value: 'none', icon: Grid3X3 },\n                { label: t('tools.split.center'), value: 'center', icon: AlignCenter },\n                { label: t('tools.split.square'), value: 'square', icon: Box }",
+        "is_masked": false
+      },
+      {
+        "text": "square",
+        "line": 982,
+        "context": "                { label: t('tools.split.center'), value: 'center', icon: AlignCenter },\n                { label: t('tools.split.square'), value: 'square', icon: Box }\n              ]\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.square",
+        "line": 982,
+        "context": "                { label: t('tools.split.center'), value: 'center', icon: AlignCenter },\n                { label: t('tools.split.square'), value: 'square', icon: Box }\n              ]\"",
+        "is_masked": false
+      },
+      {
+        "text": "bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4",
+        "line": 987,
+        "context": "\n          <div class=\"bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4\">\n            <div class=\"space-y-1\">",
+        "is_masked": false
+      },
+      {
+        "text": "space-y-1",
+        "line": 988,
+        "context": "          <div class=\"bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4\">\n            <div class=\"space-y-1\">\n              <AppSlider",
+        "is_masked": false
+      },
+      {
+        "text": "shave",
+        "line": 990,
+        "context": "              <AppSlider\n                v-model=\"shave\"\n                :label=\"t('tools.split.shave')\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.shave",
+        "line": 991,
+        "context": "                v-model=\"shave\"\n                :label=\"t('tools.split.shave')\"\n                :icon=\"Box\"",
+        "is_masked": false
+      },
+      {
+        "text": "Box",
+        "line": 992,
+        "context": "                :label=\"t('tools.split.shave')\"\n                :icon=\"Box\"\n                unit=\"px\"",
+        "is_masked": false
+      },
+      {
+        "text": "px",
+        "line": 993,
+        "context": "                :icon=\"Box\"\n                unit=\"px\"\n                :min=\"0\"",
+        "is_masked": false
+      },
+      {
+        "text": "50",
+        "line": 995,
+        "context": "                :min=\"0\"\n                :max=\"50\"\n                :step=\"1\"",
+        "is_masked": false
+      },
+      {
+        "text": "outputFormat",
+        "line": 1005,
+        "context": "      <AppExportSettings\n        v-model:format=\"outputFormat\"\n        v-model:quality=\"outputQuality\"",
+        "is_masked": false
+      },
+      {
+        "text": "outputQuality",
+        "line": 1006,
+        "context": "        v-model:format=\"outputFormat\"\n        v-model:quality=\"outputQuality\"\n        :title=\"t('tools.split.exportConfig')\"",
+        "is_masked": false
+      },
+      {
+        "text": "tools.split.exportConfig",
+        "line": 1007,
+        "context": "        v-model:quality=\"outputQuality\"\n        :title=\"t('tools.split.exportConfig')\"\n        class=\"pt-6 border-t border-border/40 pb-4\"",
+        "is_masked": false
+      },
+      {
+        "text": "pt-6 border-t border-border/40 pb-4",
+        "line": 1008,
+        "context": "        :title=\"t('tools.split.exportConfig')\"\n        class=\"pt-6 border-t border-border/40 pb-4\"\n      />",
+        "is_masked": false
+      },
+      {
+        "text": "lg",
+        "line": 1015,
+        "context": "        <AppButton\n          size=\"lg\"\n          :variant=\"ctaState.action === 'download' ? 'success' : 'cta'\"",
+        "is_masked": false
+      },
+      {
+        "text": "download",
+        "line": 1016,
+        "context": "          size=\"lg\"\n          :variant=\"ctaState.action === 'download' ? 'success' : 'cta'\"\n          class=\"w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden\"",
+        "is_masked": false
+      },
+      {
+        "text": "cta",
+        "line": 1016,
+        "context": "          size=\"lg\"\n          :variant=\"ctaState.action === 'download' ? 'success' : 'cta'\"\n          class=\"w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden\"",
+        "is_masked": false
+      },
+      {
+        "text": "success",
+        "line": 1016,
+        "context": "          size=\"lg\"\n          :variant=\"ctaState.action === 'download' ? 'success' : 'cta'\"\n          class=\"w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden\"",
+        "is_masked": false
+      },
+      {
+        "text": "w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden",
+        "line": 1017,
+        "context": "          :variant=\"ctaState.action === 'download' ? 'success' : 'cta'\"\n          class=\"w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden\"\n          :loading=\"isProcessing\"",
+        "is_masked": false
+      },
+      {
+        "text": "isProcessing",
+        "line": 1018,
+        "context": "          class=\"w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden\"\n          :loading=\"isProcessing\"\n          :disabled=\"ctaState.disabled\"",
+        "is_masked": false
+      },
+      {
+        "text": "ctaState.disabled",
+        "line": 1019,
+        "context": "          :loading=\"isProcessing\"\n          :disabled=\"ctaState.disabled\"\n          @click=\"handleCtaClick\"",
+        "is_masked": false
+      },
+      {
+        "text": "handleCtaClick",
+        "line": 1020,
+        "context": "          :disabled=\"ctaState.disabled\"\n          @click=\"handleCtaClick\"\n        >",
+        "is_masked": false
+      },
+      {
+        "text": "ctaState.icon",
+        "line": 1023,
+        "context": "          <template #icon>\n            <component :is=\"ctaState.icon\" v-if=\"!isProcessing\" :size=\"18\" class=\"mr-2\" />\n          </template>",
+        "is_masked": false
+      },
+      {
+        "text": "18",
+        "line": 1023,
+        "context": "          <template #icon>\n            <component :is=\"ctaState.icon\" v-if=\"!isProcessing\" :size=\"18\" class=\"mr-2\" />\n          </template>",
+        "is_masked": false
+      },
+      {
+        "text": "!isProcessing",
+        "line": 1023,
+        "context": "          <template #icon>\n            <component :is=\"ctaState.icon\" v-if=\"!isProcessing\" :size=\"18\" class=\"mr-2\" />\n          </template>",
+        "is_masked": false
+      },
+      {
+        "text": "mr-2",
+        "line": 1023,
+        "context": "          <template #icon>\n            <component :is=\"ctaState.icon\" v-if=\"!isProcessing\" :size=\"18\" class=\"mr-2\" />\n          </template>",
+        "is_masked": false
+      },
+      {
+        "text": "font-bold text-sm tracking-tight",
+        "line": 1025,
+        "context": "          </template>\n          <span class=\"font-bold text-sm tracking-tight\">{{ ctaState.text }}</span>\n        </AppButton>",
+        "is_masked": false
+      }
+    ]
+  }
+}

@@ -19,10 +19,16 @@ export function useFileHelpers() {
   }
 
   /**
-   * 触发隐藏的文件选择框
+   * 触发全局文件选择框 (在 App.vue 中定义)
    */
   const triggerFileInput = () => {
-    fileInput.value?.click()
+    const input = document.getElementById('global-file-input')
+    if (input) {
+      input.click()
+    } else {
+      // 备选逻辑：如果全局输入框未找到，尝试点击本地 ref
+      fileInput.value?.click()
+    }
   }
 
   /**
