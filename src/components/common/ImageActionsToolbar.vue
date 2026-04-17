@@ -118,7 +118,7 @@ const handleConfirm = () => {
     <div class="flex items-center gap-1.5 md:gap-2">
       <!-- 恢复原图 -->
       <button
-        v-if="showResetAll && store.doneCount > 0"
+        v-if="showResetAll && store.images.length > 0"
         @click="openConfirm('reset')"
         class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl border border-border/40 hover:bg-muted/50 hover:border-primary/20 text-muted-foreground transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-90 group shrink-0"
         :aria-label="t('common.image.toolbar.resetAllAria')"

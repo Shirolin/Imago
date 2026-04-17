@@ -9,16 +9,21 @@ import {
   CheckSquare,
   Columns2,
   RotateCcw,
-  Sparkles
+  Sparkles,
+  AlertCircle
 } from 'lucide-vue-next'
 import { useFileHelpers } from '../../composables/useFileHelpers'
 import { useImageStore } from '../../stores/imageStore'
 import { useLayoutStore } from '../../stores/layoutStore'
+import { useI18n } from 'vue-i18n'
 import type { ImageItem } from '../../stores/imageStore'
+import AppModal from './AppModal.vue'
+import AppButton from './AppButton.vue'
 
 const { formatSize } = useFileHelpers()
 const store = useImageStore()
 const layoutStore = useLayoutStore()
+const { t } = useI18n()
 
 interface Props {
   image: ImageItem
@@ -35,6 +40,18 @@ const props = withDefaults(defineProps<Props>(), {
   showTransparency: false
 })
 const emit = defineEmits(['toggle', 'remove', 'download', 'compare', 'interactive'])
+
+// 确认框状态
+const showResetConfirm = ref(false)
+
+const handleReset = () => {
+  showResetConfirm.value = true
+}
+
+const confirmReset = () => {
+  store.resetImage(props.image.id)
+  showResetConfirm.value = false
+}
 
 // 智能倍镜逻辑
 const showMagnifier = ref(false)
@@ -407,7 +424,7 @@ const displayUrl = computed(() => {
         >
           <button
             v-if="image.status === 'done' || image.status === 'error'"
-            @click.stop="store.resetImage(image.id)"
+            @click.stop="handleReset"
             class="flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-secondary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
             :class="layoutStore.cardSizeMode === 'compact' ? 'w-6 h-6' : 'w-8 h-8'"
             :title="$t('common.image.card.reset')"
@@ -444,6 +461,49 @@ const displayUrl = computed(() => {
         </div>
       </div>
     </div>
+
+    <!-- 单张图片还原确认对话框 -->
+    <AppModal
+      :show="showResetConfirm"
+      @close="showResetConfirm = false"
+      :title="t('common.image.toolbar.confirmTitle')"
+      variant="dialog"
+    >
+      <div class="p-6" @click.stop>
+        <div class="flex items-start gap-4 mb-6">
+          <div class="p-3 bg-destructive/10 rounded-2xl text-destructive shrink-0">
+            <AlertCircle :size="24" />
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-foreground mb-1 tracking-tight">
+              {{ t('common.image.toolbar.confirmReset') }}
+            </h3>
+            <p class="text-muted-foreground text-sm leading-relaxed font-medium">
+              {{ t('common.image.toolbar.confirmResetTitle') }}
+            </p>
+            <p class="text-muted-foreground/60 text-[11px] mt-2 italic">
+              {{ t('common.image.toolbar.confirmResetDesc') }}
+            </p>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <AppButton
+            variant="ghost"
+            class="flex-1 rounded-xl h-11"
+            @click="showResetConfirm = false"
+          >
+            {{ t('common.image.toolbar.cancel') }}
+          </AppButton>
+          <AppButton
+            variant="danger"
+            class="flex-1 rounded-xl h-11 shadow-lg shadow-destructive/10"
+            @click="confirmReset"
+          >
+            {{ t('common.image.toolbar.confirm') }}
+          </AppButton>
+        </div>
+      </div>
+    </AppModal>
   </div>
 </template>
 
