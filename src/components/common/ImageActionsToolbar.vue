@@ -49,6 +49,14 @@ const openConfirm = (mode: 'clear' | 'delete' | 'reset') => {
   showConfirm.value = true
 }
 
+const handleRemoveAction = () => {
+  if (store.selectedCount > 0) {
+    openConfirm('delete')
+  } else if (store.images.length > 0) {
+    openConfirm('clear')
+  }
+}
+
 const handleConfirm = () => {
   if (confirmMode.value === 'clear') {
     store.clearImages()
@@ -132,26 +140,28 @@ const handleConfirm = () => {
         />
       </button>
 
-      <!-- 删除选中 -->
+      <!-- 删除/清空按钮 (合并版) -->
       <button
-        v-if="props.showDeleteSelected && store.selectedCount > 0"
-        @click="openConfirm('delete')"
-        class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl border border-border/40 hover:bg-destructive/5 hover:border-destructive/30 text-muted-foreground hover:text-destructive transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-90 shrink-0"
-        :aria-label="t('common.image.toolbar.deleteSelectedAria', { count: store.selectedCount })"
-      >
-        <Trash2 :size="18" />
-      </button>
-
-      <!-- 清空全部 -->
-      <button
-        v-if="props.showClearAll && store.images.length > 0"
-        @click="openConfirm('clear')"
+        v-if="(props.showDeleteSelected || props.showClearAll) && store.images.length > 0"
+        @click="handleRemoveAction"
         class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl border border-border/40 hover:bg-destructive/5 hover:border-destructive/30 text-muted-foreground hover:text-destructive transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-90 shrink-0 group"
-        :aria-label="t('common.image.toolbar.clearAllAria')"
+        :title="
+          store.selectedCount > 0
+            ? t('common.image.toolbar.deleteSelected')
+            : t('common.image.toolbar.clearAll')
+        "
+        :aria-label="
+          store.selectedCount > 0
+            ? t('common.image.toolbar.deleteSelectedAria', { count: store.selectedCount })
+            : t('common.image.toolbar.clearAllAria')
+        "
       >
         <Trash2
           :size="18"
-          class="text-muted-foreground/30 group-hover:text-destructive transition-colors"
+          class="transition-colors"
+          :class="
+            store.selectedCount > 0 ? '' : 'text-muted-foreground/30 group-hover:text-destructive'
+          "
         />
       </button>
     </div>
