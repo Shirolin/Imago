@@ -497,9 +497,11 @@
       },
       "selection": {
         "selected": "已选择",
-        "allSelected": "Selected",
-        "complete": "Processing Complete",
-        "toggle": "Toggle Selection"
+        "allSelected": "全部选中",
+        "complete": "处理完成",
+        "toggle": "切换选择状态",
+        "selectAll": "全选",
+        "deselectAll": "取消全选"
       }
     },
     "export": {

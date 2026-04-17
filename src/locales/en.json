@@ -499,7 +499,9 @@
         "selected": "Selected",
         "allSelected": "All Selected",
         "complete": "Processing Complete",
-        "toggle": "Toggle Selection"
+        "toggle": "Toggle Selection",
+        "selectAll": "Select All",
+        "deselectAll": "Deselect All"
       }
     },
     "export": {
