@@ -12,6 +12,7 @@ import ImageCard from '../components/common/ImageCard.vue'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppExportSettings from '../components/common/AppExportSettings.vue'
+import AppModal from '../components/common/AppModal.vue'
 import {
   Settings2,
   Sparkles,
@@ -23,7 +24,8 @@ import {
   RotateCcw,
   ChevronLeft,
   ChevronRight,
-  Download
+  Download,
+  AlertCircle
 } from 'lucide-vue-next'
 import { filterEngine } from '../lib/engines/filterEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
@@ -106,9 +108,17 @@ onMounted(() => {
 
 const { isProcessing, processSelected } = useImageProcessor(filterEngine)
 
+// 确认框状态
+const showResetConfirm = ref(false)
+
 const resetFilters = () => {
+  showResetConfirm.value = true
+}
+
+const confirmResetFilters = () => {
   const preset = presets.find((p) => p.id === lastPresetId.value) || presets[0]
   if (preset) applyPreset(preset)
+  showResetConfirm.value = false
 }
 
 // 滤镜预设定义 (基于工业级开源项目 CSSgram 调校)
@@ -546,5 +556,48 @@ const handleCtaClick = async () => {
         </InspectorFooter>
       </template>
     </WorkspaceLayout>
+
+    <!-- 重置确认对话框 -->
+    <AppModal
+      :show="showResetConfirm"
+      @close="showResetConfirm = false"
+      :title="t('common.image.toolbar.confirmTitle')"
+      variant="dialog"
+    >
+      <div class="p-6">
+        <div class="flex items-start gap-4 mb-6">
+          <div class="p-3 bg-destructive/10 rounded-2xl text-destructive shrink-0">
+            <AlertCircle :size="24" />
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-foreground mb-1 tracking-tight">
+              {{ t('common.image.toolbar.confirmReset') }}
+            </h3>
+            <p class="text-muted-foreground text-sm leading-relaxed font-medium">
+              {{ t('common.image.toolbar.confirmResetToolTitle') }}
+            </p>
+            <p class="text-muted-foreground/60 text-[11px] mt-2 italic">
+              {{ t('common.image.toolbar.confirmResetToolDesc') }}
+            </p>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <AppButton
+            variant="ghost"
+            class="flex-1 rounded-xl h-11"
+            @click="showResetConfirm = false"
+          >
+            {{ t('common.image.toolbar.cancel') }}
+          </AppButton>
+          <AppButton
+            variant="danger"
+            class="flex-1 rounded-xl h-11 shadow-lg shadow-destructive/10"
+            @click="confirmResetFilters"
+          >
+            {{ t('common.image.toolbar.confirm') }}
+          </AppButton>
+        </div>
+      </div>
+    </AppModal>
   </div>
 </template>

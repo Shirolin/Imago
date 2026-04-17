@@ -23,12 +23,12 @@ import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppExportSettings from '../components/common/AppExportSettings.vue'
 import {
   Settings2,
-  Maximize2,
   Percent,
   RotateCcw,
   RefreshCw,
   Download,
-  FileSearch
+  FileSearch,
+  AlertCircle
 } from 'lucide-vue-next'
 import { resizeEngine } from '../lib/engines/resizeEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
@@ -100,17 +100,31 @@ watch(height, (newHeight) => {
 
 const { isProcessing, processSelected } = useImageProcessor(resizeEngine)
 
+// 确认框状态
+const showResetConfirm = ref(false)
+
+const resetDimensions = () => {
+  showResetConfirm.value = true
+}
+
+const confirmResetDimensions = () => {
+  if (store.activeImage) {
+    width.value = store.activeImage.width || 1920
+    height.value = store.activeImage.height || 1080
+  } else {
+    width.value = 1920
+    height.value = 1080
+  }
+  percentage.value = 100
+  showResetConfirm.value = false
+}
+
 const displayImages = computed(() => [...store.images].reverse())
 
 const modeOptions = computed(() => [
   { label: t('tools.resize.byPercentage'), value: 'percentage', icon: Percent },
-  { label: t('tools.resize.byDimensions'), value: 'dimensions', icon: Maximize2 }
+  { label: t('tools.resize.byDimensions'), value: 'dimensions', icon: RefreshCw }
 ])
-
-const resetDimensions = () => {
-  width.value = 1920
-  height.value = 1080
-}
 
 const showCompareModal = ref(false)
 const comparingImage = ref<ImageItem | null>(null)
@@ -367,6 +381,49 @@ const handleCtaClick = async () => {
         :original-size="`${comparingImage.width}x${comparingImage.height}`"
         :processed-size="`${comparingImage.processedWidth || '--'}x${comparingImage.processedHeight || '--'}`"
       />
+    </AppModal>
+
+    <!-- 重置确认对话框 -->
+    <AppModal
+      :show="showResetConfirm"
+      @close="showResetConfirm = false"
+      :title="t('common.image.toolbar.confirmTitle')"
+      variant="dialog"
+    >
+      <div class="p-6">
+        <div class="flex items-start gap-4 mb-6">
+          <div class="p-3 bg-destructive/10 rounded-2xl text-destructive shrink-0">
+            <AlertCircle :size="24" />
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-foreground mb-1 tracking-tight">
+              {{ t('common.image.toolbar.confirmReset') }}
+            </h3>
+            <p class="text-muted-foreground text-sm leading-relaxed font-medium">
+              {{ t('common.image.toolbar.confirmResetToolTitle') }}
+            </p>
+            <p class="text-muted-foreground/60 text-[11px] mt-2 italic">
+              {{ t('common.image.toolbar.confirmResetToolDesc') }}
+            </p>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <AppButton
+            variant="ghost"
+            class="flex-1 rounded-xl h-11"
+            @click="showResetConfirm = false"
+          >
+            {{ t('common.image.toolbar.cancel') }}
+          </AppButton>
+          <AppButton
+            variant="danger"
+            class="flex-1 rounded-xl h-11 shadow-lg shadow-destructive/10"
+            @click="confirmResetDimensions"
+          >
+            {{ t('common.image.toolbar.confirm') }}
+          </AppButton>
+        </div>
+      </div>
     </AppModal>
   </div>
 </template>

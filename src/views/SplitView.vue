@@ -12,6 +12,7 @@ import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import AppSlider from '../components/common/AppSlider.vue'
 import AppExportSettings from '../components/common/AppExportSettings.vue'
+import AppModal from '../components/common/AppModal.vue'
 import {
   Scissors,
   Grid3X3,
@@ -20,7 +21,8 @@ import {
   AlignCenter,
   Trash2,
   Download,
-  RotateCcw
+  RotateCcw,
+  AlertCircle
 } from 'lucide-vue-next'
 import { splitEngine } from '../lib/engines/splitEngine'
 import type { ViewSettings } from '../lib/engines/types'
@@ -56,13 +58,42 @@ const colorOptions = computed(() => [
   { value: 'red' as const, label: t('tools.split.colors.red'), color: '#ef4444' }
 ])
 
+// 确认框状态
+const showResetConfirm = ref(false)
+const resetType = ref<'grid' | 'view'>('grid')
+
+const handleResetToGrid = () => {
+  resetType.value = 'grid'
+  showResetConfirm.value = true
+}
+
 const resetViewSettings = () => {
-  viewSettings.value = {
-    lineWidth: 1.5,
-    lineColor: 'white',
-    lineOpacity: 0.95
+  resetType.value = 'view'
+  showResetConfirm.value = true
+}
+
+const confirmResetSplit = () => {
+  if (resetType.value === 'grid') {
+    const img = selectedImage.value
+    if (img) {
+      const newLinesX: number[] = []
+      const newLinesY: number[] = []
+      for (let i = 1; i < cols.value; i++) newLinesX.push((img.width! / cols.value) * i)
+      for (let i = 1; i < rows.value; i++) newLinesY.push((img.height! / rows.value) * i)
+      linesX.value = newLinesX
+      linesY.value = newLinesY
+      srMessage.value = t('tools.split.messages.resetToGrid')
+      saveMeta()
+    }
+  } else {
+    viewSettings.value = {
+      lineWidth: 1.5,
+      lineColor: 'white',
+      lineOpacity: 0.95
+    }
+    srMessage.value = t('tools.split.messages.defaultRestored')
   }
-  srMessage.value = t('tools.split.messages.defaultRestored')
+  showResetConfirm.value = false
 }
 
 const colorButtonRefs = ref<HTMLElement[]>([])
@@ -590,19 +621,6 @@ const handlePointerUp = (e: PointerEvent) => {
   }
 }
 
-const handleResetToGrid = () => {
-  const img = selectedImage.value
-  if (!img) return
-  const newLinesX: number[] = []
-  const newLinesY: number[] = []
-  for (let i = 1; i < cols.value; i++) newLinesX.push((img.width! / cols.value) * i)
-  for (let i = 1; i < rows.value; i++) newLinesY.push((img.height! / rows.value) * i)
-  linesX.value = newLinesX
-  linesY.value = newLinesY
-  srMessage.value = t('tools.split.messages.resetToGrid')
-  saveMeta()
-}
-
 const clearLines = () => {
   linesX.value = []
   linesY.value = []
@@ -1026,6 +1044,49 @@ const handleCtaClick = async () => {
         </AppButton>
       </InspectorFooter>
     </template>
+
+    <!-- 重置确认对话框 -->
+    <AppModal
+      :show="showResetConfirm"
+      @close="showResetConfirm = false"
+      :title="t('common.image.toolbar.confirmTitle')"
+      variant="dialog"
+    >
+      <div class="p-6">
+        <div class="flex items-start gap-4 mb-6">
+          <div class="p-3 bg-destructive/10 rounded-2xl text-destructive shrink-0">
+            <AlertCircle :size="24" />
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-foreground mb-1 tracking-tight">
+              {{ t('common.image.toolbar.confirmReset') }}
+            </h3>
+            <p class="text-muted-foreground text-sm leading-relaxed font-medium">
+              {{ t('common.image.toolbar.confirmResetToolTitle') }}
+            </p>
+            <p class="text-muted-foreground/60 text-[11px] mt-2 italic">
+              {{ t('common.image.toolbar.confirmResetToolDesc') }}
+            </p>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <AppButton
+            variant="ghost"
+            class="flex-1 rounded-xl h-11"
+            @click="showResetConfirm = false"
+          >
+            {{ t('common.image.toolbar.cancel') }}
+          </AppButton>
+          <AppButton
+            variant="danger"
+            class="flex-1 rounded-xl h-11 shadow-lg shadow-destructive/10"
+            @click="confirmResetSplit"
+          >
+            {{ t('common.image.toolbar.confirm') }}
+          </AppButton>
+        </div>
+      </div>
+    </AppModal>
   </WorkspaceLayout>
 </template>
 

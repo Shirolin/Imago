@@ -7,6 +7,7 @@ import AppButton from '../components/common/AppButton.vue'
 import CropBox from '../components/common/CropBox.vue'
 import AppCanvasWorkspace from '../components/common/AppCanvasWorkspace.vue'
 import AppExportSettings from '../components/common/AppExportSettings.vue'
+import AppModal from '../components/common/AppModal.vue'
 import {
   Scissors,
   RotateCw,
@@ -23,7 +24,8 @@ import {
   Link as LinkIcon,
   Unlink,
   History,
-  Download
+  Download,
+  AlertCircle
 } from 'lucide-vue-next'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
@@ -219,9 +221,14 @@ const onCropChange = (data: {
 }
 
 useResizeObserver(containerRef, resetView)
-watch(rotation, resetView)
+// 确认框状态
+const showResetConfirm = ref(false)
 
 const handleReset = () => {
+  showResetConfirm.value = true
+}
+
+const confirmReset = () => {
   rotation.value = 0
   flipH.value = false
   flipV.value = false
@@ -231,6 +238,7 @@ const handleReset = () => {
   fillColor.value = 'transparent'
   clearHistory()
   resetView()
+  showResetConfirm.value = false
 }
 
 // --- 快捷键管理 ---
@@ -709,6 +717,49 @@ const ratios = computed(() => [
         </AppButton>
       </InspectorFooter>
     </template>
+
+    <!-- 重置确认对话框 -->
+    <AppModal
+      :show="showResetConfirm"
+      @close="showResetConfirm = false"
+      :title="t('common.image.toolbar.confirmTitle')"
+      variant="dialog"
+    >
+      <div class="p-6">
+        <div class="flex items-start gap-4 mb-6">
+          <div class="p-3 bg-destructive/10 rounded-2xl text-destructive shrink-0">
+            <AlertCircle :size="24" />
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-foreground mb-1 tracking-tight">
+              {{ t('common.image.toolbar.confirmReset') }}
+            </h3>
+            <p class="text-muted-foreground text-sm leading-relaxed font-medium">
+              {{ t('common.image.toolbar.confirmResetToolTitle') }}
+            </p>
+            <p class="text-muted-foreground/60 text-[11px] mt-2 italic">
+              {{ t('common.image.toolbar.confirmResetToolDesc') }}
+            </p>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <AppButton
+            variant="ghost"
+            class="flex-1 rounded-xl h-11"
+            @click="showResetConfirm = false"
+          >
+            {{ t('common.image.toolbar.cancel') }}
+          </AppButton>
+          <AppButton
+            variant="danger"
+            class="flex-1 rounded-xl h-11 shadow-lg shadow-destructive/10"
+            @click="confirmReset"
+          >
+            {{ t('common.image.toolbar.confirm') }}
+          </AppButton>
+        </div>
+      </div>
+    </AppModal>
   </WorkspaceLayout>
 </template>
 

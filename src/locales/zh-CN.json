@@ -495,6 +495,8 @@
         "confirmClearDesc": "此操作将移除队列中的所有内容，无法撤销。",
         "confirmDeleteDesc": "该操作将永久从当前队列中移除选中的文件。",
         "confirmResetDesc": "该操作将放弃所有修改，将选中的图片恢复到初始导入状态。",
+        "confirmResetToolTitle": "确定要重置所有设置吗？",
+        "confirmResetToolDesc": "该操作将重置当前工具的所有参数到初始状态。",
         "cancel": "取消",
         "confirm": "确认执行"
       },
