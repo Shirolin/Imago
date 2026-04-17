@@ -144,7 +144,12 @@ const handleConfirm = () => {
       <button
         v-if="(props.showDeleteSelected || props.showClearAll) && store.images.length > 0"
         @click="handleRemoveAction"
-        class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl border border-border/40 hover:bg-destructive/5 hover:border-destructive/30 text-muted-foreground hover:text-destructive transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-90 shrink-0 group"
+        class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl border transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-90 shrink-0 group"
+        :class="
+          store.selectedCount > 0
+            ? 'bg-destructive/5 border-destructive/20 text-destructive'
+            : 'bg-transparent border-border/40 hover:bg-destructive/5 hover:border-destructive/30 text-muted-foreground hover:text-destructive'
+        "
         :title="
           store.selectedCount > 0
             ? t('common.image.toolbar.deleteSelected')
@@ -159,9 +164,7 @@ const handleConfirm = () => {
         <Trash2
           :size="18"
           class="transition-colors"
-          :class="
-            store.selectedCount > 0 ? '' : 'text-muted-foreground/30 group-hover:text-destructive'
-          "
+          :class="store.selectedCount > 0 ? '' : 'opacity-30 group-hover:opacity-100'"
         />
       </button>
     </div>
