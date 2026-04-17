@@ -488,10 +488,13 @@
         "confirmTitle": "Confirm Action",
         "confirmClear": "Clear Queue Confirmation",
         "confirmDelete": "Delete Selected Confirmation",
+        "confirmReset": "Reset All Confirmation",
         "confirmClearTitle": "Clear all images?",
         "confirmDeleteTitle": "Delete {count} selected images?",
+        "confirmResetTitle": "Reset all images to original?",
         "confirmClearDesc": "This will remove everything from the queue. Cannot be undone.",
         "confirmDeleteDesc": "This will permanently remove selected files from the queue.",
+        "confirmResetDesc": "This will discard all your changes and revert to the original state.",
         "cancel": "Cancel",
         "confirm": "Confirm"
       },

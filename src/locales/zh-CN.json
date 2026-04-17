@@ -488,10 +488,13 @@
         "confirmTitle": "确认操作",
         "confirmClear": "清空队列确认",
         "confirmDelete": "删除选中确认",
+        "confirmReset": "恢复原图确认",
         "confirmClearTitle": "确定要清空所有图片吗？",
         "confirmDeleteTitle": "删除选中的 {count} 张图片？",
+        "confirmResetTitle": "确定要恢复所有图片吗？",
         "confirmClearDesc": "此操作将移除队列中的所有内容，无法撤销。",
         "confirmDeleteDesc": "该操作将永久从当前队列中移除选中的文件。",
+        "confirmResetDesc": "该操作将放弃所有修改，将选中的图片恢复到初始导入状态。",
         "cancel": "取消",
         "confirm": "确认执行"
       },

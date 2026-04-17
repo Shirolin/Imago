@@ -5,6 +5,7 @@ import { useImageStore } from '../../stores/imageStore'
 import { useLayoutStore } from '../../stores/layoutStore'
 import { useFileHelpers } from '../../composables/useFileHelpers'
 import AppModal from './AppModal.vue'
+import AppButton from './AppButton.vue'
 import {
   Download,
   RotateCcw,
@@ -38,9 +39,9 @@ const showClearAll = props.showClearAll ?? true
 
 // 确认框状态
 const showConfirm = ref(false)
-const confirmMode = ref<'clear' | 'delete'>('clear')
+const confirmMode = ref<'clear' | 'delete' | 'reset'>('clear')
 
-const openConfirm = (mode: 'clear' | 'delete') => {
+const openConfirm = (mode: 'clear' | 'delete' | 'reset') => {
   confirmMode.value = mode
   showConfirm.value = true
 }
@@ -48,8 +49,10 @@ const openConfirm = (mode: 'clear' | 'delete') => {
 const handleConfirm = () => {
   if (confirmMode.value === 'clear') {
     store.clearImages()
-  } else {
+  } else if (confirmMode.value === 'delete') {
     store.removeSelected()
+  } else {
+    store.resetAll()
   }
   showConfirm.value = false
 }
@@ -116,7 +119,7 @@ const handleConfirm = () => {
       <!-- 恢复原图 -->
       <button
         v-if="showResetAll && store.doneCount > 0"
-        @click="store.resetAll()"
+        @click="openConfirm('reset')"
         class="p-2 md:p-2.5 rounded-xl border border-border/40 hover:bg-muted/50 hover:border-primary/20 text-muted-foreground transition-all active:scale-95 group shrink-0"
         :title="t('common.image.toolbar.resetAll')"
         :aria-label="t('common.image.toolbar.resetAllAria')"
@@ -170,21 +173,27 @@ const handleConfirm = () => {
               {{
                 confirmMode === 'clear'
                   ? t('common.image.toolbar.confirmClear')
-                  : t('common.image.toolbar.confirmDelete')
+                  : confirmMode === 'delete'
+                    ? t('common.image.toolbar.confirmDelete')
+                    : t('common.image.toolbar.confirmReset')
               }}
             </h3>
             <p class="text-muted-foreground text-sm leading-relaxed font-medium">
               {{
                 confirmMode === 'delete'
                   ? t('common.image.toolbar.confirmDeleteTitle', { count: store.selectedCount })
-                  : t('common.image.toolbar.confirmClearTitle')
+                  : confirmMode === 'clear'
+                    ? t('common.image.toolbar.confirmClearTitle')
+                    : t('common.image.toolbar.confirmResetTitle')
               }}
             </p>
             <p class="text-muted-foreground/60 text-[11px] mt-2 italic">
               {{
                 confirmMode === 'delete'
                   ? t('common.image.toolbar.confirmDeleteDesc')
-                  : t('common.image.toolbar.confirmClearDesc')
+                  : confirmMode === 'clear'
+                    ? t('common.image.toolbar.confirmClearDesc')
+                    : t('common.image.toolbar.confirmResetDesc')
               }}
             </p>
           </div>
@@ -194,7 +203,7 @@ const handleConfirm = () => {
             {{ t('common.image.toolbar.cancel') }}
           </AppButton>
           <AppButton
-            variant="destructive"
+            variant="danger"
             class="flex-1 rounded-xl h-11 shadow-lg shadow-destructive/10"
             @click="handleConfirm"
           >
