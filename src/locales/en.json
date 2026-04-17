@@ -435,6 +435,10 @@
       "dark": "Dark Mode"
     },
     "processing": "Processing",
+    "history": {
+      "undo": "Undo",
+      "redo": "Redo"
+    },
     "image": {
       "upload": {
         "title": "Start your image journey",

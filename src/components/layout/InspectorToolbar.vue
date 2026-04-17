@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Undo2, Redo2 } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
 
 interface Props {
   canUndo?: boolean
@@ -8,6 +9,7 @@ interface Props {
 
 defineProps<Props>()
 const emit = defineEmits(['undo', 'redo'])
+const { t } = useI18n()
 </script>
 
 <template>
@@ -16,9 +18,9 @@ const emit = defineEmits(['undo', 'redo'])
       <button
         @click="emit('undo')"
         :disabled="!canUndo"
-        title="撤销 (Ctrl+Z)"
-        aria-label="撤销"
-        class="flex items-center justify-center w-8 h-8 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        :title="`${t('common.history.undo')} (Ctrl+Z)`"
+        :aria-label="t('common.history.undo')"
+        class="flex items-center justify-center w-8 h-8 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         :class="
           canUndo
             ? 'text-foreground hover:bg-muted active:scale-90'
@@ -31,9 +33,9 @@ const emit = defineEmits(['undo', 'redo'])
       <button
         @click="emit('redo')"
         :disabled="!canRedo"
-        title="重做 (Ctrl+Y)"
-        aria-label="重做"
-        class="flex items-center justify-center w-8 h-8 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        :title="`${t('common.history.redo')} (Ctrl+Y)`"
+        :aria-label="t('common.history.redo')"
+        class="flex items-center justify-center w-8 h-8 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         :class="
           canRedo
             ? 'text-foreground hover:bg-muted active:scale-90'

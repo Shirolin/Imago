@@ -435,6 +435,10 @@
       "dark": "深色模式"
     },
     "processing": "处理中",
+    "history": {
+      "undo": "撤销",
+      "redo": "重做"
+    },
     "image": {
       "upload": {
         "title": "即刻开启您的图片处理之旅",
