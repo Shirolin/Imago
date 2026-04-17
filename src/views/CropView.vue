@@ -356,7 +356,11 @@ const ratios = computed(() => [
   <WorkspaceLayout show-sidebar no-scroll show-assets-tray>
     <template #header-left><ImageSelectionStatus :show-card-size="false" /></template>
     <template #header-actions
-      ><ImageActionsToolbar view-id="crop" :is-processing="isProcessing" show-clear-all
+      ><ImageActionsToolbar
+        view-id="crop"
+        :is-processing="isProcessing"
+        show-clear-all
+        show-reset-all
     /></template>
 
     <template #content>

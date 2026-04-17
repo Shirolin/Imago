@@ -246,6 +246,7 @@ const handleCtaClick = async () => {
           view-id="resize"
           :is-processing="isProcessing"
           show-clear-all
+          show-reset-all
           zip-prefix="_Imago_Resized"
       /></template>
 

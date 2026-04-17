@@ -16,26 +16,29 @@ import {
   LayoutList
 } from 'lucide-vue-next'
 
-const props = defineProps<{
-  viewId: string
-  isProcessing?: boolean
-  showDownloadAll?: boolean
-  showResetAll?: boolean
-  showDeleteSelected?: boolean
-  showClearAll?: boolean
-  zipPrefix?: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    viewId: string
+    isProcessing?: boolean
+    showDownloadAll?: boolean
+    showResetAll?: boolean
+    showDeleteSelected?: boolean
+    showClearAll?: boolean
+    zipPrefix?: string
+  }>(),
+  {
+    isProcessing: false,
+    showDownloadAll: true,
+    showResetAll: true,
+    showDeleteSelected: true,
+    showClearAll: true
+  }
+)
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
 const { downloadAllAsZip, triggerFileInput } = useFileHelpers()
 const { t } = useI18n()
-
-// 默认值
-const showDownloadAll = props.showDownloadAll ?? true
-const showResetAll = props.showResetAll ?? true
-const showDeleteSelected = props.showDeleteSelected ?? true
-const showClearAll = props.showClearAll ?? true
 
 // 确认框状态
 const showConfirm = ref(false)
@@ -97,7 +100,7 @@ const handleConfirm = () => {
       </button>
 
       <button
-        v-if="showDownloadAll && store.doneCount > 0"
+        v-if="props.showDownloadAll && store.doneCount > 0"
         @click="downloadAllAsZip(zipPrefix || '_Imago')"
         class="flex items-center gap-2 px-3 md:px-5 h-10 md:h-11 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-[1.02] hover:shadow-primary/30 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 whitespace-nowrap"
         :class="{ 'opacity-50 cursor-not-allowed grayscale-[0.3]': isProcessing }"
@@ -118,7 +121,7 @@ const handleConfirm = () => {
     <div class="flex items-center gap-1.5 md:gap-2">
       <!-- 恢复原图 -->
       <button
-        v-if="showResetAll && store.images.length > 0"
+        v-if="props.showResetAll && store.images.length > 0"
         @click="openConfirm('reset')"
         class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl border border-border/40 hover:bg-muted/50 hover:border-primary/20 text-muted-foreground transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-90 group shrink-0"
         :aria-label="t('common.image.toolbar.resetAllAria')"
@@ -131,7 +134,7 @@ const handleConfirm = () => {
 
       <!-- 删除选中 -->
       <button
-        v-if="showDeleteSelected && store.selectedCount > 0"
+        v-if="props.showDeleteSelected && store.selectedCount > 0"
         @click="openConfirm('delete')"
         class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl border border-border/40 hover:bg-destructive/5 hover:border-destructive/30 text-muted-foreground hover:text-destructive transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-90 shrink-0"
         :aria-label="t('common.image.toolbar.deleteSelectedAria', { count: store.selectedCount })"
@@ -141,7 +144,7 @@ const handleConfirm = () => {
 
       <!-- 清空全部 -->
       <button
-        v-if="showClearAll && store.images.length > 0"
+        v-if="props.showClearAll && store.images.length > 0"
         @click="openConfirm('clear')"
         class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl border border-border/40 hover:bg-destructive/5 hover:border-destructive/30 text-muted-foreground hover:text-destructive transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-90 shrink-0 group"
         :aria-label="t('common.image.toolbar.clearAllAria')"

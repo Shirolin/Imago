@@ -166,6 +166,7 @@ const handleCtaClick = async () => {
           view-id="compress"
           :is-processing="isProcessing"
           show-clear-all
+          show-reset-all
           zip-prefix="_Compressed"
       /></template>
 

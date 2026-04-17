@@ -729,6 +729,7 @@ const handleCtaClick = async () => {
         :is-processing="isProcessing"
         :show-download-all="false"
         show-clear-all
+        show-reset-all
     /></template>
 
     <template #content>

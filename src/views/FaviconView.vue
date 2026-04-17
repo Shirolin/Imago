@@ -120,7 +120,12 @@ const handleGenerate = async () => {
   <WorkspaceLayout show-sidebar show-assets-tray no-scroll>
     <template #header-left><ImageSelectionStatus :show-card-size="false" /></template>
     <template #header-actions>
-      <ImageActionsToolbar view-id="favicon" :is-processing="isProcessing" show-clear-all />
+      <ImageActionsToolbar
+        view-id="favicon"
+        :is-processing="isProcessing"
+        show-clear-all
+        show-reset-all
+      />
     </template>
 
     <template #content>

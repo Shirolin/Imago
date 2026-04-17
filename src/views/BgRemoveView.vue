@@ -445,6 +445,7 @@ const handleResetParams = () => {
         view-id="bgRemove"
         :is-processing="isProcessing"
         show-clear-all
+        show-reset-all
         zip-prefix="_BgRemoved"
     /></template>
 

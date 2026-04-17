@@ -304,6 +304,7 @@ const handleCtaClick = async () => {
           view-id="filters"
           :is-processing="isProcessing"
           show-clear-all
+          show-reset-all
           zip-prefix="_Filtered"
       /></template>
 
