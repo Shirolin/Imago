@@ -67,8 +67,8 @@ const handleConfirm = () => {
         @click="
           layoutStore.cardSizeMode = layoutStore.cardSizeMode === 'compact' ? 'large' : 'compact'
         "
-        class="p-2 md:p-2.5 rounded-xl border border-border/40 hover:bg-muted/50 hover:border-primary/20 text-muted-foreground transition-all active:scale-95 group shrink-0"
-        :title="
+        class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl border border-border/40 hover:bg-muted/50 hover:border-primary/20 text-muted-foreground hover:text-primary transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-90 group shrink-0"
+        :aria-label="
           layoutStore.cardSizeMode === 'compact'
             ? t('common.image.toolbar.layoutLarge')
             : t('common.image.toolbar.layoutCompact')
@@ -77,31 +77,30 @@ const handleConfirm = () => {
         <component
           :is="layoutStore.cardSizeMode === 'compact' ? LayoutGrid : LayoutList"
           :size="18"
-          class="group-hover:text-primary transition-colors"
+          class="transition-colors"
         />
       </button>
 
       <button
         @click="triggerFileInput"
-        class="flex items-center gap-2 px-3 md:px-4 h-10 md:h-11 rounded-xl bg-background border border-border/40 hover:bg-muted/50 hover:border-primary/20 text-muted-foreground transition-all active:scale-95 group whitespace-nowrap"
-        :title="t('common.image.toolbar.import')"
+        class="flex items-center gap-2 px-3 md:px-4 h-10 md:h-11 rounded-xl bg-background border border-border/40 hover:bg-muted/50 hover:border-primary/20 text-muted-foreground transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 group whitespace-nowrap"
         :aria-label="t('common.image.toolbar.importAria')"
       >
         <Plus
           :size="18"
           class="text-muted-foreground/60 group-hover:text-primary transition-colors"
         />
-        <span class="hidden md:inline text-[0.75rem] font-bold">{{
-          t('common.image.toolbar.import')
-        }}</span>
+        <span
+          class="hidden md:inline text-[0.75rem] font-bold group-hover:text-primary transition-colors"
+          >{{ t('common.image.toolbar.import') }}</span
+        >
       </button>
 
       <button
         v-if="showDownloadAll && store.doneCount > 0"
         @click="downloadAllAsZip(zipPrefix || '_Imago')"
-        class="flex items-center gap-2 px-3 md:px-5 h-10 md:h-11 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-[1.02] hover:shadow-primary/30 transition-all active:scale-95 whitespace-nowrap"
+        class="flex items-center gap-2 px-3 md:px-5 h-10 md:h-11 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-[1.02] hover:shadow-primary/30 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 whitespace-nowrap"
         :disabled="isProcessing"
-        :title="t('common.image.toolbar.exportAll')"
         :aria-label="t('common.image.toolbar.exportAllAria', { count: store.doneCount })"
       >
         <Download :size="18" class="animate-in zoom-in duration-300" />
@@ -120,13 +119,12 @@ const handleConfirm = () => {
       <button
         v-if="showResetAll && store.doneCount > 0"
         @click="openConfirm('reset')"
-        class="p-2 md:p-2.5 rounded-xl border border-border/40 hover:bg-muted/50 hover:border-primary/20 text-muted-foreground transition-all active:scale-95 group shrink-0"
-        :title="t('common.image.toolbar.resetAll')"
+        class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl border border-border/40 hover:bg-muted/50 hover:border-primary/20 text-muted-foreground transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-90 group shrink-0"
         :aria-label="t('common.image.toolbar.resetAllAria')"
       >
         <RotateCcw
           :size="18"
-          class="group-hover:text-primary group-hover:rotate-[-45deg] transition-all"
+          class="group-hover:text-primary group-hover:rotate-[-45deg] transition-all duration-300"
         />
       </button>
 
@@ -134,8 +132,7 @@ const handleConfirm = () => {
       <button
         v-if="showDeleteSelected && store.selectedCount > 0"
         @click="openConfirm('delete')"
-        class="p-2 md:p-2.5 rounded-xl border border-border/40 hover:bg-destructive/5 hover:border-destructive/30 text-muted-foreground hover:text-destructive transition-all active:scale-95 shrink-0"
-        :title="t('common.image.toolbar.deleteSelected')"
+        class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl border border-border/40 hover:bg-destructive/5 hover:border-destructive/30 text-muted-foreground hover:text-destructive transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-90 shrink-0"
         :aria-label="t('common.image.toolbar.deleteSelectedAria', { count: store.selectedCount })"
       >
         <Trash2 :size="18" />
@@ -145,11 +142,13 @@ const handleConfirm = () => {
       <button
         v-if="showClearAll && store.images.length > 0"
         @click="openConfirm('clear')"
-        class="p-2 md:p-2.5 rounded-xl border border-border/40 hover:bg-destructive/5 hover:border-destructive/30 text-muted-foreground hover:text-destructive transition-all active:scale-95 shrink-0"
-        :title="t('common.image.toolbar.clearAll')"
+        class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl border border-border/40 hover:bg-destructive/5 hover:border-destructive/30 text-muted-foreground hover:text-destructive transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-90 shrink-0 group"
         :aria-label="t('common.image.toolbar.clearAllAria')"
       >
-        <component :is="Trash2" :size="18" class="opacity-40" />
+        <Trash2
+          :size="18"
+          class="text-muted-foreground/30 group-hover:text-destructive transition-colors"
+        />
       </button>
     </div>
 
