@@ -320,7 +320,7 @@ const handleCtaClick = async () => {
   if (!img) return
 
   if (state.action === 'download' && img.processedBlob) {
-    downloadImage(img.processedBlob, img.file.name, '_Cropped')
+    downloadImage(img.processedBlob, img.file.name, t('common.export.suffix.cropped'))
     return
   }
 

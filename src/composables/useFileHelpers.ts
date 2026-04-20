@@ -1,9 +1,11 @@
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../stores/imageStore'
 import JSZip from 'jszip'
 
 export function useFileHelpers() {
   const store = useImageStore()
+  const { t } = useI18n()
   const fileInput = ref<HTMLInputElement | null>(null)
   const isDownloadingAll = ref(false)
 
@@ -71,15 +73,16 @@ export function useFileHelpers() {
   const downloadImage = async (
     blob: Blob | Blob[],
     originalFileName: string,
-    tag = '_Imago_Processed'
+    tag?: string
   ) => {
+    const finalTag = tag ?? t('common.export.suffix.processed')
     // 如果是多张子图（如切图结果），打一个小 ZIP 下载
     if (Array.isArray(blob)) {
       const zip = new JSZip()
       blob.forEach((b, idx) => {
         const lastDot = originalFileName.lastIndexOf('.')
         const baseName = lastDot !== -1 ? originalFileName.substring(0, lastDot) : originalFileName
-        const finalName = getNewFileName(`${baseName}_tile_${idx + 1}`, b.type, tag)
+        const finalName = getNewFileName(`${baseName}_tile_${idx + 1}`, b.type, finalTag)
         zip.file(finalName, b)
       })
       const content = await zip.generateAsync({ type: 'blob' })
@@ -87,7 +90,7 @@ export function useFileHelpers() {
       const a = document.createElement('a')
       a.href = url
       const lastDot = originalFileName.lastIndexOf('.')
-      const zipName = `${lastDot !== -1 ? originalFileName.substring(0, lastDot) : originalFileName}${tag}.zip`
+      const zipName = `${lastDot !== -1 ? originalFileName.substring(0, lastDot) : originalFileName}${finalTag}.zip`
       a.download = zipName
       a.click()
       URL.revokeObjectURL(url)
@@ -98,7 +101,7 @@ export function useFileHelpers() {
     const a = document.createElement('a')
     a.href = url
 
-    const finalName = getNewFileName(originalFileName, blob.type, tag)
+    const finalName = getNewFileName(originalFileName, blob.type, finalTag)
     a.download = finalName
     a.click()
     URL.revokeObjectURL(url)
@@ -108,7 +111,8 @@ export function useFileHelpers() {
    * 打包导出所有已处理图片为 ZIP
    * 优化：如果只有一张图且不是切片图，则直接触发单图导出，不进行打包
    */
-  const downloadAllAsZip = async (tag = '_Imago_Processed') => {
+  const downloadAllAsZip = async (tag?: string) => {
+    const finalTag = tag ?? t('common.export.suffix.processed')
     const doneImages = store.images.filter(
       (img) => img.status === 'done' && (img.processedBlob || img.processedBlobs)
     )
@@ -118,7 +122,7 @@ export function useFileHelpers() {
     if (doneImages.length === 1) {
       const img = doneImages[0]!
       if (img.processedBlob && (!img.processedBlobs || img.processedBlobs.length <= 1)) {
-        await downloadImage(img.processedBlob, img.file.name, tag)
+        await downloadImage(img.processedBlob, img.file.name, finalTag)
         return
       }
     }
@@ -136,12 +140,12 @@ export function useFileHelpers() {
           // 为避免混乱，在压缩包内为该图片建立子文件夹
           const folder = zip.folder(baseName)
           img.processedBlobs.forEach((b, idx) => {
-            const finalName = getNewFileName(`${baseName}_tile_${idx + 1}`, b.type, tag)
+            const finalName = getNewFileName(`${baseName}_tile_${idx + 1}`, b.type, finalTag)
             folder?.file(finalName, b)
           })
         } else if (img.processedBlob) {
           // 场景 B: 常见的单图处理（压缩、Resize）
-          const finalName = getNewFileName(img.file.name, img.processedBlob.type, tag)
+          const finalName = getNewFileName(img.file.name, img.processedBlob.type, finalTag)
           zip.file(finalName, img.processedBlob)
         }
       })

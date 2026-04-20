@@ -153,7 +153,8 @@ const handleModalLeave = () => {
 
 const handleDownload = (id: string) => {
   const item = store.images.find((img) => img.id === id)
-  if (item?.processedBlob) downloadImage(item.processedBlob, item.file.name, '_Resized')
+  if (item?.processedBlob)
+    downloadImage(item.processedBlob, item.file.name, t('common.export.suffix.resized'))
 }
 
 let debounceTimeout: ReturnType<typeof setTimeout>
@@ -218,7 +219,7 @@ const handleCtaClick = async () => {
   if (state.action === 'none') return
 
   if (state.action === 'download') {
-    await downloadAllAsZip('_Resized')
+    await downloadAllAsZip(t('common.export.suffix.resized'))
     return
   }
 
@@ -247,7 +248,7 @@ const handleCtaClick = async () => {
           :is-processing="isProcessing"
           show-clear-all
           show-reset-all
-          zip-prefix="_Imago_Resized"
+          :zip-prefix="'_Imago' + t('common.export.suffix.resized')"
       /></template>
 
       <template #content>
@@ -316,14 +317,14 @@ const handleCtaClick = async () => {
                   v-model.number="width"
                   type="number"
                   :placeholder="t('tools.resize.width')"
-                  suffix="W"
+                  :suffix="t('tools.resize.widthUnit')"
                   :aria-label="t('tools.resize.width')"
                 />
                 <AppInput
                   v-model.number="height"
                   type="number"
                   :placeholder="t('tools.resize.height')"
-                  suffix="H"
+                  :suffix="t('tools.resize.heightUnit')"
                   :aria-label="t('tools.resize.height')"
                 />
               </div>

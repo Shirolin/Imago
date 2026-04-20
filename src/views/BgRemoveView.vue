@@ -250,7 +250,7 @@ const closeCompare = () => (showCompareModal.value = false)
 const handleModalLeave = () => (comparingImage.value = null)
 const handleDownload = (id: string) => {
   const item = store.images.find((img) => img.id === id)
-  if (item?.processedBlob) downloadImage(item.processedBlob, item.file.name, '_NoBG')
+  if (item?.processedBlob) downloadImage(item.processedBlob, item.file.name, t('common.export.suffix.bgRemoved'))
 }
 
 // 监听参数变化标记脏数据
@@ -446,9 +446,8 @@ const handleResetParams = () => {
         :is-processing="isProcessing"
         show-clear-all
         show-reset-all
-        zip-prefix="_BgRemoved"
-    /></template>
-
+        :zip-prefix="t('common.export.suffix.bgRemoved')"
+        /></template>
     <template #content>
       <div class="h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-6 relative">
         <AppModal

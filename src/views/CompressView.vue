@@ -60,7 +60,7 @@ const handleModalLeave = () => {
 
 const handleDownload = (id: string) => {
   const item = store.images.find((img) => img.id === id)
-  if (item?.processedBlob) downloadImage(item.processedBlob, item.file.name, '_Compressed')
+  if (item?.processedBlob) downloadImage(item.processedBlob, item.file.name, t('common.export.suffix.compressed'))
 }
 
 watch(
@@ -134,7 +134,7 @@ const handleCtaClick = async () => {
   if (state.action === 'none') return
 
   if (state.action === 'download') {
-    await downloadAllAsZip('_Compressed')
+    await downloadAllAsZip(t('common.export.suffix.compressed'))
     return
   }
 
@@ -167,7 +167,7 @@ const handleCtaClick = async () => {
           :is-processing="isProcessing"
           show-clear-all
           show-reset-all
-          zip-prefix="_Compressed"
+          :zip-prefix="t('common.export.suffix.compressed')"
       /></template>
 
       <template #content>
@@ -292,3 +292,4 @@ const handleCtaClick = async () => {
     </AppModal>
   </div>
 </template>
+>

@@ -232,7 +232,7 @@ const handleApplyFilters = async () => {
 
 const handleDownload = (id: string) => {
   const item = store.images.find((img) => img.id === id)
-  if (item?.processedBlob) downloadImage(item.processedBlob, item.file.name, '_Filtered')
+  if (item?.processedBlob) downloadImage(item.processedBlob, item.file.name, t('common.export.suffix.filtered'))
 }
 
 watch(
@@ -305,7 +305,7 @@ const handleCtaClick = async () => {
           :is-processing="isProcessing"
           show-clear-all
           show-reset-all
-          zip-prefix="_Filtered"
+          :zip-prefix="t('common.export.suffix.filtered')"
       /></template>
 
       <template #content>
