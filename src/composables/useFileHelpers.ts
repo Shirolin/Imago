@@ -10,6 +10,20 @@ export function useFileHelpers() {
   const isDownloadingAll = ref(false)
 
   /**
+   * 功能 ID 到导出后缀词条的映射
+   */
+  const SUFFIX_MAP: Record<string, string> = {
+    'bg-remove': 'common.export.suffix.bgRemoved',
+    compress: 'common.export.suffix.compressed',
+    crop: 'common.export.suffix.cropped',
+    exif: 'common.export.suffix.exifCleaned',
+    filters: 'common.export.suffix.filtered',
+    resize: 'common.export.suffix.resized',
+    split: 'common.export.suffix.split',
+    combine: 'common.export.suffix.combined'
+  }
+
+  /**
    * 格式化文件大小 (B, KB, MB, GB)
    */
   const formatSize = (bytes: number) => {
@@ -73,9 +87,14 @@ export function useFileHelpers() {
   const downloadImage = async (
     blob: Blob | Blob[],
     originalFileName: string,
-    tag?: string
+    tagOrViewId?: string
   ) => {
-    const finalTag = tag ?? t('common.export.suffix.processed')
+    // 智能推导：如果是 viewId 则转换，否则视为直接的 tag，若为空则取默认
+    const finalTag =
+      tagOrViewId && SUFFIX_MAP[tagOrViewId]
+        ? t(SUFFIX_MAP[tagOrViewId])
+        : (tagOrViewId ?? t('common.export.suffix.processed'))
+
     // 如果是多张子图（如切图结果），打一个小 ZIP 下载
     if (Array.isArray(blob)) {
       const zip = new JSZip()
@@ -111,8 +130,12 @@ export function useFileHelpers() {
    * 打包导出所有已处理图片为 ZIP
    * 优化：如果只有一张图且不是切片图，则直接触发单图导出，不进行打包
    */
-  const downloadAllAsZip = async (tag?: string) => {
-    const finalTag = tag ?? t('common.export.suffix.processed')
+  const downloadAllAsZip = async (tagOrViewId?: string) => {
+    const finalTag =
+      tagOrViewId && SUFFIX_MAP[tagOrViewId]
+        ? t(SUFFIX_MAP[tagOrViewId])
+        : (tagOrViewId ?? t('common.export.suffix.processed'))
+
     const doneImages = store.images.filter(
       (img) => img.status === 'done' && (img.processedBlob || img.processedBlobs)
     )

@@ -326,7 +326,11 @@ const handleCombine = async () => {
     })
     if (result?.blob) {
       triggerHaptic(8) // 成功反馈
-      downloadImage(result.blob, `_Imago${t('common.export.suffix.combined')}_${Date.now()}`)
+      downloadImage(
+        result.blob,
+        `_Imago${t('common.export.suffix.combined')}_${Date.now()}`,
+        'combine'
+      )
     }
   } catch (error) {
     console.error('Combine failed:', error)

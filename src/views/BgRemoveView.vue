@@ -250,7 +250,7 @@ const closeCompare = () => (showCompareModal.value = false)
 const handleModalLeave = () => (comparingImage.value = null)
 const handleDownload = (id: string) => {
   const item = store.images.find((img) => img.id === id)
-  if (item?.processedBlob) downloadImage(item.processedBlob, item.file.name, t('common.export.suffix.bgRemoved'))
+  if (item?.processedBlob) downloadImage(item.processedBlob, item.file.name, 'bg-remove')
 }
 
 // 监听参数变化标记脏数据
@@ -375,7 +375,7 @@ const handleCtaClick = async () => {
     return
   }
   if (state.action === 'download') {
-    await downloadAllAsZip('_NoBG')
+    await downloadAllAsZip('bg-remove')
     return
   }
 
@@ -442,12 +442,11 @@ const handleResetParams = () => {
     <template #header-left><ImageSelectionStatus :show-card-size="false" /></template>
     <template #header-actions
       ><ImageActionsToolbar
-        view-id="bgRemove"
+        view-id="bg-remove"
         :is-processing="isProcessing"
         show-clear-all
         show-reset-all
-        :zip-prefix="t('common.export.suffix.bgRemoved')"
-        /></template>
+    /></template>
     <template #content>
       <div class="h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-6 relative">
         <AppModal

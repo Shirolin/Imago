@@ -195,7 +195,7 @@ const handleCtaClick = async () => {
   if (state.action === 'none') return
 
   if (state.action === 'download') {
-    await downloadAllAsZip(t('common.export.suffix.exifCleaned'))
+    await downloadAllAsZip('exif')
     return
   }
 

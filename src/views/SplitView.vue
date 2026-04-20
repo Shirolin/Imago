@@ -709,7 +709,7 @@ const handleCtaClick = async () => {
   if (state.action === 'download') {
     const img = selectedImage.value
     if (img && (img.processedBlob || img.processedBlobs)) {
-      downloadImage(img.processedBlobs || img.processedBlob!, img.file.name, t('common.export.suffix.split'))
+      downloadImage(img.processedBlobs || img.processedBlob!, img.file.name, 'split')
     }
     return
   }
