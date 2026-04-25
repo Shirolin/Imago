@@ -9,12 +9,12 @@
   "common": {
     "export": {
       "advanced": "高级设置",
-      "effort": "压缩精细度",
+      "effort": "编码精细度",
       "format": "输出格式",
       "formatAvif": "AVIF (超高压缩比)",
       "formatJpeg": "JPEG (广泛兼容)",
       "formatJxl": "JPEG XL (未来格式)",
-      "formatOriginal": "保持原格式",
+      "formatOriginal": "保持原始格式",
       "formatPng": "PNG (无损且支持透明)",
       "formatWebp": "WebP (推荐选用)",
       "formatWebp2": "WebP2 (实验性标准)",
@@ -47,12 +47,12 @@
     "heroTitle2": "隐私无界",
     "history": {
       "redo": "重做",
-      "undo": "撤回"
+      "undo": "撤销"
     },
     "image": {
       "card": {
-        "after": "后",
-        "before": "前",
+        "after": "处理后",
+        "before": "处理前",
         "compare": "对比画质细节",
         "dirty": "待同步",
         "download": "导出当前图片",
@@ -116,7 +116,7 @@
       "upload": {
         "button": "选择本地图片",
         "dropTip": "松开鼠标开始处理",
-        "errorSize": "文件 [{name}] 体积过大 ({size}MB)，为了保证性能，建议处理 50MB 以内的图片。",
+        "errorSize": "文件 [{name}] 体积过大 ({size} MB)，为了保证性能，建议处理 50 MB 以内的图片。",
         "pureOffline": "100% 离线处理",
         "quickPaste": "粘贴快捷导入",
         "subtitle": "拖拽、点击或粘贴图片 · 数据不离身",
@@ -140,7 +140,7 @@
         "confirm": "完成提取",
         "confirmTitle": "模型激活确认",
         "connecting": "正在连接 AI 引擎...",
-        "downloadDesc1": "此功能需加载高性能 SAM2 AI 模型 (约 12MB)。",
+        "downloadDesc1": "此功能需加载高性能 SAM2 AI 模型 (约 12 MB)。",
         "downloadDesc2": "模型将完全在您的设备上运行，确保隐私安全。",
         "downloadTitle": "激活交互式智能抠图",
         "error": "AI 引擎异常",
@@ -242,7 +242,7 @@
       "featherDesc": "让抠出的主体边缘更加柔和自然。",
       "forceInit": "强制重新初始化",
       "initDescPro1": "专业版模型约 ",
-      "initDescPro2": "，采用 ISNet 架构，专为复杂边缘（如毛发）设计。仅需下载一次。",
+      "initDescPro2": "，采用 ISNet 架构，专为复杂边缘 (如毛发) 设计。仅需下载一次。",
       "initDescSmart1": "智能版模型约 ",
       "initDescSmart2": "，在速度与质量间取得完美平衡。仅需下载一次。",
       "initError": "模型初始化异常",
@@ -273,7 +273,7 @@
       "strictness": "判定强度",
       "strictnessDesc": "控制 AI 提取主体的严格程度。",
       "tip": "所有 AI 计算均在您的浏览器中完成，图片绝不离身。",
-      "tipMatch1": "取色模式：通过背景色彩匹配进行过滤，",
+      "tipMatch1": "取色模式：通过背景色彩匹配进行过虑，",
       "tipMatch2": "，最适合纯色或简易背景。",
       "tipPro1": "专业模式：工业级深度学习模型，",
       "tipPro2": "，专攻人像、复杂细节与产品图。",
@@ -330,7 +330,7 @@
       "originalSize": "保持原始比例",
       "padding": "画布内衬",
       "params": "间距与布局",
-      "smartScale": "智能等宽/等高缩放",
+      "smartScale": "智能等宽 / 等高缩放",
       "spacing": "图片间隙",
       "start": "起始对齐",
       "title": "无缝长图合成 - 本地快速拼接",
@@ -386,7 +386,7 @@
       "noGrid": "隐藏参考线",
       "posX": "水平偏移 (X)",
       "posY": "垂直偏移 (Y)",
-      "precision": "数值级精准控制",
+      "precision": "数值级精準控制",
       "redo": "重做下一步",
       "reset": "重置当前裁剪",
       "resetAll": "全部重置",
@@ -400,7 +400,7 @@
       "trimRight": "右边缘",
       "trimTop": "上边缘",
       "trimWarning": "边缘修剪将直接移除选定区域外的内容。",
-      "undo": "撤销上一步",
+      "undo": "撤消上一步",
       "width": "宽度 (px)"
     },
     "exif": {
@@ -489,7 +489,7 @@
         "update": "更新当前滤镜 ({count})"
       },
       "desc": "内置专业级电影感滤镜与色彩微调工具",
-      "fineAdjustment": "色彩精准微调",
+      "fineAdjustment": "色彩精準微调",
       "name": "色彩滤镜",
       "presets": {
         "aden": "浅梦",
@@ -525,7 +525,7 @@
       },
       "desc": "高质量插值算法，按像素或比例重调图像尺寸",
       "height": "图像高度",
-      "heightUnit": "H",
+      "heightUnit": "高",
       "lockAspectRatio": "维持纵横比",
       "name": "尺寸调整",
       "resetDimensions": "还原原始尺寸",
@@ -535,11 +535,11 @@
         "importTip": "导入图片以开启批量尺寸调整",
         "noImages": "列表暂无图片",
         "original": "源尺寸",
-        "target": "预设输出"
+        "target": "默认输出"
       },
       "title": "图像尺寸重采样与高质量缩放 - 批量处理",
       "width": "图像宽度",
-      "widthUnit": "W"
+      "widthUnit": "宽"
     },
     "split": {
       "alignMode": "主体对齐模式",
@@ -549,7 +549,7 @@
         "clickToAdd": "点击此处添加切分线",
         "dragToMove": "按住并拖拽切分线",
         "hLineAria": "水平切分线 {index}，当前位置 {pos} px",
-        "instructions": "点击添加线。空格+拖拽平移视图。选中线后可方向键微调，Delete 删除。",
+        "instructions": "点击添加线。空格 + 拖拽平移视图。选中线后可方向键微调，Delete 删除。",
         "vLineAria": "垂直切分线 {index}，当前位置 {pos} px"
       },
       "center": "中心对齐",
