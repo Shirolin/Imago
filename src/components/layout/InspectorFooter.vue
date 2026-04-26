@@ -21,12 +21,21 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <footer
-    class="shrink-0 z-20 transition-all duration-300 relative"
-    :class="[glass ? 'bg-card/95' : 'bg-card', showBorder ? 'border-t border-border' : '', padding]"
-  >
-    <div class="flex items-center gap-3 w-full">
-      <slot></slot>
-    </div>
-  </footer>
+  <div class="relative shrink-0 z-30">
+    <div
+      class="absolute bottom-full left-0 right-0 h-8 bg-gradient-to-t from-card to-transparent pointer-events-none z-10"
+    ></div>
+    <footer
+      class="transition-all duration-300 relative"
+      :class="[
+        glass ? 'bg-card/95 backdrop-blur-md' : 'bg-card',
+        showBorder ? 'border-t border-border/50' : '',
+        padding
+      ]"
+    >
+      <div class="flex items-center gap-3 w-full">
+        <slot></slot>
+      </div>
+    </footer>
+  </div>
 </template>

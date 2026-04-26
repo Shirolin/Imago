@@ -13,11 +13,11 @@ defineProps<Props>()
   <div class="flex items-center justify-between gap-4">
     <div class="flex items-center gap-2.5">
       <div
-        class="p-2 rounded-full bg-primary/10 text-primary shrink-0 flex items-center justify-center min-w-[32px] min-h-[32px]"
+        class="p-1.5 rounded-lg bg-primary/5 text-primary/80 shrink-0 flex items-center justify-center min-w-[28px] min-h-[28px] border border-primary/10"
       >
-        <component v-if="icon" :is="icon" :size="14" stroke-width="2.5" />
+        <component v-if="icon" :is="icon" :size="14" stroke-width="2" />
       </div>
-      <span class="font-black text-[0.7rem] text-muted-foreground uppercase tracking-[0.15em]">{{
+      <span class="font-semibold text-sm text-foreground/90 tracking-tight">{{
         title
       }}</span>
     </div>

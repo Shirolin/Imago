@@ -116,8 +116,8 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
 </script>
 
 <template>
-  <div class="space-y-6">
-    <section class="space-y-4">
+  <div class="space-y-8">
+    <section class="space-y-5">
       <div class="flex items-center justify-between px-0.5">
         <AppSectionHeader :title="displayTitle" :icon="FileType" />
       </div>
@@ -140,7 +140,7 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
 
         <div
           v-if="showQualitySlider || showTargetSizeInput || showPngOptions"
-          class="bg-muted/10 rounded-2xl p-4 border border-border/60 mt-2 space-y-6"
+          class="bg-muted/10 rounded-2xl p-5 border border-border/40 mt-3 space-y-7"
         >
           <!-- A. 输出质量 -->
           <div v-if="showQualitySlider" class="space-y-3">
@@ -167,7 +167,7 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
                   <Target :size="15" :stroke-width="2.5" class="text-primary" />
                 </div>
                 <span
-                  class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none"
+                  class="text-xs font-medium text-muted-foreground/80 leading-none"
                   >{{ t('common.export.targetSize') }}</span
                 >
               </div>
@@ -215,7 +215,10 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
     </section>
 
     <!-- 2. 进阶微调 -->
-    <section v-if="showExifOption || allowManualQuality" class="space-y-4 @container">
+    <section
+      v-if="showExifOption || allowManualQuality"
+      class="space-y-5 @container pt-2 border-t border-border/40"
+    >
       <button
         @click="showAdvanced = !showAdvanced"
         class="flex items-center justify-between w-full group px-0.5"
@@ -234,7 +237,7 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
       <div v-if="showAdvanced" class="space-y-6 px-1 animate-in fade-in slide-in-from-top-2">
         <div v-if="allowManualQuality" class="space-y-3">
           <label
-            class="text-[0.6rem] font-black text-muted-foreground uppercase tracking-widest px-1"
+            class="text-xs font-medium text-muted-foreground/80 px-1"
             >{{ t('common.export.resolutionLimit') }}</label
           >
           <div class="grid grid-cols-1 @[240px]:grid-cols-2 gap-3">

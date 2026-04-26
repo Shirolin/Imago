@@ -163,7 +163,7 @@ defineProps<Props>()
       <aside
         v-if="showSidebar"
         id="inspector-panel"
-        class="bg-card transition-all duration-500 ease-apple z-[200] lg:static shadow-2xl-up lg:shadow-none"
+        class="bg-card/50 border-l border-border/40 transition-all duration-500 ease-apple z-[200] lg:static shadow-2xl-up lg:shadow-none"
         role="complementary"
         :aria-label="isCompact ? '设置面板抽屉' : '设置侧边栏'"
         :class="[
@@ -182,7 +182,7 @@ defineProps<Props>()
             : 'translate-x-0',
 
           // LG/XL: 常驻分栏
-          isDesktop ? 'lg:border-l lg:h-auto lg:z-[60] lg:rounded-none' : '',
+          isDesktop ? 'lg:h-auto lg:z-[60] lg:rounded-none' : '',
           isDesktop && layoutStore.isInspectorCollapsed
             ? 'lg:w-0 lg:overflow-hidden lg:border-l-0'
             : 'lg:w-[320px] 2xl:w-[360px]'
@@ -236,7 +236,7 @@ defineProps<Props>()
             style="scrollbar-gutter: stable"
             :class="{ 'opacity-0': layoutStore.isInspectorCollapsed && isCompact }"
           >
-            <div class="p-4 md:p-6 flex flex-col gap-8 pb-6">
+            <div class="p-5 md:p-6 flex flex-col gap-10 pb-10">
               <slot name="sidebar"></slot>
             </div>
           </div>
