@@ -55,7 +55,7 @@ const handleDecrement = () => {
         :type="type"
         :placeholder="placeholder"
         class="w-full h-10 bg-muted/20 border border-border/40 rounded-lg text-xs font-bold text-muted-foreground focus:text-foreground focus:border-primary focus:bg-background/80 outline-none transition-all tabular-nums placeholder:text-muted-foreground/40 pl-3 focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 focus:ring-offset-background"
-        :class="[type === 'number' ? 'pr-20' : suffix ? 'pr-8' : 'pr-3']"
+        :class="[type === 'number' ? 'pr-14' : suffix ? 'pr-8' : 'pr-3']"
       />
 
       <!-- 数字调节按钮 (Stepper) -->
@@ -66,7 +66,7 @@ const handleDecrement = () => {
         <button
           @click.stop="handleDecrement"
           type="button"
-          class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-primary/10 text-muted-foreground/60 hover:text-primary active:scale-90 transition-all outline-none focus-visible:ring-1 focus-visible:ring-primary"
+          class="w-6 h-7 flex items-center justify-center rounded-lg hover:bg-primary/10 text-muted-foreground/60 hover:text-primary active:scale-90 transition-all outline-none focus-visible:ring-1 focus-visible:ring-primary"
           aria-label="减少数值"
         >
           <Minus :size="14" />
@@ -75,7 +75,7 @@ const handleDecrement = () => {
         <button
           @click.stop="handleIncrement"
           type="button"
-          class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-primary/10 text-muted-foreground/60 hover:text-primary active:scale-90 transition-all outline-none focus-visible:ring-1 focus-visible:ring-primary"
+          class="w-6 h-7 flex items-center justify-center rounded-lg hover:bg-primary/10 text-muted-foreground/60 hover:text-primary active:scale-90 transition-all outline-none focus-visible:ring-1 focus-visible:ring-primary"
           aria-label="增加数值"
         >
           <Plus :size="14" />
@@ -92,7 +92,7 @@ const handleDecrement = () => {
       <!-- 数字输入框的后缀逻辑 -->
       <div
         v-if="suffix && type === 'number'"
-        class="absolute right-20 top-1/2 -translate-y-1/2 text-[0.7rem] font-black text-muted-foreground/40 pointer-events-none uppercase transition-colors"
+        class="absolute right-14 top-1/2 -translate-y-1/2 text-[0.7rem] font-black text-muted-foreground/40 pointer-events-none uppercase transition-colors"
       >
         {{ suffix }}
       </div>

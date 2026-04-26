@@ -240,7 +240,7 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
             class="text-xs font-medium text-muted-foreground/80 px-1"
             >{{ t('common.export.resolutionLimit') }}</label
           >
-          <div class="grid grid-cols-1 @[240px]:grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 @[280px]:grid-cols-2 gap-3">
             <AppInput
               :model-value="maxWidth"
               @update:model-value="emit('update:maxWidth', $event)"
