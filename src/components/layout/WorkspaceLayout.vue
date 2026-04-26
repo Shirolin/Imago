@@ -38,7 +38,7 @@ defineProps<Props>()
         :inert="(isCompact || isMedium) && !layoutStore.isInspectorCollapsed ? true : undefined"
         :aria-hidden="(isCompact || isMedium) && !layoutStore.isInspectorCollapsed"
         :class="[
-          isCompact && showSidebar && !layoutStore.isInspectorCollapsed ? 'pb-[70vh]' : '',
+          isCompact && showSidebar && !layoutStore.isInspectorCollapsed ? 'pb-[45vh]' : '',
           isCompact && showSidebar && layoutStore.isInspectorCollapsed ? 'pb-11' : '',
           !isCompact ? 'pb-0' : ''
         ]"
@@ -163,13 +163,13 @@ defineProps<Props>()
       <aside
         v-if="showSidebar"
         id="inspector-panel"
-        class="bg-card/50 border-l border-border/40 transition-all duration-500 ease-apple z-[200] lg:static shadow-2xl-up lg:shadow-none"
+        class="bg-card/70 backdrop-blur-2xl border-l border-border/40 transition-all duration-500 ease-apple z-[200] lg:static shadow-2xl-up lg:shadow-none"
         role="complementary"
         :aria-label="isCompact ? '设置面板抽屉' : '设置侧边栏'"
         :class="[
           // XS: 底部抽屉
           isCompact
-            ? 'fixed bottom-0 left-0 right-0 h-[70vh] rounded-t-[2.5rem] border-t border-border z-[300]'
+            ? 'fixed bottom-0 left-0 right-0 h-[45vh] rounded-t-[2.5rem] border-t border-border z-[300]'
             : '',
           isCompact && layoutStore.isInspectorCollapsed ? 'translate-y-[calc(100%-44px)]' : '',
 
