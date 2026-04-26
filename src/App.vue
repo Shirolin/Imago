@@ -154,12 +154,12 @@ const onGlobalFileSelect = (e: Event) => {
     <div
       v-show="isMobileSidebarOpen"
       @click="closeMobileSidebar"
-      class="fixed inset-0 bg-background/40 backdrop-blur-sm z-30 md:hidden"
+      class="fixed inset-0 bg-background/20 backdrop-blur-md z-30 md:hidden"
     ></div>
 
     <!-- Sidebar (Menu) -->
     <aside
-      class="bg-card border-r border-border flex flex-col z-40 transition-all duration-300 ease-in-out md:static fixed inset-y-0 left-0"
+      class="bg-card/95 backdrop-blur-2xl border-r border-border flex flex-col z-40 transition-all duration-300 ease-in-out md:static fixed inset-y-0 left-0"
       :class="[
         isMobileSidebarOpen
           ? 'translate-x-0 shadow-2xl w-[280px]'
@@ -172,14 +172,14 @@ const onGlobalFileSelect = (e: Event) => {
         :style="!layoutStore.isMenuCollapsed ? 'scrollbar-gutter: stable' : ''"
         :class="[
           layoutStore.isMenuCollapsed
-            ? 'md:w-[72px] md:p-0 md:pt-4 md:pb-3 md:items-center p-6 pb-8 pl-4 pr-0'
-            : 'p-6 pb-8 pl-4 pr-0'
+            ? 'md:w-[72px] md:p-0 md:pt-4 md:pb-3 md:items-center p-6 pb-8 pl-3.5 pr-0'
+            : 'p-6 pb-8 pl-3.5 pr-0'
         ]"
       >
         <router-link
           to="/"
           @click="closeMobileSidebar"
-          class="flex items-center hover:opacity-90 transition-opacity active:scale-95 duration-200"
+          class="flex items-center hover:opacity-90 transition-all active:scale-95 duration-200"
           :class="
             layoutStore.isMenuCollapsed ? 'md:justify-center w-full gap-4 md:gap-0' : 'gap-3.5'
           "
@@ -215,8 +215,8 @@ const onGlobalFileSelect = (e: Event) => {
         :style="!layoutStore.isMenuCollapsed ? 'scrollbar-gutter: stable' : ''"
         :class="[
           layoutStore.isMenuCollapsed
-            ? 'md:px-0 md:items-start gap-1 pl-4 pr-0'
-            : 'pl-4 pr-0 gap-1.5'
+            ? 'md:px-0 md:items-start gap-1 pl-3.5 pr-0'
+            : 'pl-3.5 pr-0 gap-1.5'
         ]"
       >
         <router-link
@@ -224,11 +224,11 @@ const onGlobalFileSelect = (e: Event) => {
           class="flex items-center font-bold text-sm transition-all duration-300 group relative overflow-hidden shrink-0"
           :class="[
             $route.path === '/'
-              ? 'bg-primary/10 text-primary'
+              ? 'bg-primary/10 text-primary shadow-sm'
               : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
             layoutStore.isMenuCollapsed
-              ? 'md:justify-center h-11 md:w-[72px] md:rounded-none px-4 py-3.5 gap-3 rounded-xl'
-              : 'px-4 py-3.5 gap-3 rounded-xl'
+              ? 'md:justify-center h-11 md:w-11 md:mx-auto md:rounded-xl px-4 py-2.5 gap-3 rounded-xl'
+              : 'px-3.5 py-2.5 gap-3 rounded-xl'
           ]"
           :title="layoutStore.isMenuCollapsed ? t('nav.allTools') : ''"
           @click="closeMobileSidebar"
@@ -236,11 +236,11 @@ const onGlobalFileSelect = (e: Event) => {
           <Settings2
             :size="layoutStore.isMenuCollapsed ? 20 : 18"
             :class="{ 'scale-110': $route.path === '/' }"
-            class="transition-transform duration-300 shrink-0"
+            class="transition-transform duration-300 shrink-0 group-hover:translate-x-0.5"
           />
           <span
             v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-            class="whitespace-nowrap"
+            class="whitespace-nowrap transition-transform duration-300 group-hover:translate-x-0.5"
             :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
             >{{ t('nav.allTools') }}</span
           >
@@ -263,12 +263,15 @@ const onGlobalFileSelect = (e: Event) => {
         >
           <div
             v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-            class="text-[10px] font-black uppercase text-muted-foreground/50 tracking-[0.2em] mb-2 ml-4 whitespace-nowrap"
+            class="text-[10px] font-bold uppercase text-muted-foreground/40 tracking-wider mb-1.5 ml-3.5 whitespace-nowrap"
             :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
           >
             {{ group.label }}
           </div>
-          <div v-else-if="!isMobileSidebarOpen" class="h-px bg-border/40 my-0.5 w-8"></div>
+          <div
+            v-else-if="!isMobileSidebarOpen"
+            class="h-px bg-border/60 my-2 w-6 mx-auto rounded-full"
+          ></div>
 
           <router-link
             v-for="item in group.items"
@@ -277,11 +280,11 @@ const onGlobalFileSelect = (e: Event) => {
             class="flex items-center font-bold text-sm transition-all duration-300 group relative overflow-hidden shrink-0"
             :class="[
               $route.path === item.path
-                ? 'bg-primary/10 text-primary'
+                ? 'bg-primary/10 text-primary shadow-sm'
                 : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
               layoutStore.isMenuCollapsed && !isMobileSidebarOpen
-                ? 'md:justify-center h-11 md:w-[72px] md:rounded-none'
-                : 'px-4 py-3.5 gap-3 rounded-xl'
+                ? 'md:justify-center h-11 md:w-11 md:mx-auto md:rounded-xl px-4 py-2.5 gap-3 rounded-xl'
+                : 'px-3.5 py-2.5 gap-3 rounded-xl'
             ]"
             :title="layoutStore.isMenuCollapsed ? item.name : ''"
             @click="closeMobileSidebar"
@@ -290,12 +293,12 @@ const onGlobalFileSelect = (e: Event) => {
               :is="item.icon"
               :size="layoutStore.isMenuCollapsed && !isMobileSidebarOpen ? 20 : 18"
               :class="{ 'scale-110': $route.path === item.path }"
-              class="transition-transform duration-300 shrink-0"
+              class="transition-transform duration-300 shrink-0 group-hover:translate-x-0.5"
             />
             <span
               v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
               :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
-              class="whitespace-nowrap"
+              class="whitespace-nowrap transition-transform duration-300 group-hover:translate-x-0.5"
               >{{ item.name }}</span
             >
             <div
@@ -327,7 +330,7 @@ const onGlobalFileSelect = (e: Event) => {
           "
         >
           <div
-            class="bg-muted/60 p-1 rounded-xl flex gap-1 transition-all duration-300"
+            class="bg-muted/50 p-1 rounded-full flex gap-1 transition-all duration-300"
             :class="
               layoutStore.isMenuCollapsed && !isMobileSidebarOpen
                 ? 'md:flex-col md:w-12 md:items-center flex-row flex-1'
@@ -337,10 +340,10 @@ const onGlobalFileSelect = (e: Event) => {
             <button
               v-for="mode in themeModes"
               :key="mode"
-              class="flex items-center justify-center rounded-lg text-muted-foreground transition-all hover:text-foreground hover:bg-card/50"
+              class="flex items-center justify-center rounded-full text-muted-foreground transition-all hover:text-foreground hover:bg-card/30"
               :class="[
                 theme === mode
-                  ? 'bg-card text-primary shadow-sm ring-1 ring-black/5 dark:ring-white/5'
+                  ? 'bg-card text-primary shadow-sm ring-1 ring-border/50'
                   : '',
                 layoutStore.isMenuCollapsed && !isMobileSidebarOpen
                   ? 'md:h-10 md:w-10 flex-1 py-2'
