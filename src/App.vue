@@ -407,9 +407,12 @@ const onGlobalFileSelect = (e: Event) => {
 
           <div class="flex items-center gap-3 min-w-0">
             <div
-              class="h-8 flex items-center bg-primary/10 border border-primary/20 rounded-full text-[0.7rem] font-bold text-primary uppercase tracking-[0.1em] shadow-sm px-4 whitespace-nowrap shrink-0 transition-all"
+              class="relative h-8 flex items-center bg-primary/10 border border-primary/20 rounded-full text-[0.7rem] font-bold text-primary uppercase tracking-[0.1em] shadow-sm px-4 whitespace-nowrap shrink-0 transition-all overflow-hidden"
             >
-              <span>{{ currentRouteName }}</span>
+              <div
+                class="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent -translate-x-full animate-[shimmer_3s_infinite]"
+              ></div>
+              <span class="relative z-10">{{ currentRouteName }}</span>
             </div>
             <!-- Teleport target for header-left (e.g. ImageSelectionStatus) -->
             <div id="top-bar-left" class="hidden sm:flex items-center min-w-0"></div>
@@ -492,6 +495,12 @@ const onGlobalFileSelect = (e: Event) => {
 .theme-spin-leave-to {
   opacity: 0;
   transform: rotate(90deg) scale(0.5);
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 /* 文字淡入淡出 */

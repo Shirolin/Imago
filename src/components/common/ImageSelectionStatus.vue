@@ -57,15 +57,36 @@ const selectionLabel = computed(() => {
         ></div>
       </div>
 
-      <div class="flex items-center gap-1.5 pr-0.5">
+      <div class="flex items-center gap-1.5 pr-0.5 overflow-hidden">
         <span class="text-[10px] font-black tracking-tight tabular-nums whitespace-nowrap">
-          <span class="text-foreground/90 group-hover:text-primary transition-colors">{{
-            store.selectedCount
-          }}</span>
+          <Transition name="slide-up" mode="out-in">
+            <span
+              :key="store.selectedCount"
+              class="text-foreground/90 group-hover:text-primary transition-colors inline-block"
+              >{{ store.selectedCount }}</span
+            >
+          </Transition>
           <span class="text-muted-foreground/30 mx-0.5">/</span>
           <span class="text-muted-foreground/40">{{ store.images.length }}</span>
         </span>
       </div>
+...
+<style scoped>
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+</style>
     </button>
 
     <!-- 卡片大小切换 -->

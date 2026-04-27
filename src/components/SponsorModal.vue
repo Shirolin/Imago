@@ -207,7 +207,7 @@ const { t } = useI18n()
 }
 
 .ease-apple {
-  transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {

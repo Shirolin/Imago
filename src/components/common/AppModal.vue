@@ -149,21 +149,25 @@ onMounted(() => {
 <style scoped>
 dialog {
   opacity: 0;
+  transform: scale(0.95);
   transition:
-    opacity 0.2s ease-out,
-    display 0.2s allow-discrete;
+    opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    display 0.3s allow-discrete;
 }
 dialog[open] {
   opacity: 1;
+  transform: scale(1);
 }
 @starting-style {
   dialog[open] {
     opacity: 0;
+    transform: scale(0.95);
   }
 }
 dialog::backdrop {
   opacity: 0;
-  transition: opacity 0.2s ease-out;
+  transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 dialog[open]::backdrop {
   opacity: 1;
