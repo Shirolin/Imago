@@ -84,7 +84,7 @@ const handleDecrement = () => {
 
       <div
         v-if="suffix && type !== 'number'"
-        class="absolute right-3 top-1/2 -translate-y-1/2 text-[0.7rem] font-black text-muted-foreground/50 pointer-events-none uppercase group-focus-within/input:text-primary transition-colors"
+        class="absolute right-3 top-1/2 -translate-y-1/2 text-[0.7rem] font-semibold text-muted-foreground/40 pointer-events-none group-focus-within/input:text-primary transition-colors"
       >
         {{ suffix }}
       </div>
@@ -92,7 +92,7 @@ const handleDecrement = () => {
       <!-- 数字输入框的后缀逻辑 -->
       <div
         v-if="suffix && type === 'number'"
-        class="absolute right-14 top-1/2 -translate-y-1/2 text-[0.7rem] font-black text-muted-foreground/40 pointer-events-none uppercase transition-colors"
+        class="absolute right-14 top-1/2 -translate-y-1/2 text-[0.7rem] font-semibold text-muted-foreground/40 pointer-events-none transition-colors"
       >
         {{ suffix }}
       </div>

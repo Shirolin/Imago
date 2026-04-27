@@ -52,29 +52,23 @@ onMounted(() => {
   <div class="relative language-switcher">
     <button
       @click="isOpen = !isOpen"
-      class="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground text-xs font-bold"
+      class="flex items-center justify-center w-10 h-10 rounded-xl hover:bg-primary/5 transition-all text-muted-foreground hover:text-primary active:scale-[0.94] group"
       :title="currentLanguageName"
     >
-      <Languages :size="16" />
-      <span class="hidden lg:inline">{{ currentLanguageName }}</span>
-      <ChevronDown
-        :size="12"
-        class="transition-transform duration-200"
-        :class="{ 'rotate-180': isOpen }"
-      />
+      <Languages :size="18" class="group-hover:scale-110 transition-transform" />
     </button>
 
     <transition
-      enter-active-class="transition duration-100 ease-out"
-      enter-from-class="transform scale-95 opacity-0"
-      enter-to-class="transform scale-100 opacity-100"
-      leave-active-class="transition duration-75 ease-in"
-      leave-from-class="transform scale-100 opacity-100"
-      leave-to-class="transform scale-95 opacity-0"
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="transform scale-95 translate-y-2 opacity-0"
+      enter-to-class="transform scale-100 translate-y-0 opacity-100"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="transform scale-100 translate-y-0 opacity-100"
+      leave-to-class="transform scale-95 translate-y-2 opacity-0"
     >
       <div
         v-if="isOpen"
-        class="absolute right-0 mt-2 w-40 bg-card border border-border rounded-xl shadow-xl z-[100] py-1.5 overflow-hidden"
+        class="absolute left-0 bottom-full mb-3 w-40 bg-card border border-border shadow-2xl z-[100] py-2 rounded-2xl overflow-hidden backdrop-blur-xl"
       >
         <div class="max-h-[300px] overflow-y-auto custom-scrollbar">
           <button

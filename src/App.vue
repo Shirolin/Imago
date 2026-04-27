@@ -49,6 +49,13 @@ const setTheme = (mode: 'light' | 'dark' | 'system') => {
   applyTheme()
 }
 
+const toggleTheme = () => {
+  const modes: ('light' | 'dark' | 'system')[] = ['light', 'dark', 'system']
+  const currentIndex = modes.indexOf(theme.value)
+  const nextIndex = (currentIndex + 1) % modes.length
+  setTheme(modes[nextIndex])
+}
+
 const applyTheme = () => {
   const root = document.documentElement
   let effectiveTheme = theme.value
@@ -313,102 +320,62 @@ const onGlobalFileSelect = (e: Event) => {
       </nav>
 
       <div
-        class="flex flex-col border-t border-border shrink-0 bg-card/50 backdrop-blur-md transition-all duration-300"
-        :style="!layoutStore.isMenuCollapsed ? 'scrollbar-gutter: stable' : ''"
-        :class="
+        class="flex border-t border-border shrink-0 bg-card/50 backdrop-blur-md transition-all duration-300 px-3.5 py-4"
+        :class="[
           layoutStore.isMenuCollapsed && !isMobileSidebarOpen
-            ? 'md:w-[72px] md:p-0 md:pt-4 md:pb-4 md:items-center md:gap-4 p-4 pb-6 pl-6 pr-4 gap-3'
-            : 'p-4 pb-6 pl-6 pr-4 gap-3'
-        "
+            ? 'flex-col items-center gap-5'
+            : 'flex-row items-center gap-1.5'
+        ]"
       >
-        <!-- Top Row: Metadata (Language & Sponsor) -->
-        <div
-          class="flex items-center justify-between px-0.5"
-          :class="
-            layoutStore.isMenuCollapsed && !isMobileSidebarOpen
-              ? 'md:flex-col md:gap-4 w-full md:justify-center'
-              : 'flex-row w-full gap-2'
-          "
-        >
-          <LanguageSwitcher
-            v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-            class="scale-90 origin-left opacity-60 hover:opacity-100 transition-opacity"
-          />
-
-          <button
-            @click="showSponsorModal = true"
-            class="text-muted-foreground/60 hover:text-rose-500 hover:bg-rose-500/5 transition-all flex items-center justify-center rounded-lg group"
-            :class="
-              layoutStore.isMenuCollapsed && !isMobileSidebarOpen
-                ? 'h-10 w-10'
-                : 'h-8 px-2 gap-1.5'
-            "
-            :title="t('nav.sponsor')"
-          >
-            <Heart :size="16" class="group-hover:scale-110 transition-transform" />
-            <span
-              v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-              class="text-[10px] font-bold uppercase tracking-tight"
-              >Support</span
-            >
-          </button>
-        </div>
-
-        <!-- Bottom Row: Controls (Theme & Toggle) -->
-        <div
-          class="flex items-center"
-          :class="
-            layoutStore.isMenuCollapsed && !isMobileSidebarOpen
-              ? 'md:flex-col md:gap-4 w-full md:justify-center flex-row gap-2'
-              : 'flex-row w-full gap-2'
-          "
-        >
-          <div
-            class="bg-muted/50 p-1 rounded-full flex gap-1 transition-all duration-300"
-            :class="
-              layoutStore.isMenuCollapsed && !isMobileSidebarOpen
-                ? 'md:flex-col md:w-12 md:items-center flex-row flex-1'
-                : 'flex-1 flex-row'
-            "
-          >
-            <button
-              v-for="mode in themeModes"
-              :key="mode"
-              class="flex items-center justify-center rounded-full text-muted-foreground transition-all hover:text-foreground hover:bg-card/30"
-              :class="[
-                theme === mode
-                  ? 'bg-card text-primary shadow-sm ring-1 ring-border/50'
-                  : '',
-                layoutStore.isMenuCollapsed && !isMobileSidebarOpen
-                  ? 'md:h-10 md:w-10 flex-1 py-2'
-                  : 'flex-1 py-2'
-              ]"
-              @click="setTheme(mode)"
-              :title="t('common.theme.' + mode)"
-            >
-              <Sun v-if="mode === 'light'" :size="14" />
-              <Monitor v-if="mode === 'system'" :size="14" />
-              <Moon v-if="mode === 'dark'" :size="14" />
-            </button>
-          </div>
-
-          <button
-            v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-            @click="layoutStore.toggleMenu"
-            class="hidden md:flex items-center justify-center h-10 w-10 shrink-0 rounded-xl bg-muted/60 hover:bg-primary/10 hover:text-primary transition-all text-muted-foreground group"
-            :title="t('nav.collapse')"
-          >
-            <ChevronLeft :size="18" class="group-hover:-translate-x-0.5 transition-transform" />
-          </button>
-        </div>
+        <LanguageSwitcher />
 
         <button
-          v-if="layoutStore.isMenuCollapsed && !isMobileSidebarOpen"
-          @click="layoutStore.toggleMenu"
-          class="hidden md:flex items-center justify-center h-12 w-12 rounded-xl bg-muted/60 hover:bg-primary/10 hover:text-primary transition-all text-muted-foreground group"
-          :title="t('nav.expand')"
+          @click="showSponsorModal = true"
+          class="flex items-center justify-center w-10 h-10 rounded-xl text-muted-foreground/60 hover:text-rose-500 hover:bg-rose-500/5 transition-all active:scale-[0.94] group shrink-0"
+          :title="t('nav.sponsor')"
         >
-          <ChevronRight :size="18" class="group-hover:translate-x-0.5 transition-transform" />
+          <Heart :size="18" class="group-hover:scale-110 transition-transform" />
+        </button>
+
+        <button
+          @click="toggleTheme"
+          class="flex items-center justify-center w-10 h-10 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all active:scale-[0.94] group shrink-0"
+          :title="t('common.theme.' + theme)"
+        >
+          <transition name="theme-spin" mode="out-in">
+            <Sun
+              v-if="theme === 'light'"
+              :key="'sun'"
+              :size="18"
+              class="group-hover:rotate-45 transition-transform"
+            />
+            <Moon
+              v-else-if="theme === 'dark'"
+              :key="'moon'"
+              :size="18"
+              class="group-hover:-rotate-12 transition-transform"
+            />
+            <Monitor v-else :key="'monitor'" :size="18" />
+          </transition>
+        </button>
+
+        <div v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen" class="flex-1"></div>
+
+        <button
+          @click="layoutStore.toggleMenu"
+          class="hidden md:flex items-center justify-center w-10 h-10 rounded-xl bg-muted/40 hover:bg-primary/10 hover:text-primary transition-all text-muted-foreground active:scale-[0.94] group shrink-0"
+          :title="layoutStore.isMenuCollapsed ? t('nav.expand') : t('nav.collapse')"
+        >
+          <ChevronRight
+            v-if="layoutStore.isMenuCollapsed"
+            :size="18"
+            class="group-hover:translate-x-0.5 transition-transform"
+          />
+          <ChevronLeft
+            v-else
+            :size="18"
+            class="group-hover:-translate-x-0.5 transition-transform"
+          />
         </button>
       </div>
     </aside>
@@ -426,7 +393,7 @@ const onGlobalFileSelect = (e: Event) => {
     <main class="flex-1 min-h-0 flex flex-col relative z-20">
       <!-- Toolbar (Header) -->
       <header
-        class="shrink-0 flex items-center justify-between px-4 md:px-6 bg-background/80 backdrop-blur-xl shadow-[0_1px_0_0_rgba(0,0,0,0.05)] z-50 md:z-[110] sticky top-0 h-14 transition-all duration-300"
+        class="shrink-0 flex items-center justify-between px-4 md:px-6 bg-background/80 backdrop-blur-xl shadow-[0_1px_0_0_rgba(0,0,0,0.05)] shadow-inner-glow z-50 md:z-[110] sticky top-0 h-14 transition-all duration-300"
       >
         <!-- Left: Identity & Context -->
         <div class="flex items-center gap-3 w-1/3 min-w-0">
@@ -511,6 +478,22 @@ const onGlobalFileSelect = (e: Event) => {
 </template>
 
 <style>
+/* 主题切换旋转缩放动效 */
+.theme-spin-enter-active,
+.theme-spin-leave-active {
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.theme-spin-enter-from {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.5);
+}
+
+.theme-spin-leave-to {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.5);
+}
+
 /* 文字淡入淡出 */
 .fade-enter-active,
 .fade-leave-active {

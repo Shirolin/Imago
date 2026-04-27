@@ -12,12 +12,12 @@ const props = withDefaults(defineProps<Props>(), {
 const variantClasses = computed(() => {
   switch (props.variant) {
     case 'primary':
-      return 'bg-primary/5 border-primary/20 shadow-sm shadow-primary/5'
+      return 'bg-primary/5 border-primary/20 shadow-sm shadow-primary/5 shadow-inner-glow'
     case 'muted':
-      return 'bg-muted/5 border-border/40'
+      return 'bg-muted/5 border-border/40 shadow-inner-glow'
     case 'default':
     default:
-      return 'bg-card border-border/60 shadow-sm hover:border-primary/20 hover:shadow-md transition-all duration-300'
+      return 'bg-card border-border/60 shadow-sm shadow-inner-glow hover:border-primary/20 hover:shadow-md transition-all duration-300'
   }
 })
 </script>

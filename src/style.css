@@ -125,6 +125,7 @@
   /* Custom Scrollbar Logic (Initial Fix Version: No Gutter) */
   .custom-scrollbar {
     overflow-y: auto;
+    scrollbar-gutter: stable;
   }
 
   .custom-scrollbar::-webkit-scrollbar {
@@ -137,17 +138,17 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/20 rounded-full transition-all;
+    @apply bg-muted-foreground/30 rounded-full transition-all;
     border: 2px solid transparent;
     background-clip: padding-box;
   }
 
   [data-theme='dark'] .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/40;
+    @apply bg-muted-foreground/50;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground/50;
+    @apply bg-muted-foreground/60;
   }
 
   /* Firefox */
