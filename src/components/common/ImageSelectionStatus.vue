@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../../stores/imageStore'
 import { useLayoutStore } from '../../stores/layoutStore'
 import {
-  ChevronRight,
   LayoutGrid,
   LayoutList,
   Square,
@@ -19,7 +18,6 @@ defineProps<{
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
-const { isPC } = useBreakpoints()
 const { t } = useI18n()
 
 const allDone = computed(() => store.doneCount === store.selectedCount && store.selectedCount > 0)
@@ -41,45 +39,32 @@ const selectionLabel = computed(() => {
     <!-- 交互式全选/取消全选按钮 -->
     <button
       @click="store.toggleAll()"
-      class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-muted/30 hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all duration-300 group active:scale-95 border border-border/40 hover:border-primary/20"
+      class="flex items-center gap-2 px-2.5 py-1 rounded-full bg-muted/30 hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all duration-300 group active:scale-95 border border-border/20 hover:border-primary/20"
       :title="selectionLabel"
       :aria-label="selectionLabel"
     >
       <div class="relative flex items-center justify-center">
         <component
           :is="selectionIcon"
-          :size="18"
+          :size="14"
           class="transition-transform duration-300 group-hover:scale-110"
           :class="{ 'text-primary': store.selectedCount > 0 }"
         />
         <!-- 成功状态小圆点 -->
         <div
           v-if="allDone"
-          class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 border-2 border-background animate-pulse"
+          class="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 border-2 border-background animate-pulse"
         ></div>
       </div>
 
-      <div class="flex items-center gap-1.5 pr-1">
-        <span class="text-[11px] font-black tracking-tight tabular-nums whitespace-nowrap">
+      <div class="flex items-center gap-1.5 pr-0.5">
+        <span class="text-[10px] font-black tracking-tight tabular-nums whitespace-nowrap">
           <span class="text-foreground/90 group-hover:text-primary transition-colors">{{
             store.selectedCount
           }}</span>
-          <span class="text-muted-foreground/30 mx-1">/</span>
+          <span class="text-muted-foreground/30 mx-0.5">/</span>
           <span class="text-muted-foreground/40">{{ store.images.length }}</span>
         </span>
-
-        <!-- PC端额外提示 (极简版) -->
-        <div v-if="isPC" class="flex items-center gap-1 border-l border-border/40 pl-2 ml-1">
-          <span
-            class="text-[9px] font-bold uppercase tracking-[0.1em] opacity-40 group-hover:opacity-100 transition-opacity whitespace-nowrap"
-          >
-            {{ selectionLabel }}
-          </span>
-          <ChevronRight
-            :size="10"
-            class="opacity-20 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all"
-          />
-        </div>
       </div>
     </button>
 

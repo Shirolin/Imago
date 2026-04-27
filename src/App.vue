@@ -159,7 +159,7 @@ const onGlobalFileSelect = (e: Event) => {
 
     <!-- Sidebar (Menu) -->
     <aside
-      class="bg-card/95 backdrop-blur-2xl border-r border-border flex flex-col z-40 transition-all duration-300 ease-in-out md:static fixed inset-y-0 left-0"
+      class="bg-card/95 backdrop-blur-2xl border-r border-border flex flex-col z-40 transition-all duration-300 ease-in-out md:static fixed inset-y-0 left-0 pt-2 md:pt-0"
       :class="[
         isMobileSidebarOpen
           ? 'translate-x-0 shadow-2xl w-[280px]'
@@ -172,7 +172,7 @@ const onGlobalFileSelect = (e: Event) => {
         :style="!layoutStore.isMenuCollapsed ? 'scrollbar-gutter: stable' : ''"
         :class="[
           layoutStore.isMenuCollapsed
-            ? 'md:w-[72px] md:p-0 md:pt-4 md:pb-3 md:items-center p-6 pb-8 pl-3.5 pr-0'
+            ? 'md:w-[72px] md:p-0 md:pt-5 md:pb-4 md:items-center p-6 pb-8 pl-3.5 pr-0'
             : 'p-6 pb-8 pl-3.5 pr-0'
         ]"
       >
@@ -211,7 +211,7 @@ const onGlobalFileSelect = (e: Event) => {
       </div>
 
       <nav
-        class="flex-1 min-h-0 overflow-y-auto flex flex-col custom-scrollbar overflow-x-hidden pb-10 transition-all duration-300 pt-2"
+        class="flex-1 min-h-0 overflow-y-auto flex flex-col custom-scrollbar overflow-x-hidden pb-10 transition-all duration-300 pt-3"
         :style="!layoutStore.isMenuCollapsed ? 'scrollbar-gutter: stable' : ''"
         :class="[
           layoutStore.isMenuCollapsed
@@ -224,11 +224,11 @@ const onGlobalFileSelect = (e: Event) => {
           class="flex items-center font-bold text-sm transition-all duration-300 group relative overflow-hidden shrink-0"
           :class="[
             $route.path === '/'
-              ? 'bg-primary/10 text-primary shadow-sm'
+              ? 'bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20'
               : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
             layoutStore.isMenuCollapsed
               ? 'md:justify-center h-11 md:w-11 md:mx-auto md:rounded-xl px-4 py-2.5 gap-3 rounded-xl'
-              : 'px-3.5 py-2.5 gap-3 rounded-xl'
+              : 'px-3.5 py-2.5 gap-3 rounded-xl active:bg-primary/5 active:scale-[0.98]'
           ]"
           :title="layoutStore.isMenuCollapsed ? t('nav.allTools') : ''"
           @click="closeMobileSidebar"
@@ -258,19 +258,19 @@ const onGlobalFileSelect = (e: Event) => {
           :class="[
             layoutStore.isMenuCollapsed && !isMobileSidebarOpen
               ? 'md:w-[72px] mt-1 gap-1 md:items-center w-full'
-              : 'w-full mt-6 gap-1.5'
+              : 'w-full mt-7 gap-1.5'
           ]"
         >
           <div
             v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-            class="text-[10px] font-bold uppercase text-muted-foreground/40 tracking-wider mb-1.5 ml-3.5 whitespace-nowrap"
+            class="text-[10px] font-bold uppercase text-muted-foreground/30 tracking-widest mb-1.5 ml-3.5 whitespace-nowrap"
             :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
           >
             {{ group.label }}
           </div>
           <div
             v-else-if="!isMobileSidebarOpen"
-            class="h-px bg-border/60 my-2 w-6 mx-auto rounded-full"
+            class="h-px bg-border/40 my-2 w-6 mx-auto rounded-full"
           ></div>
 
           <router-link
@@ -280,11 +280,11 @@ const onGlobalFileSelect = (e: Event) => {
             class="flex items-center font-bold text-sm transition-all duration-300 group relative overflow-hidden shrink-0"
             :class="[
               $route.path === item.path
-                ? 'bg-primary/10 text-primary shadow-sm'
+                ? 'bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20'
                 : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
               layoutStore.isMenuCollapsed && !isMobileSidebarOpen
                 ? 'md:justify-center h-11 md:w-11 md:mx-auto md:rounded-xl px-4 py-2.5 gap-3 rounded-xl'
-                : 'px-3.5 py-2.5 gap-3 rounded-xl'
+                : 'px-3.5 py-2.5 gap-3 rounded-xl active:bg-primary/5 active:scale-[0.98]'
             ]"
             :title="layoutStore.isMenuCollapsed ? item.name : ''"
             @click="closeMobileSidebar"
@@ -392,64 +392,66 @@ const onGlobalFileSelect = (e: Event) => {
     <main class="flex-1 min-h-0 flex flex-col relative z-20">
       <!-- Toolbar (Header) -->
       <header
-        class="shrink-0 flex items-center justify-between px-4 md:px-8 bg-background border-b border-border z-50 md:z-[110] sticky top-0 h-16"
+        class="shrink-0 flex items-center justify-between px-4 md:px-6 bg-background/80 backdrop-blur-xl shadow-[0_1px_0_0_rgba(0,0,0,0.05)] z-50 md:z-[110] sticky top-0 h-14 transition-all duration-300"
       >
-        <div class="flex items-center gap-3">
+        <!-- Left: Identity & Context -->
+        <div class="flex items-center gap-3 w-1/3 min-w-0">
           <button
-            class="md:hidden text-foreground hover:text-primary p-2 -ml-2 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
+            class="md:hidden text-foreground hover:text-primary p-2 -ml-2 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg shrink-0"
             :aria-label="t('nav.toggleMobile')"
             @click="toggleMobileSidebar"
           >
             <Menu :size="20" />
           </button>
 
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-3 min-w-0">
             <div
-              class="hidden md:flex items-center gap-2.5 text-[0.7rem] font-black text-muted-foreground/60 uppercase tracking-[0.2em]"
-            >
-              <div class="w-2 h-2 rounded-full bg-muted-foreground/30"></div>
-              <span>{{ t('common.workspace') }}</span>
-            </div>
-            <span class="hidden md:inline text-border/60 mx-1">/</span>
-            <div
-              class="h-8 flex items-center bg-primary/10 border border-primary/20 rounded-full text-[0.7rem] font-bold text-primary uppercase tracking-[0.1em] shadow-sm backdrop-blur-sm px-4 transition-all"
+              class="h-8 flex items-center bg-primary/10 border border-primary/20 rounded-full text-[0.7rem] font-bold text-primary uppercase tracking-[0.1em] shadow-sm px-4 whitespace-nowrap shrink-0 transition-all"
             >
               <span>{{ currentRouteName }}</span>
             </div>
+            <!-- Teleport target for header-left (e.g. ImageSelectionStatus) -->
+            <div id="top-bar-left" class="hidden sm:flex items-center min-w-0"></div>
           </div>
         </div>
 
-        <div class="flex items-center gap-5">
-          <div id="top-bar-tools" class="flex items-center gap-2"></div>
+        <!-- Center: Core Actions (Teleport Target) -->
+        <div
+          id="top-bar-center"
+          class="flex-1 flex justify-center items-center px-4 overflow-x-auto no-scrollbar"
+        ></div>
 
-          <div class="w-px h-6 bg-border hidden md:block"></div>
-
+        <!-- Right: Meta & Global -->
+        <div class="flex items-center justify-end gap-3 md:gap-5 w-1/3 min-w-0">
           <div
-            class="flex items-center gap-2.5 text-xs font-bold text-primary dark:text-primary bg-primary/10 px-4 py-2 rounded-full hidden sm:flex transition-all"
+            class="flex items-center gap-2.5 text-[0.65rem] font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full hidden xl:flex transition-all shrink-0"
           >
             <span
               v-if="store.processingCount === 0"
-              class="w-2 h-2 rounded-full bg-primary/70"
+              class="w-1.5 h-1.5 rounded-full bg-primary/70"
             ></span>
-            <Loader2 v-else class="animate-spin" :size="12" />
+            <Loader2 v-else class="animate-spin" :size="10" />
             <span v-if="store.processingCount === 0">{{ t('app.localProcessing') }}</span>
             <span v-else>{{ t('app.processing') }} ({{ store.globalProgress }}%)</span>
           </div>
 
-          <div class="w-px h-6 bg-border"></div>
-
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-1.5 md:gap-2 shrink-0">
             <LanguageSwitcher />
 
             <button
               @click="showSponsorModal = true"
-              class="text-muted-foreground hover:text-rose-500 hover:bg-rose-500/5 transition-all min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg group"
+              class="text-muted-foreground hover:text-rose-500 hover:bg-rose-500/5 transition-all min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg group"
               :title="t('nav.sponsor')"
               :aria-label="t('nav.sponsor')"
             >
               <Heart :size="18" class="group-hover:scale-110 transition-transform" />
             </button>
           </div>
+
+          <div class="w-px h-5 bg-border/40 hidden md:block shrink-0"></div>
+
+          <!-- Teleport target for Inspector toggle or extra buttons -->
+          <div id="top-bar-right" class="flex items-center gap-2 shrink-0"></div>
         </div>
       </header>
 

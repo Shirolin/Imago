@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { useImageStore } from '../../stores/imageStore'
 import { useLayoutStore } from '../../stores/layoutStore'
 import ImageUpload from '../common/ImageUpload.vue'
@@ -17,6 +18,11 @@ interface Props {
 }
 
 defineProps<Props>()
+
+const isMounted = ref(false)
+onMounted(() => {
+  isMounted.value = true
+})
 </script>
 
 <template>
@@ -31,6 +37,39 @@ defineProps<Props>()
       v-else
       class="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden relative w-full max-w-full"
     >
+      <!-- Teleport Slots to Global Header -->
+      <Teleport to="#top-bar-left" v-if="isMounted">
+        <slot name="header-left"></slot>
+      </Teleport>
+
+      <Teleport to="#top-bar-center" v-if="isMounted">
+        <slot name="header-actions"></slot>
+      </Teleport>
+
+      <Teleport to="#top-bar-right" v-if="isMounted">
+        <button
+          v-if="showSidebar"
+          @click="layoutStore.toggleInspector"
+          class="hidden lg:flex p-2 hover:bg-muted rounded-lg transition-all text-muted-foreground/60 hover:text-primary active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[40px] min-w-[40px] items-center justify-center"
+          aria-label="Toggle Inspector Panel"
+          :aria-expanded="!layoutStore.isInspectorCollapsed"
+        >
+          <PanelRightOpen v-if="layoutStore.isInspectorCollapsed" :size="18" />
+          <PanelRightClose v-else :size="18" />
+        </button>
+        <!-- 平板/中屏模式下的切换按钮 -->
+        <button
+          v-if="showSidebar && isMedium"
+          @click="layoutStore.toggleInspector"
+          class="flex lg:hidden p-2 hover:bg-muted rounded-lg transition-all text-muted-foreground/60 hover:text-primary min-h-[40px] min-w-[40px] items-center justify-center"
+          aria-label="Toggle Inspector Panel"
+          :aria-expanded="!layoutStore.isInspectorCollapsed"
+        >
+          <PanelRightOpen v-if="layoutStore.isInspectorCollapsed" :size="18" />
+          <PanelRightClose v-else :size="18" />
+        </button>
+      </Teleport>
+
       <!-- A. 左侧核心区域 (画布 + 资源托盘) -->
       <!-- 核心加固：在 Overlay 模式 (Compact/Medium) 展开时，为背景应用 inert 防止焦点穿透 -->
       <main
@@ -43,38 +82,6 @@ defineProps<Props>()
           !isCompact ? 'pb-0' : ''
         ]"
       >
-        <header
-          class="h-14 bg-card border-b border-border/50 flex items-center px-4 md:px-6 justify-between gap-4 shrink-0 z-30"
-        >
-          <div class="flex items-center gap-4 md:gap-6 shrink min-w-0">
-            <slot name="header-left"></slot>
-          </div>
-          <div class="flex items-center gap-2 md:gap-3 shrink-0">
-            <slot name="header-actions"></slot>
-            <button
-              v-if="showSidebar"
-              @click="layoutStore.toggleInspector"
-              class="hidden lg:flex p-2 hover:bg-muted rounded-lg transition-all text-muted-foreground/60 hover:text-primary active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[44px] min-w-[44px] items-center justify-center"
-              aria-label="Toggle Inspector Panel"
-              :aria-expanded="!layoutStore.isInspectorCollapsed"
-            >
-              <PanelRightOpen v-if="layoutStore.isInspectorCollapsed" :size="18" />
-              <PanelRightClose v-else :size="18" />
-            </button>
-            <!-- 平板/中屏模式下的切换按钮 -->
-            <button
-              v-if="showSidebar && isMedium"
-              @click="layoutStore.toggleInspector"
-              class="flex lg:hidden p-2 hover:bg-muted rounded-lg transition-all text-muted-foreground/60 hover:text-primary min-h-[44px] min-w-[44px] items-center justify-center"
-              aria-label="Toggle Inspector Panel"
-              :aria-expanded="!layoutStore.isInspectorCollapsed"
-            >
-              <PanelRightOpen v-if="layoutStore.isInspectorCollapsed" :size="18" />
-              <PanelRightClose v-else :size="18" />
-            </button>
-          </div>
-        </header>
-
         <!-- 内容画布 -->
         <div
           class="flex-1 relative min-h-0 w-full"

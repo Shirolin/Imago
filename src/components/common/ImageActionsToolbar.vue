@@ -70,14 +70,14 @@ const handleConfirm = () => {
 
 <template>
   <div class="flex items-center gap-2 md:gap-3">
-    <!-- 1. 核心操作组 (添加与下载) -->
-    <div class="flex items-center gap-1.5 md:gap-2">
+    <!-- 1. 视图与导入组 -->
+    <div class="flex items-center bg-muted/40 p-1 rounded-2xl border border-border/40 shadow-inner-sm">
       <!-- 布局切换 -->
       <button
         @click="
           layoutStore.cardSizeMode = layoutStore.cardSizeMode === 'compact' ? 'large' : 'compact'
         "
-        class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl border border-border/40 hover:bg-muted/50 hover:border-primary/20 text-muted-foreground hover:text-primary transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-90 group shrink-0"
+        class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-background hover:shadow-sm text-muted-foreground hover:text-primary transition-all duration-200 active:scale-90 group shrink-0"
         :aria-label="
           layoutStore.cardSizeMode === 'compact'
             ? t('common.image.toolbar.layoutLarge')
@@ -86,84 +86,84 @@ const handleConfirm = () => {
       >
         <component
           :is="layoutStore.cardSizeMode === 'compact' ? LayoutGrid : LayoutList"
-          :size="18"
+          :size="16"
           class="transition-colors"
         />
       </button>
 
+      <div class="w-px h-4 bg-border/40 mx-1"></div>
+
+      <!-- 导入 -->
       <button
         @click="triggerFileInput"
-        class="flex items-center justify-center gap-2 px-3 md:px-4 h-10 md:h-11 rounded-xl bg-background border border-border/40 hover:bg-muted/50 hover:border-primary/20 text-muted-foreground transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 group whitespace-nowrap min-w-[40px] md:min-w-0"
+        class="flex items-center justify-center gap-2 px-3 h-9 rounded-xl hover:bg-background hover:shadow-sm text-muted-foreground hover:text-primary transition-all duration-200 active:scale-95 group whitespace-nowrap"
         :aria-label="t('common.image.toolbar.importAria')"
       >
         <Plus
-          :size="18"
+          :size="16"
           class="text-muted-foreground/60 group-hover:text-primary transition-colors"
         />
-        <span
-          class="hidden md:inline text-[0.75rem] font-bold group-hover:text-primary transition-colors"
-          >{{ t('common.image.toolbar.import') }}</span
-        >
-      </button>
-
-      <button
-        v-if="props.showDownloadAll && store.doneCount > 0"
-        @click="downloadAllAsZip(viewId)"
-        class="flex items-center gap-2 px-3 md:px-5 h-10 md:h-11 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-[1.02] hover:shadow-primary/30 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 whitespace-nowrap"
-        :class="{ 'opacity-50 cursor-not-allowed grayscale-[0.3]': isProcessing }"
-        :disabled="isProcessing"
-        :aria-label="t('common.image.toolbar.exportAllAria', { count: store.doneCount })"
-      >
-        <Download :size="18" class="animate-in zoom-in duration-300" />
-        <span class="text-[0.75rem] md:text-sm font-black tracking-tight"
-          >{{ t('common.image.toolbar.exportAll') }} ({{ store.doneCount }})</span
-        >
+        <span class="hidden md:inline text-[0.7rem] font-bold tracking-tight">{{
+          t('common.image.toolbar.import')
+        }}</span>
       </button>
     </div>
 
-    <!-- 竖向分隔线 -->
-    <div class="w-px h-6 bg-border mx-1 hidden sm:block"></div>
+    <!-- 2. 全部导出 (核心动作) -->
+    <button
+      v-if="props.showDownloadAll && store.doneCount > 0"
+      @click="downloadAllAsZip(viewId)"
+      class="flex items-center gap-2 px-4 md:px-5 h-10 rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-[1.02] hover:shadow-primary/30 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 whitespace-nowrap"
+      :class="{ 'opacity-50 cursor-not-allowed grayscale-[0.3]': isProcessing }"
+      :disabled="isProcessing"
+      :aria-label="t('common.image.toolbar.exportAllAria', { count: store.doneCount })"
+    >
+      <Download :size="16" class="animate-in zoom-in duration-300" />
+      <span class="text-[0.7rem] md:text-[0.75rem] font-black tracking-tight uppercase">{{
+        t('common.image.toolbar.exportAll')
+      }}</span>
+      <span
+        class="ml-0.5 px-1.5 py-0.5 rounded-md bg-white/20 text-[0.65rem] font-black leading-none"
+        >{{ store.doneCount }}</span
+      >
+    </button>
 
-    <!-- 2. 队列管理组 (恢复、删除、清空) -->
-    <div class="flex items-center gap-1.5 md:gap-2">
+    <!-- 3. 队列管理组 -->
+    <div
+      v-if="store.images.length > 0"
+      class="flex items-center bg-muted/40 p-1 rounded-2xl border border-border/40 shadow-inner-sm"
+    >
       <!-- 恢复原图 -->
       <button
-        v-if="props.showResetAll && store.images.length > 0"
+        v-if="props.showResetAll"
         @click="openConfirm('reset')"
-        class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl border border-border/40 hover:bg-muted/50 hover:border-primary/20 text-muted-foreground transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-90 group shrink-0"
+        class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-background hover:shadow-sm text-muted-foreground hover:text-primary transition-all duration-200 active:scale-90 group shrink-0"
         :aria-label="t('common.image.toolbar.resetAllAria')"
       >
         <RotateCcw
-          :size="18"
+          :size="16"
           class="group-hover:text-primary group-hover:rotate-[-45deg] transition-all duration-300"
         />
       </button>
 
-      <!-- 删除/清空按钮 (合并版) -->
+      <div v-if="props.showResetAll" class="w-px h-4 bg-border/40 mx-1"></div>
+
+      <!-- 删除/清空 -->
       <button
-        v-if="(props.showDeleteSelected || props.showClearAll) && store.images.length > 0"
+        v-if="props.showDeleteSelected || props.showClearAll"
         @click="handleRemoveAction"
-        class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl border transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-90 shrink-0 group"
-        :class="
-          store.selectedCount > 0
-            ? 'bg-destructive/5 border-destructive/20 text-destructive'
-            : 'bg-transparent border-border/40 hover:bg-destructive/5 hover:border-destructive/30 text-muted-foreground hover:text-destructive'
-        "
+        class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-destructive/5 hover:shadow-sm transition-all duration-200 active:scale-90 shrink-0 group"
+        :class="store.selectedCount > 0 ? 'text-destructive' : 'text-muted-foreground'"
         :title="
           store.selectedCount > 0
             ? t('common.image.toolbar.deleteSelected')
             : t('common.image.toolbar.clearAll')
         "
-        :aria-label="
-          store.selectedCount > 0
-            ? t('common.image.toolbar.deleteSelectedAria', { count: store.selectedCount })
-            : t('common.image.toolbar.clearAllAria')
-        "
       >
         <Trash2
-          :size="18"
-          class="transition-colors"
-          :class="store.selectedCount > 0 ? '' : 'opacity-30 group-hover:opacity-100'"
+          :size="16"
+          class="transition-colors group-hover:text-destructive"
+          :class="store.selectedCount > 0 ? '' : 'opacity-40 group-hover:opacity-100'"
         />
       </button>
     </div>
