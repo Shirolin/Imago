@@ -38,6 +38,13 @@ export default tsESLint.config(
     }
   },
   {
-    ignores: ['dist/**', 'node_modules/**', 'public/**', 'temp_impeccable/**']
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'public/**',
+      'temp_impeccable/**',
+      '.gemini/**',
+      '.agents/**'
+    ]
   }
 )

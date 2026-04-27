@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Languages, ChevronDown, Check } from 'lucide-vue-next'
+import { Languages, Check } from 'lucide-vue-next'
 import { useStorage } from '@vueuse/core'
 
 const { locale } = useI18n()

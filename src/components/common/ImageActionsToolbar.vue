@@ -70,10 +70,10 @@ const handleConfirm = () => {
 
 <template>
   <div
-    class="flex items-center gap-2 md:gap-3 bg-card/40 backdrop-blur-md px-2 py-1 rounded-2xl border border-border/30 shadow-sm shadow-inner-glow"
+    class="flex items-center gap-2 md:gap-3 bg-card/60 backdrop-blur-md px-1.5 py-1 rounded-2xl border border-border/50 shadow-inner-glow"
   >
     <!-- 1. 视图与导入组 -->
-    <div class="flex items-center bg-muted/20 p-0.5 rounded-xl border border-border/40 shadow-inner-sm">
+    <div class="flex items-center bg-muted/20 p-0.5 rounded-xl border border-border/20">
       <!-- 布局切换 -->
       <button
         @click="

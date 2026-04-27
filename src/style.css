@@ -125,7 +125,13 @@
   /* Custom Scrollbar Logic (Initial Fix Version: No Gutter) */
   .custom-scrollbar {
     overflow-y: auto;
-    scrollbar-gutter: stable;
+  }
+
+  /* 仅在桌面端保持布局稳定，防止移动端画布偏移 */
+  @media (min-width: 1024px) {
+    .custom-scrollbar {
+      scrollbar-gutter: stable;
+    }
   }
 
   .custom-scrollbar::-webkit-scrollbar {

@@ -56,7 +56,7 @@ const toggleTheme = () => {
   const modes: ('light' | 'dark' | 'system')[] = ['light', 'dark', 'system']
   const currentIndex = modes.indexOf(theme.value)
   const nextIndex = (currentIndex + 1) % modes.length
-  setTheme(modes[nextIndex])
+  setTheme(modes[nextIndex] as 'light' | 'dark' | 'system')
 }
 
 const applyTheme = () => {
@@ -69,15 +69,6 @@ const applyTheme = () => {
 
   root.setAttribute('data-theme', effectiveTheme)
   localStorage.setItem('imago-theme', theme.value)
-}
-
-const onGlobalFileSelect = (e: Event) => {
-  const target = e.target as HTMLInputElement
-  if (target.files) {
-    handleFiles(target.files)
-  }
-  // 重置以允许重复导入相同文件
-  target.value = ''
 }
 
 const handleFiles = (files: FileList | File[]) => {
@@ -142,6 +133,14 @@ const onPaste = (e: ClipboardEvent) => {
   }
 }
 
+const onGlobalFileSelect = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  if (target.files) {
+    handleFiles(target.files)
+  }
+  target.value = ''
+}
+
 onMounted(() => {
   const saved = localStorage.getItem('imago-theme') as 'light' | 'dark' | 'system' | null
   if (saved) theme.value = saved
@@ -154,7 +153,6 @@ onMounted(() => {
 
   mediaQuery.addEventListener('change', handleThemeChange)
 
-  // 全局文件监听
   window.addEventListener('paste', onPaste)
   document.addEventListener('dragenter', onGlobalDragEnter)
   document.addEventListener('dragover', onGlobalDragOver)
@@ -486,12 +484,11 @@ const currentRouteName = computed(() => {
     </div>
 
     <main class="flex-1 min-h-0 flex flex-col relative z-20">
-      <!-- Toolbar (Header) -->
       <header
         class="shrink-0 flex items-center justify-between px-4 md:px-6 bg-background/80 backdrop-blur-xl shadow-[0_1px_0_0_rgba(0,0,0,0.05)] shadow-inner-glow z-50 md:z-[110] sticky top-0 h-14 transition-all duration-300"
       >
         <!-- Left: Identity & Context -->
-        <div class="flex items-center gap-3 w-1/3 min-w-0">
+        <div class="flex items-center gap-3 flex-none min-w-0 z-20">
           <button
             class="md:hidden text-foreground hover:text-primary p-2 -ml-2 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg shrink-0"
             :aria-label="t('nav.toggleMobile')"
@@ -514,16 +511,17 @@ const currentRouteName = computed(() => {
           </div>
         </div>
 
-        <!-- Center: Core Actions (Teleport Target) -->
-        <div
-          id="top-bar-center"
-          class="flex-1 flex justify-center items-center px-4 overflow-x-auto no-scrollbar"
-        ></div>
-
-        <!-- Right: Meta & Global -->
-        <div class="flex items-center justify-end w-1/3 min-w-0">
+        <!-- Right Action Cluster (Center + Right Teleports) -->
+        <div class="flex-1 flex items-center justify-end gap-2 md:gap-4 min-w-0 z-20 pl-4">
+          <!-- Center Tools: Pushed to right for better accessibility -->
           <div
-            class="flex items-center gap-2.5 text-[0.65rem] font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full hidden xl:flex transition-all shrink-0 mr-4"
+            id="top-bar-center"
+            class="flex items-center justify-end overflow-x-auto no-scrollbar min-w-0"
+          ></div>
+
+          <!-- Status & Global Actions -->
+          <div
+            class="flex items-center gap-2.5 text-[0.65rem] font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full hidden xl:flex transition-all shrink-0"
           >
             <span
               v-if="store.processingCount === 0"
@@ -537,7 +535,7 @@ const currentRouteName = computed(() => {
           <!-- Teleport target with dynamic divider -->
           <div
             id="top-bar-right"
-            class="flex items-center gap-2 shrink-0 has-[:any-link]:border-l has-[:enabled]:border-l has-[button]:border-l border-border/40 pl-4 transition-all"
+            class="flex items-center gap-2 shrink-0 has-[:any-link]:border-l has-[:enabled]:border-l has-[button]:border-l border-border/40 pl-2 md:pl-4 transition-all"
           ></div>
         </div>
       </header>

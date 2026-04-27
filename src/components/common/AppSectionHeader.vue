@@ -17,9 +17,7 @@ defineProps<Props>()
       >
         <component v-if="icon" :is="icon" :size="14" stroke-width="2" />
       </div>
-      <span class="font-semibold text-sm text-foreground/90 tracking-tight">{{
-        title
-      }}</span>
+      <span class="font-semibold text-sm text-foreground/90 tracking-tight">{{ title }}</span>
     </div>
     <div v-if="$slots.actions" class="flex items-center gap-2">
       <slot name="actions"></slot>

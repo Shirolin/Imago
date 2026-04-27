@@ -166,10 +166,9 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
                 >
                   <Target :size="15" :stroke-width="2.5" class="text-primary" />
                 </div>
-                <span
-                  class="text-xs font-medium text-muted-foreground/80 leading-none"
-                  >{{ t('common.export.targetSize') }}</span
-                >
+                <span class="text-xs font-medium text-muted-foreground/80 leading-none">{{
+                  t('common.export.targetSize')
+                }}</span>
               </div>
               <span class="font-mono text-sm font-black text-primary"
                 >{{ targetSizeKB }} <span class="text-[10px] opacity-60">KB</span></span
@@ -236,10 +235,9 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
       </button>
       <div v-if="showAdvanced" class="space-y-6 px-1 animate-in fade-in slide-in-from-top-2">
         <div v-if="allowManualQuality" class="space-y-3">
-          <label
-            class="text-xs font-medium text-muted-foreground/80 px-1"
-            >{{ t('common.export.resolutionLimit') }}</label
-          >
+          <label class="text-xs font-medium text-muted-foreground/80 px-1">{{
+            t('common.export.resolutionLimit')
+          }}</label>
           <div class="grid grid-cols-1 @[280px]:grid-cols-2 gap-3">
             <AppInput
               :model-value="maxWidth"

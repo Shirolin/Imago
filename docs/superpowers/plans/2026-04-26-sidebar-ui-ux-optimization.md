@@ -13,6 +13,7 @@
 ### Task 1: Refactor AppSectionHeader Typography & Icons
 
 **Files:**
+
 - Modify: `src/components/common/AppSectionHeader.vue`
 
 - [ ] **Step 1: Update typography and icon container**
@@ -26,9 +27,7 @@
       >
         <component v-if="icon" :is="icon" :size="14" stroke-width="2" />
       </div>
-      <span class="font-semibold text-sm text-foreground/90 tracking-tight">{{
-        title
-      }}</span>
+      <span class="font-semibold text-sm text-foreground/90 tracking-tight">{{ title }}</span>
     </div>
     <div v-if="$slots.actions" class="flex items-center gap-2">
       <slot name="actions"></slot>
@@ -49,6 +48,7 @@ git commit -m "style(ui): refine AppSectionHeader typography and icon style"
 ### Task 2: Refactor AppSidebarCard for Depth
 
 **Files:**
+
 - Modify: `src/components/common/AppSidebarCard.vue`
 
 - [ ] **Step 1: Update variant classes for better depth**
@@ -92,6 +92,7 @@ git commit -m "style(ui): enhance AppSidebarCard with depth and hover effects"
 ### Task 3: Refactor AppExportSettings Spacing & Labels
 
 **Files:**
+
 - Modify: `src/components/common/AppExportSettings.vue`
 
 - [ ] **Step 1: Update group spacing and labels**
@@ -105,7 +106,7 @@ git commit -m "style(ui): enhance AppSidebarCard with depth and hover effects"
       <div class="space-y-5 px-1">
         <!-- ... Select ... -->
         <!-- ... SegmentedControl ... -->
-        
+
         <div
           v-if="showQualitySlider || showTargetSizeInput || showPngOptions"
           class="bg-muted/10 rounded-2xl p-5 border border-border/40 mt-3 space-y-7"
@@ -118,7 +119,10 @@ git commit -m "style(ui): enhance AppSidebarCard with depth and hover effects"
     </section>
 
     <!-- 2. 进阶微调 -->
-    <section v-if="showExifOption || allowManualQuality" class="space-y-5 pt-2 border-t border-border/40 @container">
+    <section
+      v-if="showExifOption || allowManualQuality"
+      class="space-y-5 pt-2 border-t border-border/40 @container"
+    >
       <!-- ... Advanced Toggle ... -->
       <!-- ... Advanced Content ... -->
     </section>
@@ -130,10 +134,14 @@ git commit -m "style(ui): enhance AppSidebarCard with depth and hover effects"
 
 ```vue
 <!-- Change "RESOLUTION LIMIT" label style -->
-<label class="text-xs font-medium text-muted-foreground/80 px-1">{{ t('common.export.resolutionLimit') }}</label>
+<label
+  class="text-xs font-medium text-muted-foreground/80 px-1"
+>{{ t('common.export.resolutionLimit') }}</label>
 
 <!-- Change Target Size label style in AppExportSettings.vue -->
-<span class="text-xs font-medium text-muted-foreground/80 leading-none">{{ t('common.export.targetSize') }}</span>
+<span
+  class="text-xs font-medium text-muted-foreground/80 leading-none"
+>{{ t('common.export.targetSize') }}</span>
 ```
 
 - [ ] **Step 3: Commit changes**
@@ -148,6 +156,7 @@ git commit -m "style(ui): optimize AppExportSettings spacing and typography"
 ### Task 4: Refactor InspectorFooter with Gradient Mask
 
 **Files:**
+
 - Modify: `src/components/layout/InspectorFooter.vue`
 
 - [ ] **Step 1: Add gradient mask element**
@@ -156,11 +165,17 @@ git commit -m "style(ui): optimize AppExportSettings spacing and typography"
 <template>
   <div class="relative shrink-0 z-30">
     <!-- Gradient Fade Overlay -->
-    <div class="absolute bottom-full left-0 right-0 h-8 bg-gradient-to-t from-card to-transparent pointer-events-none z-10"></div>
-    
+    <div
+      class="absolute bottom-full left-0 right-0 h-8 bg-gradient-to-t from-card to-transparent pointer-events-none z-10"
+    ></div>
+
     <footer
       class="transition-all duration-300 relative"
-      :class="[glass ? 'bg-card/95 backdrop-blur-md' : 'bg-card', showBorder ? 'border-t border-border/50' : '', padding]"
+      :class="[
+        glass ? 'bg-card/95 backdrop-blur-md' : 'bg-card',
+        showBorder ? 'border-t border-border/50' : '',
+        padding
+      ]"
     >
       <div class="flex items-center gap-3 w-full">
         <slot></slot>
@@ -182,6 +197,7 @@ git commit -m "style(ui): add gradient mask to InspectorFooter"
 ### Task 5: Refactor WorkspaceLayout Sidebar Container
 
 **Files:**
+
 - Modify: `src/components/layout/WorkspaceLayout.vue`
 
 - [ ] **Step 1: Update sidebar background and padding**

@@ -3,13 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../../stores/imageStore'
 import { useLayoutStore } from '../../stores/layoutStore'
-import {
-  LayoutGrid,
-  LayoutList,
-  Square,
-  CheckSquare,
-  MinusSquare
-} from 'lucide-vue-next'
+import { LayoutGrid, LayoutList, Square, CheckSquare, MinusSquare } from 'lucide-vue-next'
 
 defineProps<{
   showCardSize?: boolean

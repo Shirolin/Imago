@@ -57,9 +57,9 @@ onMounted(() => {
           <PanelRightOpen v-if="layoutStore.isInspectorCollapsed" :size="18" />
           <PanelRightClose v-else :size="18" />
         </button>
-        <!-- 平板/中屏模式下的切换按钮 -->
+        <!-- 移动端与平板模式下的切换按钮 -->
         <button
-          v-if="showSidebar && isMedium"
+          v-if="showSidebar && !isDesktop"
           @click="layoutStore.toggleInspector"
           class="flex lg:hidden p-2 hover:bg-muted rounded-lg transition-all text-muted-foreground/60 hover:text-primary min-h-[40px] min-w-[40px] items-center justify-center"
           aria-label="Toggle Inspector Panel"
@@ -100,8 +100,8 @@ onMounted(() => {
             class="grid justify-center transition-all duration-300"
             :class="[
               layoutStore.cardSizeMode === 'compact'
-                ? 'grid-cols-[repeat(auto-fill,minmax(130px,1fr))] lg:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 lg:gap-8'
-                : 'grid-cols-[repeat(auto-fill,minmax(160px,1fr))] lg:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 lg:gap-10'
+                ? 'grid-cols-[repeat(auto-fit,minmax(130px,220px))] gap-3 md:gap-8'
+                : 'grid-cols-[repeat(auto-fit,minmax(160px,360px))] gap-4 md:gap-10'
             ]"
           >
             <slot name="content"></slot>
