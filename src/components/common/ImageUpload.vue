@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Upload, Image as ImageIcon, FileImage, MousePointer2 } from 'lucide-vue-next'
+import { Upload, Image as ImageIcon, FileImage } from 'lucide-vue-next'
 import AppButton from './AppButton.vue'
 
 const { t } = useI18n()
 const emit = defineEmits(['upload'])
-const isGlobalDragging = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
 
 const handleFiles = (files: FileList | File[]) => {
@@ -41,33 +40,6 @@ const handleFiles = (files: FileList | File[]) => {
   }
 }
 
-let dragTarget: EventTarget | null = null
-
-const onGlobalDragEnter = (e: DragEvent) => {
-  e.preventDefault()
-  dragTarget = e.target
-  isGlobalDragging.value = true
-}
-
-const onGlobalDragOver = (e: DragEvent) => {
-  e.preventDefault()
-}
-
-const onGlobalDragLeave = (e: DragEvent) => {
-  // Only hide if we leave the outer window/document
-  if (e.target === dragTarget || e.target === document) {
-    isGlobalDragging.value = false
-  }
-}
-
-const onGlobalDrop = (e: DragEvent) => {
-  e.preventDefault()
-  isGlobalDragging.value = false
-  if (e.dataTransfer?.files) {
-    handleFiles(e.dataTransfer.files)
-  }
-}
-
 const onFileSelect = (e: Event) => {
   const target = e.target as HTMLInputElement
   if (target.files) {
@@ -75,73 +47,16 @@ const onFileSelect = (e: Event) => {
   }
 }
 
-const onPaste = (e: ClipboardEvent) => {
-  if (e.clipboardData?.files) {
-    handleFiles(e.clipboardData.files)
-  }
-}
-
 const triggerSelect = () => {
   fileInput.value?.click()
 }
-
-onMounted(() => {
-  window.addEventListener('paste', onPaste)
-  document.addEventListener('dragenter', onGlobalDragEnter)
-  document.addEventListener('dragover', onGlobalDragOver)
-  document.addEventListener('dragleave', onGlobalDragLeave)
-  document.addEventListener('drop', onGlobalDrop)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('paste', onPaste)
-  document.removeEventListener('dragenter', onGlobalDragEnter)
-  document.removeEventListener('dragover', onGlobalDragOver)
-  document.removeEventListener('dragleave', onGlobalDragLeave)
-  document.removeEventListener('drop', onGlobalDrop)
-})
 </script>
 
 <template>
   <div
     class="relative w-full min-h-[320px] md:min-h-[480px] bg-card border-2 border-dashed border-border rounded-3xl md:rounded-[40px] flex items-center justify-center cursor-pointer overflow-hidden p-6 md:p-8 outline-none transition-all duration-400 focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 hover:border-primary hover:bg-muted md:hover:-translate-y-1 shadow-elevated hover:shadow-2xl hover:shadow-primary/5 group @container"
-    :class="{ 'border-primary bg-primary/10 scale-[0.985]': isGlobalDragging }"
     @click="triggerSelect"
   >
-    <!-- 全局拖拽覆盖层 (Delight Overlay) -->
-    <Teleport to="body">
-      <Transition
-        enter-active-class="transition duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]"
-        enter-from-class="opacity-0 scale-95"
-        enter-to-class="opacity-100 scale-100"
-        leave-active-class="transition duration-200 ease-in"
-        leave-from-class="opacity-100 scale-100"
-        leave-to-class="opacity-0 scale-105"
-      >
-        <div
-          v-if="isGlobalDragging"
-          class="fixed inset-4 bg-primary/20 backdrop-blur-xl z-[9999] flex items-center justify-center border-2 border-dashed border-primary/40 rounded-[2.5rem] pointer-events-none shadow-[0_0_80px_-20px_rgba(var(--primary-rgb),0.3)]"
-        >
-          <div
-            class="flex flex-col items-center gap-8 text-primary animate-in fade-in slide-in-from-bottom-4 duration-500"
-          >
-            <div class="relative">
-              <div class="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse"></div>
-              <MousePointer2 :size="64" class="relative z-10 animate-bounce" stroke-width="2.5" />
-            </div>
-            <div class="flex flex-col items-center gap-2">
-              <span class="font-black text-3xl md:text-4xl tracking-tighter uppercase"
-                >Drop to Imago</span
-              >
-              <p class="text-primary/70 font-bold text-sm tracking-[0.2em] uppercase">
-                {{ $t('common.image.upload.dropTip') }}
-              </p>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
-
     <input
       type="file"
       ref="fileInput"

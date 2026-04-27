@@ -20,7 +20,8 @@ import {
   ChevronRight,
   Box,
   Sparkles,
-  Heart
+  Heart,
+  MousePointer2
 } from 'lucide-vue-next'
 import { useImageStore } from './stores/imageStore'
 import { useLayoutStore } from './stores/layoutStore'
@@ -37,6 +38,9 @@ const themeModes = ['light', 'system', 'dark'] as const
 
 const isMobileSidebarOpen = ref(false)
 const showSponsorModal = ref(false)
+const isGlobalDragging = ref(false)
+let dragTarget: EventTarget | null = null
+
 const toggleMobileSidebar = () => {
   isMobileSidebarOpen.value = !isMobileSidebarOpen.value
 }
@@ -68,6 +72,68 @@ const applyTheme = () => {
   localStorage.setItem('imago-theme', theme.value)
 }
 
+const handleFiles = (files: FileList | File[]) => {
+  const MAX_SIZE = 50 * 1024 * 1024 // 50MB
+  const validTypes = [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'image/avif',
+    'image/gif',
+    'image/svg+xml'
+  ]
+
+  const validFiles = Array.from(files).filter((file) => {
+    if (!file.type.startsWith('image/') && !validTypes.includes(file.type)) {
+      return false
+    }
+    if (file.size > MAX_SIZE) {
+      alert(
+        t('common.image.upload.errorSize', {
+          name: file.name,
+          size: (file.size / 1024 / 1024).toFixed(1)
+        })
+      )
+      return false
+    }
+    return true
+  })
+
+  if (validFiles.length > 0) {
+    store.addImages(validFiles)
+  }
+}
+
+const onGlobalDragEnter = (e: DragEvent) => {
+  e.preventDefault()
+  dragTarget = e.target
+  isGlobalDragging.value = true
+}
+
+const onGlobalDragOver = (e: DragEvent) => {
+  e.preventDefault()
+}
+
+const onGlobalDragLeave = (e: DragEvent) => {
+  if (e.target === dragTarget || e.target === document) {
+    isGlobalDragging.value = false
+  }
+}
+
+const onGlobalDrop = (e: DragEvent) => {
+  e.preventDefault()
+  isGlobalDragging.value = false
+  if (e.dataTransfer?.files) {
+    handleFiles(e.dataTransfer.files)
+  }
+}
+
+const onPaste = (e: ClipboardEvent) => {
+  if (e.clipboardData?.files && e.clipboardData.files.length > 0) {
+    handleFiles(e.clipboardData.files)
+  }
+}
+
 onMounted(() => {
   const saved = localStorage.getItem('imago-theme') as 'light' | 'dark' | 'system' | null
   if (saved) theme.value = saved
@@ -80,8 +146,20 @@ onMounted(() => {
 
   mediaQuery.addEventListener('change', handleThemeChange)
 
+  // 全局文件监听
+  window.addEventListener('paste', onPaste)
+  document.addEventListener('dragenter', onGlobalDragEnter)
+  document.addEventListener('dragover', onGlobalDragOver)
+  document.addEventListener('dragleave', onGlobalDragLeave)
+  document.addEventListener('drop', onGlobalDrop)
+
   onBeforeUnmount(() => {
     mediaQuery.removeEventListener('change', handleThemeChange)
+    window.removeEventListener('paste', onPaste)
+    document.removeEventListener('dragenter', onGlobalDragEnter)
+    document.removeEventListener('dragover', onGlobalDragOver)
+    document.removeEventListener('dragleave', onGlobalDragLeave)
+    document.removeEventListener('drop', onGlobalDrop)
   })
 })
 
@@ -133,21 +211,7 @@ const currentRouteName = computed(() => {
 const onGlobalFileSelect = (e: Event) => {
   const target = e.target as HTMLInputElement
   if (target.files) {
-    const files = Array.from(target.files)
-    const MAX_SIZE = 50 * 1024 * 1024
-    const oversized = files.filter((f) => f.size > MAX_SIZE)
-
-    const firstOversized = oversized[0]
-    if (firstOversized) {
-      alert(
-        t('common.image.upload.errorSize', {
-          name: firstOversized.name,
-          size: (firstOversized.size / 1024 / 1024).toFixed(1)
-        })
-      )
-    }
-
-    store.addImages(files)
+    handleFiles(target.files)
   }
   // 重置以允许重复导入相同文件
   target.value = ''
@@ -158,6 +222,38 @@ const onGlobalFileSelect = (e: Event) => {
   <div
     class="flex h-[100dvh] w-full overflow-hidden relative bg-background text-foreground antialiased transition-colors duration-300"
   >
+    <!-- 全局拖拽覆盖层 (Delight Overlay) -->
+    <Transition
+      enter-active-class="transition duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]"
+      enter-from-class="opacity-0 scale-95"
+      enter-to-class="opacity-100 scale-100"
+      leave-active-class="transition duration-200 ease-in"
+      leave-from-class="opacity-100 scale-100"
+      leave-to-class="opacity-0 scale-105"
+    >
+      <div
+        v-if="isGlobalDragging"
+        class="fixed inset-4 bg-primary/20 backdrop-blur-xl z-[9999] flex items-center justify-center border-2 border-dashed border-primary/40 rounded-[2.5rem] pointer-events-none shadow-[0_0_80px_-20px_rgba(var(--primary-rgb),0.3)]"
+      >
+        <div
+          class="flex flex-col items-center gap-8 text-primary animate-in fade-in slide-in-from-bottom-4 duration-500"
+        >
+          <div class="relative">
+            <div class="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse"></div>
+            <MousePointer2 :size="64" class="relative z-10 animate-bounce" stroke-width="2.5" />
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <span class="font-black text-3xl md:text-4xl tracking-tighter uppercase"
+              >Drop to Imago</span
+            >
+            <p class="text-primary/70 font-bold text-sm tracking-[0.2em] uppercase">
+              {{ t('common.image.upload.dropTip') }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <div
       v-show="isMobileSidebarOpen"
       @click="closeMobileSidebar"
@@ -426,9 +522,9 @@ const onGlobalFileSelect = (e: Event) => {
         ></div>
 
         <!-- Right: Meta & Global -->
-        <div class="flex items-center justify-end gap-3 md:gap-5 w-1/3 min-w-0">
+        <div class="flex items-center justify-end w-1/3 min-w-0">
           <div
-            class="flex items-center gap-2.5 text-[0.65rem] font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full hidden xl:flex transition-all shrink-0"
+            class="flex items-center gap-2.5 text-[0.65rem] font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full hidden xl:flex transition-all shrink-0 mr-4"
           >
             <span
               v-if="store.processingCount === 0"
@@ -439,10 +535,11 @@ const onGlobalFileSelect = (e: Event) => {
             <span v-else>{{ t('app.processing') }} ({{ store.globalProgress }}%)</span>
           </div>
 
-          <div class="w-px h-5 bg-border/40 hidden md:block shrink-0"></div>
-
-          <!-- Teleport target for Inspector toggle or extra buttons -->
-          <div id="top-bar-right" class="flex items-center gap-2 shrink-0"></div>
+          <!-- Teleport target with dynamic divider -->
+          <div
+            id="top-bar-right"
+            class="flex items-center gap-2 shrink-0 has-[:any-link]:border-l has-[:enabled]:border-l has-[button]:border-l border-border/40 pl-4 transition-all"
+          ></div>
         </div>
       </header>
 
