@@ -321,6 +321,40 @@ const onGlobalFileSelect = (e: Event) => {
             : 'p-4 pb-6 pl-6 pr-4 gap-3'
         "
       >
+        <!-- Top Row: Metadata (Language & Sponsor) -->
+        <div
+          class="flex items-center justify-between px-0.5"
+          :class="
+            layoutStore.isMenuCollapsed && !isMobileSidebarOpen
+              ? 'md:flex-col md:gap-4 w-full md:justify-center'
+              : 'flex-row w-full gap-2'
+          "
+        >
+          <LanguageSwitcher
+            v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
+            class="scale-90 origin-left opacity-60 hover:opacity-100 transition-opacity"
+          />
+
+          <button
+            @click="showSponsorModal = true"
+            class="text-muted-foreground/60 hover:text-rose-500 hover:bg-rose-500/5 transition-all flex items-center justify-center rounded-lg group"
+            :class="
+              layoutStore.isMenuCollapsed && !isMobileSidebarOpen
+                ? 'h-10 w-10'
+                : 'h-8 px-2 gap-1.5'
+            "
+            :title="t('nav.sponsor')"
+          >
+            <Heart :size="16" class="group-hover:scale-110 transition-transform" />
+            <span
+              v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
+              class="text-[10px] font-bold uppercase tracking-tight"
+              >Support</span
+            >
+          </button>
+        </div>
+
+        <!-- Bottom Row: Controls (Theme & Toggle) -->
         <div
           class="flex items-center"
           :class="
@@ -433,19 +467,6 @@ const onGlobalFileSelect = (e: Event) => {
             <Loader2 v-else class="animate-spin" :size="10" />
             <span v-if="store.processingCount === 0">{{ t('app.localProcessing') }}</span>
             <span v-else>{{ t('app.processing') }} ({{ store.globalProgress }}%)</span>
-          </div>
-
-          <div class="flex items-center gap-1.5 md:gap-2 shrink-0">
-            <LanguageSwitcher />
-
-            <button
-              @click="showSponsorModal = true"
-              class="text-muted-foreground hover:text-rose-500 hover:bg-rose-500/5 transition-all min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg group"
-              :title="t('nav.sponsor')"
-              :aria-label="t('nav.sponsor')"
-            >
-              <Heart :size="18" class="group-hover:scale-110 transition-transform" />
-            </button>
           </div>
 
           <div class="w-px h-5 bg-border/40 hidden md:block shrink-0"></div>
