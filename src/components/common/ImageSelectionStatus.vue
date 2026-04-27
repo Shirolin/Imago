@@ -10,7 +10,6 @@ import {
   CheckSquare,
   MinusSquare
 } from 'lucide-vue-next'
-import { useBreakpoints } from '../../composables/useBreakpoints'
 
 defineProps<{
   showCardSize?: boolean
@@ -70,23 +69,6 @@ const selectionLabel = computed(() => {
           <span class="text-muted-foreground/40">{{ store.images.length }}</span>
         </span>
       </div>
-...
-<style scoped>
-.slide-up-enter-active,
-.slide-up-leave-active {
-  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.slide-up-enter-from {
-  opacity: 0;
-  transform: translateY(4px);
-}
-
-.slide-up-leave-to {
-  opacity: 0;
-  transform: translateY(-4px);
-}
-</style>
     </button>
 
     <!-- 卡片大小切换 -->
@@ -121,3 +103,20 @@ const selectionLabel = computed(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+</style>
