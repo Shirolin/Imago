@@ -97,7 +97,7 @@ onMounted(() => {
         >
           <div
             v-if="!noScroll"
-            class="grid transition-all duration-300"
+            class="grid justify-center transition-all duration-300"
             :class="[
               layoutStore.cardSizeMode === 'compact'
                 ? 'grid-cols-[repeat(auto-fill,minmax(130px,1fr))] lg:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 lg:gap-8'
@@ -170,7 +170,7 @@ onMounted(() => {
       <aside
         v-if="showSidebar"
         id="inspector-panel"
-        class="bg-card/70 backdrop-blur-2xl border-l border-border/40 transition-all duration-500 ease-apple z-[200] lg:static shadow-2xl-up lg:shadow-none"
+        class="bg-card/70 backdrop-blur-2xl border-border/40 transition-all duration-500 ease-apple z-[200] lg:static shadow-2xl-up lg:shadow-none"
         role="complementary"
         :aria-label="isCompact ? '设置面板抽屉' : '设置侧边栏'"
         :class="[
@@ -189,7 +189,7 @@ onMounted(() => {
             : 'translate-x-0',
 
           // LG/XL: 常驻分栏
-          isDesktop ? 'lg:h-auto lg:z-[60] lg:rounded-none' : '',
+          isDesktop ? 'lg:h-auto lg:z-[60] lg:rounded-none lg:border-l' : '',
           isDesktop && layoutStore.isInspectorCollapsed
             ? 'lg:w-0 lg:overflow-hidden lg:border-l-0'
             : 'lg:w-[320px] 2xl:w-[360px]'
@@ -240,7 +240,6 @@ onMounted(() => {
           <!-- 核心内容滚动区 -->
           <div
             class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar w-full"
-            style="scrollbar-gutter: stable"
             :class="{ 'opacity-0': layoutStore.isInspectorCollapsed && isCompact }"
           >
             <div class="p-5 md:p-6 flex flex-col gap-10 pb-10">

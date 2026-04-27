@@ -34,7 +34,6 @@ const layoutStore = useLayoutStore()
 const { t } = useI18n()
 
 const theme = ref<'light' | 'dark' | 'system'>('system')
-const themeModes = ['light', 'system', 'dark'] as const
 
 const isMobileSidebarOpen = ref(false)
 const showSponsorModal = ref(false)
@@ -70,6 +69,15 @@ const applyTheme = () => {
 
   root.setAttribute('data-theme', effectiveTheme)
   localStorage.setItem('imago-theme', theme.value)
+}
+
+const onGlobalFileSelect = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  if (target.files) {
+    handleFiles(target.files)
+  }
+  // 重置以允许重复导入相同文件
+  target.value = ''
 }
 
 const handleFiles = (files: FileList | File[]) => {
@@ -207,15 +215,6 @@ const currentRouteName = computed(() => {
   if (toolKey) return t(`tools.${toolKey}.name`)
   return routeName || t('nav.allTools')
 })
-
-const onGlobalFileSelect = (e: Event) => {
-  const target = e.target as HTMLInputElement
-  if (target.files) {
-    handleFiles(target.files)
-  }
-  // 重置以允许重复导入相同文件
-  target.value = ''
-}
 </script>
 
 <template>
