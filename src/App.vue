@@ -272,8 +272,8 @@ const currentRouteName = computed(() => {
         :style="!layoutStore.isMenuCollapsed ? 'scrollbar-gutter: stable' : ''"
         :class="[
           layoutStore.isMenuCollapsed
-            ? 'md:w-[72px] md:p-0 md:pt-5 md:pb-4 md:items-center p-6 pb-8 pl-3.5 pr-0'
-            : 'p-6 pb-8 pl-3.5 pr-0'
+            ? 'md:w-[72px] md:p-0 md:pt-5 md:pb-4 md:items-center p-6 pb-8 pl-3.5 pr-4 md:pr-0'
+            : 'p-6 pb-8 pl-3.5 pr-4 md:pr-0'
         ]"
       >
         <router-link
@@ -312,8 +312,8 @@ const currentRouteName = computed(() => {
         :style="!layoutStore.isMenuCollapsed ? 'scrollbar-gutter: stable' : ''"
         :class="[
           layoutStore.isMenuCollapsed
-            ? 'md:px-0 md:items-start gap-1 pl-3.5 pr-0'
-            : 'pl-3.5 pr-0 gap-1.5'
+            ? 'md:px-0 md:items-start gap-1 pl-3.5 pr-4 md:pr-0'
+            : 'pl-3.5 pr-4 md:pr-0 gap-1.5'
         ]"
       >
         <router-link
