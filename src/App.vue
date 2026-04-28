@@ -289,7 +289,7 @@ const currentRouteName = computed(() => {
           <transition name="fade">
             <div
               v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-              class="flex flex-col justify-center translate-y-[2px]"
+              class="flex flex-col justify-center translate-y-[1px]"
               :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
             >
               <h1
@@ -298,7 +298,7 @@ const currentRouteName = computed(() => {
                 <span class="text-primary">imago</span>
               </h1>
               <span
-                class="text-[11px] font-extrabold text-primary/80 tracking-widest leading-snug mt-[2px] ml-[2px] line-clamp-2 md:whitespace-nowrap md:line-clamp-none"
+                class="text-[11px] font-extrabold text-primary/60 tracking-widest leading-snug mt-1 ml-[2px] line-clamp-2 md:whitespace-nowrap md:line-clamp-none"
               >
                 {{ t('app.subtitle') }}
               </span>
@@ -321,11 +321,11 @@ const currentRouteName = computed(() => {
           class="flex items-center font-bold text-sm transition-all duration-300 group relative overflow-hidden shrink-0"
           :class="[
             $route.path === '/'
-              ? 'bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20'
+              ? 'bg-card text-primary shadow-sm ring-1 ring-primary/20 shadow-inner-glow'
               : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
             layoutStore.isMenuCollapsed && !isMobileSidebarOpen
-              ? 'md:justify-center min-h-[44px] md:h-11 md:w-11 md:mx-auto md:rounded-xl px-4 py-3 gap-3 rounded-xl'
-              : 'px-4 py-3 min-h-[44px] gap-3 rounded-xl active:bg-primary/5 active:scale-[0.98]'
+              ? 'md:justify-center min-h-[44px] md:h-11 md:w-11 md:mx-auto md:rounded-xl px-4 py-3 gap-2.5 rounded-xl'
+              : 'px-4 py-3 min-h-[44px] gap-2.5 rounded-xl active:bg-primary/5 active:scale-[0.98]'
           ]"
           :title="layoutStore.isMenuCollapsed ? t('nav.allTools') : ''"
           @click="closeMobileSidebar"
@@ -350,12 +350,12 @@ const currentRouteName = computed(() => {
           :class="[
             layoutStore.isMenuCollapsed && !isMobileSidebarOpen
               ? 'md:w-[72px] mt-1 gap-1 md:items-center w-full'
-              : 'w-full mt-7 gap-1.5'
+              : 'w-full mt-9 gap-1'
           ]"
         >
           <div
             v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-            class="text-[10px] font-bold uppercase text-muted-foreground/50 tracking-widest mb-1.5 ml-3.5 whitespace-nowrap"
+            class="text-[11px] font-bold uppercase text-muted-foreground/40 tracking-[0.15em] mb-2 ml-3.5 whitespace-nowrap"
             :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
           >
             {{ group.label }}
@@ -372,11 +372,11 @@ const currentRouteName = computed(() => {
             class="flex items-center font-bold text-sm transition-all duration-300 group relative overflow-hidden shrink-0"
             :class="[
               $route.path === item.path
-                ? 'bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20'
+                ? 'bg-card text-primary shadow-sm ring-1 ring-primary/20 shadow-inner-glow'
                 : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
               layoutStore.isMenuCollapsed && !isMobileSidebarOpen
-                ? 'md:justify-center min-h-[44px] md:h-11 md:w-11 md:mx-auto md:rounded-xl px-4 py-3 gap-3 rounded-xl'
-                : 'px-4 py-3 min-h-[44px] gap-3 rounded-xl active:bg-primary/5 active:scale-[0.98]'
+                ? 'md:justify-center min-h-[44px] md:h-11 md:w-11 md:mx-auto md:rounded-xl px-4 py-3 gap-2.5 rounded-xl'
+                : 'px-4 py-3 min-h-[44px] gap-2.5 rounded-xl active:bg-primary/5 active:scale-[0.98]'
             ]"
             :title="layoutStore.isMenuCollapsed ? item.name : ''"
             @click="closeMobileSidebar"
@@ -398,11 +398,11 @@ const currentRouteName = computed(() => {
       </nav>
 
       <div
-        class="flex border-t border-border shrink-0 bg-card/50 backdrop-blur-md transition-all duration-300 px-6 md:px-3.5 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]"
+        class="flex border-t border-border/40 shrink-0 bg-card/50 backdrop-blur-md transition-all duration-300 px-6 md:px-3.5 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]"
         :class="[
           layoutStore.isMenuCollapsed && !isMobileSidebarOpen
             ? 'flex-col items-center gap-5'
-            : 'flex-row items-center justify-between md:justify-start gap-1.5'
+            : 'flex-row items-center justify-center gap-8 md:justify-start md:gap-1.5'
         ]"
       >
         <LanguageSwitcher />
