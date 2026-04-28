@@ -52,7 +52,7 @@ onMounted(() => {
   <div class="relative language-switcher">
     <button
       @click="isOpen = !isOpen"
-      class="flex items-center justify-center w-10 h-10 rounded-xl hover:bg-primary/5 transition-all text-muted-foreground hover:text-primary active:scale-[0.94] group"
+      class="flex items-center justify-center w-11 h-11 rounded-xl hover:bg-primary/5 transition-all text-muted-foreground hover:text-primary active:scale-[0.94] group"
       :title="currentLanguageName"
     >
       <Languages :size="18" class="group-hover:scale-110 transition-transform" />

@@ -254,12 +254,12 @@ const currentRouteName = computed(() => {
     <div
       v-show="isMobileSidebarOpen"
       @click="closeMobileSidebar"
-      class="fixed inset-0 bg-background/20 backdrop-blur-md z-30 md:hidden"
+      class="fixed inset-0 bg-background/20 backdrop-blur-md z-[90] md:hidden"
     ></div>
 
     <!-- Sidebar (Menu) -->
     <aside
-      class="bg-card/95 backdrop-blur-2xl border-r border-border flex flex-col z-40 transition-all duration-300 ease-in-out md:static fixed inset-y-0 left-0 pt-2 md:pt-0"
+      class="bg-card/95 backdrop-blur-2xl border-r border-border flex flex-col z-[100] transition-all duration-300 ease-in-out md:static fixed inset-y-0 left-0 pt-[env(safe-area-inset-top,8px)] md:pt-0"
       :class="[
         isMobileSidebarOpen
           ? 'translate-x-0 shadow-2xl w-[280px]'
@@ -295,13 +295,10 @@ const currentRouteName = computed(() => {
               <h1
                 class="text-[28px] font-black tracking-tighter whitespace-nowrap leading-none pb-1"
               >
-                <span
-                  class="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent"
-                  >imago</span
-                >
+                <span class="text-primary">imago</span>
               </h1>
               <span
-                class="text-[11px] font-extrabold text-primary/80 tracking-widest leading-none mt-[2px] ml-[2px]"
+                class="text-[11px] font-extrabold text-primary/80 tracking-widest leading-snug mt-[2px] ml-[2px] line-clamp-2 md:whitespace-nowrap md:line-clamp-none"
               >
                 {{ t('app.subtitle') }}
               </span>
@@ -326,9 +323,9 @@ const currentRouteName = computed(() => {
             $route.path === '/'
               ? 'bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20'
               : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
-            layoutStore.isMenuCollapsed
-              ? 'md:justify-center h-11 md:w-11 md:mx-auto md:rounded-xl px-4 py-2.5 gap-3 rounded-xl'
-              : 'px-3.5 py-2.5 gap-3 rounded-xl active:bg-primary/5 active:scale-[0.98]'
+            layoutStore.isMenuCollapsed && !isMobileSidebarOpen
+              ? 'md:justify-center min-h-[44px] md:h-11 md:w-11 md:mx-auto md:rounded-xl px-4 py-3 gap-3 rounded-xl'
+              : 'px-4 py-3 min-h-[44px] gap-3 rounded-xl active:bg-primary/5 active:scale-[0.98]'
           ]"
           :title="layoutStore.isMenuCollapsed ? t('nav.allTools') : ''"
           @click="closeMobileSidebar"
@@ -344,11 +341,6 @@ const currentRouteName = computed(() => {
             :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
             >{{ t('nav.allTools') }}</span
           >
-          <div
-            v-if="$route.path === '/' && (!layoutStore.isMenuCollapsed || isMobileSidebarOpen)"
-            class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]"
-            :class="{ 'md:h-6 md:w-1': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
-          ></div>
         </router-link>
 
         <div
@@ -363,7 +355,7 @@ const currentRouteName = computed(() => {
         >
           <div
             v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-            class="text-[10px] font-bold uppercase text-muted-foreground/30 tracking-widest mb-1.5 ml-3.5 whitespace-nowrap"
+            class="text-[10px] font-bold uppercase text-muted-foreground/50 tracking-widest mb-1.5 ml-3.5 whitespace-nowrap"
             :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
           >
             {{ group.label }}
@@ -383,8 +375,8 @@ const currentRouteName = computed(() => {
                 ? 'bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20'
                 : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
               layoutStore.isMenuCollapsed && !isMobileSidebarOpen
-                ? 'md:justify-center h-11 md:w-11 md:mx-auto md:rounded-xl px-4 py-2.5 gap-3 rounded-xl'
-                : 'px-3.5 py-2.5 gap-3 rounded-xl active:bg-primary/5 active:scale-[0.98]'
+                ? 'md:justify-center min-h-[44px] md:h-11 md:w-11 md:mx-auto md:rounded-xl px-4 py-3 gap-3 rounded-xl'
+                : 'px-4 py-3 min-h-[44px] gap-3 rounded-xl active:bg-primary/5 active:scale-[0.98]'
             ]"
             :title="layoutStore.isMenuCollapsed ? item.name : ''"
             @click="closeMobileSidebar"
@@ -401,30 +393,23 @@ const currentRouteName = computed(() => {
               class="whitespace-nowrap transition-transform duration-300 group-hover:translate-x-0.5"
               >{{ item.name }}</span
             >
-            <div
-              v-if="
-                $route.path === item.path && (!layoutStore.isMenuCollapsed || isMobileSidebarOpen)
-              "
-              class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]"
-              :class="{ 'md:h-6 md:w-1': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
-            ></div>
           </router-link>
         </div>
       </nav>
 
       <div
-        class="flex border-t border-border shrink-0 bg-card/50 backdrop-blur-md transition-all duration-300 px-3.5 py-4"
+        class="flex border-t border-border shrink-0 bg-card/50 backdrop-blur-md transition-all duration-300 px-6 md:px-3.5 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]"
         :class="[
           layoutStore.isMenuCollapsed && !isMobileSidebarOpen
             ? 'flex-col items-center gap-5'
-            : 'flex-row items-center gap-1.5'
+            : 'flex-row items-center justify-between md:justify-start gap-1.5'
         ]"
       >
         <LanguageSwitcher />
 
         <button
           @click="showSponsorModal = true"
-          class="flex items-center justify-center w-10 h-10 rounded-xl text-muted-foreground/60 hover:text-rose-500 hover:bg-rose-500/5 transition-all active:scale-[0.94] group shrink-0"
+          class="flex items-center justify-center w-11 h-11 rounded-xl text-muted-foreground/60 hover:text-rose-500 hover:bg-rose-500/5 transition-all active:scale-[0.94] group shrink-0"
           :title="t('nav.sponsor')"
         >
           <Heart :size="18" class="group-hover:scale-110 transition-transform" />
@@ -432,7 +417,7 @@ const currentRouteName = computed(() => {
 
         <button
           @click="toggleTheme"
-          class="flex items-center justify-center w-10 h-10 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all active:scale-[0.94] group shrink-0"
+          class="flex items-center justify-center w-11 h-11 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all active:scale-[0.94] group shrink-0"
           :title="t('common.theme.' + theme)"
         >
           <transition name="theme-spin" mode="out-in">
@@ -452,7 +437,10 @@ const currentRouteName = computed(() => {
           </transition>
         </button>
 
-        <div v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen" class="flex-1"></div>
+        <div
+          v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
+          class="hidden md:block flex-1"
+        ></div>
 
         <button
           @click="layoutStore.toggleMenu"
