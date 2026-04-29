@@ -349,7 +349,8 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
 
       <!-- 交互式分割线 (绝对定位于 Viewport，与裁切坐标完美重合) -->
       <div
-        class="absolute top-0 bottom-0 w-[2px] bg-white z-50 pointer-events-none shadow-line"
+        class="absolute top-0 bottom-0 w-[2px] bg-white z-50 pointer-events-none shadow-line transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)]"
+        :class="{ '!duration-0': sliderActive }"
         :style="{ left: `${sliderPos}%` }"
       >
         <!-- 分割线控制柄 (物理质感 + 对比度增强) -->
@@ -370,7 +371,6 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
       </div>
     </div>
 
-    <!-- 沉浸式专业 HUD：底栏工具 -->
     <div
       class="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[1.25rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] animate-in fade-in slide-in-from-bottom-4 duration-700"
     >
@@ -381,8 +381,10 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
         <ZoomOut :size="18" stroke-width="2.5" />
       </button>
 
-      <div class="px-4 min-w-[80px] text-center border-x border-white/10">
-        <span class="text-[11px] font-black font-mono text-white/90 tabular-nums">
+      <div class="px-4 min-w-[80px] flex items-center justify-center border-x border-white/10">
+        <span
+          class="text-[11px] font-black font-mono text-white/90 tabular-nums translate-y-[0.5px]"
+        >
           {{ Math.round(zoom * 100) }}%
         </span>
       </div>
@@ -397,11 +399,13 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
       <div class="w-2"></div>
 
       <button
-        class="flex items-center gap-2 px-4 h-10 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-all active:scale-95"
+        class="flex items-center gap-2 px-3 md:px-4 h-10 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-all active:scale-95"
         @click="updateFitView"
       >
         <RotateCcw :size="14" stroke-width="3" />
-        <span class="text-[10px] font-black uppercase tracking-widest">Reset View</span>
+        <span class="text-[10px] font-black uppercase tracking-widest hidden md:inline"
+          >Reset View</span
+        >
       </button>
     </div>
 
