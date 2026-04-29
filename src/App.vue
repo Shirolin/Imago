@@ -272,8 +272,8 @@ const currentRouteName = computed(() => {
         :style="!layoutStore.isMenuCollapsed ? 'scrollbar-gutter: stable' : ''"
         :class="[
           layoutStore.isMenuCollapsed
-            ? 'md:w-[72px] md:p-0 md:pt-5 md:pb-4 md:items-center p-6 pb-8 pl-3.5 pr-4 md:pr-0'
-            : 'p-6 pb-8 pl-3.5 pr-4 md:pr-0'
+            ? 'md:w-[72px] md:p-0 md:pt-5 md:pb-4 md:items-center p-6 pb-8 pl-3.5 pr-4'
+            : 'p-6 pb-8 pl-3.5 pr-4'
         ]"
       >
         <router-link
@@ -298,7 +298,7 @@ const currentRouteName = computed(() => {
                 <span class="text-primary">imago</span>
               </h1>
               <span
-                class="text-[11px] font-extrabold text-primary/60 tracking-widest leading-snug mt-1 ml-[2px] line-clamp-2 md:whitespace-nowrap md:line-clamp-none"
+                class="text-[11px] font-extrabold text-primary/60 tracking-widest leading-snug mt-1 ml-[2px] line-clamp-2"
               >
                 {{ t('app.subtitle') }}
               </span>
@@ -312,8 +312,8 @@ const currentRouteName = computed(() => {
         :style="!layoutStore.isMenuCollapsed ? 'scrollbar-gutter: stable' : ''"
         :class="[
           layoutStore.isMenuCollapsed
-            ? 'md:px-0 md:items-start gap-1 pl-3.5 pr-4 md:pr-0'
-            : 'pl-3.5 pr-4 md:pr-0 gap-1.5'
+            ? 'md:px-0 md:items-start gap-1 pl-3.5 pr-4'
+            : 'pl-3.5 pr-4 gap-1.5'
         ]"
       >
         <router-link
