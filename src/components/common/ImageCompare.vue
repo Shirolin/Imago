@@ -126,17 +126,31 @@ const handleWheel = (e: WheelEvent) => {
   zoom.value = newZoom
 }
 
+const sliderActive = ref(false)
+
 const handlePointerDown = (e: PointerEvent) => {
   if (isDecoding.value) return
-  // 如果点在滑块上，不触发平移
-  if ((e.target as HTMLElement).closest('.compare-slider-handle')) return
+
+  viewportRef.value?.setPointerCapture(e.pointerId)
+
+  // 判断是滑动分割线还是平移画布
+  if ((e.target as HTMLElement).closest('.compare-slider-handle')) {
+    sliderActive.value = true
+    return
+  }
 
   isDragging.value = true
   dragStart.value = { x: e.clientX, y: e.clientY, offX: offset.value.x, offY: offset.value.y }
-  viewportRef.value?.setPointerCapture(e.pointerId)
 }
 
 const handlePointerMove = (e: PointerEvent) => {
+  if (sliderActive.value && viewportRef.value) {
+    const rect = viewportRef.value.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    sliderPos.value = Math.max(0, Math.min(100, (x / rect.width) * 100))
+    return
+  }
+
   if (!isDragging.value) return
   const dx = e.clientX - dragStart.value.x
   const dy = e.clientY - dragStart.value.y
@@ -145,23 +159,8 @@ const handlePointerMove = (e: PointerEvent) => {
 
 const handlePointerUp = (e: PointerEvent) => {
   isDragging.value = false
-  viewportRef.value?.releasePointerCapture(e.pointerId)
-}
-
-// 滑块逻辑：像素同步
-const sliderActive = ref(false)
-const handleSliderStart = (e: PointerEvent) => {
-  sliderActive.value = true
-  viewportRef.value?.setPointerCapture(e.pointerId)
-}
-const handleSliderMove = (e: PointerEvent) => {
-  if (!sliderActive.value || !viewportRef.value) return
-  const rect = viewportRef.value.getBoundingClientRect()
-  const x = e.clientX - rect.left
-  sliderPos.value = Math.max(0, Math.min(100, (x / rect.width) * 100))
-}
-const handleSliderEnd = () => {
   sliderActive.value = false
+  viewportRef.value?.releasePointerCapture(e.pointerId)
 }
 
 useResizeObserver(viewportRef, (entries) => {
@@ -353,10 +352,6 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
         <!-- 分割线控制柄 (物理质感) -->
         <div
           class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center pointer-events-auto cursor-ew-resize compare-slider-handle group"
-          @pointerdown.stop="handleSliderStart"
-          @pointermove.stop="handleSliderMove"
-          @pointerup.stop="handleSliderEnd"
-          @pointerleave.stop="handleSliderEnd"
         >
           <!-- 外层光圈 -->
           <div

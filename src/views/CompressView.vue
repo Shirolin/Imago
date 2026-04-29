@@ -293,4 +293,3 @@ const handleCtaClick = async () => {
     </AppModal>
   </div>
 </template>
->

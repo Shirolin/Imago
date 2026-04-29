@@ -5,9 +5,9 @@ import { X } from 'lucide-vue-next'
 interface Props {
   show: boolean
   title?: string
-  variant?: 'full' | 'dialog' // 增加变体支持
-  paneOnly?: boolean // 新增：是否移除外边距以支持全画幅展示
-  hideHeader?: boolean // 新增：是否隐藏标题栏以释放垂直空间
+  variant?: 'full' | 'dialog'
+  paneOnly?: boolean
+  hideHeader?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
