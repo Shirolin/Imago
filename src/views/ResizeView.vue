@@ -373,13 +373,20 @@ const handleCtaClick = async () => {
       </template>
     </WorkspaceLayout>
 
-    <AppModal :show="showCompareModal" @close="closeCompare" @after-leave="handleModalLeave">
+    <AppModal
+      :show="showCompareModal"
+      pane-only
+      hide-header
+      @close="closeCompare"
+      @after-leave="handleModalLeave"
+    >
       <ImageCompare
         v-if="comparingImage && processedPreviewUrl"
         :original-url="comparingImage.preview"
         :processed-url="processedPreviewUrl"
         :original-size="`${comparingImage.width}x${comparingImage.height}`"
         :processed-size="`${comparingImage.processedWidth || '--'}x${comparingImage.processedHeight || '--'}`"
+        @close="closeCompare"
       />
     </AppModal>
 

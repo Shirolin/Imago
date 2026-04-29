@@ -834,7 +834,8 @@ const handleResetParams = () => {
 
   <AppModal
     :show="showCompareModal"
-    :title="t('tools.bgRemove.compareTitle')"
+    pane-only
+    hide-header
     @close="closeCompare"
     @after-leave="handleModalLeave"
   >
@@ -845,6 +846,7 @@ const handleResetParams = () => {
       :original-size="formatSize(comparingImage.originalSize)"
       :processed-size="formatSize(comparingImage.processedSize || 0)"
       show-transparency
+      @close="closeCompare"
     />
   </AppModal>
 </template>

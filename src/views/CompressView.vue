@@ -277,7 +277,8 @@ const handleCtaClick = async () => {
 
     <AppModal
       :show="showCompareModal"
-      :title="t('tools.compress.compareTitle')"
+      pane-only
+      hide-header
       @close="closeCompare"
       @after-leave="handleModalLeave"
     >
@@ -287,6 +288,7 @@ const handleCtaClick = async () => {
         :processed-url="comparingImage.processedBlob!"
         :original-size="formatSize(comparingImage.originalSize)"
         :processed-size="formatSize(comparingImage.processedSize || 0)"
+        @close="closeCompare"
       />
     </AppModal>
   </div>
