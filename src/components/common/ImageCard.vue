@@ -188,7 +188,7 @@ const displayUrl = computed(() => {
       <!-- 主内容裁剪层：仅裁剪背景和主图，不裁剪倍镜 -->
       <div
         class="absolute inset-0 overflow-hidden rounded-t-[calc(1rem-1px)] bg-muted/20"
-        :class="{ 'transparency-grid-sm': showTransparency }"
+        :class="{ 'app-transparency-grid-sm': showTransparency }"
       >
         <!-- 【专用层】：滤镜与视觉效果预览 (z-10) -->
         <div class="absolute inset-0 z-10 pointer-events-none">
@@ -257,7 +257,7 @@ const displayUrl = computed(() => {
         <!-- 倍镜容器 -->
         <div
           class="absolute w-32 h-32 md:w-48 md:h-48 -ml-16 -mt-16 md:-ml-24 md:-mt-24 rounded-full border-2 border-primary shadow-[0_0_30px_rgba(var(--primary-rgb),0.5)] overflow-hidden bg-background flex items-center justify-center"
-          :class="{ 'transparency-grid-sm': showTransparency }"
+          :class="{ 'app-transparency-grid-sm': showTransparency }"
           :style="magnifierStyle"
         >
           <!-- 左侧：原图 (动态裁剪) -->

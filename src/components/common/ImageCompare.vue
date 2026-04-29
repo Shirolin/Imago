@@ -196,7 +196,7 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
       v-else
       ref="viewportRef"
       class="flex-1 relative cursor-grab active:cursor-grabbing overflow-hidden"
-      :class="{ 'transparency-grid': showTransparency }"
+      :class="{ 'compare-transparency-grid': showTransparency }"
       @wheel="handleWheel"
       @pointerdown="handlePointerDown"
       @pointermove="handlePointerMove"
@@ -317,12 +317,12 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
 </template>
 
 <style scoped>
-.transparency-grid {
+.compare-transparency-grid {
   background-image:
-    linear-gradient(45deg, #111 25%, transparent 25%),
-    linear-gradient(-45deg, #111 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #111 75%),
-    linear-gradient(-45deg, transparent 75%, #111 75%);
+    linear-gradient(45deg, #121212 25%, transparent 25%),
+    linear-gradient(-45deg, #121212 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #121212 75%),
+    linear-gradient(-45deg, transparent 75%, #121212 75%);
   background-size: 20px 20px;
   background-position:
     0 0,

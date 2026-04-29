@@ -106,7 +106,7 @@ defineExpose({
       @pointerenter="isHovered = true"
       @pointerleave="isHovered = false"
     >
-      <div class="absolute inset-0 transparency-grid opacity-20"></div>
+      <div class="absolute inset-0 app-transparency-grid opacity-20"></div>
 
       <!-- 核心修复：零尺寸锚点系统 -->
       <div

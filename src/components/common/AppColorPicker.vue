@@ -60,7 +60,7 @@ const isColorLight = computed(() => getBrightness(props.modelValue) > 180)
         "
         title="透明背景"
       >
-        <div class="absolute inset-0 transparency-grid-sm"></div>
+        <div class="absolute inset-0 app-transparency-grid-sm"></div>
       </button>
 
       <!-- 纯白 -->

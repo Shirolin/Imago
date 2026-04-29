@@ -101,11 +101,13 @@ onMounted(() => {
       <!-- 全屏模式：原有逻辑 -->
       <div
         v-else
-        class="w-full h-full flex flex-col p-3 md:p-6"
+        class="w-full h-full flex flex-col"
+        :class="containerClasses"
         style="transform: translateZ(0); isolation: isolate"
       >
         <div
-          class="flex-1 flex flex-col bg-background shadow-2xl overflow-hidden relative border border-border rounded-2xl min-h-0"
+          class="flex-1 flex flex-col bg-background shadow-2xl overflow-hidden relative min-h-0"
+          :class="[paneOnly ? '' : 'border border-border rounded-2xl']"
         >
           <header
             v-if="!hideHeader"

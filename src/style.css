@@ -180,7 +180,7 @@
   }
 
   /* 通用棋盘格实用类 */
-  .transparency-grid {
+  .app-transparency-grid {
     background-image: conic-gradient(
       hsl(var(--checkerboard) / var(--checkerboard-opacity)) 0 25%,
       transparent 0 50%,
@@ -190,7 +190,7 @@
     background-size: 20px 20px;
   }
 
-  .transparency-grid-sm {
+  .app-transparency-grid-sm {
     background-image: conic-gradient(
       hsl(var(--checkerboard) / var(--checkerboard-opacity)) 0 25%,
       transparent 0 50%,

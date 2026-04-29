@@ -172,7 +172,7 @@ const handleGenerate = async () => {
                     >
                       <div
                         v-if="backgroundColor === 'transparent'"
-                        class="absolute inset-0 transparency-grid-sm opacity-40"
+                        class="absolute inset-0 app-transparency-grid-sm opacity-40"
                       ></div>
                       <img
                         :src="activeImage.preview"
@@ -305,7 +305,7 @@ const handleGenerate = async () => {
                     >
                       <div
                         v-if="backgroundColor === 'transparent'"
-                        class="absolute inset-0 transparency-grid-sm"
+                        class="absolute inset-0 app-transparency-grid-sm"
                       ></div>
                       <img
                         :src="activeImage.preview"
@@ -343,7 +343,7 @@ const handleGenerate = async () => {
                       >
                         <div
                           v-if="backgroundColor === 'transparent'"
-                          class="absolute inset-0 transparency-grid-sm opacity-10 pointer-events-none"
+                          class="absolute inset-0 app-transparency-grid-sm opacity-10 pointer-events-none"
                         ></div>
                         <img
                           :src="activeImage.preview"
@@ -448,7 +448,7 @@ const handleGenerate = async () => {
                     >
                       <div
                         v-if="backgroundColor === 'transparent' && spec.platform !== 'ios'"
-                        class="absolute inset-0 transparency-grid-sm opacity-20"
+                        class="absolute inset-0 app-transparency-grid-sm opacity-20"
                       ></div>
                       <img
                         :src="activeImage.preview"
