@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useResizeObserver } from '@vueuse/core'
 import {
@@ -75,7 +75,7 @@ const initUrls = async () => {
     afterUrl.value =
       typeof props.processedUrl === 'string'
         ? props.processedUrl
-        : URL.createObjectURL(props.processedUrl)
+        : URL.createObjectURL(props.processedUrl as Blob)
 
     const img = new Image()
     img.src = beforeUrl.value
@@ -178,6 +178,12 @@ useResizeObserver(viewportRef, (entries) => {
     }
   }
 })
+
+// 共享的变换样式
+const sharedTransformStyle = computed(() => ({
+  transform: `translate(${offset.value.x}px, ${offset.value.y}px) scale(${zoom.value})`,
+  transformOrigin: '0 0'
+}))
 
 onMounted(initUrls)
 onUnmounted(() => {
@@ -298,35 +304,32 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
         class="absolute inset-0 compare-transparency-grid pointer-events-none opacity-40"
       ></div>
 
-      <!-- 变换驱动层 -->
-      <div
-        class="absolute will-change-transform"
-        :style="{
-          transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
-          transformOrigin: '0 0'
-        }"
-      >
-        <!-- 层级 1: 处理后图片 (底层) -->
-        <div class="relative">
-          <img
-            :src="afterUrl"
-            class="block max-w-none pointer-events-none shadow-[0_0_120px_rgba(0,0,0,0.8)]"
-            style="image-rendering: pixelated"
-          />
-          <!-- 物理 HUD：处理后尺寸 -->
-          <div
-            class="absolute bottom-6 right-6 px-4 py-2 bg-black/60 backdrop-blur-xl rounded-xl border border-white/5 text-[10px] font-mono text-white/60 tabular-nums pointer-events-none z-30 shadow-2xl"
-          >
-            <span class="opacity-40 mr-2 font-sans font-black">AFTER</span
-            >{{ processedSize || '--' }}
+      <!-- 层级 1: 处理后图片 (底层的全屏视口，负责 AFTER) -->
+      <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute will-change-transform" :style="sharedTransformStyle">
+          <div class="relative">
+            <img
+              :src="afterUrl"
+              class="block max-w-none pointer-events-none shadow-[0_0_120px_rgba(0,0,0,0.8)]"
+              style="image-rendering: pixelated"
+            />
+            <!-- 物理 HUD：处理后尺寸 -->
+            <div
+              class="absolute bottom-6 right-6 px-4 py-2 bg-black/60 backdrop-blur-xl rounded-xl border border-white/5 text-[10px] font-mono text-white/60 tabular-nums shadow-2xl"
+            >
+              <span class="opacity-40 mr-2 font-sans font-black">AFTER</span
+              >{{ processedSize || '--' }}
+            </div>
           </div>
         </div>
+      </div>
 
-        <!-- 层级 2: 处理前图片 (顶层，受 clip-path 驱动) -->
-        <div
-          class="absolute inset-0 overflow-hidden pointer-events-none"
-          :style="{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }"
-        >
+      <!-- 层级 2: 处理前图片 (顶层的全屏视口，应用视口级裁切，负责 BEFORE) -->
+      <div
+        class="absolute inset-0 overflow-hidden pointer-events-none"
+        :style="{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }"
+      >
+        <div class="absolute will-change-transform" :style="sharedTransformStyle">
           <div class="relative h-full">
             <img
               :src="beforeUrl"
@@ -335,7 +338,7 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
             />
             <!-- 物理 HUD：原图尺寸 -->
             <div
-              class="absolute bottom-6 left-6 px-4 py-2 bg-black/60 backdrop-blur-xl rounded-xl border border-white/5 text-[10px] font-mono text-white/60 tabular-nums pointer-events-none z-30 shadow-2xl"
+              class="absolute bottom-6 left-6 px-4 py-2 bg-black/60 backdrop-blur-xl rounded-xl border border-white/5 text-[10px] font-mono text-white/60 tabular-nums shadow-2xl"
             >
               <span class="opacity-40 mr-2 font-sans font-black">BEFORE</span
               >{{ originalSize || '--' }}
@@ -344,22 +347,22 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
         </div>
       </div>
 
-      <!-- 交互式分割线 (绝对定位于 Viewport) -->
+      <!-- 交互式分割线 (绝对定位于 Viewport，与裁切坐标完美重合) -->
       <div
-        class="absolute top-0 bottom-0 w-[2px] bg-white shadow-[0_0_40px_rgba(255,255,255,0.4),0_0_10px_rgba(255,255,255,0.8)] z-50 pointer-events-none"
+        class="absolute top-0 bottom-0 w-[2px] bg-white z-50 pointer-events-none shadow-line"
         :style="{ left: `${sliderPos}%` }"
       >
-        <!-- 分割线控制柄 (物理质感) -->
+        <!-- 分割线控制柄 (物理质感 + 对比度增强) -->
         <div
           class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center pointer-events-auto cursor-ew-resize compare-slider-handle group"
         >
-          <!-- 外层光圈 -->
+          <!-- 外层投影光圈 -->
           <div
-            class="absolute inset-0 bg-white/10 rounded-full scale-50 group-hover:scale-100 transition-transform duration-500 blur-xl"
+            class="absolute inset-0 bg-black/20 rounded-full scale-50 group-hover:scale-100 transition-transform duration-500 blur-2xl"
           ></div>
           <!-- 核心触控体 -->
           <div
-            class="w-10 h-10 bg-white rounded-full shadow-[0_0_30px_rgba(0,0,0,0.5)] flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-active:scale-90 border-[4px] border-white/20"
+            class="w-10 h-10 bg-white rounded-full shadow-[0_0_0_1px_rgba(0,0,0,0.1),0_8px_24px_rgba(0,0,0,0.4)] flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-active:scale-90 border-[4px] border-white"
           >
             <GripVertical :size="18" class="text-black" stroke-width="3" />
           </div>
@@ -444,7 +447,13 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
   background-color: #050505;
 }
 
-/* 隐藏 Range 默认表现，完全使用 pointer 事件系统 */
+/* 分割线高对比度阴影：确保在纯白背景下依然可见 */
+.shadow-line {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.1),
+    0 0 15px rgba(0, 0, 0, 0.5);
+}
+
 .compare-slider-handle {
   touch-action: none;
 }
