@@ -194,11 +194,11 @@ const displayUrl = computed(() => {
        </div>
 
        <!-- Top Overlays -->
-       <div class="absolute top-3 left-3 z-30 flex items-center gap-2">
+       <div v-if="!showMagnifier" class="absolute top-3 left-3 z-30 flex items-center gap-2">
          <div class="transition-all duration-300" :class="isSelected ? 'text-primary scale-110' : 'text-foreground/60 opacity-0 group-hover:opacity-100'"><CheckSquare v-if="isSelected" :size="20" /><Square v-else :size="20" /></div>
          <slot name="overlay" :image="image"></slot>
        </div>
-       <button @click.stop="store.removeImage(image.id)" class="absolute top-3 right-3 z-30 bg-background/40 hover:bg-destructive text-foreground/60 hover:text-destructive-foreground p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-border/40"><X :size="14" /></button>
+       <button v-if="!showMagnifier" @click.stop="store.removeImage(image.id)" class="absolute top-3 right-3 z-30 bg-background/40 hover:bg-destructive text-foreground/60 hover:text-destructive-foreground p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-border/40"><X :size="14" /></button>
 
        <!-- Center Progress -->
        <div v-if="image.status === 'processing'" class="absolute inset-0 bg-background/40 backdrop-blur-[2px] z-35 flex items-center justify-center"><Loader2 :size="24" class="text-primary animate-spin" /></div>
