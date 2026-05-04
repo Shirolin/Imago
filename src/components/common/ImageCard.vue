@@ -164,12 +164,33 @@ const displayUrl = computed(() => {
     @click="emit('toggle', image.id)"
   >
     <!-- Layer 1: Canvas (4:3) -->
-    <div ref="imageRef" class="relative aspect-[4/3] flex items-center justify-center shrink-0 group/canvas">
-       <!-- Background & Preview remains similar but wrapped -->
-       <div class="absolute inset-0 overflow-hidden rounded-t-[calc(1rem-1px)] bg-muted/20" :class="{ 'app-transparency-grid-sm': showTransparency }">
+    <div
+      ref="imageRef"
+      class="relative aspect-[4/3] flex items-center justify-center shrink-0 group/canvas overflow-hidden"
+      @mouseenter="enterMagnifier"
+      @mouseleave="leaveMagnifier"
+      @mousemove="handleMouseMove"
+    >
+       <!-- Background & Preview -->
+       <div class="absolute inset-0 z-0 overflow-hidden rounded-t-[calc(1rem-1px)] bg-muted/20" :class="{ 'app-transparency-grid-sm': showTransparency }">
          <div class="absolute inset-0 z-10 pointer-events-none"><slot name="visual-effects" :image="image"></slot></div>
          <img :src="displayUrl" class="w-full h-full object-contain transition-all duration-700 group-hover/canvas:scale-105" :class="{ 'opacity-40 grayscale-[0.5] blur-[1px] scale-95': image.status === 'processing' }" :style="imageStyle" />
          <div v-if="isDirtyDone" class="absolute inset-0 z-20 pointer-events-none overflow-hidden opacity-30"><div class="absolute inset-[-100%] bg-stripe-pattern animate-stripe-scroll"></div></div>
+       </div>
+
+       <!-- Magnifier Overlay (Large Mode only) -->
+       <div
+         v-if="showMagnifier"
+         class="absolute inset-0 z-40 pointer-events-none overflow-hidden rounded-t-[calc(1rem-1px)]"
+         :style="{ clipPath: dynamicClipPath }"
+       >
+         <div class="absolute inset-0 bg-background" :class="{ 'app-transparency-grid-sm': showTransparency }">
+           <img
+             :src="localProcessedUrl || displayUrl"
+             class="w-full h-full object-contain"
+             :style="[imageStyle, innerContainerStyle]"
+           />
+         </div>
        </div>
 
        <!-- Top Overlays -->
@@ -182,15 +203,15 @@ const displayUrl = computed(() => {
        <!-- Center Progress -->
        <div v-if="image.status === 'processing'" class="absolute inset-0 bg-background/40 backdrop-blur-[2px] z-35 flex items-center justify-center"><Loader2 :size="24" class="text-primary animate-spin" /></div>
 
-       <!-- HUD Tray -->
-       <div class="absolute bottom-3 left-3 right-3 z-40 bg-background/80 backdrop-blur-xl border border-white/20 rounded-xl p-1.5 shadow-2xl flex items-center justify-between gap-1.5 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 ease-apple pointer-events-auto">
+       <!-- HUD Tray (Small Mode only) -->
+       <div class="absolute bottom-3 left-3 right-3 z-40 bg-background/80 backdrop-blur-xl border border-white/20 rounded-xl p-1.5 shadow-2xl flex items-center justify-between gap-1.5 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 ease-apple pointer-events-auto @[221px]:hidden">
           <!-- Action Buttons -->
           <div class="flex items-center gap-1">
              <button v-if="image.status === 'done'" @click.stop="emit('compare', image.id)" class="p-2 hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-lg transition-all"><Columns2 :size="14" /></button>
              <button v-if="image.status === 'done' || image.status === 'error'" @click.stop="handleReset" class="p-2 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded-lg transition-all"><RotateCcw :size="14" /></button>
           </div>
           <!-- Reactive Data (Small mode only) -->
-          <div class="flex @[221px]:hidden items-center gap-2 px-2 border-l border-border/40 ml-1">
+          <div class="flex items-center gap-2 px-2 border-l border-border/40 ml-1">
              <span class="text-[9px] font-mono font-bold opacity-60 tabular-nums">{{ image.width }}x{{ image.height }}</span>
              <span class="text-[9px] font-bold opacity-60 tabular-nums">{{ formatSize(image.originalSize) }}</span>
           </div>
@@ -198,7 +219,7 @@ const displayUrl = computed(() => {
             <button
               @click.stop="emit('interactive', image.id)"
               class="p-2 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground rounded-lg transition-all active:scale-90"
-              :title="$t('common.image.card.interactive')"
+              :title="t('common.image.card.interactive')"
             >
               <Sparkles :size="14" />
             </button>
@@ -225,6 +246,50 @@ const displayUrl = computed(() => {
         <span>{{ formatSize(image.originalSize) }}</span>
       </div>
       <slot name="meta" :image="image"></slot>
+
+      <!-- Action Bar (Large Mode only) -->
+      <div class="hidden @[221px]:flex items-center gap-1.5 mt-2.5 pt-2.5 border-t border-border/40">
+        <AppButton
+          v-if="image.status === 'done'"
+          variant="ghost"
+          size="sm"
+          class="flex-1 h-9 rounded-xl text-muted-foreground hover:text-primary gap-2"
+          @click.stop="emit('compare', image.id)"
+        >
+          <Columns2 :size="15" />
+          <span class="text-[11px] font-bold">{{ t('common.image.card.compare') }}</span>
+        </AppButton>
+        <AppButton
+          v-if="image.status === 'done' || image.status === 'error'"
+          variant="ghost"
+          size="sm"
+          class="flex-1 h-9 rounded-xl text-muted-foreground hover:text-destructive gap-2"
+          @click.stop="handleReset"
+        >
+          <RotateCcw :size="15" />
+          <span class="text-[11px] font-bold">{{ t('common.image.card.reset') }}</span>
+        </AppButton>
+        <div class="flex items-center gap-1.5 ml-auto pl-1.5 border-l border-border/40">
+          <AppButton
+            variant="secondary"
+            size="sm"
+            class="h-9 w-9 rounded-xl p-0"
+            @click.stop="emit('interactive', image.id)"
+            :title="t('common.image.card.interactive')"
+          >
+            <Sparkles :size="15" />
+          </AppButton>
+          <AppButton
+            variant="primary"
+            size="sm"
+            class="h-9 w-9 rounded-xl p-0 shadow-lg shadow-primary/20"
+            @click.stop="emit('download', image.id)"
+            :title="t('common.image.card.download')"
+          >
+            <Download :size="15" />
+          </AppButton>
+        </div>
+      </div>
     </div>
 
     <!-- 单张图片还原确认对话框 -->
