@@ -175,24 +175,19 @@ const displayUrl = computed(() => {
 </template>
 
 <style scoped>
-/* 脏状态边框呼吸动画 */
-@keyframes dirty-pulse {
-  0%,
-  100% {
-    border-color: rgba(245, 158, 11, 0.3);
-    box-shadow: 0 0 5px rgba(245, 158, 11, 0.05);
-  }
-  50% {
-    border-color: rgba(245, 158, 11, 0.6);
-    box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
-  }
-}
-
 .animate-dirty-pulse {
   animation: dirty-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  border-right-width: 3px;
+  border-right-color: theme('colors.amber.500');
 }
+@keyframes dirty-pulse {
+  0%, 100% { border-right-color: rgba(245, 158, 11, 0.4); }
+  50% { border-right-color: rgba(245, 158, 11, 0.8); }
+}
+/* Ensure Apple transition curve is defined or used from tailwind */
+.ease-apple { transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1); }
 
-/* 斜纹背景与滚动动画 */
+/* Reuse existing patterns if needed */
 .bg-stripe-pattern {
   background-image: repeating-linear-gradient(
     45deg,
@@ -202,24 +197,11 @@ const displayUrl = computed(() => {
     rgba(245, 158, 11, 0.08) 40px
   );
 }
-
 @keyframes stripe-scroll {
-  from {
-    transform: translateX(0) translateY(0);
-  }
-  to {
-    transform: translateX(40px) translateY(40px);
-  }
+  from { transform: translateX(0) translateY(0); }
+  to { transform: translateX(40px) translateY(40px); }
 }
-
 .animate-stripe-scroll {
   animation: stripe-scroll 3s linear infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-dirty-pulse,
-  .animate-stripe-scroll {
-    animation: none !important;
-  }
 }
 </style>
