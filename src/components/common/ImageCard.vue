@@ -66,7 +66,7 @@ const displayUrl = computed(() => {
 
 <template>
   <div
-    class="relative bg-card rounded-2xl overflow-hidden border border-border/60 transition-all duration-500 cursor-pointer flex flex-col group hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/30 @container outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background shadow-inner-glow"
+    class="relative bg-card rounded-2xl overflow-hidden border border-border/60 transition-all duration-500 cursor-pointer flex flex-col group hover:shadow-elevated hover:-translate-y-0.5 hover:shadow-primary/10 hover:border-primary/30 @container outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background shadow-inner-glow"
     :class="[
       isSelected ? 'ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/[0.03]' : '',
       isDirtyDone ? 'animate-dirty-pulse border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]' : ''
@@ -79,7 +79,7 @@ const displayUrl = computed(() => {
        <!-- Background & Preview remains similar but wrapped -->
        <div class="absolute inset-0 overflow-hidden rounded-t-[calc(1rem-1px)] bg-muted/20" :class="{ 'app-transparency-grid-sm': showTransparency }">
          <div class="absolute inset-0 z-10 pointer-events-none"><slot name="visual-effects" :image="image"></slot></div>
-         <img :src="displayUrl" class="w-full h-full object-contain transition-all duration-700 group-hover/canvas:scale-105" :class="{ 'opacity-40 grayscale-[0.5] blur-[1px] scale-95': isDirtyDone }" :style="imageStyle" />
+         <img :src="displayUrl" class="w-full h-full object-contain transition-all duration-700 group-hover/canvas:scale-105" :class="{ 'opacity-40 grayscale-[0.5] blur-[1px] scale-95': image.status === 'processing' }" :style="imageStyle" />
          <div v-if="isDirtyDone" class="absolute inset-0 z-20 pointer-events-none overflow-hidden opacity-30"><div class="absolute inset-[-100%] bg-stripe-pattern animate-stripe-scroll"></div></div>
        </div>
 
