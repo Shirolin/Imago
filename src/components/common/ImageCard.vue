@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import type { CSSProperties } from 'vue'
 import {
   Download,
@@ -29,13 +29,17 @@ interface Props {
   imageStyle?: CSSProperties
   allowMagnifier?: boolean
   showTransparency?: boolean
+  processedPreview?: string
+  processedBlob?: Blob
 }
 
 const props = withDefaults(defineProps<Props>(), {
   isSelected: false,
   imageStyle: () => ({}),
   allowMagnifier: true,
-  showTransparency: false
+  showTransparency: false,
+  processedPreview: undefined,
+  processedBlob: undefined
 })
 const emit = defineEmits(['toggle', 'remove', 'download', 'compare', 'interactive'])
 
@@ -56,8 +60,92 @@ const imageRef = ref<HTMLElement | null>(null)
 const isDirtyDone = computed(() => props.image.isDirty && props.image.status === 'done')
 const isDirty = computed(() => props.image.isDirty)
 
+// --- Magnifier Logic ---
+const showMagnifier = ref(false)
+const mousePos = ref({ x: 50, y: 50 })
+const originalHDUrl = ref<string | null>(null)
+const localProcessedUrl = ref<string | null>(null)
+const rafId = ref<number | null>(null)
+
+// 只有在完成处理且悬停时才处理高清 URL
+watch(showMagnifier, (isShowing) => {
+  if (isShowing) {
+    if (props.processedPreview) {
+      localProcessedUrl.value = props.processedPreview
+    } else if (props.processedBlob) {
+      localProcessedUrl.value = URL.createObjectURL(props.processedBlob)
+    }
+
+    if (!originalHDUrl.value) {
+      originalHDUrl.value = props.image.preview || (props.image.file ? URL.createObjectURL(props.image.file) : null)
+    }
+  }
+})
+
+// 监听处理结果变化，实时更新倍镜
+watch(() => props.processedPreview, (newUrl) => {
+  if (showMagnifier.value && newUrl) {
+    localProcessedUrl.value = newUrl
+  }
+})
+
+onUnmounted(() => {
+  if (localProcessedUrl.value && localProcessedUrl.value !== props.processedPreview) {
+    URL.revokeObjectURL(localProcessedUrl.value)
+  }
+  if (originalHDUrl.value && originalHDUrl.value !== props.image.preview) {
+    URL.revokeObjectURL(originalHDUrl.value)
+  }
+  if (rafId.value) cancelAnimationFrame(rafId.value)
+})
+
+const handleMouseMove = (e: MouseEvent) => {
+  if (!props.allowMagnifier || !showMagnifier.value || !imageRef.value) return
+
+  if (rafId.value) cancelAnimationFrame(rafId.value)
+
+  rafId.value = requestAnimationFrame(() => {
+    const rect = imageRef.value!.getBoundingClientRect()
+    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100))
+    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100))
+    mousePos.value = { x, y }
+  })
+}
+
+const enterMagnifier = () => {
+  // 仅在大图模式且完成处理时允许进入倍镜
+  if (props.allowMagnifier && (props.image.status === 'done' || props.processedPreview) && store.showMagnifier) {
+    const isLarge = imageRef.value?.clientWidth ? imageRef.value.clientWidth > 220 : true
+    if (isLarge) showMagnifier.value = true
+  }
+}
+
+const leaveMagnifier = () => {
+  showMagnifier.value = false
+}
+
+const innerContainerStyle = computed(() => {
+  const { x, y } = mousePos.value
+  return {
+    transform: `scale(2)`,
+    transformOrigin: `${x}% ${y}%`
+  }
+})
+
+const dynamicClipPath = computed(() => {
+  if (!imageRef.value) return ''
+  const rect = imageRef.value.getBoundingClientRect()
+  const { x, y } = mousePos.value
+  const absX = (x * rect.width) / 100
+  const absY = (y * rect.height) / 100
+  const size = 100 // 放大镜半径
+  return `circle(${size}px at ${absX}px ${absY}px)`
+})
+// --- End Magnifier Logic ---
+
 // 自动切换处理前后预览图
 const displayUrl = computed(() => {
+  if (props.processedPreview) return props.processedPreview
   if (props.image.status === 'done' && props.image.processedPreview) {
     return props.image.processedPreview
   }
@@ -102,7 +190,7 @@ const displayUrl = computed(() => {
              <button v-if="image.status === 'done' || image.status === 'error'" @click.stop="handleReset" class="p-2 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded-lg transition-all"><RotateCcw :size="14" /></button>
           </div>
           <!-- Reactive Data (Small mode only) -->
-          <div class="hidden @[0px]:@[220px]:flex items-center gap-2 px-2 border-l border-border/40 ml-1">
+          <div class="flex @[221px]:hidden items-center gap-2 px-2 border-l border-border/40 ml-1">
              <span class="text-[9px] font-mono font-bold opacity-60 tabular-nums">{{ image.width }}x{{ image.height }}</span>
              <span class="text-[9px] font-bold opacity-60 tabular-nums">{{ formatSize(image.originalSize) }}</span>
           </div>
