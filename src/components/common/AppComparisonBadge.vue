@@ -6,12 +6,12 @@ interface Props {
   beforeValue: string | number
   afterLabel: string
   afterValue: string | number
-  status?: 'pending' | 'done' | 'error'
+  status?: 'idle' | 'processing' | 'done' | 'error' | 'pending'
   compact?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
-  status: 'pending',
+  status: 'idle',
   compact: false
 })
 </script>
@@ -28,7 +28,7 @@ withDefaults(defineProps<Props>(), {
         >{{ beforeLabel }}</span
       >
       <span
-        class="font-bold text-foreground transition-all truncate"
+        class="font-bold text-foreground transition-all truncate tabular-nums"
         :class="compact ? 'text-[0.65rem]' : 'text-[0.75rem]'"
         >{{ beforeValue }}</span
       >
@@ -43,7 +43,7 @@ withDefaults(defineProps<Props>(), {
         >{{ afterLabel }}</span
       >
       <span
-        class="font-bold transition-all truncate"
+        class="font-bold transition-all truncate tabular-nums"
         :class="[
           status === 'done' ? 'text-primary' : 'text-foreground',
           compact ? 'text-[0.65rem]' : 'text-[0.75rem]'
