@@ -1,20 +1,18 @@
 <script setup lang="ts">
-import { ref, computed, onUnmounted, watch } from 'vue'
+import { ref, computed } from 'vue'
 import type { CSSProperties } from 'vue'
 import {
   Download,
   X,
-  CheckCircle2,
   Square,
   CheckSquare,
   Columns2,
   RotateCcw,
-  Sparkles,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-vue-next'
 import { useFileHelpers } from '../../composables/useFileHelpers'
 import { useImageStore } from '../../stores/imageStore'
-import { useLayoutStore } from '../../stores/layoutStore'
 import { useI18n } from 'vue-i18n'
 import type { ImageItem } from '../../stores/imageStore'
 import AppModal from './AppModal.vue'
@@ -22,7 +20,6 @@ import AppButton from './AppButton.vue'
 
 const { formatSize } = useFileHelpers()
 const store = useImageStore()
-const layoutStore = useLayoutStore()
 const { t } = useI18n()
 
 interface Props {
@@ -53,105 +50,10 @@ const confirmReset = () => {
   showResetConfirm.value = false
 }
 
-// 智能倍镜逻辑
-const showMagnifier = ref(false)
-const mousePos = ref({ x: 50, y: 50 })
-const originalHDUrl = ref<string | null>(null)
-const processedUrl = ref<string | null>(null)
 const imageRef = ref<HTMLElement | null>(null)
-const rafId = ref<number | null>(null)
-
-// 只有在完成处理且悬停时才处理高清 URL
-watch(showMagnifier, (isShowing) => {
-  if (isShowing) {
-    if (props.image.processedPreview) {
-      processedUrl.value = props.image.processedPreview
-    } else if (props.image.processedBlob) {
-      processedUrl.value = URL.createObjectURL(props.image.processedBlob)
-    }
-
-    if (!originalHDUrl.value) {
-      originalHDUrl.value = props.image.preview || URL.createObjectURL(props.image.file)
-    }
-  }
-})
-
-// 监听处理结果变化，实时更新倍镜
-watch(
-  () => props.image.processedPreview,
-  (newUrl) => {
-    if (showMagnifier.value && newUrl) {
-      processedUrl.value = newUrl
-    }
-  }
-)
-
-onUnmounted(() => {
-  // 仅释放由本组件创建的 URL
-  if (processedUrl.value && processedUrl.value !== props.image.processedPreview) {
-    URL.revokeObjectURL(processedUrl.value)
-  }
-  if (originalHDUrl.value && originalHDUrl.value !== props.image.preview) {
-    URL.revokeObjectURL(originalHDUrl.value)
-  }
-  if (rafId.value) cancelAnimationFrame(rafId.value)
-})
-
-const handleMouseMove = (e: MouseEvent) => {
-  if (!props.allowMagnifier || !showMagnifier.value || !imageRef.value) return
-
-  // 使用 RAF 确保每一帧同步渲染，解决“不跟手”问题
-  if (rafId.value) cancelAnimationFrame(rafId.value)
-
-  rafId.value = requestAnimationFrame(() => {
-    const rect = imageRef.value!.getBoundingClientRect()
-    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100))
-    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100))
-    mousePos.value = { x, y }
-  })
-}
-
-const enterMagnifier = () => {
-  if (props.allowMagnifier && props.image.status === 'done' && store.showMagnifier) {
-    showMagnifier.value = true
-  }
-}
-
-const leaveMagnifier = () => {
-  showMagnifier.value = false
-}
-
-const magnifierStyle = computed<CSSProperties>(() => ({
-  left: `${mousePos.value.x}%`,
-  top: `${mousePos.value.y}%`,
-  willChange: 'left, top'
-}))
-
-const innerContainerStyle = computed<CSSProperties>(() => {
-  // 核心修复：内部容器比例必须与外层完全一致
-  // 关键：使用 translate(-x%, -y%) 配合 transform-origin，确保鼠标指向的像素始终在倍镜中心
-  return {
-    position: 'absolute',
-    width: `${imageRef.value?.clientWidth || 0}px`,
-    height: `${imageRef.value?.clientHeight || 0}px`,
-    left: '50%',
-    top: '50%',
-    transform: `translate(-${mousePos.value.x}%, -${mousePos.value.y}%) scale(2.5)`,
-    transformOrigin: `${mousePos.value.x}% ${mousePos.value.y}%`,
-    willChange: 'transform, transform-origin'
-  }
-})
-
-// 计算动态分割线位置：基于图片坐标系裁剪，确保裁剪线始终处于倍镜中心
-const dynamicClipPath = computed(() => {
-  const x = mousePos.value.x
-  return {
-    original: `inset(0 ${100 - x}% 0 0)`,
-    processed: `inset(0 0 0 ${x}%)`
-  }
-})
 
 const isDirtyDone = computed(() => props.image.isDirty && props.image.status === 'done')
+const isDirty = computed(() => props.image.isDirty)
 
 // 自动切换处理前后预览图
 const displayUrl = computed(() => {
@@ -166,300 +68,65 @@ const displayUrl = computed(() => {
   <div
     class="relative bg-card rounded-2xl overflow-hidden border border-border/60 transition-all duration-500 cursor-pointer flex flex-col group hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/30 @container outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background shadow-inner-glow"
     :class="[
-      isSelected
-        ? 'ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/[0.03]'
-        : '',
-      isDirtyDone
-        ? 'animate-dirty-pulse border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
-        : ''
+      isSelected ? 'ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/[0.03]' : '',
+      isDirtyDone ? 'animate-dirty-pulse border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]' : ''
     ]"
     tabindex="0"
     @click="emit('toggle', image.id)"
-    @keydown.enter.space.prevent="emit('toggle', image.id)"
   >
-    <!-- 图片展示区 -->
-    <div
-      ref="imageRef"
-      class="relative aspect-[4/3] flex items-center justify-center shrink-0"
-      @mouseenter="enterMagnifier"
-      @mouseleave="leaveMagnifier"
-      @mousemove="handleMouseMove"
-    >
-      <!-- 主内容裁剪层：仅裁剪背景和主图，不裁剪倍镜 -->
-      <div
-        class="absolute inset-0 overflow-hidden rounded-t-[calc(1rem-1px)] bg-muted/20"
-        :class="{ 'app-transparency-grid-sm': showTransparency }"
-      >
-        <!-- 【专用层】：滤镜与视觉效果预览 (z-10) -->
-        <div class="absolute inset-0 z-10 pointer-events-none">
-          <slot name="visual-effects" :image="image"></slot>
-        </div>
+    <!-- Layer 1: Canvas (4:3) -->
+    <div ref="imageRef" class="relative aspect-[4/3] flex items-center justify-center shrink-0 group/canvas">
+       <!-- Background & Preview remains similar but wrapped -->
+       <div class="absolute inset-0 overflow-hidden rounded-t-[calc(1rem-1px)] bg-muted/20" :class="{ 'app-transparency-grid-sm': showTransparency }">
+         <div class="absolute inset-0 z-10 pointer-events-none"><slot name="visual-effects" :image="image"></slot></div>
+         <img :src="displayUrl" class="w-full h-full object-contain transition-all duration-700 group-hover/canvas:scale-105" :class="{ 'opacity-40 grayscale-[0.5] blur-[1px] scale-95': isDirtyDone }" :style="imageStyle" />
+         <div v-if="isDirtyDone" class="absolute inset-0 z-20 pointer-events-none overflow-hidden opacity-30"><div class="absolute inset-[-100%] bg-stripe-pattern animate-stripe-scroll"></div></div>
+       </div>
 
-        <!-- 主预览图 -->
-        <img
-          :src="displayUrl"
-          alt="Preview"
-          class="w-full h-full object-contain transition-all duration-700"
-          :class="{
-            'group-hover:scale-105': !showMagnifier && !isDirtyDone,
-            'opacity-40 grayscale-[0.5] blur-[1px] scale-95': isDirtyDone
-          }"
-          :style="imageStyle"
-        />
+       <!-- Top Overlays -->
+       <div class="absolute top-3 left-3 z-30 flex items-center gap-2">
+         <div class="transition-all duration-300" :class="isSelected ? 'text-primary scale-110' : 'text-foreground/60 opacity-0 group-hover:opacity-100'"><CheckSquare v-if="isSelected" :size="20" /><Square v-else :size="20" /></div>
+         <slot name="overlay" :image="image"></slot>
+       </div>
+       <button @click.stop="store.removeImage(image.id)" class="absolute top-3 right-3 z-30 bg-background/40 hover:bg-destructive text-foreground/60 hover:text-destructive-foreground p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-border/40"><X :size="14" /></button>
 
-        <!-- 脏状态覆盖层 (z-20) -->
-        <div
-          v-if="isDirtyDone"
-          class="absolute inset-0 z-20 pointer-events-none overflow-hidden opacity-30"
-        >
-          <div class="absolute inset-[-100%] bg-stripe-pattern animate-stripe-scroll"></div>
-        </div>
-      </div>
+       <!-- Center Progress -->
+       <div v-if="image.status === 'processing'" class="absolute inset-0 bg-background/40 backdrop-blur-[2px] z-35 flex items-center justify-center"><Loader2 :size="24" class="text-primary animate-spin" /></div>
 
-      <!-- 【左上角】：选择框 (z-30) -->
-      <div
-        class="absolute top-3 left-3 z-30 flex items-center gap-2"
-        role="checkbox"
-        :aria-checked="isSelected"
-        :aria-label="$t('common.image.card.select')"
-      >
-        <div
-          class="transition-all duration-300"
-          :class="
-            isSelected
-              ? 'text-primary scale-110'
-              : 'text-foreground/60 opacity-100 md:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
-          "
-        >
-          <CheckSquare v-if="isSelected" :size="20" />
-          <Square v-else :size="20" />
-        </div>
-
-        <slot name="overlay" :image="image"></slot>
-      </div>
-
-      <!-- 【右上角】：删除按钮 (z-30) -->
-      <button
-        @click.stop="store.removeImage(image.id)"
-        class="absolute top-3 right-3 z-30 bg-background/40 hover:bg-destructive text-foreground/60 hover:text-destructive-foreground p-1.5 rounded-full opacity-100 md:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-border/40 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-        :title="$t('common.image.card.remove')"
-      >
-        <X :size="14" />
-      </button>
-
-      <!-- 智能倍镜组件 (z-40) - 放在裁剪层之外 -->
-      <div
-        v-if="
-          allowMagnifier && showMagnifier && processedUrl && originalHDUrl && store.showMagnifier
-        "
-        class="absolute inset-0 z-40 pointer-events-none"
-      >
-        <!-- 倍镜容器 -->
-        <div
-          class="absolute w-32 h-32 md:w-48 md:h-48 -ml-16 -mt-16 md:-ml-24 md:-mt-24 rounded-full border-2 border-primary shadow-[0_0_30px_rgba(var(--primary-rgb),0.5)] overflow-hidden bg-background flex items-center justify-center"
-          :class="{ 'app-transparency-grid-sm': showTransparency }"
-          :style="magnifierStyle"
-        >
-          <!-- 左侧：原图 (动态裁剪) -->
-          <div
-            class="absolute"
-            :style="{ ...innerContainerStyle, clipPath: dynamicClipPath.original } as CSSProperties"
-          >
-            <img :src="originalHDUrl!" class="w-full h-full object-contain" />
+       <!-- HUD Tray -->
+       <div class="absolute bottom-3 left-3 right-3 z-40 bg-background/80 backdrop-blur-xl border border-white/20 rounded-xl p-1.5 shadow-2xl flex items-center justify-between gap-1.5 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 ease-apple pointer-events-auto">
+          <!-- Action Buttons -->
+          <div class="flex items-center gap-1">
+             <button v-if="image.status === 'done'" @click.stop="emit('compare', image.id)" class="p-2 hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-lg transition-all"><Columns2 :size="14" /></button>
+             <button v-if="image.status === 'done' || image.status === 'error'" @click.stop="handleReset" class="p-2 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded-lg transition-all"><RotateCcw :size="14" /></button>
           </div>
-
-          <!-- 右侧：处理后图 (动态裁剪) -->
-          <div
-            class="absolute"
-            :style="
-              { ...innerContainerStyle, clipPath: dynamicClipPath.processed } as CSSProperties
-            "
-          >
-            <img :src="processedUrl!" class="w-full h-full object-contain" />
+          <!-- Reactive Data (Small mode only) -->
+          <div class="hidden @[0px]:@[220px]:flex items-center gap-2 px-2 border-l border-border/40 ml-1">
+             <span class="text-[9px] font-mono font-bold opacity-60 tabular-nums">{{ image.width }}x{{ image.height }}</span>
+             <span class="text-[9px] font-bold opacity-60 tabular-nums">{{ formatSize(image.originalSize) }}</span>
           </div>
-
-          <!-- 动态分割线：始终对齐鼠标中心点 -->
-          <div
-            class="absolute inset-y-0 left-1/2 w-0.5 bg-primary/80 z-10 shadow-[0_0_8px_rgba(var(--primary-rgb),1)] will-change-[left]"
-          ></div>
-          <div
-            class="absolute inset-0 flex items-center justify-between px-2 text-[10px] pointer-events-none z-20"
-          >
-            <span
-              class="bg-muted/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-foreground font-black border border-border/20 transition-opacity duration-300"
-              >{{ $t('common.image.card.before') }}</span
-            >
-            <span
-              class="bg-primary/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-primary-foreground font-black border border-white/20 transition-opacity duration-300"
-              >{{ $t('common.image.card.after') }}</span
-            >
-          </div>
-        </div>
-      </div>
-
-      <!-- 【底部 HUD】：技术参数条 (降级至 z-20，确保不遮挡侧边栏) -->
-      <div
-        class="absolute bottom-0 left-0 right-0 h-9 bg-gradient-to-t from-background/90 via-background/40 to-transparent z-20 flex items-end px-3 pb-2 transition-all duration-300 md:opacity-0 md:group-hover:opacity-100 pointer-events-none @[200px]:via-background/60"
-      >
-        <div
-          class="flex items-center gap-2 text-[0.65rem] font-bold text-foreground/90 tabular-nums tracking-tight"
-        >
-          <span
-            class="px-1.5 py-0.5 bg-foreground/10 rounded-sm uppercase text-foreground tracking-widest text-[0.55rem] md:text-[0.6rem]"
-            >{{ image.format }}</span
-          >
-          <span v-if="image.width" class="opacity-90 hidden @[200px]:inline"
-            >{{ image.width }} × {{ image.height }}</span
-          >
-          <span class="opacity-30 hidden @[200px]:inline">|</span>
-          <span class="opacity-90">{{ formatSize(image.originalSize) }}</span>
-        </div>
-      </div>
-
-      <!-- 处理中状态 (z-20) -->
-      <div
-        v-if="image.status === 'processing'"
-        class="absolute inset-0 bg-background/60 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center gap-3"
-      >
-        <div class="relative flex items-center justify-center">
-          <!-- 环形进度底色 -->
-          <svg class="w-12 h-12 -rotate-90">
-            <circle
-              cx="24"
-              cy="24"
-              r="20"
-              stroke="currentColor"
-              stroke-width="2.5"
-              fill="transparent"
-              class="text-muted/20"
-            />
-            <!-- 环形进度条：缩短过渡时间以适应高频更新 -->
-            <circle
-              cx="24"
-              cy="24"
-              r="20"
-              stroke="currentColor"
-              stroke-width="3"
-              fill="transparent"
-              class="text-primary transition-[stroke-dashoffset] duration-150 ease-linear"
-              :style="{
-                strokeDasharray: 2 * Math.PI * 20,
-                strokeDashoffset: 2 * Math.PI * 20 * (1 - (image.progress || 0))
-              }"
-            />
-          </svg>
-          <!-- 核心修复：使用纯 CSS 方案并通过 v-once 锁定，防止 Vue 频繁更新 progress 时导致动画重启/停止 -->
-          <div v-once class="absolute inset-0 flex items-center justify-center">
-            <div
-              class="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin"
-              style="will-change: transform"
-            ></div>
-          </div>
-        </div>
-        <div class="flex flex-col items-center">
-          <span
-            class="text-[10px] font-black text-primary uppercase tracking-[0.2em] animate-pulse"
-          >
-            {{ Math.round((image.progress || 0) * 100) }}%
-          </span>
-        </div>
-      </div>
+          <button @click.stop="emit('download', image.id)" class="p-2 bg-primary text-primary-foreground rounded-lg shadow-lg active:scale-90 transition-all"><Download :size="14" /></button>
+       </div>
     </div>
 
-    <!-- 底部：文件名与操作 -->
-    <div
-      class="flex flex-col transition-all duration-300"
-      :class="layoutStore.cardSizeMode === 'compact' ? 'p-2 gap-1.5' : 'p-3 gap-2.5'"
-    >
-      <h4
-        class="font-bold text-foreground truncate leading-tight transition-all"
-        :class="layoutStore.cardSizeMode === 'compact' ? 'text-[0.75rem]' : 'text-[0.85rem]'"
-        :title="image.file.name"
-      >
-        {{ image.file.name }}
-      </h4>
-
-      <div
-        class="flex justify-between items-center gap-2 mt-0.5 transition-all"
-        :class="layoutStore.cardSizeMode === 'compact' ? 'min-h-[24px]' : 'min-h-[32px]'"
-      >
-        <div
-          class="flex items-center gap-1.5 rounded-md font-black text-[0.65rem] border transition-all duration-300 uppercase tracking-widest"
-          :class="[
-            {
-              'text-primary border-primary/20 bg-primary/[0.03]':
-                image.status === 'done' && !image.isDirty,
-              'text-amber-500 border-amber-500/20 bg-amber-500/[0.03] shadow-[0_0_8px_rgba(245,158,11,0.1)]':
-                isDirtyDone,
-              'text-blue-500 border-blue-500/20 bg-blue-500/[0.03]': image.status === 'processing',
-              'text-destructive border-destructive/20 bg-destructive/[0.03]':
-                image.status === 'error',
-              'text-muted-foreground border-border bg-muted/20': image.status === 'idle'
-            },
-            layoutStore.cardSizeMode === 'compact' ? 'px-1.5 h-5' : 'px-2.5 h-6'
-          ]"
-        >
-          <div class="w-2.5 h-2.5 flex items-center justify-center">
-            <CheckCircle2 v-if="image.status === 'done'" :size="11" />
-            <div
-              v-else
-              class="w-1.5 h-1.5 rounded-full bg-current"
-              :class="{ 'animate-pulse': image.status === 'processing' }"
-            ></div>
-          </div>
-          <span v-if="layoutStore.cardSizeMode === 'large'" class="mt-0.5">{{
-            image.status === 'done'
-              ? image.isDirty
-                ? $t('common.image.card.dirty')
-                : $t('common.image.card.ready')
-              : image.status === 'processing'
-                ? $t('common.image.card.wait')
-                : $t('common.image.card.idle')
-          }}</span>
-        </div>
-
-        <div
-          class="flex items-center transition-all"
-          :class="layoutStore.cardSizeMode === 'compact' ? 'gap-0' : 'gap-1'"
-        >
-          <button
-            v-if="image.status === 'done' || image.status === 'error'"
-            @click.stop="handleReset"
-            class="flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-secondary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            :class="layoutStore.cardSizeMode === 'compact' ? 'w-6 h-6' : 'w-8 h-8'"
-            :title="$t('common.image.card.reset')"
-          >
-            <RotateCcw :size="layoutStore.cardSizeMode === 'compact' ? 12 : 16" />
-          </button>
-          <button
-            v-if="allowMagnifier && image.status === 'done'"
-            @click.stop="emit('compare', image.id)"
-            class="flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-secondary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            :class="layoutStore.cardSizeMode === 'compact' ? 'w-6 h-6' : 'w-8 h-8'"
-            :title="$t('common.image.card.compare')"
-          >
-            <Columns2 :size="layoutStore.cardSizeMode === 'compact' ? 12 : 16" />
-          </button>
-          <button
-            v-if="false"
-            @click.stop="emit('interactive', image.id)"
-            class="flex items-center justify-center rounded-lg hover:bg-primary/20 text-primary hover:text-primary transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary shadow-sm border border-primary/10"
-            :class="layoutStore.cardSizeMode === 'compact' ? 'w-6 h-6' : 'w-8 h-8'"
-            :title="$t('common.image.card.sam2')"
-          >
-            <Sparkles :size="layoutStore.cardSizeMode === 'compact' ? 12 : 16" />
-          </button>
-          <button
-            v-if="image.status === 'done'"
-            @click.stop="emit('download', image.id)"
-            class="flex items-center justify-center rounded-lg hover:bg-primary text-muted-foreground hover:text-primary-foreground transition-all active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            :class="layoutStore.cardSizeMode === 'compact' ? 'w-6 h-6' : 'w-8 h-8'"
-            :title="$t('common.image.card.download')"
-          >
-            <Download :size="layoutStore.cardSizeMode === 'compact' ? 12 : 16" />
-          </button>
+    <!-- Layer 2: Info Area -->
+    <div class="p-3.5 flex flex-col gap-1.5 min-w-0">
+      <div class="flex items-center justify-between gap-2">
+        <h4 class="font-bold text-foreground truncate text-sm flex-1">{{ image.file.name }}</h4>
+        <!-- Status Shorthand -->
+        <div class="shrink-0 flex items-center gap-1.5">
+           <div v-if="image.status === 'done'" class="w-2 h-2 rounded-full bg-emerald-500" :class="{ 'bg-amber-500 animate-pulse': isDirty }"></div>
+           <Loader2 v-else-if="image.status === 'processing'" :size="12" class="text-primary animate-spin" />
         </div>
       </div>
+      <!-- Detailed Specs (Large mode only) -->
+      <div class="hidden @[221px]:flex items-center gap-2 text-[10px] font-bold text-muted-foreground/60 tracking-tight uppercase tabular-nums">
+        <span class="px-1 py-0.5 rounded bg-muted/40 text-[9px]">{{ image.format }}</span>
+        <span>{{ image.width }} × {{ image.height }}</span>
+        <span class="opacity-30">|</span>
+        <span>{{ formatSize(image.originalSize) }}</span>
+      </div>
+      <slot name="meta" :image="image"></slot>
     </div>
 
     <!-- 单张图片还原确认对话框 -->
