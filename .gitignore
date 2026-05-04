@@ -28,6 +28,7 @@ dist-ssr
 .claude/
 .env
 .vfox/
+.worktrees/
 
 
 # i18n-agent-skill runtime files
