@@ -8,6 +8,7 @@ import {
   CheckSquare,
   Columns2,
   RotateCcw,
+  Sparkles,
   AlertCircle,
   Loader2
 } from 'lucide-vue-next'
@@ -105,7 +106,16 @@ const displayUrl = computed(() => {
              <span class="text-[9px] font-mono font-bold opacity-60 tabular-nums">{{ image.width }}x{{ image.height }}</span>
              <span class="text-[9px] font-bold opacity-60 tabular-nums">{{ formatSize(image.originalSize) }}</span>
           </div>
-          <button @click.stop="emit('download', image.id)" class="p-2 bg-primary text-primary-foreground rounded-lg shadow-lg active:scale-90 transition-all"><Download :size="14" /></button>
+          <div class="flex items-center gap-1.5">
+            <button
+              @click.stop="emit('interactive', image.id)"
+              class="p-2 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground rounded-lg transition-all active:scale-90"
+              :title="$t('common.image.card.interactive')"
+            >
+              <Sparkles :size="14" />
+            </button>
+            <button @click.stop="emit('download', image.id)" class="p-2 bg-primary text-primary-foreground rounded-lg shadow-lg active:scale-90 transition-all"><Download :size="14" /></button>
+          </div>
        </div>
     </div>
 
