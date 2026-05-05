@@ -130,20 +130,29 @@ export function useFileHelpers() {
    * 打包导出所有已处理图片为 ZIP
    * 优化：如果只有一张图且不是切片图，则直接触发单图导出，不进行打包
    */
-  const downloadAllAsZip = async (tagOrViewId?: string) => {
+  const downloadAllAsZip = async (
+    tagOrViewId?: string,
+    results?: {
+      file: File
+      processedBlob?: Blob
+      processedBlobs?: Blob[]
+      status: string
+    }[]
+  ) => {
     const finalTag =
       tagOrViewId && SUFFIX_MAP[tagOrViewId]
         ? t(SUFFIX_MAP[tagOrViewId])
         : (tagOrViewId ?? t('common.export.suffix.processed'))
 
-    const doneImages = store.images.filter(
-      (img) => img.status === 'done' && (img.processedBlob || img.processedBlobs)
-    )
-    if (doneImages.length === 0) return
+    const doneImages = results || (store.images.filter((img) => img.status === 'done') as any[])
+
+    const validImages = doneImages.filter((img) => img.processedBlob || img.processedBlobs)
+
+    if (validImages.length === 0) return
 
     // 【智能优化】：如果只有一张图且该图只有一个 Blob，直接触发单图导出，不用打包
-    if (doneImages.length === 1) {
-      const img = doneImages[0]!
+    if (validImages.length === 1) {
+      const img = validImages[0]!
       if (img.processedBlob && (!img.processedBlobs || img.processedBlobs.length <= 1)) {
         await downloadImage(img.processedBlob, img.file.name, finalTag)
         return
@@ -154,20 +163,19 @@ export function useFileHelpers() {
     try {
       const zip = new JSZip()
 
-      doneImages.forEach((img) => {
+      validImages.forEach((img) => {
         const lastDot = img.file.name.lastIndexOf('.')
         const baseName = lastDot !== -1 ? img.file.name.substring(0, lastDot) : img.file.name
 
         if (img.processedBlobs && img.processedBlobs.length > 0) {
           // 场景 A: 该图片产生了多个结果（如切图）
-          // 为避免混乱，在压缩包内为该图片建立子文件夹
           const folder = zip.folder(baseName)
-          img.processedBlobs.forEach((b, idx) => {
+          img.processedBlobs.forEach((b: Blob, idx: number) => {
             const finalName = getNewFileName(`${baseName}_tile_${idx + 1}`, b.type, finalTag)
             folder?.file(finalName, b)
           })
         } else if (img.processedBlob) {
-          // 场景 B: 常见的单图处理（压缩、Resize）
+          // 场景 B: 常见的单图处理
           const finalName = getNewFileName(img.file.name, img.processedBlob.type, finalTag)
           zip.file(finalName, img.processedBlob)
         }

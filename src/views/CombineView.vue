@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, watch, onMounted } from 'vue'
+import { ref, computed, nextTick, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useImageStore, type ImageItem } from '../stores/imageStore'
 import { useResizeObserver } from '@vueuse/core'
@@ -33,6 +33,7 @@ import AppColorPicker from '../components/common/AppColorPicker.vue'
 import { combineEngine } from '../lib/engines/combineEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useFileHelpers } from '../composables/useFileHelpers'
+import type { ProcessResult } from '../lib/engines/types'
 
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
@@ -42,6 +43,7 @@ const { t } = useI18n()
 
 // 状态
 const srMessage = ref('')
+const combinedResult = ref<Blob | null>(null)
 
 // 【打磨】：触感反馈辅助函数
 const triggerHaptic = (intensity = 5) => {
@@ -248,15 +250,31 @@ onMounted(() => {
   requestDraw()
 })
 
+onUnmounted(() => {
+  combinedResult.value = null
+})
+
+// 监听图片列表变化，如果有图片被删除，强制重置拼接结果以防过期
+watch(
+  () => store.images.length,
+  (newLen, oldLen) => {
+    if (newLen < oldLen) {
+      combinedResult.value = null
+    }
+  }
+)
+
 // 分离 Watch 逻辑：重大变化触发 AutoFit，微调触发重绘
 watch([() => store.images.length, combineDirection, layoutMode], (newValues, oldValues) => {
   isInitialLoad.value = true
   if (oldValues) triggerHaptic(10)
   requestDraw()
+  combinedResult.value = null
 })
 
 watch([alignment, spacing, columns, padding, borderRadius, backgroundColor], () => {
   requestDraw()
+  combinedResult.value = null
 })
 
 watch(
@@ -324,35 +342,35 @@ const handleCombine = async () => {
       format: outputFormat.value,
       quality: outputQuality.value
     })
-    if (result?.blob) {
+    const typedResult = result as ProcessResult
+    const blob = typedResult.blob || (result as Blob)
+    if (blob) {
+      combinedResult.value = blob
       triggerHaptic(8) // 成功反馈
-      downloadImage(
-        result.blob,
-        `_Imago${t('common.export.suffix.combined')}_${Date.now()}`,
-        'combine'
-      )
+      downloadImage(blob, `_Imago${t('common.export.suffix.combined')}_${Date.now()}`, 'combine')
     }
   } catch (error) {
     console.error('Combine failed:', error)
   }
 }
 
-const handleMoveImage = (index: number, direction: -1 | 1) => {
-  const newIndex = index + direction
-  if (newIndex < 0 || newIndex >= store.images.length) return
+const handleMoveImage = (fromIndex: number, direction: -1 | 1) => {
+  const toIndex = fromIndex + direction
+  if (toIndex < 0 || toIndex >= store.images.length) return
 
-  const newImages = [...store.images]
-  const [movedItem] = newImages.splice(index, 1)
-  newImages.splice(newIndex, 0, movedItem!)
-  store.images = newImages
+  const fromId = store.images[fromIndex]?.id
+  const toId = store.images[toIndex]?.id
 
-  triggerHaptic(5) // 排序反馈
-  srMessage.value = t('tools.combine.messages.moved', { from: index + 1, to: newIndex + 1 })
+  if (fromId && toId) {
+    store.reorderImage(fromId, toId)
+    triggerHaptic(5) // 排序反馈
+    srMessage.value = t('tools.combine.messages.moved', { from: fromIndex + 1, to: toIndex + 1 })
 
-  nextTick(() => {
-    const el = document.querySelector(`[data-order-item="${newIndex}"]`) as HTMLElement
-    el?.focus()
-  })
+    nextTick(() => {
+      const el = document.querySelector(`[data-order-item="${toIndex}"]`) as HTMLElement
+      el?.focus()
+    })
+  }
 }
 
 const handleRemoveImage = (id: string, name: string) => {
@@ -374,7 +392,7 @@ useResizeObserver(containerRef, resetView)
         view-id="combine"
         :is-processing="isProcessing"
         show-clear-all
-        show-reset-all
+        @reset-all="combinedResult = null"
     /></template>
 
     <template #content>
@@ -574,7 +592,10 @@ useResizeObserver(containerRef, resetView)
           <div
             class="bg-muted/10 rounded-2xl p-4 border border-border/60 hover:border-border transition-colors"
           >
-            <AppColorPicker v-model="backgroundColor" :label="t('tools.combine.bgFill')" />
+            <AppColorPicker
+              v-model:model-value="backgroundColor"
+              :label="t('tools.combine.bgFill')"
+            />
           </div>
         </section>
 

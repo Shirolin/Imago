@@ -57,6 +57,7 @@
         "dirty": "Pending Update",
         "download": "Save Image",
         "idle": "Idle",
+        "previewAlt": "Preview of {name}",
         "ready": "Ready",
         "remove": "Remove",
         "reset": "Restore Original",
@@ -194,7 +195,15 @@
       "resetToDefault": "Restore Defaults",
       "select": "Please select..."
     },
-    "workspace": "Workspace"
+    "workspace": "Workspace",
+    "assets": {
+      "trayAria": "Assets Tray Navigation",
+      "expandTray": "Expand Assets Tray (Tab)"
+    },
+    "inspector": {
+      "drawer": "Inspector Panel Drawer",
+      "sidebar": "Inspector Sidebar"
+    }
   },
   "nav": {
     "allTools": "Toolbox",
@@ -509,7 +518,7 @@
       "resetAll": "Reset All Parameters",
       "saturation": "Saturation",
       "scrollLeft": "Scroll Left",
-      "scrollRight": "Scroll Right",
+      "scrollRight": "Right",
       "sepia": "Sepia",
       "title": "Image Filters & Color Grading - Local Fast Editing"
     },

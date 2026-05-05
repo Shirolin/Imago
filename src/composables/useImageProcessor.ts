@@ -17,7 +17,10 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
     }
   }
 
-  const processSingle = async (id: string, options: T) => {
+  const processSingle = async (
+    id: string,
+    options: T
+  ): Promise<ProcessResult | Blob | Blob[] | undefined> => {
     const item = store.images.find((img) => img.id === id)
     if (!item) return
 
@@ -37,33 +40,10 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
         }
       })
 
-      // 智能识别返回结果：可能是单个 Blob，也可能是 Blob[]，或者是包含这些属性的对象
-      const typedResult = result as ProcessResult
-      const isArray = Array.isArray(result)
-      const blobs = isArray ? (result as unknown as Blob[]) : typedResult.blobs
-      const singleBlob = !isArray ? typedResult.blob || (result as unknown as Blob) : undefined
-      const finalBlob = singleBlob instanceof Blob ? singleBlob : blobs ? blobs[0] : undefined
-
-      // 如果已有处理后的预览，先释放旧的
-      if (item.processedPreview) {
-        URL.revokeObjectURL(item.processedPreview)
-      }
-
-      // 生成新的预览 URL
-      const processedPreview = finalBlob ? URL.createObjectURL(finalBlob) : undefined
-
       store.updateImage(id, {
         status: 'done',
-        processedSize: isArray
-          ? (result as unknown as Blob[]).reduce((sum, b) => sum + b.size, 0)
-          : typedResult.size,
-        processedBlob: finalBlob,
-        processedPreview,
-        processedBlobs: blobs,
-        processedWidth: typedResult.width,
-        processedHeight: typedResult.height,
-        abortController: undefined,
-        isDirty: false
+        progress: 1,
+        abortController: undefined
       })
       currentController = null
       progress.value = 0
@@ -111,7 +91,11 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
     }
   }
 
-  const processQueue = async (items: ImageItem[], options: T) => {
+  const processQueue = async (
+    items: ImageItem[],
+    options: T,
+    onResult?: (id: string, result: ProcessResult | Blob | Blob[]) => void
+  ) => {
     const total = items.length
     if (total === 0) return
 
@@ -132,13 +116,16 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
         const item = items[index++]
         if (item) {
           itemProgress.set(item.id, 0)
-          await processSingle(item.id, {
+          const result = await processSingle(item.id, {
             ...options,
             onProgress: (p: number) => {
               itemProgress.set(item.id, p)
               updateGlobalProgress()
             }
           })
+          if (result && onResult) {
+            onResult(item.id, result as ProcessResult | Blob | Blob[])
+          }
           itemProgress.set(item.id, 1) // 确保完成后计为 1
           updateGlobalProgress()
         }
@@ -153,17 +140,23 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
     await Promise.all(results)
   }
 
-  const processAll = async (options: T) => {
+  const processAll = async (
+    options: T,
+    onResult?: (id: string, result: ProcessResult | Blob | Blob[]) => void
+  ) => {
     isProcessing.value = true
-    const pendingImages = store.images.filter((img) => img.status !== 'done' || img.isDirty)
-    await processQueue(pendingImages, options)
+    const pendingImages = store.images.filter((img) => img.status !== 'done')
+    await processQueue(pendingImages, options, onResult)
     isProcessing.value = false
   }
 
-  const processSelected = async (options: T) => {
+  const processSelected = async (
+    options: T,
+    onResult?: (id: string, result: ProcessResult | Blob | Blob[]) => void
+  ) => {
     isProcessing.value = true
     const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
-    await processQueue(selectedImages, options)
+    await processQueue(selectedImages, options, onResult)
     isProcessing.value = false
   }
 

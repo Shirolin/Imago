@@ -124,7 +124,7 @@ const handleGenerate = async () => {
         view-id="favicon"
         :is-processing="isProcessing"
         show-clear-all
-        show-reset-all
+        @reset-all="() => {}"
       />
     </template>
 

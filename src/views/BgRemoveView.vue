@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ImageItem } from '../stores/imageStore'
 import { useImageStore } from '../stores/imageStore'
@@ -43,11 +43,47 @@ import AppModal from '../components/common/AppModal.vue'
 import AppColorPicker from '../components/common/AppColorPicker.vue'
 import AppTip from '../components/common/AppTip.vue'
 import ImageCompare from '../components/common/ImageCompare.vue'
+import type { ProcessResult } from '../lib/engines/types'
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
 const { downloadImage, downloadAllAsZip, formatSize } = useFileHelpers()
 const { t } = useI18n()
+
+// 本地结果存储
+interface LocalResult {
+  blob: Blob
+  preview: string
+  size: number
+  isDirty: boolean
+}
+const results = ref<Map<string, LocalResult>>(new Map())
+
+const cleanupResults = () => {
+  results.value.forEach((res) => {
+    URL.revokeObjectURL(res.preview)
+  })
+  results.value.clear()
+}
+
+onUnmounted(() => {
+  cleanupResults()
+})
+
+// 监听图片列表变化，自动清理已删除图片的本地结果
+watch(
+  () => store.images,
+  (newImages) => {
+    const currentIds = new Set(newImages.map((img) => img.id))
+    results.value.forEach((res, id) => {
+      if (!currentIds.has(id)) {
+        URL.revokeObjectURL(res.preview)
+        results.value.delete(id)
+      }
+    })
+  },
+  { deep: true }
+)
 
 // 引擎模式：Match (取色) vs Smart (智能-标准) vs Pro (专业-全量)
 const engineMode = ref<'match' | 'smart' | 'pro'>('match')
@@ -212,18 +248,21 @@ const handleInteractiveApply = async (maskBlob: Blob) => {
     }, 'image/png')
   })
 
-  // 5. 更新图片状态
-  if (activeInteractiveImage.value.processedPreview) {
-    URL.revokeObjectURL(activeInteractiveImage.value.processedPreview)
-  }
+  // 5. 更新本地结果
+  const oldRes = results.value.get(id)
+  if (oldRes) URL.revokeObjectURL(oldRes.preview)
 
   const preview = URL.createObjectURL(resultBlob)
+  results.value.set(id, {
+    blob: resultBlob,
+    preview,
+    size: resultBlob.size,
+    isDirty: false
+  })
+
   store.updateImage(id, {
     status: 'done',
-    processedBlob: resultBlob,
-    processedPreview: preview,
-    processedSize: resultBlob.size,
-    isDirty: false
+    progress: 1
   })
 
   showEditorModal.value = false
@@ -242,7 +281,8 @@ const displayImages = computed(() => [...store.images].reverse())
 const handleCardClick = (id: string) => store.toggleSelection(id)
 const handleCompare = (id: string) => {
   const item = store.images.find((img) => img.id === id)
-  if (!item || !item.processedBlob) return
+  const result = results.value.get(id)
+  if (!item || !result) return
   comparingImage.value = item
   showCompareModal.value = true
 }
@@ -250,7 +290,17 @@ const closeCompare = () => (showCompareModal.value = false)
 const handleModalLeave = () => (comparingImage.value = null)
 const handleDownload = (id: string) => {
   const item = store.images.find((img) => img.id === id)
-  if (item?.processedBlob) downloadImage(item.processedBlob, item.file.name, 'bg-remove')
+  const result = results.value.get(id)
+  if (item && result) downloadImage(result.blob, item.file.name, 'bg-remove')
+}
+
+const handleReset = (id: string) => {
+  const result = results.value.get(id)
+  if (result) {
+    URL.revokeObjectURL(result.preview)
+    results.value.delete(id)
+  }
+  store.updateImage(id, { status: 'idle', error: undefined, progress: 0 })
 }
 
 // 监听参数变化标记脏数据
@@ -267,7 +317,11 @@ watch(
     useHighFidelity,
     engineMode
   ],
-  () => store.markAllAsDirty()
+  () => {
+    results.value.forEach((res) => {
+      res.isDirty = true
+    })
+  }
 )
 
 const handleInitialize = async () => {
@@ -349,7 +403,11 @@ const ctaState = computed(() => {
   const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
   const allDone =
     selectedImages.length > 0 &&
-    selectedImages.every((img) => img.status === 'done' && img.processedBlob && !img.isDirty)
+    selectedImages.every((img) => {
+      const res = results.value.get(img.id)
+      return img.status === 'done' && res && !res.isDirty
+    })
+
   if (allDone)
     return {
       text: t('tools.bgRemove.cta.export', { count: store.selectedCount }),
@@ -375,7 +433,19 @@ const handleCtaClick = async () => {
     return
   }
   if (state.action === 'download') {
-    await downloadAllAsZip('bg-remove')
+    const zipResults = store.images
+      .filter((img) => store.selectedIds.has(img.id))
+      .map((img) => {
+        const res = results.value.get(img.id)
+        return {
+          file: img.file,
+          processedBlob: res?.blob,
+          status: img.status
+        }
+      })
+      .filter((r) => r.status === 'done' && r.processedBlob) as any[]
+
+    await downloadAllAsZip('bg-remove', zipResults)
     return
   }
 
@@ -385,21 +455,42 @@ const handleCtaClick = async () => {
       quality: outputQuality.value,
       usePreScaling: !useHighFidelity.value
     }
+
+    const onResult = (id: string, result: any) => {
+      const typedResult = result as ProcessResult
+      const blob = typedResult.blob || (result as Blob)
+      const oldRes = results.value.get(id)
+      if (oldRes) URL.revokeObjectURL(oldRes.preview)
+
+      results.value.set(id, {
+        blob,
+        preview: URL.createObjectURL(blob),
+        size: typedResult.size || blob.size,
+        isDirty: false
+      })
+    }
+
     if (engineMode.value === 'match') {
-      await matchProcessor.processSelected({
-        ...commonOptions,
-        targetColor: hexToRgb(matchColor.value),
-        tolerance: matchTolerance.value / 100,
-        feather: matchFeather.value / 100
-      })
+      await matchProcessor.processSelected(
+        {
+          ...commonOptions,
+          targetColor: hexToRgb(matchColor.value),
+          tolerance: matchTolerance.value / 100,
+          feather: matchFeather.value / 100
+        },
+        onResult
+      )
     } else {
-      await proProcessor.processSelected({
-        ...commonOptions,
-        model: engineMode.value === 'pro' ? 'isnet' : 'isnet_quint8',
-        maskThreshold: aiStrictness.value / 100,
-        maskShrink: aiOffset.value / 100,
-        maskBlur: aiSmoothness.value
-      })
+      await proProcessor.processSelected(
+        {
+          ...commonOptions,
+          model: engineMode.value === 'pro' ? 'isnet' : 'isnet_quint8',
+          maskThreshold: aiStrictness.value / 100,
+          maskShrink: aiOffset.value / 100,
+          maskBlur: aiSmoothness.value
+        },
+        onResult
+      )
     }
   }
 }
@@ -445,7 +536,7 @@ const handleResetParams = () => {
         view-id="bg-remove"
         :is-processing="isProcessing"
         show-clear-all
-        show-reset-all
+        @reset-all="cleanupResults"
     /></template>
     <template #content>
       <div class="h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-6 relative">
@@ -564,12 +655,16 @@ const handleResetParams = () => {
             :key="img.id"
             :image="img"
             :is-selected="store.selectedIds.has(img.id)"
+            :processed-preview="results.get(img.id)?.preview"
+            :processed-blob="results.get(img.id)?.blob"
+            :is-dirty="results.get(img.id)?.isDirty"
             show-transparency
             @toggle="handleCardClick"
             @remove="store.removeImage"
             @compare="handleCompare"
             @download="handleDownload"
             @interactive="handleInteractiveClick"
+            @reset="handleReset"
           />
         </div>
 
@@ -840,11 +935,11 @@ const handleResetParams = () => {
     @after-leave="handleModalLeave"
   >
     <ImageCompare
-      v-if="comparingImage"
+      v-if="comparingImage && results.has(comparingImage.id)"
       :original-url="comparingImage.file"
-      :processed-url="comparingImage.processedBlob!"
+      :processed-url="results.get(comparingImage.id)!.blob"
       :original-size="formatSize(comparingImage.originalSize)"
-      :processed-size="formatSize(comparingImage.processedSize || 0)"
+      :processed-size="formatSize(results.get(comparingImage.id)!.size)"
       show-transparency
       @close="closeCompare"
     />

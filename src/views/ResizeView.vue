@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ImageItem } from '../stores/imageStore'
 import { useImageStore } from '../stores/imageStore'
@@ -32,6 +32,7 @@ import {
 } from 'lucide-vue-next'
 import { resizeEngine } from '../lib/engines/resizeEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
+import type { ProcessResult } from '../lib/engines/types'
 
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
@@ -39,6 +40,43 @@ const store = useImageStore()
 const layoutStore = useLayoutStore()
 const { downloadImage, downloadAllAsZip } = useFileHelpers()
 const { t } = useI18n()
+
+// 本地结果存储
+interface LocalResult {
+  blob: Blob
+  preview: string
+  size: number
+  width?: number
+  height?: number
+  isDirty: boolean
+}
+const results = ref<Map<string, LocalResult>>(new Map())
+
+const cleanupResults = () => {
+  results.value.forEach((res) => {
+    URL.revokeObjectURL(res.preview)
+  })
+  results.value.clear()
+}
+
+onUnmounted(() => {
+  cleanupResults()
+})
+
+// 监听图片列表变化，自动清理已删除图片的本地结果
+watch(
+  () => store.images,
+  (newImages) => {
+    const currentIds = new Set(newImages.map((img) => img.id))
+    results.value.forEach((res, id) => {
+      if (!currentIds.has(id)) {
+        URL.revokeObjectURL(res.preview)
+        results.value.delete(id)
+      }
+    })
+  },
+  { deep: true }
+)
 
 // 状态
 const resizeMode = ref<'percentage' | 'dimensions'>('percentage')
@@ -128,32 +166,35 @@ const modeOptions = computed(() => [
 
 const showCompareModal = ref(false)
 const comparingImage = ref<ImageItem | null>(null)
-const processedPreviewUrl = ref<string | null>(null)
 
 const handleCompare = async (id: string) => {
   const item = store.images.find((img) => img.id === id)
-  if (!item) return
+  const result = results.value.get(id)
+  if (!item || !result) return
   comparingImage.value = item
-  if (item.processedBlob) {
-    processedPreviewUrl.value = URL.createObjectURL(item.processedBlob)
-    showCompareModal.value = true
-  }
+  showCompareModal.value = true
 }
 
 const closeCompare = () => {
   showCompareModal.value = false
 }
 const handleModalLeave = () => {
-  if (processedPreviewUrl.value) {
-    URL.revokeObjectURL(processedPreviewUrl.value)
-    processedPreviewUrl.value = null
-  }
   comparingImage.value = null
 }
 
 const handleDownload = (id: string) => {
   const item = store.images.find((img) => img.id === id)
-  if (item?.processedBlob) downloadImage(item.processedBlob, item.file.name, 'resize')
+  const result = results.value.get(id)
+  if (item && result) downloadImage(result.blob, item.file.name, 'resize')
+}
+
+const handleReset = (id: string) => {
+  const result = results.value.get(id)
+  if (result) {
+    URL.revokeObjectURL(result.preview)
+    results.value.delete(id)
+  }
+  store.updateImage(id, { status: 'idle', error: undefined, progress: 0 })
 }
 
 let debounceTimeout: ReturnType<typeof setTimeout>
@@ -171,7 +212,9 @@ watch(
   () => {
     clearTimeout(debounceTimeout)
     debounceTimeout = setTimeout(() => {
-      store.markAllAsDirty()
+      results.value.forEach((res) => {
+        res.isDirty = true
+      })
     }, 150)
   },
   { deep: true }
@@ -191,7 +234,10 @@ const ctaState = computed(() => {
   const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
   const allDoneAndClean =
     selectedImages.length > 0 &&
-    selectedImages.every((img) => img.status === 'done' && img.processedBlob && !img.isDirty)
+    selectedImages.every((img) => {
+      const res = results.value.get(img.id)
+      return img.status === 'done' && res && !res.isDirty
+    })
 
   if (allDoneAndClean) {
     return {
@@ -202,7 +248,10 @@ const ctaState = computed(() => {
     }
   }
 
-  const anyDirty = selectedImages.some((img) => img.status === 'done' && img.isDirty)
+  const anyDirty = selectedImages.some((img) => {
+    const res = results.value.get(img.id)
+    return img.status === 'done' && res?.isDirty
+  })
   return {
     text: anyDirty
       ? t('tools.resize.cta.updateDimensions', { count: store.selectedCount })
@@ -218,21 +267,50 @@ const handleCtaClick = async () => {
   if (state.action === 'none') return
 
   if (state.action === 'download') {
-    await downloadAllAsZip('resize')
+    const zipResults = store.images
+      .filter((img) => store.selectedIds.has(img.id))
+      .map((img) => {
+        const res = results.value.get(img.id)
+        return {
+          file: img.file,
+          processedBlob: res?.blob,
+          status: img.status
+        }
+      })
+      .filter((r) => r.status === 'done' && r.processedBlob) as any[]
+
+    await downloadAllAsZip('resize', zipResults)
     return
   }
 
   if (state.action === 'process') {
-    await processSelected({
-      mode: resizeMode.value === 'dimensions' ? 'pixels' : 'percentage',
-      width: width.value,
-      height: height.value,
-      percentage: percentage.value,
-      maintainAspectRatio: maintainAspectRatio.value,
-      format: outputFormat.value === 'original' ? undefined : outputFormat.value,
-      quality: outputQuality.value,
-      preserveExif: preserveExif.value
-    })
+    await processSelected(
+      {
+        mode: resizeMode.value === 'dimensions' ? 'pixels' : 'percentage',
+        width: width.value,
+        height: height.value,
+        percentage: percentage.value,
+        maintainAspectRatio: maintainAspectRatio.value,
+        format: outputFormat.value === 'original' ? undefined : outputFormat.value,
+        quality: outputQuality.value,
+        preserveExif: preserveExif.value
+      },
+      (id, result) => {
+        const typedResult = result as ProcessResult
+        const blob = typedResult.blob || (result as Blob)
+        const oldRes = results.value.get(id)
+        if (oldRes) URL.revokeObjectURL(oldRes.preview)
+
+        results.value.set(id, {
+          blob,
+          preview: URL.createObjectURL(blob),
+          size: typedResult.size || blob.size,
+          width: typedResult.width,
+          height: typedResult.height,
+          isDirty: false
+        })
+      }
+    )
   }
 }
 </script>
@@ -246,7 +324,7 @@ const handleCtaClick = async () => {
           view-id="resize"
           :is-processing="isProcessing"
           show-clear-all
-          show-reset-all
+          @reset-all="cleanupResults"
       /></template>
 
       <template #content>
@@ -271,18 +349,26 @@ const handleCtaClick = async () => {
               :key="img.id"
               :image="img"
               :is-selected="store.selectedIds.has(img.id)"
+              :processed-preview="results.get(img.id)?.preview"
+              :processed-blob="results.get(img.id)?.blob"
+              :is-dirty="results.get(img.id)?.isDirty"
               @toggle="store.toggleSelection"
               @remove="store.removeImage"
               @download="handleDownload"
               @compare="handleCompare"
+              @reset="handleReset"
             >
               <template #meta="{ image }">
                 <AppComparisonBadge
                   :before-label="t('tools.resize.status.original')"
                   :before-value="`${image.width}x${image.height}`"
                   :after-label="t('tools.resize.status.target')"
-                  :after-value="`${image.processedWidth}x${image.processedHeight}`"
-                  :status="image.status"
+                  :after-value="
+                    results.has(image.id)
+                      ? `${results.get(image.id)!.width}x${results.get(image.id)!.height}`
+                      : '--'
+                  "
+                  :status="image.status === 'processing' ? 'pending' : (image.status as any)"
                   :compact="layoutStore.cardSizeMode === 'compact'"
                 />
               </template>
@@ -381,11 +467,11 @@ const handleCtaClick = async () => {
       @after-leave="handleModalLeave"
     >
       <ImageCompare
-        v-if="comparingImage && processedPreviewUrl"
+        v-if="comparingImage && results.has(comparingImage.id)"
         :original-url="comparingImage.preview"
-        :processed-url="processedPreviewUrl"
+        :processed-url="results.get(comparingImage.id)!.blob"
         :original-size="`${comparingImage.width}x${comparingImage.height}`"
-        :processed-size="`${comparingImage.processedWidth || '--'}x${comparingImage.processedHeight || '--'}`"
+        :processed-size="`${results.get(comparingImage.id)!.width || '--'}x${results.get(comparingImage.id)!.height || '--'}`"
         @close="closeCompare"
       />
     </AppModal>

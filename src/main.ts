@@ -5,8 +5,6 @@ import i18n from './i18n'
 import './style.css'
 import App from './App.vue'
 
-import { useImageStore } from './stores/imageStore'
-
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -90,14 +88,6 @@ router.afterEach(() => {
 
 // 监听语言变化同步更新标题
 watch(() => i18n.global.locale.value, updateTitle)
-
-// --- [方案 A] 工具箱隔离模式核心逻辑 ---
-router.beforeEach((to, from) => {
-  if (to.name !== from.name) {
-    const store = useImageStore()
-    store.resetAll()
-  }
-})
 
 const app = createApp(App)
 const pinia = createPinia()

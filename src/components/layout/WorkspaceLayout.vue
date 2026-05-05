@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useImageStore } from '../../stores/imageStore'
 import { useLayoutStore } from '../../stores/layoutStore'
+import { useI18n } from 'vue-i18n'
 import ImageUpload from '../common/ImageUpload.vue'
 import AssetsTray from './AssetsTray.vue'
 import { PanelRightClose, PanelRightOpen, ChevronUp, ChevronDown } from 'lucide-vue-next'
@@ -9,6 +10,7 @@ import { useBreakpoints } from '../../composables/useBreakpoints'
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
+const { t } = useI18n()
 const { isCompact, isMedium, isUltra, isDesktop } = useBreakpoints()
 
 interface Props {
@@ -74,6 +76,7 @@ onMounted(() => {
       <!-- 核心加固：在 Overlay 模式 (Compact/Medium) 展开时，为背景应用 inert 防止焦点穿透 -->
       <main
         class="flex-1 flex flex-col min-w-0 min-h-0 relative z-10 bg-background overflow-hidden transition-all duration-500 ease-apple"
+        role="main"
         :inert="(isCompact || isMedium) && !layoutStore.isInspectorCollapsed ? true : undefined"
         :aria-hidden="(isCompact || isMedium) && !layoutStore.isInspectorCollapsed"
         :class="[
@@ -110,9 +113,10 @@ onMounted(() => {
         </div>
 
         <!-- 全局资源托盘 (智能感应与折叠) -->
-        <div
+        <nav
           v-if="showAssetsTray && store.images.length > 1"
           class="shrink-0 w-0 min-w-full z-20 bg-card/30 transition-all duration-500 ease-apple overflow-hidden"
+          :aria-label="t('common.assets.trayAria')"
           :class="[
             (layoutStore.isAssetsTrayCollapsed && isDesktop) ||
             (isCompact && showSidebar && !layoutStore.isInspectorCollapsed)
@@ -131,7 +135,7 @@ onMounted(() => {
             ></div>
             <AssetsTray />
           </div>
-        </div>
+        </nav>
 
         <!-- 3. 资产托盘折叠提示条 -->
         <div
@@ -143,7 +147,10 @@ onMounted(() => {
           "
           @click="layoutStore.toggleAssetsTray"
           class="h-8 bg-muted/10 hover:bg-primary/[0.03] backdrop-blur-md cursor-pointer transition-all border-t border-border/10 shrink-0 group flex items-center justify-between px-6"
-          title="展开资源托盘 (Tab)"
+          :title="t('common.assets.expandTray')"
+          role="button"
+          tabindex="0"
+          @keydown.enter.space.prevent="layoutStore.toggleAssetsTray"
         >
           <div class="flex-1"></div>
           <div class="flex items-center gap-2">

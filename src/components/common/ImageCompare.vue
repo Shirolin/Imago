@@ -436,19 +436,19 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
 </template>
 
 <style scoped>
-.compare-transparency-grid {
+.app-transparency-grid-dark {
   background-image:
-    linear-gradient(45deg, #0a0a0a 25%, transparent 25%),
-    linear-gradient(-45deg, #0a0a0a 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #0a0a0a 75%),
-    linear-gradient(-45deg, transparent 75%, #0a0a0a 75%);
+    linear-gradient(45deg, hsl(var(--muted) / 0.2) 25%, transparent 25%),
+    linear-gradient(-45deg, hsl(var(--muted) / 0.2) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, hsl(var(--muted) / 0.2) 75%),
+    linear-gradient(-45deg, transparent 75%, hsl(var(--muted) / 0.2) 75%);
   background-size: 20px 20px;
   background-position:
     0 0,
     0 10px,
     10px -10px,
     -10px 0px;
-  background-color: #050505;
+  background-color: hsl(var(--background));
 }
 
 /* 分割线高对比度阴影：确保在纯白背景下依然可见 */

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../stores/imageStore'
 import { useLayoutStore } from '../stores/layoutStore'
@@ -29,6 +29,7 @@ import {
 } from 'lucide-vue-next'
 import { filterEngine } from '../lib/engines/filterEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
+import type { ProcessResult } from '../lib/engines/types'
 
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
@@ -36,6 +37,50 @@ const store = useImageStore()
 const layoutStore = useLayoutStore()
 const { downloadImage, downloadAllAsZip } = useFileHelpers()
 const { t } = useI18n()
+
+// 本地结果存储
+interface LocalResult {
+  blob: Blob
+  preview: string
+  size: number
+  isDirty: boolean
+}
+const results = ref<Map<string, LocalResult>>(new Map())
+
+const cleanupResults = () => {
+  results.value.forEach((res) => {
+    URL.revokeObjectURL(res.preview)
+  })
+  results.value.clear()
+}
+
+onUnmounted(() => {
+  cleanupResults()
+})
+
+// 监听图片列表变化，自动清理已删除图片的本地结果
+watch(
+  () => store.images,
+  (newImages) => {
+    const currentIds = new Set(newImages.map((img) => img.id))
+    results.value.forEach((res, id) => {
+      if (!currentIds.has(id)) {
+        URL.revokeObjectURL(res.preview)
+        results.value.delete(id)
+      }
+    })
+
+    if (newImages.length === 0) {
+      activePresetId.value = 'none'
+      brightness.value = 100
+      contrast.value = 100
+      saturation.value = 100
+      blur.value = 0
+      sepia.value = 0
+    }
+  },
+  { deep: true }
+)
 
 // 状态
 const brightness = ref(100)
@@ -45,7 +90,7 @@ const blur = ref(0)
 const sepia = ref(0)
 const outputFormat = ref<string>('original')
 const outputQuality = ref(0.9)
-const isDirty = ref(false)
+const isSettingsDirty = ref(false)
 const activePresetId = ref<string>('none')
 const lastPresetId = ref<string>('none')
 
@@ -212,34 +257,61 @@ const presetsMaskStyle = computed(() => {
 })
 
 const handleApplyFilters = async () => {
-  await processSelected({
-    brightness: brightness.value,
-    contrast: contrast.value,
-    saturation: saturation.value,
-    blur: blur.value,
-    sepia: sepia.value,
-    grayscale: 0,
-    hueRotate: 0,
-    invert: 0,
-    vignette: 0,
-    sharpen: 0,
-    noise: 0,
-    format: outputFormat.value,
-    quality: outputQuality.value
-  })
-  isDirty.value = false
+  await processSelected(
+    {
+      brightness: brightness.value,
+      contrast: contrast.value,
+      saturation: saturation.value,
+      blur: blur.value,
+      sepia: sepia.value,
+      grayscale: 0,
+      hueRotate: 0,
+      invert: 0,
+      vignette: 0,
+      sharpen: 0,
+      noise: 0,
+      format: outputFormat.value,
+      quality: outputQuality.value
+    },
+    (id, result) => {
+      const typedResult = result as ProcessResult
+      const blob = typedResult.blob || (result as Blob)
+      const oldRes = results.value.get(id)
+      if (oldRes) URL.revokeObjectURL(oldRes.preview)
+
+      results.value.set(id, {
+        blob,
+        preview: URL.createObjectURL(blob),
+        size: typedResult.size || blob.size,
+        isDirty: false
+      })
+    }
+  )
+  isSettingsDirty.value = false
 }
 
 const handleDownload = (id: string) => {
   const item = store.images.find((img) => img.id === id)
-  if (item?.processedBlob) downloadImage(item.processedBlob, item.file.name, 'filters')
+  const result = results.value.get(id)
+  if (item && result) downloadImage(result.blob, item.file.name, 'filters')
+}
+
+const handleReset = (id: string) => {
+  const res = results.value.get(id)
+  if (res) {
+    URL.revokeObjectURL(res.preview)
+    results.value.delete(id)
+  }
+  store.updateImage(id, { status: 'idle', progress: 0 })
 }
 
 watch(
   [brightness, contrast, saturation, blur, sepia, outputFormat, outputQuality],
   () => {
-    isDirty.value = true
-    store.markAllAsDirty()
+    isSettingsDirty.value = true
+    results.value.forEach((res) => {
+      res.isDirty = true
+    })
   },
   { deep: true }
 )
@@ -258,7 +330,10 @@ const ctaState = computed(() => {
   const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
   const allDoneAndClean =
     selectedImages.length > 0 &&
-    selectedImages.every((img) => img.status === 'done' && img.processedBlob && !img.isDirty)
+    selectedImages.every((img) => {
+      const res = results.value.get(img.id)
+      return img.status === 'done' && res && !res.isDirty
+    })
 
   if (allDoneAndClean) {
     return {
@@ -269,7 +344,10 @@ const ctaState = computed(() => {
     }
   }
 
-  const anyDirty = selectedImages.some((img) => img.status === 'done' && img.isDirty)
+  const anyDirty = selectedImages.some((img) => {
+    const res = results.value.get(img.id)
+    return img.status === 'done' && res?.isDirty
+  })
   return {
     text: anyDirty
       ? t('tools.filters.cta.update', { count: store.selectedCount })
@@ -285,7 +363,19 @@ const handleCtaClick = async () => {
   if (state.action === 'none') return
 
   if (state.action === 'download') {
-    await downloadAllAsZip('filters')
+    const zipResults = store.images
+      .filter((img) => store.selectedIds.has(img.id))
+      .map((img) => {
+        const res = results.value.get(img.id)
+        return {
+          file: img.file,
+          processedBlob: res?.blob,
+          status: img.status
+        }
+      })
+      .filter((r) => r.status === 'done' && r.processedBlob) as any[]
+
+    await downloadAllAsZip('filters', zipResults)
     return
   }
 
@@ -304,7 +394,7 @@ const handleCtaClick = async () => {
           view-id="filters"
           :is-processing="isProcessing"
           show-clear-all
-          show-reset-all
+          @reset-all="cleanupResults"
       /></template>
 
       <template #content>
@@ -322,15 +412,19 @@ const handleCtaClick = async () => {
               :key="img.id"
               :image="img"
               :is-selected="store.selectedIds.has(img.id)"
+              :processed-preview="results.get(img.id)?.preview"
+              :processed-blob="results.get(img.id)?.blob"
+              :is-dirty="results.get(img.id)?.isDirty"
               :image-style="{ filter: 'none' }"
               :allow-magnifier="false"
               @toggle="store.toggleSelection"
               @remove="store.removeImage"
               @download="handleDownload"
+              @reset="handleReset"
             >
               <template #visual-effects>
                 <div
-                  v-if="img.status !== 'done' || isDirty"
+                  v-if="img.status !== 'done' || results.get(img.id)?.isDirty"
                   class="absolute inset-0 w-full h-full z-10 pointer-events-none transition-all duration-300 rounded-[inherit] overflow-hidden"
                   :style="previewFilterStyle"
                 ></div>

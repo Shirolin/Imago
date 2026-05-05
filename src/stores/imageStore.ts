@@ -11,29 +11,11 @@ export interface ImageItem {
   width?: number
   height?: number
   format: string
-  processedSize?: number
-  processedBlob?: Blob
-  processedPreview?: string
-  processedBlobs?: Blob[]
-  processedWidth?: number
-  processedHeight?: number
-  splitMeta?: {
-    linesX: number[]
-    linesY: number[]
-    editMode: 'grid' | 'custom'
-    rows: number
-    cols: number
-  }
   error?: string
   abortController?: AbortController
-  isDirty?: boolean
   exifCount?: number
   isExifUnsupported?: boolean
   exifError?: string
-  history?: {
-    past: Record<string, unknown>[]
-    future: Record<string, unknown>[]
-  }
 }
 
 export const useImageStore = defineStore('image', () => {
@@ -98,46 +80,6 @@ export const useImageStore = defineStore('image', () => {
     )
   })
 
-  // 脏数据管理
-  const markDirty = (id: string) => {
-    const img = images.value.find((img) => img.id === id)
-    if (img && img.status === 'done') {
-      img.isDirty = true
-    }
-  }
-
-  const markAllAsDirty = () => {
-    images.value.forEach((img) => {
-      if (img.status === 'done') {
-        img.isDirty = true
-      }
-    })
-  }
-
-  const resetImage = (id: string) => {
-    const img = images.value.find((i) => i.id === id)
-    if (img) {
-      if (img.abortController) {
-        img.abortController.abort()
-      }
-      if (img.processedPreview) {
-        URL.revokeObjectURL(img.processedPreview)
-      }
-      img.status = 'idle'
-      img.processedBlob = undefined
-      img.processedPreview = undefined
-      img.processedSize = undefined
-      img.error = undefined
-      img.isDirty = false
-    }
-  }
-
-  const resetAll = () => {
-    images.value.forEach((img) => {
-      resetImage(img.id)
-    })
-  }
-
   const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
   const VALID_IMAGE_TYPES = [
     'image/jpeg',
@@ -169,7 +111,7 @@ export const useImageStore = defineStore('image', () => {
       images.value.map((img) => `${img.file.name}-${img.file.size}-${img.file.lastModified}`)
     )
 
-    const uniqueFiles = files.filter((file) => {
+    const uniqueFiles = validFiles.filter((file) => {
       const key = `${file.name}-${file.size}-${file.lastModified}`
       if (existingKeys.has(key)) return false
       existingKeys.add(key)
@@ -183,10 +125,9 @@ export const useImageStore = defineStore('image', () => {
         const img = new Image()
         img.onload = () => {
           resolve({ width: img.naturalWidth, height: img.naturalHeight })
-          URL.revokeObjectURL(img.src)
         }
         img.onerror = () => resolve({ width: 0, height: 0 })
-        img.src = URL.createObjectURL(file)
+        img.src = preview
       })
 
       return {
@@ -230,19 +171,14 @@ export const useImageStore = defineStore('image', () => {
       }
     }
   }
+
   const removeSelected = () => {
-    // 1. 先收集所有待删除图片的 ID
     const idsToRemove = Array.from(selectedIds.value)
-
-    // 2. 逐一执行标准的 removeImage 逻辑（包含内存释放）
     idsToRemove.forEach((id) => removeImage(id))
-
-    // 3. 清空选择集
     selectedIds.value.clear()
   }
 
   const clearImages = () => {
-    // 严格遍历释放所有预览 URL 和中止控制器
     images.value.forEach((img) => {
       if (img.abortController) img.abortController.abort()
       if (img.preview) {
@@ -300,7 +236,6 @@ export const useImageStore = defineStore('image', () => {
   }
 
   const selectRange = (id: string) => {
-    // 如果没有活动图片，则退化为普通切换
     if (!activeId.value) {
       toggleSelection(id)
       return
@@ -315,7 +250,6 @@ export const useImageStore = defineStore('image', () => {
     const min = Math.min(startIdx, endIdx)
     const max = Math.max(startIdx, endIdx)
 
-    // 批量添加到选中集合
     for (let i = min; i <= max; i++) {
       const item = list[i]
       if (item) selectedIds.value.add(item.id)
@@ -347,11 +281,7 @@ export const useImageStore = defineStore('image', () => {
     toggleAll,
     updateImage,
     reorderImage,
-    markDirty,
     showMagnifier,
-    setShowMagnifier,
-    markAllAsDirty,
-    resetImage,
-    resetAll
+    setShowMagnifier
   }
 })

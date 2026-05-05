@@ -56,13 +56,18 @@ const handleRemoveAction = () => {
   }
 }
 
+const emit = defineEmits(['reset-all'])
+
 const handleConfirm = () => {
   if (confirmMode.value === 'clear') {
     store.clearImages()
   } else if (confirmMode.value === 'delete') {
     store.removeSelected()
   } else {
-    store.resetAll()
+    emit('reset-all')
+    store.images.forEach((img) => {
+      store.updateImage(img.id, { status: 'idle', error: undefined, progress: 0 })
+    })
   }
   showConfirm.value = false
 }
@@ -85,6 +90,11 @@ const handleConfirm = () => {
             ? t('common.image.toolbar.layoutLarge')
             : t('common.image.toolbar.layoutCompact')
         "
+        :title="
+          layoutStore.cardSizeMode === 'compact'
+            ? t('common.image.toolbar.layoutLarge')
+            : t('common.image.toolbar.layoutCompact')
+        "
       >
         <component
           :is="layoutStore.cardSizeMode === 'compact' ? LayoutGrid : LayoutList"
@@ -100,6 +110,7 @@ const handleConfirm = () => {
         @click="triggerFileInput"
         class="flex items-center justify-center gap-2 px-3 h-9 rounded-xl hover:bg-background hover:shadow-sm text-muted-foreground hover:text-primary transition-all duration-200 active:scale-95 group whitespace-nowrap"
         :aria-label="t('common.image.toolbar.importAria')"
+        :title="t('common.image.toolbar.import')"
       >
         <Plus
           :size="16"
@@ -119,6 +130,7 @@ const handleConfirm = () => {
       :class="{ 'opacity-50 cursor-not-allowed grayscale-[0.3]': isProcessing }"
       :disabled="isProcessing"
       :aria-label="t('common.image.toolbar.exportAllAria', { count: store.doneCount })"
+      :title="t('common.image.toolbar.exportAll')"
     >
       <Download :size="16" class="animate-in zoom-in duration-300" />
       <span class="text-[0.7rem] md:text-[0.75rem] font-black tracking-tight uppercase">{{
@@ -141,6 +153,7 @@ const handleConfirm = () => {
         @click="openConfirm('reset')"
         class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-background hover:shadow-sm text-muted-foreground hover:text-primary transition-all duration-200 active:scale-90 group shrink-0"
         :aria-label="t('common.image.toolbar.resetAllAria')"
+        :title="t('common.image.toolbar.resetAll')"
       >
         <RotateCcw
           :size="16"
@@ -156,6 +169,11 @@ const handleConfirm = () => {
         @click="handleRemoveAction"
         class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-destructive/5 hover:shadow-sm transition-all duration-200 active:scale-90 shrink-0 group"
         :class="store.selectedCount > 0 ? 'text-destructive' : 'text-muted-foreground'"
+        :aria-label="
+          store.selectedCount > 0
+            ? t('common.image.toolbar.deleteSelectedAria', { count: store.selectedCount })
+            : t('common.image.toolbar.clearAllAria')
+        "
         :title="
           store.selectedCount > 0
             ? t('common.image.toolbar.deleteSelected')

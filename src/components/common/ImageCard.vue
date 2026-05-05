@@ -8,12 +8,12 @@ import {
   CheckSquare,
   Columns2,
   RotateCcw,
-  Sparkles,
   AlertCircle,
   Loader2
 } from 'lucide-vue-next'
 import { useFileHelpers } from '../../composables/useFileHelpers'
 import { useImageStore } from '../../stores/imageStore'
+import { useLayoutStore } from '../../stores/layoutStore'
 import { useI18n } from 'vue-i18n'
 import type { ImageItem } from '../../stores/imageStore'
 import AppModal from './AppModal.vue'
@@ -21,6 +21,7 @@ import AppButton from './AppButton.vue'
 
 const { formatSize } = useFileHelpers()
 const store = useImageStore()
+const layoutStore = useLayoutStore()
 const { t } = useI18n()
 
 interface Props {
@@ -31,6 +32,7 @@ interface Props {
   showTransparency?: boolean
   processedPreview?: string
   processedBlob?: Blob
+  isDirty?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -39,9 +41,13 @@ const props = withDefaults(defineProps<Props>(), {
   allowMagnifier: true,
   showTransparency: false,
   processedPreview: undefined,
-  processedBlob: undefined
+  processedBlob: undefined,
+  isDirty: false
 })
-const emit = defineEmits(['toggle', 'remove', 'download', 'compare', 'interactive'])
+const emit = defineEmits(['toggle', 'remove', 'download', 'compare', 'interactive', 'reset'])
+
+// 模式判定：严格遵循用户切换的全局指令
+const isLargeMode = computed(() => layoutStore.cardSizeMode === 'large')
 
 // 确认框状态
 const showResetConfirm = ref(false)
@@ -51,16 +57,16 @@ const handleReset = () => {
 }
 
 const confirmReset = () => {
-  store.resetImage(props.image.id)
+  emit('reset', props.image.id)
   showResetConfirm.value = false
 }
 
 const imageRef = ref<HTMLElement | null>(null)
 
-const isDirtyDone = computed(() => props.image.isDirty && props.image.status === 'done')
-const isDirty = computed(() => props.image.isDirty)
+// 衍生状态
+const isDirtyDone = computed(() => props.isDirty && props.image.status === 'done')
 
-// --- Magnifier Logic ---
+// --- 【逻辑对齐】：智能倍镜核心逻辑 ---
 const showMagnifier = ref(false)
 const mousePos = ref({ x: 50, y: 50 })
 const originalHDUrl = ref<string | null>(null)
@@ -73,21 +79,27 @@ watch(showMagnifier, (isShowing) => {
     if (props.processedPreview) {
       localProcessedUrl.value = props.processedPreview
     } else if (props.processedBlob) {
+      const oldUrl = localProcessedUrl.value
       localProcessedUrl.value = URL.createObjectURL(props.processedBlob)
+      // 立即释放旧的临时 URL，防止堆积
+      if (oldUrl && oldUrl !== props.processedPreview) URL.revokeObjectURL(oldUrl)
     }
 
     if (!originalHDUrl.value) {
-      originalHDUrl.value = props.image.preview || (props.image.file ? URL.createObjectURL(props.image.file) : null)
+      originalHDUrl.value = props.image.preview || URL.createObjectURL(props.image.file)
     }
   }
 })
 
 // 监听处理结果变化，实时更新倍镜
-watch(() => props.processedPreview, (newUrl) => {
-  if (showMagnifier.value && newUrl) {
-    localProcessedUrl.value = newUrl
+watch(
+  () => props.processedPreview,
+  (newUrl) => {
+    if (showMagnifier.value && newUrl) {
+      localProcessedUrl.value = newUrl
+    }
   }
-})
+)
 
 onUnmounted(() => {
   if (localProcessedUrl.value && localProcessedUrl.value !== props.processedPreview) {
@@ -100,7 +112,8 @@ onUnmounted(() => {
 })
 
 const handleMouseMove = (e: MouseEvent) => {
-  if (!props.allowMagnifier || !showMagnifier.value || !imageRef.value) return
+  // 【严谨限制】：仅在大图模式下进行坐标计算
+  if (!isLargeMode.value || !props.allowMagnifier || !showMagnifier.value || !imageRef.value) return
 
   if (rafId.value) cancelAnimationFrame(rafId.value)
 
@@ -113,10 +126,14 @@ const handleMouseMove = (e: MouseEvent) => {
 }
 
 const enterMagnifier = () => {
-  // 仅在大图模式且完成处理时允许进入倍镜
-  if (props.allowMagnifier && (props.image.status === 'done' || props.processedPreview) && store.showMagnifier) {
-    const isLarge = imageRef.value?.clientWidth ? imageRef.value.clientWidth > 220 : true
-    if (isLarge) showMagnifier.value = true
+  // 【新】：严谨切换逻辑。仅在大图模式且完成处理时允许进入倍镜
+  if (
+    isLargeMode.value &&
+    props.allowMagnifier &&
+    props.image.status === 'done' &&
+    store.showMagnifier
+  ) {
+    showMagnifier.value = true
   }
 }
 
@@ -124,30 +141,32 @@ const leaveMagnifier = () => {
   showMagnifier.value = false
 }
 
-const innerContainerStyle = computed(() => {
-  const { x, y } = mousePos.value
+const innerContainerStyle = computed<CSSProperties>(() => {
   return {
-    transform: `scale(2)`,
-    transformOrigin: `${x}% ${y}%`
+    position: 'absolute',
+    width: `${imageRef.value?.clientWidth || 0}px`,
+    height: `${imageRef.value?.clientHeight || 0}px`,
+    left: '50%',
+    top: '50%',
+    transform: `translate(-${mousePos.value.x}%, -${mousePos.value.y}%) scale(2.5)`,
+    transformOrigin: `${mousePos.value.x}% ${mousePos.value.y}%`,
+    willChange: 'transform, transform-origin'
   }
 })
 
+// 【核心对比逻辑】：计算左右分屏的裁剪路径
 const dynamicClipPath = computed(() => {
-  if (!imageRef.value) return ''
-  const rect = imageRef.value.getBoundingClientRect()
-  const { x, y } = mousePos.value
-  const absX = (x * rect.width) / 100
-  const absY = (y * rect.height) / 100
-  const size = 100 // 放大镜半径
-  return `circle(${size}px at ${absX}px ${absY}px)`
+  const x = mousePos.value.x
+  return {
+    original: `inset(0 ${100 - x}% 0 0)`,
+    processed: `inset(0 0 0 ${x}%)`
+  }
 })
-// --- End Magnifier Logic ---
 
 // 自动切换处理前后预览图
 const displayUrl = computed(() => {
-  if (props.processedPreview) return props.processedPreview
-  if (props.image.status === 'done' && props.image.processedPreview) {
-    return props.image.processedPreview
+  if (props.image.status === 'done' && props.processedPreview) {
+    return props.processedPreview
   }
   return props.image.preview
 })
@@ -155,91 +174,189 @@ const displayUrl = computed(() => {
 
 <template>
   <div
-    class="relative bg-card rounded-2xl overflow-hidden border border-border/60 transition-all duration-500 cursor-pointer flex flex-col group hover:shadow-elevated hover:-translate-y-0.5 hover:shadow-primary/10 hover:border-primary/30 @container outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background shadow-inner-glow"
+    class="relative bg-card rounded-2xl overflow-hidden border border-border/60 transition-all duration-500 cursor-pointer flex flex-col group hover:shadow-elevated hover:-translate-y-0.5 hover:shadow-primary/10 hover:border-primary/30 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background shadow-inner-glow"
     :class="[
-      isSelected ? 'ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/[0.03]' : '',
-      isDirtyDone ? 'animate-dirty-pulse border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]' : ''
+      isSelected
+        ? 'ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/[0.03]'
+        : '',
+      isDirtyDone
+        ? 'animate-dirty-pulse border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
+        : ''
     ]"
     tabindex="0"
     @click="emit('toggle', image.id)"
+    @keydown.enter.space.prevent="emit('toggle', image.id)"
   >
     <!-- Layer 1: Canvas (4:3) -->
     <div
       ref="imageRef"
-      class="relative aspect-[4/3] flex items-center justify-center shrink-0 group/canvas overflow-hidden"
+      class="relative aspect-[4/3] flex items-center justify-center shrink-0 group/canvas"
       @mouseenter="enterMagnifier"
       @mouseleave="leaveMagnifier"
       @mousemove="handleMouseMove"
     >
-       <!-- Background & Preview -->
-       <div class="absolute inset-0 z-0 overflow-hidden rounded-t-[calc(1rem-1px)] bg-muted/20" :class="{ 'app-transparency-grid-sm': showTransparency }">
-         <div class="absolute inset-0 z-10 pointer-events-none"><slot name="visual-effects" :image="image"></slot></div>
-         <img :src="displayUrl" class="w-full h-full object-contain transition-all duration-700 group-hover/canvas:scale-105" :class="{ 'opacity-40 grayscale-[0.5] blur-[1px] scale-95': image.status === 'processing' }" :style="imageStyle" />
-         <div v-if="isDirtyDone" class="absolute inset-0 z-20 pointer-events-none overflow-hidden opacity-30"><div class="absolute inset-[-100%] bg-stripe-pattern animate-stripe-scroll"></div></div>
-       </div>
+      <!-- 背景预览 -->
+      <div
+        class="absolute inset-0 overflow-hidden rounded-t-[calc(1rem-1px)] bg-muted/20"
+        :class="{ 'app-transparency-grid-sm': showTransparency }"
+      >
+        <div class="absolute inset-0 z-10 pointer-events-none">
+          <slot name="visual-effects" :image="image"></slot>
+        </div>
+        <img
+          :src="displayUrl"
+          :alt="t('common.image.card.previewAlt', { name: image.file.name })"
+          class="w-full h-full object-contain transition-all duration-700"
+          :class="{
+            'group-hover/canvas:scale-105': !showMagnifier && !isDirtyDone,
+            'opacity-40 grayscale-[0.5] blur-[1px] scale-95': image.status === 'processing'
+          }"
+          :style="imageStyle"
+        />
+        <div
+          v-if="isDirtyDone"
+          class="absolute inset-0 z-20 pointer-events-none overflow-hidden opacity-30"
+        >
+          <div class="absolute inset-[-100%] bg-stripe-pattern animate-stripe-scroll"></div>
+        </div>
+      </div>
 
-       <!-- Magnifier Overlay (Large Mode only) -->
-       <div
-         v-if="showMagnifier"
-         class="absolute inset-0 z-40 pointer-events-none overflow-hidden rounded-t-[calc(1rem-1px)]"
-         :style="{ clipPath: dynamicClipPath }"
-       >
-         <div class="absolute inset-0 bg-background" :class="{ 'app-transparency-grid-sm': showTransparency }">
-           <img
-             :src="localProcessedUrl || displayUrl"
-             class="w-full h-full object-contain"
-             :style="[imageStyle, innerContainerStyle]"
-           />
-         </div>
-       </div>
-
-       <!-- Top Overlays -->
-       <div v-if="!showMagnifier" class="absolute top-3 left-3 z-30 flex items-center gap-2">
-         <div class="transition-all duration-300" :class="isSelected ? 'text-primary scale-110' : 'text-foreground/60 opacity-0 group-hover:opacity-100'"><CheckSquare v-if="isSelected" :size="20" /><Square v-else :size="20" /></div>
-         <slot name="overlay" :image="image"></slot>
-       </div>
-       <button v-if="!showMagnifier" @click.stop="store.removeImage(image.id)" class="absolute top-3 right-3 z-30 bg-background/40 hover:bg-destructive text-foreground/60 hover:text-destructive-foreground p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-border/40"><X :size="14" /></button>
-
-       <!-- Center Progress -->
-       <div v-if="image.status === 'processing'" class="absolute inset-0 bg-background/40 backdrop-blur-[2px] z-35 flex items-center justify-center"><Loader2 :size="24" class="text-primary animate-spin" /></div>
-
-       <!-- HUD Tray (Small Mode only) -->
-       <div class="absolute bottom-3 left-3 right-3 z-40 bg-background/80 backdrop-blur-xl border border-white/20 rounded-xl p-1.5 shadow-2xl flex items-center justify-between gap-1.5 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 ease-apple pointer-events-auto @[221px]:hidden">
-          <!-- Action Buttons -->
-          <div class="flex items-center gap-1">
-             <button v-if="image.status === 'done'" @click.stop="emit('compare', image.id)" class="p-2 hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-lg transition-all"><Columns2 :size="14" /></button>
-             <button v-if="image.status === 'done' || image.status === 'error'" @click.stop="handleReset" class="p-2 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded-lg transition-all"><RotateCcw :size="14" /></button>
+      <!-- 【模式 A】：倍镜对比层 (仅在大图模式且 Hover 时显示) -->
+      <div
+        v-if="isLargeMode && showMagnifier && localProcessedUrl && originalHDUrl"
+        class="absolute inset-0 z-40 pointer-events-none"
+      >
+        <div
+          class="absolute w-40 h-40 md:w-48 md:h-48 -ml-20 -mt-20 md:-ml-24 md:-mt-24 rounded-full border-2 border-primary shadow-[0_0_30px_rgba(var(--primary-rgb),0.5)] overflow-hidden bg-background flex items-center justify-center"
+          :class="{ 'app-transparency-grid-sm': showTransparency }"
+          :style="{ left: `${mousePos.x}%`, top: `${mousePos.y}%` }"
+        >
+          <!-- 左侧：原图 -->
+          <div
+            class="absolute"
+            :style="{ ...innerContainerStyle, clipPath: dynamicClipPath.original } as CSSProperties"
+          >
+            <img :src="originalHDUrl!" class="w-full h-full object-contain" />
           </div>
-          <!-- Reactive Data (Small mode only) -->
-          <div class="flex items-center gap-2 px-2 border-l border-border/40 ml-1">
-             <span class="text-[9px] font-mono font-bold opacity-60 tabular-nums">{{ image.width }}x{{ image.height }}</span>
-             <span class="text-[9px] font-bold opacity-60 tabular-nums">{{ formatSize(image.originalSize) }}</span>
+          <!-- 右侧：处理后图 -->
+          <div
+            class="absolute"
+            :style="
+              { ...innerContainerStyle, clipPath: dynamicClipPath.processed } as CSSProperties
+            "
+          >
+            <img :src="localProcessedUrl!" class="w-full h-full object-contain" />
           </div>
-          <div class="flex items-center gap-1.5">
-            <button
-              @click.stop="emit('interactive', image.id)"
-              class="p-2 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground rounded-lg transition-all active:scale-90"
-              :title="t('common.image.card.interactive')"
+          <!-- 动态分割线 -->
+          <div
+            class="absolute inset-y-0 left-1/2 w-0.5 bg-primary/80 z-10 shadow-[0_0_8px_rgba(var(--primary-rgb),1)]"
+          ></div>
+          <div
+            class="absolute inset-0 flex items-center justify-between px-2 text-[10px] pointer-events-none z-20"
+          >
+            <span
+              class="bg-muted/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-foreground font-black border border-border/20"
+              >{{ $t('common.image.card.before') }}</span
             >
-              <Sparkles :size="14" />
-            </button>
-            <button @click.stop="emit('download', image.id)" class="p-2 bg-primary text-primary-foreground rounded-lg shadow-lg active:scale-90 transition-all"><Download :size="14" /></button>
+            <span
+              class="bg-primary/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-primary-foreground font-black border border-white/20"
+              >{{ $t('common.image.card.after') }}</span
+            >
           </div>
-       </div>
+        </div>
+      </div>
+
+      <!-- 【模式 B】：Hover HUD 托盘 (仅在小图模式下浮现) -->
+      <div
+        v-if="!isLargeMode"
+        class="absolute bottom-3 left-3 right-3 z-30 bg-background/80 backdrop-blur-xl border border-white/20 rounded-xl p-1.5 shadow-2xl flex items-center justify-between gap-1.5 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 pointer-events-auto"
+      >
+        <div class="flex items-center gap-1">
+          <button
+            v-if="image.status === 'done'"
+            @click.stop="emit('compare', image.id)"
+            class="p-1.5 hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-lg transition-all"
+            :aria-label="t('common.image.card.compare')"
+          >
+            <Columns2 :size="14" />
+          </button>
+          <button
+            v-if="image.status === 'done' || image.status === 'error'"
+            @click.stop="handleReset"
+            class="p-1.5 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded-lg transition-all"
+            :aria-label="t('common.image.card.reset')"
+          >
+            <RotateCcw :size="14" />
+          </button>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button
+            @click.stop="emit('download', image.id)"
+            class="p-1.5 bg-primary text-primary-foreground rounded-lg shadow-lg active:scale-90 transition-all"
+            :aria-label="t('common.image.card.download')"
+          >
+            <Download :size="14" />
+          </button>
+        </div>
+      </div>
+
+      <!-- 静态覆盖层 (Checkbox & X) -->
+      <div v-if="!showMagnifier" class="absolute top-3 left-3 z-30 flex items-center gap-2">
+        <div
+          class="transition-all duration-300"
+          :class="
+            isSelected
+              ? 'text-primary scale-110'
+              : 'text-foreground/60 opacity-0 group-hover:opacity-100'
+          "
+        >
+          <CheckSquare v-if="isSelected" :size="20" />
+          <Square v-else :size="20" />
+        </div>
+        <slot name="overlay" :image="image"></slot>
+      </div>
+      <button
+        v-if="!showMagnifier"
+        @click.stop="store.removeImage(image.id)"
+        class="absolute top-3 right-3 z-30 bg-background/40 hover:bg-destructive text-foreground/60 hover:text-destructive-foreground p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-border/40 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        :title="$t('common.image.card.remove')"
+        :aria-label="$t('common.image.card.remove')"
+      >
+        <X :size="14" />
+      </button>
+
+      <!-- 处理中中心进度 -->
+      <div
+        v-if="image.status === 'processing'"
+        class="absolute inset-0 bg-background/40 backdrop-blur-[2px] z-35 flex items-center justify-center"
+      >
+        <Loader2 :size="24" class="text-primary animate-spin" />
+      </div>
     </div>
 
     <!-- Layer 2: Info Area -->
     <div class="p-3.5 flex flex-col gap-1.5 min-w-0">
       <div class="flex items-center justify-between gap-2">
         <h4 class="font-bold text-foreground truncate text-sm flex-1">{{ image.file.name }}</h4>
-        <!-- Status Shorthand -->
         <div class="shrink-0 flex items-center gap-1.5">
-           <div v-if="image.status === 'done'" class="w-2 h-2 rounded-full bg-emerald-500" :class="{ 'bg-amber-500 animate-pulse': isDirty }"></div>
-           <Loader2 v-else-if="image.status === 'processing'" :size="12" class="text-primary animate-spin" />
+          <div
+            v-if="image.status === 'done'"
+            class="w-2 h-2 rounded-full bg-emerald-500"
+            :class="{ 'bg-amber-500 animate-pulse': isDirty }"
+          ></div>
+          <Loader2
+            v-else-if="image.status === 'processing'"
+            :size="12"
+            class="text-primary animate-spin"
+          />
         </div>
       </div>
-      <!-- Detailed Specs (Large mode only) -->
-      <div class="hidden @[221px]:flex items-center gap-2 text-[10px] font-bold text-muted-foreground/60 tracking-tight uppercase tabular-nums">
+
+      <!-- 【大图专供】：详细技术参数 -->
+      <div
+        v-if="isLargeMode"
+        class="flex items-center gap-2 text-[10px] font-bold text-muted-foreground/60 tracking-tight uppercase tabular-nums animate-in fade-in duration-300"
+      >
         <span class="px-1 py-0.5 rounded bg-muted/40 text-[9px]">{{ image.format }}</span>
         <span>{{ image.width }} × {{ image.height }}</span>
         <span class="opacity-30">|</span>
@@ -247,52 +364,43 @@ const displayUrl = computed(() => {
       </div>
       <slot name="meta" :image="image"></slot>
 
-      <!-- Action Bar (Large Mode only) -->
-      <div class="hidden @[221px]:flex items-center gap-1.5 mt-2.5 pt-2.5 border-t border-border/40">
-        <AppButton
+      <!-- 【大图模式专属】：Large Mode Action Bar -->
+      <div
+        v-if="isLargeMode"
+        class="flex items-center gap-2 mt-3 pt-3 border-t border-border/40 animate-in slide-in-from-bottom-2 duration-500"
+      >
+        <button
           v-if="image.status === 'done'"
-          variant="ghost"
-          size="sm"
-          class="flex-1 h-9 rounded-xl text-muted-foreground hover:text-primary gap-2"
+          class="flex-1 flex items-center justify-center gap-2 h-9 rounded-xl bg-muted/30 hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all text-[10px] font-black uppercase tracking-wider border border-transparent hover:border-primary/20 outline-none focus-visible:ring-2 focus-visible:ring-primary"
           @click.stop="emit('compare', image.id)"
+          :aria-label="t('common.image.card.compare')"
         >
-          <Columns2 :size="15" />
-          <span class="text-[11px] font-bold">{{ t('common.image.card.compare') }}</span>
-        </AppButton>
-        <AppButton
+          <Columns2 :size="14" />
+          <span>{{ t('common.image.card.compare') }}</span>
+        </button>
+        <button
           v-if="image.status === 'done' || image.status === 'error'"
-          variant="ghost"
-          size="sm"
-          class="flex-1 h-9 rounded-xl text-muted-foreground hover:text-destructive gap-2"
+          class="flex-1 flex items-center justify-center gap-2 h-9 rounded-xl bg-muted/30 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all text-[10px] font-black uppercase tracking-wider border border-transparent hover:border-primary/20 outline-none focus-visible:ring-2 focus-visible:ring-destructive"
           @click.stop="handleReset"
+          :aria-label="t('common.image.card.reset')"
         >
-          <RotateCcw :size="15" />
-          <span class="text-[11px] font-bold">{{ t('common.image.card.reset') }}</span>
-        </AppButton>
-        <div class="flex items-center gap-1.5 ml-auto pl-1.5 border-l border-border/40">
-          <AppButton
-            variant="secondary"
-            size="sm"
-            class="h-9 w-9 rounded-xl p-0"
-            @click.stop="emit('interactive', image.id)"
-            :title="t('common.image.card.interactive')"
-          >
-            <Sparkles :size="15" />
-          </AppButton>
-          <AppButton
-            variant="primary"
-            size="sm"
-            class="h-9 w-9 rounded-xl p-0 shadow-lg shadow-primary/20"
+          <RotateCcw :size="14" />
+          <span>{{ t('common.image.card.reset') }}</span>
+        </button>
+        <div class="flex gap-2 ml-auto pl-2 border-l border-border/40">
+          <button
             @click.stop="emit('download', image.id)"
+            class="p-2 bg-primary text-primary-foreground rounded-xl shadow-lg shadow-primary/20 hover:scale-110 hover:shadow-primary/40 active:scale-95 transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-primary"
             :title="t('common.image.card.download')"
+            :aria-label="t('common.image.card.download')"
           >
-            <Download :size="15" />
-          </AppButton>
+            <Download :size="16" />
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- 单张图片还原确认对话框 -->
+    <!-- 重置确认对话框 -->
     <AppModal
       :show="showResetConfirm"
       @close="showResetConfirm = false"
@@ -310,9 +418,6 @@ const displayUrl = computed(() => {
             </h3>
             <p class="text-muted-foreground text-sm leading-relaxed font-medium">
               {{ t('common.image.toolbar.confirmResetTitle') }}
-            </p>
-            <p class="text-muted-foreground/60 text-[11px] mt-2 italic">
-              {{ t('common.image.toolbar.confirmResetDesc') }}
             </p>
           </div>
         </div>
@@ -344,13 +449,17 @@ const displayUrl = computed(() => {
   border-right-color: theme('colors.amber.500');
 }
 @keyframes dirty-pulse {
-  0%, 100% { border-right-color: rgba(245, 158, 11, 0.4); }
-  50% { border-right-color: rgba(245, 158, 11, 0.8); }
+  0%,
+  100% {
+    border-right-color: rgba(245, 158, 11, 0.4);
+  }
+  50% {
+    border-right-color: rgba(245, 158, 11, 0.8);
+  }
 }
-/* Ensure Apple transition curve is defined or used from tailwind */
-.ease-apple { transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1); }
-
-/* Reuse existing patterns if needed */
+.ease-apple {
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
 .bg-stripe-pattern {
   background-image: repeating-linear-gradient(
     45deg,
@@ -361,8 +470,12 @@ const displayUrl = computed(() => {
   );
 }
 @keyframes stripe-scroll {
-  from { transform: translateX(0) translateY(0); }
-  to { transform: translateX(40px) translateY(40px); }
+  from {
+    transform: translateX(0) translateY(0);
+  }
+  to {
+    transform: translateX(40px) translateY(40px);
+  }
 }
 .animate-stripe-scroll {
   animation: stripe-scroll 3s linear infinite;

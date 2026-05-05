@@ -314,10 +314,7 @@ const handleCtaClick = async () => {
   <WorkspaceLayout show-sidebar no-scroll>
     <template #header-left><ImageSelectionStatus :show-card-size="false" /></template>
     <template #header-actions
-      ><ImageActionsToolbar
-        view-id="exif"
-        show-clear-all
-        @reset-all="cleanupResults"
+      ><ImageActionsToolbar view-id="exif" show-clear-all @reset-all="cleanupResults"
     /></template>
 
     <template #content>
@@ -403,7 +400,10 @@ const handleCtaClick = async () => {
         v-if="activeImage"
         class="relative aspect-video bg-muted/20 rounded-xl overflow-hidden border border-border/40 shadow-sm mb-4 shrink-0"
       >
-        <img :src="results.get(activeImageId!)?.preview || activeImage.preview" class="w-full h-full object-contain" />
+        <img
+          :src="results.get(activeImageId!)?.preview || activeImage.preview"
+          class="w-full h-full object-contain"
+        />
         <div
           class="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-background/80 via-background/20 to-transparent"
         >

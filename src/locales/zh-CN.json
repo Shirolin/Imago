@@ -57,6 +57,7 @@
         "dirty": "待同步",
         "download": "导出当前图片",
         "idle": "空闲",
+        "previewAlt": "{name} 的预览图",
         "ready": "已就绪",
         "remove": "移除",
         "reset": "还原",
@@ -194,7 +195,15 @@
       "resetToDefault": "恢复默认设置",
       "select": "请选择..."
     },
-    "workspace": "工作台"
+    "workspace": "工作台",
+    "assets": {
+      "trayAria": "资源托盘导航",
+      "expandTray": "展开资源托盘 (Tab)"
+    },
+    "inspector": {
+      "drawer": "设置面板抽屉",
+      "sidebar": "设置侧边栏"
+    }
   },
   "nav": {
     "allTools": "工具箱",
