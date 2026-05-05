@@ -39,10 +39,51 @@ import { useResizeObserver, useDebounceFn } from '@vueuse/core'
 import { useHistory } from '../composables/useHistory'
 import { useFileHelpers } from '../composables/useFileHelpers'
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
+import type { ProcessResult } from '../lib/engines/types'
 
 const store = useImageStore()
 const { downloadImage } = useFileHelpers()
 const { t } = useI18n()
+
+// 本地结果存储
+interface LocalResult {
+  blob: Blob
+  preview: string
+  size: number
+  isDirty: boolean
+}
+const results = ref<Map<string, LocalResult>>(new Map())
+
+const cleanupResults = () => {
+  results.value.forEach((res) => {
+    URL.revokeObjectURL(res.preview)
+  })
+  results.value.clear()
+}
+
+onUnmounted(() => {
+  cleanupResults()
+})
+
+// 监听图片列表变化，自动清理已删除图片的本地结果
+watch(
+  () => store.images,
+  (newImages) => {
+    const currentIds = new Set(newImages.map((img) => img.id))
+    results.value.forEach((res, id) => {
+      if (!currentIds.has(id)) {
+        URL.revokeObjectURL(res.preview)
+        results.value.delete(id)
+      }
+    })
+
+    if (newImages.length === 0) {
+      clearHistory()
+      resetView()
+    }
+  },
+  { deep: true }
+)
 
 const createRatioIcon = (width: number, height: number) => {
   return () =>
@@ -236,6 +277,15 @@ const confirmReset = () => {
   internalCrop.value = { x: 0, y: 0, w: 100, h: 100 }
   trimPx.value = { top: 0, bottom: 0, left: 0, right: 0 }
   fillColor.value = 'transparent'
+
+  if (store.activeId) {
+    const res = results.value.get(store.activeId)
+    if (res) {
+      URL.revokeObjectURL(res.preview)
+      results.value.delete(store.activeId)
+    }
+  }
+
   clearHistory()
   resetView()
   showResetConfirm.value = false
@@ -276,7 +326,8 @@ watch(
   () => allSettings.value,
   () => {
     if (store.activeId) {
-      store.markDirty(store.activeId)
+      const res = results.value.get(store.activeId)
+      if (res) res.isDirty = true
     }
   },
   { deep: true }
@@ -291,8 +342,10 @@ const ctaState = computed(() => {
     return { text: t('common.processing'), icon: Scissors, action: 'none', disabled: true }
   }
 
+  const result = results.value.get(img.id)
+
   // 如果已经处理完成且没有新改动 -> 显示下载 (绿色)
-  if (img.status === 'done' && img.processedBlob && !img.isDirty) {
+  if (img.status === 'done' && result && !result.isDirty) {
     return {
       text: t('tools.crop.cta.export', { count: 1 }),
       icon: Download,
@@ -303,7 +356,7 @@ const ctaState = computed(() => {
 
   // 默认 -> 应用裁剪 (蓝色)
   return {
-    text: img.isDirty
+    text: result?.isDirty
       ? t('tools.crop.cta.apply', { count: 1 })
       : t('tools.crop.cta.apply', { count: 1 }),
     icon: Scissors,
@@ -319,13 +372,15 @@ const handleCtaClick = async () => {
   const img = selectedImage.value
   if (!img) return
 
-  if (state.action === 'download' && img.processedBlob) {
-    downloadImage(img.processedBlob, img.file.name, 'crop')
+  const result = results.value.get(img.id)
+
+  if (state.action === 'download' && result) {
+    downloadImage(result.blob, img.file.name, 'crop')
     return
   }
 
   if (state.action === 'process') {
-    await processSingle(img.id, {
+    const res = await processSingle(img.id, {
       x: internalCrop.value.x,
       y: internalCrop.value.y,
       width: internalCrop.value.w,
@@ -340,6 +395,20 @@ const handleCtaClick = async () => {
       quality: outputQuality.value,
       preserveExif: preserveExif.value
     })
+
+    if (res) {
+      const typedResult = res as ProcessResult
+      const blob = typedResult.blob || (res as Blob)
+      const oldRes = results.value.get(img.id)
+      if (oldRes) URL.revokeObjectURL(oldRes.preview)
+
+      results.value.set(img.id, {
+        blob,
+        preview: URL.createObjectURL(blob),
+        size: typedResult.size || blob.size,
+        isDirty: false
+      })
+    }
   }
 }
 
@@ -360,7 +429,7 @@ const ratios = computed(() => [
         view-id="crop"
         :is-processing="isProcessing"
         show-clear-all
-        show-reset-all
+        @reset-all="cleanupResults"
     /></template>
 
     <template #content>
@@ -425,6 +494,7 @@ const ratios = computed(() => [
               @click="handleRotate"
               class="flex flex-col items-center gap-2 p-3 rounded-xl border bg-background/50 hover:bg-primary/5 hover:border-primary/30 transition-all group"
               :title="t('tools.crop.rotateTip')"
+              :aria-label="t('tools.crop.rotate')"
             >
               <RotateCw
                 :size="18"
@@ -443,6 +513,7 @@ const ratios = computed(() => [
                   : 'bg-background/50 border-border text-muted-foreground hover:bg-primary/5 hover:border-primary/30'
               "
               :title="t('tools.crop.flipHTip')"
+              :aria-label="t('tools.crop.flipH')"
             >
               <FlipHorizontal :size="18" class="group-hover:text-primary transition-colors" /><span
                 class="text-[9px] font-bold uppercase tracking-tighter"
@@ -458,6 +529,7 @@ const ratios = computed(() => [
                   : 'bg-background/50 border-border text-muted-foreground hover:bg-primary/5 hover:border-primary/30'
               "
               :title="t('tools.crop.flipVTip')"
+              :aria-label="t('tools.crop.flipV')"
             >
               <FlipVertical :size="18" class="group-hover:text-primary transition-colors" /><span
                 class="text-[9px] font-bold uppercase tracking-tighter"
@@ -476,6 +548,7 @@ const ratios = computed(() => [
             variant="secondary"
             class="w-full h-10 rounded-xl bg-background/50 border-dashed border-border hover:border-primary/50 hover:bg-primary/[0.02] group transition-all"
             @click="handleFillImage"
+            :aria-label="t('tools.crop.fillAll')"
           >
             <Maximize2
               :size="16"
@@ -673,6 +746,7 @@ const ratios = computed(() => [
               :disabled="!canUndo"
               @click="undo"
               class="rounded-xl h-10 text-[10px] font-bold uppercase bg-background/50 border-border/60 hover:bg-primary/[0.02]"
+              :aria-label="t('tools.crop.undo')"
               ><Undo2 :size="14" class="mr-1.5" /> {{ t('tools.crop.undo') }}</AppButton
             >
             <AppButton
@@ -681,6 +755,7 @@ const ratios = computed(() => [
               :disabled="!canRedo"
               @click="redo"
               class="rounded-xl h-10 text-[10px] font-bold uppercase bg-background/50 border-border/60 hover:bg-primary/[0.02]"
+              :aria-label="t('tools.crop.redo')"
               ><Redo2 :size="14" class="mr-1.5" /> {{ t('tools.crop.redo') }}</AppButton
             >
           </div>
@@ -688,6 +763,7 @@ const ratios = computed(() => [
             @click="handleReset"
             class="w-10 h-10 flex items-center justify-center hover:bg-destructive/10 rounded-xl text-muted-foreground/40 hover:text-destructive transition-all active:scale-90 border border-transparent hover:border-destructive/20"
             :title="t('tools.crop.resetAll')"
+            :aria-label="t('tools.crop.resetAll')"
           >
             <RotateCcw :size="18" />
           </button>

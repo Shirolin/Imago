@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../stores/imageStore'
 import { useLayoutStore } from '../stores/layoutStore'
@@ -34,6 +34,7 @@ import AppInfoItem from '../components/common/AppInfoItem.vue'
 import { clearExifEngine, readExif, type ExifData } from '../lib/engines/exifEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useFileHelpers } from '../composables/useFileHelpers'
+import type { ProcessResult } from '../lib/engines/types'
 
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
@@ -41,6 +42,46 @@ const store = useImageStore()
 const layoutStore = useLayoutStore()
 const { downloadAllAsZip } = useFileHelpers()
 const { t } = useI18n()
+
+// 本地结果存储
+interface LocalResult {
+  blob: Blob
+  preview: string
+  size: number
+  isDirty: boolean
+}
+const results = ref<Map<string, LocalResult>>(new Map())
+
+const cleanupResults = () => {
+  results.value.forEach((res) => {
+    URL.revokeObjectURL(res.preview)
+  })
+  results.value.clear()
+}
+
+onUnmounted(() => {
+  cleanupResults()
+})
+
+// 监听图片列表变化，自动清理已删除图片的本地结果
+watch(
+  () => store.images,
+  (newImages) => {
+    const currentIds = new Set(newImages.map((img) => img.id))
+    results.value.forEach((res, id) => {
+      if (!currentIds.has(id)) {
+        URL.revokeObjectURL(res.preview)
+        results.value.delete(id)
+      }
+    })
+
+    // 同时清理 EXIF 数据缓存
+    Object.keys(exifDataMap.value).forEach((id) => {
+      if (!currentIds.has(id)) delete exifDataMap.value[id]
+    })
+  },
+  { deep: true }
+)
 
 const activeImageId = ref<string | null>(null)
 const exifDataMap = ref<Record<string, ExifData>>({})
@@ -104,7 +145,13 @@ watch(activeImageId, async (id) => {
     try {
       const img = store.images.find((i) => i.id === id)
       if (img) {
-        const data = await readExif(img.file)
+        // 优先读取处理后的结果
+        const res = results.value.get(id)
+        const fileToRead = res
+          ? new File([res.blob], img.file.name, { type: res.blob.type })
+          : img.file
+
+        const data = await readExif(fileToRead)
         if (data) {
           exifDataMap.value[id] = data
           store.updateImage(id, {
@@ -128,28 +175,36 @@ onMounted(() => {
 })
 
 const handleClearExif = async () => {
-  await processSelected({
-    format: outputFormat.value,
-    quality: outputQuality.value
-  })
-  for (const id of store.selectedIds) {
-    const img = store.images.find((i) => i.id === id)
-    if (img && img.processedBlob) {
-      // 验证清理结果：读取处理后的 Blob 的元数据
-      const data = await readExif(
-        new File([img.processedBlob], img.file.name, { type: img.processedBlob.type })
-      )
+  await processSelected(
+    {
+      format: outputFormat.value,
+      quality: outputQuality.value
+    },
+    async (id, result) => {
+      const typedResult = result as ProcessResult
+      const blob = typedResult.blob || (result as Blob)
+      const oldRes = results.value.get(id)
+      if (oldRes) URL.revokeObjectURL(oldRes.preview)
+
+      results.value.set(id, {
+        blob,
+        preview: URL.createObjectURL(blob),
+        size: typedResult.size || blob.size,
+        isDirty: false
+      })
+
+      // 验证清理结果
+      const data = await readExif(new File([blob], 'temp', { type: blob.type }))
       if (data) {
         exifDataMap.value[id] = data
         store.updateImage(id, {
           exifCount: data.metaCount,
           isExifUnsupported: data.unsupported,
-          exifError: data.error,
-          status: 'done'
+          exifError: data.error
         })
       }
     }
-  }
+  )
 }
 
 const handleCardClick = (id: string) => {
@@ -157,7 +212,39 @@ const handleCardClick = (id: string) => {
   store.toggleSelection(id)
 }
 
-watch([outputFormat, outputQuality], () => store.markAllAsDirty(), { deep: true })
+const handleReset = (id: string) => {
+  const res = results.value.get(id)
+  if (res) {
+    URL.revokeObjectURL(res.preview)
+    results.value.delete(id)
+  }
+  // 重新读取原始 EXIF
+  const img = store.images.find((i) => i.id === id)
+  if (img) {
+    readExif(img.file).then((data) => {
+      if (data) {
+        exifDataMap.value[id] = data
+        store.updateImage(id, {
+          exifCount: data.metaCount,
+          isExifUnsupported: data.unsupported,
+          exifError: data.error,
+          status: 'idle',
+          progress: 0
+        })
+      }
+    })
+  }
+}
+
+watch(
+  [outputFormat, outputQuality],
+  () => {
+    results.value.forEach((res) => {
+      res.isDirty = true
+    })
+  },
+  { deep: true }
+)
 
 const ctaState = computed(() => {
   if (store.selectedCount === 0)
@@ -168,7 +255,10 @@ const ctaState = computed(() => {
   const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
   const allDoneAndClean =
     selectedImages.length > 0 &&
-    selectedImages.every((img) => img.status === 'done' && img.processedBlob && !img.isDirty)
+    selectedImages.every((img) => {
+      const res = results.value.get(img.id)
+      return img.status === 'done' && res && !res.isDirty
+    })
 
   if (allDoneAndClean) {
     return {
@@ -179,7 +269,10 @@ const ctaState = computed(() => {
     }
   }
 
-  const anyDirty = selectedImages.some((img) => img.status === 'done' && img.isDirty)
+  const anyDirty = selectedImages.some((img) => {
+    const res = results.value.get(img.id)
+    return img.status === 'done' && res?.isDirty
+  })
   return {
     text: anyDirty
       ? t('tools.exif.cta.process', { count: store.selectedCount })
@@ -195,7 +288,19 @@ const handleCtaClick = async () => {
   if (state.action === 'none') return
 
   if (state.action === 'download') {
-    await downloadAllAsZip('exif')
+    const zipResults = store.images
+      .filter((img) => store.selectedIds.has(img.id))
+      .map((img) => {
+        const res = results.value.get(img.id)
+        return {
+          file: img.file,
+          processedBlob: res?.blob,
+          status: img.status
+        }
+      })
+      .filter((r) => r.status === 'done' && r.processedBlob) as any[]
+
+    await downloadAllAsZip('exif', zipResults)
     return
   }
 
@@ -209,7 +314,10 @@ const handleCtaClick = async () => {
   <WorkspaceLayout show-sidebar no-scroll>
     <template #header-left><ImageSelectionStatus :show-card-size="false" /></template>
     <template #header-actions
-      ><ImageActionsToolbar view-id="exif" show-clear-all show-reset-all
+      ><ImageActionsToolbar
+        view-id="exif"
+        show-clear-all
+        @reset-all="cleanupResults"
     /></template>
 
     <template #content>
@@ -234,9 +342,13 @@ const handleCtaClick = async () => {
             :key="img.id"
             :image="img"
             :is-selected="store.selectedIds.has(img.id)"
+            :processed-preview="results.get(img.id)?.preview"
+            :processed-blob="results.get(img.id)?.blob"
+            :is-dirty="results.get(img.id)?.isDirty"
             :allow-magnifier="false"
             @toggle="handleCardClick"
             @remove="store.removeImage"
+            @reset="handleReset"
             :class="[
               activeImageId === img.id
                 ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
@@ -291,7 +403,7 @@ const handleCtaClick = async () => {
         v-if="activeImage"
         class="relative aspect-video bg-muted/20 rounded-xl overflow-hidden border border-border/40 shadow-sm mb-4 shrink-0"
       >
-        <img :src="activeImage.preview" class="w-full h-full object-contain" />
+        <img :src="results.get(activeImageId!)?.preview || activeImage.preview" class="w-full h-full object-contain" />
         <div
           class="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-background/80 via-background/20 to-transparent"
         >
@@ -346,6 +458,7 @@ const handleCtaClick = async () => {
               @click="isAllTagsExpanded = !isAllTagsExpanded"
               class="flex items-center justify-between w-full text-muted-foreground hover:text-primary transition-all mb-3 px-1 group"
               :aria-expanded="isAllTagsExpanded"
+              :aria-label="isAllTagsExpanded ? t('common.collapse') : t('common.expand')"
               aria-controls="exif-tags-details"
             >
               <span class="text-[0.65rem] font-bold uppercase tracking-widest leading-none">{{

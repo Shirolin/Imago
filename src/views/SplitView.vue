@@ -25,7 +25,7 @@ import {
   AlertCircle
 } from 'lucide-vue-next'
 import { splitEngine } from '../lib/engines/splitEngine'
-import type { ViewSettings } from '../lib/engines/types'
+import type { ViewSettings, ProcessResult } from '../lib/engines/types'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useResizeObserver } from '@vueuse/core'
 import { useBreakpoints } from '../composables/useBreakpoints'
@@ -36,6 +36,41 @@ const { t } = useI18n()
 const store = useImageStore()
 const { downloadImage } = useFileHelpers()
 const { isMobile } = useBreakpoints()
+
+// 本地结果存储
+interface LocalResult {
+  blobs: Blob[]
+  isDirty: boolean
+}
+const results = ref<Map<string, LocalResult>>(new Map())
+
+const cleanupResults = () => {
+  results.value.clear()
+}
+
+onUnmounted(() => {
+  cleanupResults()
+})
+
+// 监听图片列表变化，自动清理已删除图片的本地结果
+watch(
+  () => store.images,
+  (newImages) => {
+    const currentIds = new Set(newImages.map((img) => img.id))
+    results.value.forEach((_res, id) => {
+      if (!currentIds.has(id)) {
+        results.value.delete(id)
+      }
+    })
+
+    if (newImages.length === 0) {
+      linesX.value = []
+      linesY.value = []
+      selectedLine.value = null
+    }
+  },
+  { deep: true }
+)
 
 // 状态
 const rows = ref(3)
@@ -334,16 +369,8 @@ const resetView = () => {
 
 const saveMeta = () => {
   if (selectedImage.value) {
-    store.updateImage(selectedImage.value.id, {
-      splitMeta: {
-        linesX: [...linesX.value],
-        linesY: [...linesY.value],
-        editMode: editMode.value,
-        rows: rows.value,
-        cols: cols.value
-      }
-    })
-    store.markDirty(selectedImage.value.id)
+    const res = results.value.get(selectedImage.value.id)
+    if (res) res.isDirty = true
   }
 }
 
@@ -418,19 +445,10 @@ watch(
   () => selectedImage.value?.id,
   (newId) => {
     if (!newId) return
-    const img = selectedImage.value
-    if (img?.splitMeta) {
-      const m = img.splitMeta
-      editMode.value = m.editMode
-      rows.value = m.rows
-      cols.value = m.cols
-      linesX.value = [...m.linesX]
-      linesY.value = [...m.linesY]
-    } else {
-      // 默认清空
-      linesX.value = []
-      linesY.value = []
-    }
+    // Split 模式下，meta 最好存在组件状态里，或者从 results 里取
+    // 这里暂时简化，因为 store 不再存 meta
+    linesX.value = []
+    linesY.value = []
     selectedLine.value = null
     nextTick(resetView)
   },
@@ -631,14 +649,18 @@ const clearLines = () => {
 watch(
   [rows, cols, editMode, centerMode, shave, outputFormat, outputQuality],
   () => {
-    if (selectedImage.value) store.markDirty(selectedImage.value.id)
+    if (selectedImage.value) {
+      const res = results.value.get(selectedImage.value.id)
+      if (res) res.isDirty = true
+    }
   },
   { deep: true }
 )
 
 const handleApplyProcess = async () => {
   if (!selectedImage.value) return
-  await processSingle(selectedImage.value.id, {
+  const id = selectedImage.value.id
+  const res = await processSingle(id, {
     rows: editMode.value === 'custom' ? linesY.value.length + 1 : rows.value,
     cols: editMode.value === 'custom' ? linesX.value.length + 1 : cols.value,
     mode: editMode.value,
@@ -649,6 +671,15 @@ const handleApplyProcess = async () => {
     format: outputFormat.value === 'original' ? undefined : outputFormat.value,
     quality: outputQuality.value
   })
+
+  if (res) {
+    const typedResult = res as ProcessResult
+    const blobs = typedResult.blobs || (Array.isArray(res) ? res : [])
+    results.value.set(id, {
+      blobs,
+      isDirty: false
+    })
+  }
 }
 
 useResizeObserver(containerRef, resetView)
@@ -675,7 +706,9 @@ const ctaState = computed(() => {
     }
   }
 
-  if (img.status === 'done' && (img.processedBlob || img.processedBlobs) && !img.isDirty) {
+  const result = results.value.get(img.id)
+
+  if (img.status === 'done' && result && !result.isDirty) {
     return {
       text: t('tools.split.cta.exportSlices'),
       icon: Download,
@@ -685,7 +718,7 @@ const ctaState = computed(() => {
   }
 
   return {
-    text: img.isDirty ? t('tools.split.cta.updateSplit') : t('tools.split.cta.splitImage'),
+    text: result?.isDirty ? t('tools.split.cta.updateSplit') : t('tools.split.cta.splitImage'),
     icon: Scissors,
     action: 'process',
     disabled: false
@@ -707,9 +740,9 @@ const handleCtaClick = async () => {
   }
 
   if (state.action === 'download') {
-    const img = selectedImage.value
-    if (img && (img.processedBlob || img.processedBlobs)) {
-      downloadImage(img.processedBlobs || img.processedBlob!, img.file.name, 'split')
+    const result = results.value.get(selectedImage.value?.id || '')
+    if (selectedImage.value && result) {
+      downloadImage(result.blobs, selectedImage.value.file.name, 'split')
     }
     return
   }
@@ -729,7 +762,7 @@ const handleCtaClick = async () => {
         :is-processing="isProcessing"
         :show-download-all="false"
         show-clear-all
-        show-reset-all
+        @reset-all="cleanupResults"
     /></template>
 
     <template #content>
@@ -907,6 +940,7 @@ const handleCtaClick = async () => {
             @click="resetViewSettings"
             class="w-8 h-8 p-0 rounded-lg text-muted-foreground/40 hover:text-primary"
             :title="t('tools.split.restoreDefaultView')"
+            :aria-label="t('tools.split.restoreDefaultView')"
             :icon="RotateCcw"
           />
         </div>

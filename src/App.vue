@@ -411,6 +411,7 @@ const currentRouteName = computed(() => {
           @click="showSponsorModal = true"
           class="flex items-center justify-center w-11 h-11 rounded-xl text-muted-foreground/60 hover:text-rose-500 hover:bg-rose-500/5 transition-all active:scale-[0.94] group shrink-0"
           :title="t('nav.sponsor')"
+          :aria-label="t('nav.sponsor')"
         >
           <Heart :size="18" class="group-hover:scale-110 transition-transform" />
         </button>
@@ -419,6 +420,7 @@ const currentRouteName = computed(() => {
           @click="toggleTheme"
           class="flex items-center justify-center w-11 h-11 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all active:scale-[0.94] group shrink-0"
           :title="t('common.theme.' + theme)"
+          :aria-label="t('common.theme.' + theme)"
         >
           <transition name="theme-spin" mode="out-in">
             <Sun
@@ -446,6 +448,7 @@ const currentRouteName = computed(() => {
           @click="layoutStore.toggleMenu"
           class="hidden md:flex items-center justify-center w-10 h-10 rounded-xl bg-muted/40 hover:bg-primary/10 hover:text-primary transition-all text-muted-foreground active:scale-[0.94] group shrink-0"
           :title="layoutStore.isMenuCollapsed ? t('nav.expand') : t('nav.collapse')"
+          :aria-label="layoutStore.isMenuCollapsed ? t('nav.expand') : t('nav.collapse')"
         >
           <ChevronRight
             v-if="layoutStore.isMenuCollapsed"
