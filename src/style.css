@@ -119,7 +119,9 @@
 
   /* 基础海拔系统 (Shadow System) */
   .shadow-elevated {
-    box-shadow: 0 10px 30px -5px hsla(var(--shadow-color), var(--shadow-strength));
+    box-shadow:
+      0 4px 6px -1px hsla(var(--shadow-color), calc(var(--shadow-strength) * 0.5)),
+      0 10px 30px -5px hsla(var(--shadow-color), var(--shadow-strength));
   }
 
   /* Custom Scrollbar Logic (Initial Fix Version: No Gutter) */
