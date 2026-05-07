@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useImageStore, type ImageItem } from '../stores/imageStore'
+import { useImageStore } from '../stores/imageStore'
 import JSZip from 'jszip'
 
 export interface ZipResultItem {

@@ -295,7 +295,7 @@ const handleCtaClick = async () => {
         quality: outputQuality.value,
         preserveExif: preserveExif.value
       },
-      (id: string, result: ProcessResult | Blob) => {
+      (id: string, result: ProcessResult | Blob | Blob[]) => {
         const typedResult = result as ProcessResult
         const blob = typedResult.blob || (result as Blob)
         const oldRes = results.value.get(id)

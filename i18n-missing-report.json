@@ -1,0 +1,112 @@
+{
+  "de.json": [
+    "common.image.card.previewAlt",
+    "common.assets.trayAria",
+    "common.assets.expandTray",
+    "common.inspector.drawer",
+    "common.inspector.sidebar",
+    "common.collapse",
+    "common.expand",
+    "common.export.suffix.combined",
+    "common.toolbar.layoutLarge",
+    "common.toolbar.layoutCompact"
+  ],
+  "en.json": [
+    "common.collapse",
+    "common.expand",
+    "common.export.suffix.combined",
+    "common.toolbar.layoutLarge",
+    "common.toolbar.layoutCompact"
+  ],
+  "es.json": [
+    "common.image.card.previewAlt",
+    "common.assets.trayAria",
+    "common.assets.expandTray",
+    "common.inspector.drawer",
+    "common.inspector.sidebar",
+    "common.collapse",
+    "common.expand",
+    "common.export.suffix.combined",
+    "common.toolbar.layoutLarge",
+    "common.toolbar.layoutCompact"
+  ],
+  "fr.json": [
+    "common.image.card.previewAlt",
+    "common.assets.trayAria",
+    "common.assets.expandTray",
+    "common.inspector.drawer",
+    "common.inspector.sidebar",
+    "common.collapse",
+    "common.expand",
+    "common.export.suffix.combined",
+    "common.toolbar.layoutLarge",
+    "common.toolbar.layoutCompact"
+  ],
+  "ja.json": [
+    "common.image.card.previewAlt",
+    "common.assets.trayAria",
+    "common.assets.expandTray",
+    "common.inspector.drawer",
+    "common.inspector.sidebar",
+    "common.collapse",
+    "common.expand",
+    "common.export.suffix.combined",
+    "common.toolbar.layoutLarge",
+    "common.toolbar.layoutCompact"
+  ],
+  "ko.json": [
+    "common.image.card.previewAlt",
+    "common.assets.trayAria",
+    "common.assets.expandTray",
+    "common.inspector.drawer",
+    "common.inspector.sidebar",
+    "common.collapse",
+    "common.expand",
+    "common.export.suffix.combined",
+    "common.toolbar.layoutLarge",
+    "common.toolbar.layoutCompact"
+  ],
+  "pt-BR.json": [
+    "common.image.card.previewAlt",
+    "common.assets.trayAria",
+    "common.assets.expandTray",
+    "common.inspector.drawer",
+    "common.inspector.sidebar",
+    "common.collapse",
+    "common.expand",
+    "common.export.suffix.combined",
+    "common.toolbar.layoutLarge",
+    "common.toolbar.layoutCompact"
+  ],
+  "tr.json": [
+    "common.image.card.previewAlt",
+    "common.assets.trayAria",
+    "common.assets.expandTray",
+    "common.inspector.drawer",
+    "common.inspector.sidebar",
+    "common.collapse",
+    "common.expand",
+    "common.export.suffix.combined",
+    "common.toolbar.layoutLarge",
+    "common.toolbar.layoutCompact"
+  ],
+  "zh-CN.json": [
+    "common.collapse",
+    "common.expand",
+    "common.export.suffix.combined",
+    "common.toolbar.layoutLarge",
+    "common.toolbar.layoutCompact"
+  ],
+  "zh-TW.json": [
+    "common.image.card.previewAlt",
+    "common.assets.trayAria",
+    "common.assets.expandTray",
+    "common.inspector.drawer",
+    "common.inspector.sidebar",
+    "common.collapse",
+    "common.expand",
+    "common.export.suffix.combined",
+    "common.toolbar.layoutLarge",
+    "common.toolbar.layoutCompact"
+  ]
+}

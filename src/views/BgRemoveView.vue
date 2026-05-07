@@ -456,7 +456,7 @@ const handleCtaClick = async () => {
       usePreScaling: !useHighFidelity.value
     }
 
-    const onResult = (id: string, result: ProcessResult | Blob) => {
+    const onResult = (id: string, result: ProcessResult | Blob | Blob[]) => {
       const typedResult = result as ProcessResult
       const blob = typedResult.blob || (result as Blob)
       const oldRes = results.value.get(id)
