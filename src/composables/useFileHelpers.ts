@@ -1,7 +1,14 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useImageStore } from '../stores/imageStore'
+import { useImageStore, type ImageItem } from '../stores/imageStore'
 import JSZip from 'jszip'
+
+export interface ZipResultItem {
+  file: File
+  processedBlob?: Blob
+  processedBlobs?: Blob[]
+  status: string
+}
 
 export function useFileHelpers() {
   const store = useImageStore()
@@ -130,21 +137,14 @@ export function useFileHelpers() {
    * 打包导出所有已处理图片为 ZIP
    * 优化：如果只有一张图且不是切片图，则直接触发单图导出，不进行打包
    */
-  const downloadAllAsZip = async (
-    tagOrViewId?: string,
-    results?: {
-      file: File
-      processedBlob?: Blob
-      processedBlobs?: Blob[]
-      status: string
-    }[]
-  ) => {
+  const downloadAllAsZip = async (tagOrViewId?: string, results?: ZipResultItem[]) => {
     const finalTag =
       tagOrViewId && SUFFIX_MAP[tagOrViewId]
         ? t(SUFFIX_MAP[tagOrViewId])
         : (tagOrViewId ?? t('common.export.suffix.processed'))
 
-    const doneImages = results || (store.images.filter((img) => img.status === 'done') as any[])
+    const doneImages = (results ||
+      store.images.filter((img) => img.status === 'done')) as ZipResultItem[]
 
     const validImages = doneImages.filter((img) => img.processedBlob || img.processedBlobs)
 

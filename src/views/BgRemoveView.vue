@@ -36,7 +36,7 @@ import { bgRemoveEngine } from '../lib/engines/bgRemoveEngine'
 import { matchBgRemoveEngine } from '../lib/engines/matchBgRemoveEngine'
 import { preload } from '@imgly/background-removal'
 import { useImageProcessor } from '../composables/useImageProcessor'
-import { useFileHelpers } from '../composables/useFileHelpers'
+import { useFileHelpers, type ZipResultItem } from '../composables/useFileHelpers'
 import AppSlider from '../components/common/AppSlider.vue'
 import AppCheckbox from '../components/common/AppCheckbox.vue'
 import AppModal from '../components/common/AppModal.vue'
@@ -443,7 +443,7 @@ const handleCtaClick = async () => {
           status: img.status
         }
       })
-      .filter((r) => r.status === 'done' && r.processedBlob) as any[]
+      .filter((r) => r.status === 'done' && r.processedBlob) as ZipResultItem[]
 
     await downloadAllAsZip('bg-remove', zipResults)
     return
@@ -456,7 +456,7 @@ const handleCtaClick = async () => {
       usePreScaling: !useHighFidelity.value
     }
 
-    const onResult = (id: string, result: any) => {
+    const onResult = (id: string, result: ProcessResult | Blob) => {
       const typedResult = result as ProcessResult
       const blob = typedResult.blob || (result as Blob)
       const oldRes = results.value.get(id)

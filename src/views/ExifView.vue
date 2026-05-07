@@ -33,7 +33,7 @@ import AppSidebarCard from '../components/common/AppSidebarCard.vue'
 import AppInfoItem from '../components/common/AppInfoItem.vue'
 import { clearExifEngine, readExif, type ExifData } from '../lib/engines/exifEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
-import { useFileHelpers } from '../composables/useFileHelpers'
+import { useFileHelpers, type ZipResultItem } from '../composables/useFileHelpers'
 import type { ProcessResult } from '../lib/engines/types'
 
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
@@ -298,7 +298,7 @@ const handleCtaClick = async () => {
           status: img.status
         }
       })
-      .filter((r) => r.status === 'done' && r.processedBlob) as any[]
+      .filter((r) => r.status === 'done' && r.processedBlob) as ZipResultItem[]
 
     await downloadAllAsZip('exif', zipResults)
     return

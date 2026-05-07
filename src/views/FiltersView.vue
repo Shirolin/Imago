@@ -3,7 +3,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../stores/imageStore'
 import { useLayoutStore } from '../stores/layoutStore'
-import { useFileHelpers } from '../composables/useFileHelpers'
+import { useFileHelpers, type ZipResultItem } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
 import AppSlider from '../components/common/AppSlider.vue'
@@ -273,7 +273,7 @@ const handleApplyFilters = async () => {
       format: outputFormat.value,
       quality: outputQuality.value
     },
-    (id, result) => {
+    (id: string, result: ProcessResult | Blob) => {
       const typedResult = result as ProcessResult
       const blob = typedResult.blob || (result as Blob)
       const oldRes = results.value.get(id)
@@ -373,7 +373,7 @@ const handleCtaClick = async () => {
           status: img.status
         }
       })
-      .filter((r) => r.status === 'done' && r.processedBlob) as any[]
+      .filter((r) => r.status === 'done' && r.processedBlob) as ZipResultItem[]
 
     await downloadAllAsZip('filters', zipResults)
     return

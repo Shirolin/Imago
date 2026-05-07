@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import type { ImageItem } from '../stores/imageStore'
 import { useImageStore } from '../stores/imageStore'
 import { useLayoutStore } from '../stores/layoutStore'
-import { useFileHelpers } from '../composables/useFileHelpers'
+import { useFileHelpers, type ZipResultItem } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
 import AppInput from '../components/common/AppInput.vue'
@@ -277,7 +277,7 @@ const handleCtaClick = async () => {
           status: img.status
         }
       })
-      .filter((r) => r.status === 'done' && r.processedBlob) as any[]
+      .filter((r) => r.status === 'done' && r.processedBlob) as ZipResultItem[]
 
     await downloadAllAsZip('resize', zipResults)
     return
@@ -295,7 +295,7 @@ const handleCtaClick = async () => {
         quality: outputQuality.value,
         preserveExif: preserveExif.value
       },
-      (id, result) => {
+      (id: string, result: ProcessResult | Blob) => {
         const typedResult = result as ProcessResult
         const blob = typedResult.blob || (result as Blob)
         const oldRes = results.value.get(id)

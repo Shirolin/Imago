@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import type { ImageItem } from '../stores/imageStore'
 import { useImageStore } from '../stores/imageStore'
 import { useLayoutStore } from '../stores/layoutStore'
-import { useFileHelpers } from '../composables/useFileHelpers'
+import { useFileHelpers, type ZipResultItem } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
 import AppModal from '../components/common/AppModal.vue'
@@ -191,42 +191,43 @@ const handleCtaClick = async () => {
   if (state.action === 'none') return
 
   if (state.action === 'download') {
-    const zipResults = store.images
-      .filter((img) => store.selectedIds.has(img.id))
-      .map((img) => {
-        const res = results.value.get(img.id)
-        return {
-          file: img.file,
-          processedBlob: res?.blob,
-          status: img.status
-        }
-      })
-      .filter((r) => r.status === 'done' && r.processedBlob) as any[]
+  const zipResults = store.images
+    .filter((img) => store.selectedIds.has(img.id))
+    .map((img) => {
+      const res = results.value.get(img.id)
+      return {
+        file: img.file,
+        processedBlob: res?.blob,
+        status: img.status
+      }
+    })
+    .filter((r) => r.status === 'done' && r.processedBlob) as ZipResultItem[]
 
-    await downloadAllAsZip('compress', zipResults)
-    return
+  await downloadAllAsZip('compress', zipResults)
+  return
   }
 
   if (state.action === 'process') {
-    await processSelected(
-      {
-        quality: quality.value,
-        format: (outputFormat.value === 'original'
-          ? undefined
-          : outputFormat.value) as CompressionOptions['format'],
-        mode: compressionMode.value,
-        maxSizeMB: compressionMode.value === 'target' ? targetSizeKB.value / 1024 : undefined,
-        colors: outputFormat.value === 'image/png' ? pngColors.value : undefined,
-        effort: outputFormat.value === 'image/png' ? pngEffort.value : undefined,
-        keepOriginalIfLarger: keepOriginalIfLarger.value,
-        preserveExif: preserveExif.value,
-        maxWidth: maxWidth.value,
-        maxHeight: maxHeight.value
-      },
-      (id, result) => {
-        const typedResult = result as ProcessResult
-        const blob = typedResult.blob || (result as Blob)
-        const oldRes = results.value.get(id)
+  await processSelected(
+    {
+      quality: quality.value,
+      format: (outputFormat.value === 'original'
+        ? undefined
+        : outputFormat.value) as CompressionOptions['format'],
+      mode: compressionMode.value,
+      maxSizeMB: compressionMode.value === 'target' ? targetSizeKB.value / 1024 : undefined,
+      colors: outputFormat.value === 'image/png' ? pngColors.value : undefined,
+      effort: outputFormat.value === 'image/png' ? pngEffort.value : undefined,
+      keepOriginalIfLarger: keepOriginalIfLarger.value,
+      preserveExif: preserveExif.value,
+      maxWidth: maxWidth.value,
+      maxHeight: maxHeight.value
+    },
+    (id: string, result: ProcessResult | Blob) => {
+      const typedResult = result as ProcessResult
+      const blob = typedResult.blob || (result as Blob)
+      const oldRes = results.value.get(id)
+
         if (oldRes) URL.revokeObjectURL(oldRes.preview)
 
         results.value.set(id, {
