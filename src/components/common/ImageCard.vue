@@ -180,7 +180,7 @@ const displayUrl = computed(() => {
         ? 'ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/[0.03]'
         : '',
       isDirtyDone
-        ? 'animate-dirty-pulse border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
+        ? 'animate-dirty-pulse border-amber-500/20'
         : ''
     ]"
     tabindex="0"
@@ -444,17 +444,15 @@ const displayUrl = computed(() => {
 
 <style scoped>
 .animate-dirty-pulse {
-  animation: dirty-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  border-right-width: 3px;
-  border-right-color: theme('colors.amber.500');
+  animation: dirty-pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 @keyframes dirty-pulse {
   0%,
   100% {
-    border-right-color: rgba(245, 158, 11, 0.4);
+    box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.15), 0 4px 15px -3px rgba(245, 158, 11, 0.05);
   }
   50% {
-    border-right-color: rgba(245, 158, 11, 0.8);
+    box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.4), 0 4px 15px -3px rgba(245, 158, 11, 0.15);
   }
 }
 .ease-apple {
