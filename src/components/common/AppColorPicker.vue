@@ -26,9 +26,6 @@ const setFillColor = (color: string) => {
   emit('update:modelValue', color)
 }
 
-const isWhite = computed(() => props.modelValue.toLowerCase() === '#ffffff')
-const isBlack = computed(() => props.modelValue.toLowerCase() === '#000000')
-
 // 亮度检测工具 (用于 Pipette 图标反色)
 const getBrightness = (hex: string) => {
   if (hex === 'transparent') return 255
