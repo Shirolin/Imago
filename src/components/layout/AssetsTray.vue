@@ -281,8 +281,8 @@ const onDragEnd = () => {
             class="image-card-trigger w-14 h-14 md:w-16 md:h-16 rounded-xl border-2 transition-all cursor-pointer overflow-hidden relative group/item shadow-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             :class="[
               store.activeId === img.id
-                ? 'border-primary shadow-lg ring-4 ring-primary/5 scale-105 z-10'
-                : 'border-border/40 hover:border-primary/40 grayscale-[0.3] hover:grayscale-0'
+                ? 'border-primary shadow-lg ring-2 ring-primary/20 scale-105 z-10'
+                : 'border-border/40 hover:border-primary/40 opacity-70 hover:opacity-100'
             ]"
           >
             <img :src="img.preview" class="w-full h-full object-cover" alt="" />
