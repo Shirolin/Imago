@@ -50,39 +50,37 @@
   }
 
   [data-theme='dark'] {
-    --background: 173 10% 4%;
-    --foreground: 173 5% 98%;
-    --card: 173 15% 8%;
-    --card-foreground: 173 5% 98%;
-    --popover: 173 15% 7%;
-    --popover-foreground: 173 5% 98%;
-    --primary: 173 80% 40%;
+    --background: 173 12% 6.5%;
+    --foreground: 173 5% 92%;
+    --card: 173 12% 9%;
+    --card-foreground: 173 5% 92%;
+    --popover: 173 12% 8%;
+    --popover-foreground: 173 5% 92%;
+    --primary: 173 85% 45%;
     --primary-foreground: 173 5% 98%;
-    --secondary: 173 15% 15%;
-    --secondary-foreground: 173 5% 98%;
-    --muted: 173 10% 12%;
-    --muted-foreground: 173 5% 75%;
-    --accent: 173 80% 40%;
+    --secondary: 173 10% 14%;
+    --secondary-foreground: 173 5% 90%;
+    --muted: 173 8% 12%;
+    --muted-foreground: 173 5% 65%;
+    --accent: 173 85% 45%;
     --accent-foreground: 173 5% 98%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 173 10% 18%;
-    --input: 173 10% 18%;
-    --ring: 173 80% 40%;
+    --border: 173 10% 14%;
+    --input: 173 10% 14%;
+    --ring: 173 85% 45%;
 
     /* 颜色分量 (深色模式微调) */
-    --primary-rgb: 20, 160, 133;
+    --primary-rgb: 26, 188, 156;
 
     /* 语义化颜色 (深色模式微调) */
-    --success: 142 70% 45%;
+    --success: 142 75% 45%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 38 92% 10%;
-    --info: 210 100% 50%;
+    --warning: 38 95% 50%;
+    --warning-foreground: 38 95% 10%;
+    --info: 210 100% 55%;
     --info-foreground: 0 0% 100%;
 
     /* 棋盘格 (深色模式亮度略微提升) */
-    --checkerboard-opacity: 0.08;
+    --checkerboard-opacity: 0.1;
   }
 
   /* 核心按钮系统变量 (Standardization) */
