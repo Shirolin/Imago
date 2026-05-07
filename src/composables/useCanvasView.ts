@@ -10,7 +10,7 @@ export function useCanvasView(containerRef: Ref<HTMLElement | null>) {
 
   const { width: cw, height: ch, left: cl, top: ct } = useElementBounding(containerRef)
 
-  // 鏍稿績锛氳緭鍏ユ娴嬶紝闃叉鍦ㄨ緭鍏ユ涓寜绌烘牸瑙﹀彂骞崇Щ
+  // 核心：输入检测，防止在输入框中按空格触发平移
   const isInputFocused = () => {
     const el = document.activeElement
     return (
@@ -52,12 +52,12 @@ export function useCanvasView(containerRef: Ref<HTMLElement | null>) {
   }
 
   const handlePointerDown = (e: PointerEvent) => {
-    // 瑙﹀彂鏉′欢锛氱┖鏍煎凡鎸変笅 OR 榧犳爣涓敭 OR Alt 閿
+    // 触发条件：空格已按下 OR 鼠标中键 OR Alt 键
     if (isSpacePressed.value || e.button === 1 || e.altKey) {
       isPanning.value = true
       startPanPos.value = { x: e.clientX - offset.value.x, y: e.clientY - offset.value.y }
       containerRef.value?.setPointerCapture(e.pointerId)
-      if (e.button === 1) e.preventDefault() // 闃叉涓敭瑙﹀彂鑷姩婊氬姩
+      if (e.button === 1) e.preventDefault() // 防止中键触发自动滚动
     }
   }
 
