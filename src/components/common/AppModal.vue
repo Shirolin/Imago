@@ -60,7 +60,7 @@ onMounted(() => {
   <Teleport to="body">
     <dialog
       ref="dialogRef"
-      class="fixed inset-0 w-full h-full max-w-full max-h-full p-0 bg-transparent border-none outline-none backdrop:bg-background/80 backdrop:backdrop-blur-sm m-0 overflow-hidden"
+      class="fixed inset-0 w-full h-full max-w-full max-h-full p-0 bg-transparent border-none outline-none backdrop:bg-black/60 dark:backdrop:bg-background/80 backdrop:backdrop-blur-sm m-0 overflow-hidden"
       @cancel.prevent="emit('close')"
       aria-modal="true"
       :aria-labelledby="title ? 'modal-title' : undefined"
@@ -69,7 +69,7 @@ onMounted(() => {
       <div v-if="variant === 'dialog'" class="w-full h-full flex items-center justify-center p-4">
         <div :class="containerClasses" style="transform: translateZ(0)">
           <header
-            class="h-14 flex items-center justify-between px-6 border-b border-border shrink-0 bg-card"
+            class="h-14 flex items-center justify-between px-6 border-b border-border shrink-0 bg-card shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]"
           >
             <slot name="header">
               <h3
