@@ -103,8 +103,8 @@ onMounted(() => {
             class="grid justify-center transition-all duration-300"
             :class="[
               layoutStore.cardSizeMode === 'compact'
-                ? 'grid-cols-[repeat(auto-fit,minmax(130px,220px))] gap-3 md:gap-8'
-                : 'grid-cols-[repeat(auto-fit,minmax(160px,360px))] gap-4 md:gap-10'
+                ? 'grid-cols-[repeat(auto-fill,minmax(130px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 md:gap-8'
+                : 'grid-cols-[repeat(auto-fill,minmax(160px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 md:gap-10'
             ]"
           >
             <slot name="content"></slot>
