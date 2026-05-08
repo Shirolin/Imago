@@ -195,7 +195,7 @@ const onDragEnd = () => {
           @click="handleSortChange"
           @dblclick.stop
           :title="sortTitle"
-          class="p-1.5 rounded-md text-muted-foreground/60 hover:text-primary hover:bg-primary/5 transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          class="p-1.5 rounded-md text-muted-foreground/80 hover:text-primary hover:bg-primary/5 transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           <Clock v-if="store.sortMode === 'upload'" :size="12" />
           <SortAsc v-else-if="store.sortMode === 'name'" :size="12" />
@@ -226,7 +226,7 @@ const onDragEnd = () => {
       </div>
 
       <div class="flex items-center gap-2 mr-1">
-        <span class="text-[0.7rem] font-black text-muted-foreground/50 uppercase tracking-widest"
+        <span class="text-[0.7rem] font-black text-muted-foreground/70 uppercase tracking-widest"
           >Items</span
         >
         <span class="text-xs font-mono font-bold text-primary">{{ store.images.length }}</span>
