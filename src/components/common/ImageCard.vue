@@ -215,7 +215,7 @@ const displayUrl = computed(() => {
         />
         <div
           v-if="isDirtyDone"
-          class="absolute inset-0 z-20 pointer-events-none overflow-hidden opacity-30"
+          class="absolute inset-0 z-20 pointer-events-none overflow-hidden opacity-20"
         >
           <div class="absolute inset-[-100%] bg-stripe-pattern animate-stripe-scroll"></div>
         </div>
@@ -255,11 +255,11 @@ const displayUrl = computed(() => {
             class="absolute inset-0 flex items-center justify-between px-2 text-[10px] pointer-events-none z-20"
           >
             <span
-              class="bg-muted/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-foreground font-black border border-border/20"
+              class="bg-muted/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-foreground font-black border border-border/20 shadow-sm [drop-shadow(0_1px_1px_rgba(0,0,0,0.5))]"
               >{{ $t('common.image.card.before') }}</span
             >
             <span
-              class="bg-primary/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-primary-foreground font-black border border-white/20"
+              class="bg-primary/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-primary-foreground font-black border border-white/20 shadow-sm [drop-shadow(0_1px_1px_rgba(0,0,0,0.5))]"
               >{{ $t('common.image.card.after') }}</span
             >
           </div>
@@ -328,7 +328,7 @@ const displayUrl = computed(() => {
       <!-- 处理中中心进度 -->
       <div
         v-if="image.status === 'processing'"
-        class="absolute inset-0 bg-background/40 backdrop-blur-[2px] z-35 flex items-center justify-center"
+        class="absolute inset-0 bg-background/60 backdrop-blur-[2px] z-35 flex items-center justify-center"
       >
         <Loader2 :size="24" class="text-primary animate-spin" />
       </div>
