@@ -255,11 +255,11 @@ const displayUrl = computed(() => {
             class="absolute inset-0 flex items-center justify-between px-2 text-[10px] pointer-events-none z-20"
           >
             <span
-              class="bg-muted/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-foreground font-black border border-border/20 shadow-sm [drop-shadow(0_1px_1px_rgba(0,0,0,0.5))]"
+              class="bg-muted/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-foreground font-black border border-border/20 shadow-sm filter drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]"
               >{{ $t('common.image.card.before') }}</span
             >
             <span
-              class="bg-primary/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-primary-foreground font-black border border-white/20 shadow-sm [drop-shadow(0_1px_1px_rgba(0,0,0,0.5))]"
+              class="bg-primary/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-primary-foreground font-black border border-white/20 shadow-sm filter drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]"
               >{{ $t('common.image.card.after') }}</span
             >
           </div>
