@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "type-check": "vue-tsc --noEmit",
+    "type-check": "vue-tsc -b",
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "format": "prettier --write \"**/*.{vue,ts,js,json,css,scss,md}\"",

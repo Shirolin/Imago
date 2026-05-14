@@ -4,9 +4,6 @@ const testTypeError: number = 'this is a string'
 import { isFormatSupported } from '../utils/formatSupport'
 import { injectMetadata } from '../utils/metadata'
 
-import { type ImageFile } from './types'
-import { compress } from 'browser-image-compression'
-
 export interface CompressionOptions {
   quality: number
   mode?: 'quality' | 'target' // 压缩模式：画质优先或目标体积
