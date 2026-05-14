@@ -7,17 +7,20 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "type-check": "vue-tsc -b",
+    "type-check": "vue-tsc --noEmit",
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "format": "prettier --write \"**/*.{vue,ts,js,json,css,scss,md}\"",
     "format:check": "prettier --check \"**/*.{vue,ts,js,json,css,scss,md}\"",
-    "build": "npm run format && npm run lint && npm run type-check && vite build",
+    "build": "vite build",
+    "validate": "concurrently \"npm run lint:check\" \"npm run type-check\" \"npm run test:run\"",
     "ci": "npm run format:check && npm run lint:check && npm run type-check && vite build",
     "test": "vitest",
+    "test:run": "vitest run",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepare": "husky"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.0.1",
@@ -56,10 +59,13 @@
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.8.1",
     "autoprefixer": "^10.4.27",
+    "concurrently": "^9.2.1",
     "eslint": "^9.39.4",
     "eslint-plugin-vue": "^10.8.0",
     "globals": "^17.4.0",
+    "husky": "^9.1.7",
     "jsdom": "^28.1.0",
+    "lint-staged": "^16.4.0",
     "postcss": "^8.5.8",
     "prettier": "^3.8.1",
     "tailwindcss": "^3.4.19",
@@ -68,5 +74,11 @@
     "vitest": "^4.0.18",
     "vue-eslint-parser": "^10.4.0",
     "vue-tsc": "^3.1.5"
+  },
+  "lint-staged": {
+    "*.{vue,js,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   }
 }
