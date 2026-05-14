@@ -1,6 +1,5 @@
 import imageCompression from 'browser-image-compression'
 import type { ImageProcessor } from './types'
-const testTypeError: number = 'this is a string'
 import { isFormatSupported } from '../utils/formatSupport'
 import { injectMetadata } from '../utils/metadata'
 
