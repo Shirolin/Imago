@@ -512,7 +512,7 @@ const currentRouteName = computed(() => {
 
           <!-- Status & Global Actions -->
           <div
-            class="flex items-center gap-2.5 text-[0.65rem] font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full hidden xl:flex transition-all shrink-0"
+            class="flex items-center gap-2.5 text-[0.65rem] font-bold text-primary/70 bg-primary/5 border border-primary/10 px-3 py-1.5 rounded-full hidden xl:flex transition-all shrink-0"
           >
             <span
               v-if="store.processingCount === 0"

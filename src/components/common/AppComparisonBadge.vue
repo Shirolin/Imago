@@ -18,7 +18,7 @@ withDefaults(defineProps<Props>(), {
 
 <template>
   <div
-    class="flex items-center bg-muted/30 border border-border transition-all duration-300 group-hover:border-primary/20 overflow-hidden"
+    class="flex items-center bg-muted/50 dark:bg-muted border border-border/60 transition-all duration-300 group-hover:border-primary/20 overflow-hidden shadow-inner-glow"
     :class="[compact ? 'gap-1.5 p-1.5 rounded-xl' : 'gap-3 p-3 rounded-2xl']"
   >
     <div class="flex-1 flex flex-col gap-0.5 min-w-0">

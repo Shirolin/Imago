@@ -74,7 +74,7 @@ const extraClasses = computed(() => {
 
     if (props.variant === 'cta') {
       classes +=
-        'bg-[hsl(var(--cta))] hover:bg-[hsl(var(--cta-hover))] text-white shadow-[0_10px_20px_-5px_hsla(var(--cta),var(--button-shadow-opacity))] hover:shadow-[0_15px_30px_-5px_hsla(var(--cta),0.4)] '
+        'bg-gradient-to-b from-[hsl(var(--cta-hover))] to-[hsl(var(--cta))] text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2),0_10px_20px_-5px_hsla(var(--cta),var(--button-shadow-opacity))] hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.3),0_15px_30px_-5px_hsla(var(--cta),0.4)] '
     }
     if (props.variant === 'primary') {
       classes +=

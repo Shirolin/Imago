@@ -83,10 +83,10 @@
     --checkerboard-opacity: 0.1;
   }
 
-  /* 核心按钮系统变量 (Standardization) */
+  /* 核心按钮 system 变量 (Standardization) */
   :root {
-    --cta: 32 95% 50%;
-    --cta-hover: 32 95% 55%;
+    --cta: 28 90% 50%;
+    --cta-hover: 32 95% 58%;
     /* 更加高级的琥珀橙 */
     --button-shadow-opacity: 0.25;
     --button-hover-offset: -1px;
