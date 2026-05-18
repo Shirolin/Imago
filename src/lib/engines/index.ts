@@ -10,7 +10,7 @@ import { isFormatSupported } from '../utils/formatSupport'
 export const dualEngine: ImageProcessor<CompressionOptions> = async (file, options) => {
   const targetFormat = options.format || file.type
 
-  // Canvas 原生引的强项：快，内存小。这些格式首选原生。
+  // Canvas 原生引擎的强项：快，内存小。这些格式首选原生。
   // 注意：jpeg-li 比较特殊，强制走 Wasm 以获得最佳的 mozjpeg/jpeg-li 优化级别
   const nativePreferredFormats = ['image/jpeg', 'image/png', 'image/webp']
 
@@ -18,8 +18,17 @@ export const dualEngine: ImageProcessor<CompressionOptions> = async (file, optio
     // 再次确认浏览器真的原生支持写出这个格式
     const isNativeSupported = await isFormatSupported(targetFormat)
     if (isNativeSupported) {
-      console.log(`[Imago Engine] 🚀 Routing to Native Canvas Engine for ${targetFormat}`)
-      return compressEngine(file, options)
+      try {
+        console.log(`[Imago Engine] 🚀 Routing to Native Canvas Engine for ${targetFormat}`)
+        return await compressEngine(file, options)
+      } catch (error) {
+        console.warn(
+          `[Imago Engine] ⚠️ Native Canvas Engine failed for ${targetFormat}, falling back to WebAssembly Engine. Reason:`,
+          error
+        )
+        // 如果原生引擎失败（例如 browser-image-compression 拒绝转换格式），
+        // 则继续向下执行，尝试使用强大的 Wasm 引擎
+      }
     }
   }
 
