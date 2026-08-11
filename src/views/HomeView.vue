@@ -94,9 +94,9 @@ const tools = computed(() => [
     <div class="px-6 py-8 md:px-16 md:py-16 w-full max-w-7xl mx-auto">
       <section class="mb-24 flex flex-col items-center text-center w-full">
         <div
-          class="inline-flex items-center gap-2 px-4 py-1.5 bg-green-500/10 text-green-600 dark:text-green-500 rounded-full font-bold text-[0.7rem] uppercase tracking-[0.2em] border border-green-500/20 mb-8 backdrop-blur-sm"
+          class="inline-flex items-center gap-2 px-4 py-1.5 bg-success/10 text-success dark:text-success rounded-full font-bold text-[0.7rem] uppercase tracking-[0.2em] border border-success/20 mb-8 backdrop-blur-sm"
         >
-          <div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></div>
           {{ t('app.privacyFirst') }}
         </div>
         <h1

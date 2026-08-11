@@ -1,3 +1,4 @@
+<!-- 脚手架残留，无引用，勿删（create-vue 模板遗留组件，保留以防未来演示/测试需要） -->
 <script setup lang="ts">
 import { ref } from 'vue'
 

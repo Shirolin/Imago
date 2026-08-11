@@ -23,7 +23,8 @@ import {
   AlertCircle,
   Plus,
   ArrowUp,
-  Trash2
+  Trash2,
+  Loader2
 } from 'lucide-vue-next'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
@@ -44,7 +45,6 @@ const { t } = useI18n()
 
 // 状态
 const srMessage = ref('')
-const combinedResult = ref<Blob | null>(null)
 // P1-1：拼接失败可见错误（复用引擎错误消息，不新增 i18n 键）
 const combineError = ref('')
 // P1-3：托盘排序被强制回锁时的可见提示
@@ -64,7 +64,7 @@ const containerRef = computed(() => workspaceRef.value?.containerRef)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const isInitialLoad = ref(true)
 
-const { isProcessing, processCombine } = useImageProcessor(combineEngine)
+const { isProcessing, processCombine, abortProcessing } = useImageProcessor(combineEngine)
 
 // 配置状态
 const combineDirection = ref<'vertical' | 'horizontal' | 'grid'>('vertical')
@@ -315,7 +315,6 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  combinedResult.value = null
   if (sortNoticeTimer) clearTimeout(sortNoticeTimer)
 })
 
@@ -324,7 +323,6 @@ watch(
   () => store.images.length,
   (newLen, oldLen) => {
     if (newLen < oldLen) {
-      combinedResult.value = null
       combineError.value = ''
     }
   }
@@ -335,13 +333,11 @@ watch([() => store.images.length, combineDirection, layoutMode], (newValues, old
   isInitialLoad.value = true
   if (oldValues) triggerHaptic(10)
   requestDraw()
-  combinedResult.value = null
   combineError.value = ''
 })
 
 watch([alignment, spacing, columns, padding, borderRadius, backgroundColor], () => {
   requestDraw()
-  combinedResult.value = null
   combineError.value = ''
 })
 
@@ -417,6 +413,11 @@ const alignmentOptions = computed(() => {
 })
 
 const handleCombine = async () => {
+  // P2-2：处理中点击 CTA 转为中止（引擎侧已支持 AbortSignal）
+  if (isProcessing.value) {
+    abortProcessing()
+    return
+  }
   if (store.images.length < 2) return
   triggerHaptic(15) // 启动任务反馈
   combineError.value = ''
@@ -436,13 +437,20 @@ const handleCombine = async () => {
     const typedResult = result as ProcessResult
     const blob = typedResult.blob || (result as Blob)
     if (blob) {
-      combinedResult.value = blob
       triggerHaptic(8) // 成功反馈
       downloadImage(blob, `_Imago${t('common.export.suffix.combined')}_${Date.now()}`, 'combine')
     }
   } catch (error) {
-    // P1-1：拼接失败必须有可见反馈，不能仅 console.error
     const err = error as Error
+    // P2-2：用户主动中止不算失败，不展示错误
+    if (
+      err?.name === 'AbortError' ||
+      err?.message?.includes('AbortError') ||
+      err?.message?.includes('abort')
+    ) {
+      return
+    }
+    // P1-1：拼接失败必须有可见反馈，不能仅 console.error
     combineError.value = err?.message || '拼接失败，请重试'
     console.error('Combine failed:', error)
   }
@@ -475,6 +483,12 @@ const handleRemoveImage = (id: string, name: string) => {
 
 const hasEnoughImages = computed(() => store.images.length >= 2)
 
+// P2-1：原 combinedResult 死状态已移除，重置改为清除可见错误并重绘预览
+const handleResetAll = () => {
+  combineError.value = ''
+  requestDraw()
+}
+
 useResizeObserver(containerRef, resetView)
 </script>
 
@@ -485,8 +499,10 @@ useResizeObserver(containerRef, resetView)
       ><ImageActionsToolbar
         view-id="combine"
         :is-processing="isProcessing"
+        :show-download-all="false"
+        :show-layout-toggle="false"
         show-clear-all
-        @reset-all="combinedResult = null"
+        @reset-all="handleResetAll"
     /></template>
 
     <template #content>
@@ -719,6 +735,13 @@ useResizeObserver(containerRef, resetView)
           canvas-only
           class="pt-6 border-t border-border/40"
         />
+        <!-- P2-7：「保持原始格式」在 canvas 引擎中恒输出 PNG，显示提示避免误导 -->
+        <p
+          v-if="outputFormat === 'original'"
+          class="text-[0.6rem] text-muted-foreground/70 px-1 leading-relaxed"
+        >
+          {{ t('tools.combine.originalFormatHint') }}
+        </p>
       </div>
     </template>
 
@@ -742,18 +765,16 @@ useResizeObserver(containerRef, resetView)
             size="lg"
             variant="cta"
             class="w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden"
-            :loading="isProcessing"
             @click="handleCombine"
           >
             <template #icon>
-              <Layers
-                v-if="!isProcessing"
-                :size="19"
-                class="mr-2 animate-in zoom-in duration-300"
-              />
+              <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
+              <Layers v-else :size="19" class="mr-2 animate-in zoom-in duration-300" />
             </template>
             <span class="font-bold text-sm tracking-tight">{{
-              isProcessing ? t('tools.combine.cta.processing') : t('tools.combine.cta.export')
+              isProcessing
+                ? `${t('tools.combine.cta.processing')} ${t('tools.split.cta.clickToAbort')}`
+                : t('tools.combine.cta.export')
             }}</span>
           </AppButton>
         </div>

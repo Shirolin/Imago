@@ -37,6 +37,7 @@
         "split": "_분할됨"
       },
       "targetSize": "목표 용량",
+      "colorsUnit": "색상 수",
       "targetSizeMode": "용량 지정 내보내기",
       "title": "내보내기 설정",
       "width": "너비 (px)"
@@ -75,7 +76,12 @@
         "tip": "휠로 확대/축소 • 드래그로 이동",
         "title": "상세 미리보기 비교",
         "zoomIn": "확대",
-        "zoomOut": "축소"
+        "zoomOut": "축소",
+        "resetView": "보기 리셋",
+        "shortcuts": "단축키",
+        "wheelHint": "휠",
+        "dragHint": "드래그",
+        "panHint": "이동"
       },
       "selection": {
         "allSelected": "전체 선택됨",
@@ -116,6 +122,7 @@
       "upload": {
         "button": "파일 선택",
         "dropTip": "놓아서 처리 시작",
+        "dropToImago": "Imago로 드래그",
         "errorSize": "이미지 [{name}] 의 크기가 너무 큽니다 ({size} MB). 최대 50 MB 지원.",
         "pureOffline": "100% 오프라인",
         "quickPaste": "빠른 붙여넣기",
@@ -143,6 +150,7 @@
         "downloadDesc1": "이 기능은 고성능 SAM-2 모델 (약 12 MB) 다운로드가 필요합니다.",
         "downloadDesc2": "다운로드 후에는 완전히 로컬에서 실행되어 개인정보를 보호합니다.",
         "downloadTitle": "대화형 AI 배경 제거 활성화",
+        "downloadSize": "45MB",
         "error": "엔진 오류",
         "featuresAria": "모델 특성 목록",
         "gpuAccel": "GPU 가속",
@@ -192,9 +200,50 @@
     "ui": {
       "clickToEdit": "수치를 직접 편집하려면 클릭하세요",
       "resetToDefault": "기본값으로 재설정",
-      "select": "선택해 주세요"
+      "select": "선택해 주세요",
+      "decrease": "감소",
+      "increase": "증가",
+      "close": "닫기",
+      "fitScreen": "화면에 맞춤",
+      "zoomIn": "확대",
+      "zoomOut": "축소",
+      "resetView": "보기 리셋",
+      "oneToOne": "실제 크기"
     },
-    "workspace": "워크스페이스"
+    "canvas": {
+      "workspaceAria": "이미지 작업 영역",
+      "dragHint": "이미지 드래그"
+    },
+    "colorPicker": {
+      "transparent": "투명 배경",
+      "picker": "색상 선택기",
+      "white": "순백색 채우기",
+      "black": "순흑색 채우기"
+    },
+    "workspace": "워크스페이스",
+    "tray": {
+      "sortTitle": "정렬: {mode} (클릭하여 변경)",
+      "sortUpload": "가져온 시간",
+      "sortName": "파일 이름",
+      "sortStatus": "처리 상태",
+      "prev": "이전",
+      "next": "다음",
+      "selectImage": "{name} 이미지 선택",
+      "items": "항목",
+      "srSelected": "선택한 이미지 {index} / 전체 {count}개",
+      "srNone": "선택한 이미지 없음"
+    },
+    "layout": {
+      "toggleInspector": "속성 패널 전환",
+      "expandPanel": "패널 펼치기",
+      "collapsePanel": "패널 접기",
+      "closePanel": "패널 닫기",
+      "showAssets": "리소스 표시"
+    },
+    "inspector": {
+      "drawer": "검사기 패널 서랍",
+      "sidebar": "검사기 사이드바"
+    }
   },
   "nav": {
     "allTools": "모든 도구",
@@ -205,6 +254,7 @@
       "creative": "창의적 도구",
       "edit": "편집 도구"
     },
+    "language": "언어",
     "sponsor": "지원 및 커뮤니티",
     "toggleMobile": "모바일 메뉴 전환"
   },
@@ -222,6 +272,10 @@
         "select": "이미지를 선택하세요"
       },
       "currentModel": "현재 로드된 모델",
+      "modelFull": "ISNet (176MB 전체)",
+      "modelQuant": "ISNet (40MB 양자화)",
+      "corePremium": "프리미엄 코어",
+      "coreLite": "라이트 코어",
       "deleteModel": "모델 삭제",
       "desc": "로컬 AI 기술 기반의 자동 배경 제거",
       "disableScaling": "사전 스케일링 비활성화 (고화질)",
@@ -294,7 +348,7 @@
       "borderRadius": "이미지 둥글기",
       "canvas": {
         "ariaLabel": "결합 미리보기 캔버스",
-        "instructions": "이미지를 드래그하여 결합 순서를 조정할 수 있습니다",
+        "instructions": "트레이 화살표 버튼 또는 ←/→ 키로 결합 순서를 조정하세요",
         "itemAria": "{index} 번째 이미지: {name}",
         "moveNext": "뒤로 이동",
         "movePrev": "앞으로 이동",
@@ -327,6 +381,7 @@
       },
       "name": "긴 이미지 결합",
       "order": "정렬 순서",
+      "originalFormatHint": "\"원본 형식 유지\"는 결합 시 항상 PNG(투명 채널 지원)로 출력됩니다",
       "originalSize": "원본 크기",
       "padding": "캔버스 여백",
       "params": "간격 설정",
@@ -340,14 +395,18 @@
       "compareTitle": "압축 변환 상세 비교",
       "compressed": "압축됨",
       "cta": {
+        "clickToAbort": "(클릭하여 중단)",
         "exportResults": "결과 내보내기",
         "rendering": "렌더링 중...",
         "select": "이미지를 선택하세요",
+        "selectImage": "압축할 이미지를 선택하세요",
         "startCompress": "압축 시작",
         "updateCompress": "압축 업데이트"
       },
       "desc": "WebP / AVIF 등의 형식으로 극한 압축 및 상호 변환",
+      "gifHint": "GIF 이미지는 첫 프레임으로 정적 이미지로 변환됩니다",
       "infoTip": "고급 Web 압축 알고리즘을 사용하여 시각적 품질을 유지하면서 파일 크기를 크게 줄입니다.",
+      "maxDimensionHint": "크기 제한 미설정 시 긴 변이 {limit}px로 제한됩니다",
       "name": "압축 및 변환",
       "original": "원본 이미지",
       "settingsTitle": "압축 설정",
@@ -365,6 +424,7 @@
       },
       "desc": "자유롭게 자르거나 고정 비율 사용",
       "doubleClickReset": "캔버스를 더블 클릭하여 보기 리셋",
+      "magnetic": "자석 스냅",
       "edgeTrim": "가장자리 다듬기",
       "empty": {
         "desc": "정밀 자르기를 시작하려면 이미지를 가져오세요",
@@ -397,6 +457,7 @@
       "title": "이미지 자르기 및 고정 비율 변환",
       "trimBottom": "아래쪽",
       "trimLeft": "왼쪽",
+      "trimLimitHint": "트림 값이 0–{limit}px로 제한되었습니다",
       "trimRight": "오른쪽",
       "trimTop": "위쪽",
       "trimWarning": "다듬기를 수행하면 프레임 밖의 내용이 영구적으로 제거됩니다.",
@@ -407,6 +468,7 @@
       "allTags": "전체 EXIF 태그 목록",
       "analyzing": "메타데이터 심층 분석 중...",
       "checking": "보안 스캔 중...",
+      "checkingCaption": "확인 중: {name}",
       "cta": {
         "export": "탈감작 결과 내보내기 ({count})",
         "process": "일괄 삭제 ({count})",
@@ -440,7 +502,10 @@
       "unsupportedTip": "이 형식은 지원되지 않거나 읽을 수 있는 메타데이터가 없습니다."
     },
     "favicon": {
+      "adaptiveSimulator": "적응형 시뮬레이터",
       "appearance": "외관 설정",
+      "appleIosNative": "Apple iOS 네이티브",
+      "appleTouchTitle": "Apple Touch 아이콘",
       "bgFill": "통일된 배경색",
       "bgFillDesc": "원본 아이콘에 투명한 영역이 있는 경우 통일된 배경색을 설정할 수 있습니다.",
       "cta": "전체 세트 내보내기 (총 {count} 개)",
@@ -449,15 +514,23 @@
       "disableSafeZone": "세이프 존 비활성화",
       "enableSafeZone": "세이프 존 활성화",
       "exportControl": "내보내기 설정",
+      "fullAssetPreview": "전체 에셋 미리보기",
+      "maskSimulation": "시스템 마스크 시뮬레이션 ({shape})",
+      "maskableGuideTitle": "Maskable 가이드",
+      "maskableLabel": "Maskable",
+      "matrixTitle": "에셋 사양 매트릭스",
       "mockup": "환경 시뮬레이션",
       "name": "파비콘 생성",
       "newTab": "브라우저 탭 미리보기",
+      "outputSize": "출력 크기: {width} × {height} PX",
       "rotateShape": "모양 전환",
       "safeZone": "세이프 존",
       "safeZoneAria": "세이프 존 표시",
       "safeZoneGuide": "Android 에서는 콘텐츠를 중앙 80% 영역 내에 유지하는 것이 권장됩니다. 나머지 영역은 배경으로 사용됩니다.",
       "safeZoneTipOff": "가장자리 내용이 플랫폼에 의해 잘릴 수 있습니다.",
       "safeZoneTipOn": "플랫폼 호환성을 위해 80% 세이프 존이 적용되었습니다.",
+      "shapeLabel": "모양:",
+      "sizeLabel": "{width} × {height} PX",
       "specPreviewAria": "{name} 사양 미리보기",
       "specs": {
         "android192": "Android 192x192",

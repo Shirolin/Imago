@@ -78,7 +78,10 @@ const rafId = ref<number | null>(null)
 watch(showMagnifier, (isShowing) => {
   if (isShowing) {
     if (props.processedPreview) {
+      // 切到 preview（外部 URL）：旧 blob URL 必须释放，防止泄漏
+      const oldUrl = localProcessedUrl.value
       localProcessedUrl.value = props.processedPreview
+      if (oldUrl && oldUrl !== props.processedPreview) URL.revokeObjectURL(oldUrl)
     } else if (props.processedBlob) {
       const oldUrl = localProcessedUrl.value
       localProcessedUrl.value = URL.createObjectURL(props.processedBlob)
@@ -97,8 +100,23 @@ watch(
   () => props.processedPreview,
   (newUrl) => {
     if (showMagnifier.value && newUrl) {
+      const oldUrl = localProcessedUrl.value
       localProcessedUrl.value = newUrl
+      // P2-13: 替换时释放旧 blob URL（preview 是外部 URL，不释放）
+      if (oldUrl && oldUrl !== newUrl) URL.revokeObjectURL(oldUrl)
     }
+  }
+)
+
+// P2-13: 处理结果 Blob 变化时重建倍镜 URL，并释放被替换的旧 blob URL，
+// 避免反复处理同一张图时临时 URL 无限堆积。
+watch(
+  () => props.processedBlob,
+  (newBlob) => {
+    if (!showMagnifier.value || !newBlob || props.processedPreview) return
+    const oldUrl = localProcessedUrl.value
+    localProcessedUrl.value = URL.createObjectURL(newBlob)
+    if (oldUrl && oldUrl !== props.processedPreview) URL.revokeObjectURL(oldUrl)
   }
 )
 
@@ -183,6 +201,8 @@ const displayUrl = computed(() => {
       isDirtyDone ? 'animate-dirty-pulse border-amber-500/20' : ''
     ]"
     tabindex="0"
+    role="button"
+    :aria-pressed="isSelected"
     @click="emit('toggle', image.id)"
     @keydown.enter.space.prevent="emit('toggle', image.id)"
   >
@@ -362,7 +382,7 @@ const displayUrl = computed(() => {
         <div class="shrink-0 flex items-center gap-1.5">
           <div
             v-if="image.status === 'done'"
-            class="w-2 h-2 rounded-full bg-emerald-500"
+            class="w-2 h-2 rounded-full bg-success"
             :class="{ 'bg-amber-500 animate-pulse': isDirty }"
           ></div>
           <Loader2

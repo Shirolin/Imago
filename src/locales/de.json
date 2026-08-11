@@ -37,6 +37,7 @@
         "split": "_Geteilt"
       },
       "targetSize": "Zieldateigröße",
+      "colorsUnit": "Farben",
       "targetSizeMode": "Feste Größe Export",
       "title": "Export-Konfiguration",
       "width": "Breite (px)"
@@ -75,7 +76,12 @@
         "tip": "Mausrad zum Zoomen • Ziehen zum Verschieben",
         "title": "Qualitätskontrastprüfung",
         "zoomIn": "Vergrößern",
-        "zoomOut": "Verkleinern"
+        "zoomOut": "Verkleinern",
+        "resetView": "Ansicht zurücksetzen",
+        "shortcuts": "Tastenkürzel",
+        "wheelHint": "Mausrad",
+        "dragHint": "Ziehen",
+        "panHint": "Verschieben"
       },
       "selection": {
         "allSelected": "Alle ausgewählt",
@@ -116,6 +122,7 @@
       "upload": {
         "button": "Lokale Bilder wählen",
         "dropTip": "Loslassen zum Starten",
+        "dropToImago": "In Imago ablegen",
         "errorSize": "Datei [{name}] ist zu groß ({size} MB). Empfohlenes Maximum: 50 MB.",
         "pureOffline": "100% Offline",
         "quickPaste": "Einfügen",
@@ -143,6 +150,7 @@
         "downloadDesc1": "Diese Funktion erfordert das SAM2-KI-Modell (ca. 12 MB).",
         "downloadDesc2": "Das Modell läuft lokal auf Ihrem Gerät für absolute Privatsphäre.",
         "downloadTitle": "Interaktive Hintergrundentfernung aktivieren",
+        "downloadSize": "45MB",
         "error": "KI-Engine-Fehler",
         "featuresAria": "KI-Modellfunktionen",
         "gpuAccel": "GPU-Beschleunigung",
@@ -192,9 +200,50 @@
     "ui": {
       "clickToEdit": "Klicken zum Bearbeiten",
       "resetToDefault": "Standardwerte",
-      "select": "Bitte wählen..."
+      "select": "Bitte wählen...",
+      "decrease": "Verringern",
+      "increase": "Erhöhen",
+      "close": "Schließen",
+      "fitScreen": "An Bildschirm anpassen",
+      "zoomIn": "Vergrößern",
+      "zoomOut": "Verkleinern",
+      "resetView": "Ansicht zurücksetzen",
+      "oneToOne": "Originalgröße"
     },
-    "workspace": "Arbeitsbereich"
+    "canvas": {
+      "workspaceAria": "Bild-Arbeitsbereich",
+      "dragHint": "Bild ziehen"
+    },
+    "colorPicker": {
+      "transparent": "Transparenter Hintergrund",
+      "picker": "Farbwähler",
+      "white": "Weiße Vollfüllung",
+      "black": "Schwarze Vollfüllung"
+    },
+    "workspace": "Arbeitsbereich",
+    "tray": {
+      "sortTitle": "Sortierung: {mode} (zum Ändern klicken)",
+      "sortUpload": "Importzeitpunkt",
+      "sortName": "Dateiname",
+      "sortStatus": "Verarbeitungsstatus",
+      "prev": "Zurück",
+      "next": "Weiter",
+      "selectImage": "Bild {name} auswählen",
+      "items": "Elemente",
+      "srSelected": "Ausgewähltes Bild {index} von {count}",
+      "srNone": "Kein Bild ausgewählt"
+    },
+    "layout": {
+      "toggleInspector": "Eigenschaften-Panel umschalten",
+      "expandPanel": "Panel erweitern",
+      "collapsePanel": "Panel einklappen",
+      "closePanel": "Panel schließen",
+      "showAssets": "Ressourcen anzeigen"
+    },
+    "inspector": {
+      "drawer": "Inspektor-Panel (Schublade)",
+      "sidebar": "Inspektor-Seitenleiste"
+    }
   },
   "nav": {
     "allTools": "Toolbox",
@@ -205,6 +254,7 @@
       "creative": "Kreativ-Workshop",
       "edit": "Bearbeitung"
     },
+    "language": "Sprache",
     "sponsor": "Support & Community",
     "toggleMobile": "Menü umschalten"
   },
@@ -222,6 +272,10 @@
         "select": "Bitte Bild auswählen"
       },
       "currentModel": "Aktives Modell",
+      "modelFull": "ISNet (176MB Voll)",
+      "modelQuant": "ISNet (40MB Quantisiert)",
+      "corePremium": "Premium-Kern",
+      "coreLite": "Lite-Kern",
       "deleteModel": "Modell löschen",
       "desc": "Vollautomatische Hintergrundentfernung mit lokaler KI",
       "disableScaling": "Vor-Skalierung deaktivieren (Hohe Präzision)",
@@ -294,7 +348,7 @@
       "borderRadius": "Eckenradius",
       "canvas": {
         "ariaLabel": "Synthese-Vorschau",
-        "instructions": "Bilder ziehen zum Anpassen der Reihenfolge",
+        "instructions": "Passen Sie die Reihenfolge mit den Pfeil-Buttons im Tray oder den ←/→-Tasten an",
         "itemAria": "Bild {index}: {name}",
         "moveNext": "Vorwärts bewegen",
         "movePrev": "Rückwärts bewegen",
@@ -327,6 +381,7 @@
       },
       "name": "Bildsynthese",
       "order": "Reihenfolge",
+      "originalFormatHint": "„Originalformat beibehalten\" exportiert beim Kombinieren immer PNG (mit Alphakanal)",
       "originalSize": "Originalgröße",
       "padding": "Leinwand-Abstand",
       "params": "Abstand & Layout",
@@ -340,14 +395,18 @@
       "compareTitle": "Kompressionsanalyse",
       "compressed": "Komprimiert",
       "cta": {
+        "clickToAbort": "(klicken zum Abbrechen)",
         "exportResults": "Ergebnisse exportieren",
         "rendering": "Wird gerendert...",
         "select": "Bitte Bilder wählen",
+        "selectImage": "Wählen Sie die zu komprimierenden Bilder",
         "startCompress": "Kompression starten",
         "updateCompress": "Einstellungen aktualisieren"
       },
       "desc": "Extreme Kompression mit WebP / AVIF Unterstützung",
+      "gifHint": "GIF-Bilder werden als Standbild (erstes Bild) konvertiert",
       "infoTip": "Moderne Web-Algorithmen reduzieren Dateigröße ohne sichtbaren Qualitätsverlust.",
+      "maxDimensionHint": "Ohne Größenlimit wird die längste Kante auf {limit}px begrenzt",
       "name": "Kompression",
       "original": "Original",
       "settingsTitle": "Kompressionsoptionen",
@@ -365,6 +424,7 @@
       },
       "desc": "Freies Zuschneiden oder festes Seitenverhältnis",
       "doubleClickReset": "Doppelklick zum Zurücksetzen",
+      "magnetic": "Magnetisches Einrasten",
       "edgeTrim": "Kanten-Trimming",
       "empty": {
         "desc": "Bilder für Präzisions-Crop importieren",
@@ -397,6 +457,7 @@
       "title": "Präzisions-Transformation - Lokal & Schnell",
       "trimBottom": "Unten",
       "trimLeft": "Links",
+      "trimLimitHint": "Beschnittwert auf 0–{limit}px begrenzt",
       "trimRight": "Rechts",
       "trimTop": "Oben",
       "trimWarning": "Trimming entfernt Inhalte außerhalb des Rahmens dauerhaft.",
@@ -407,6 +468,7 @@
       "allTags": "Vollständige EXIF-Metadaten",
       "analyzing": "Metadaten werden analysiert...",
       "checking": "Scan läuft...",
+      "checkingCaption": "Prüfe: {name}",
       "cta": {
         "export": "Bereinigt exportieren ({count})",
         "process": "Privatsphäre-Daten entfernen ({count})",
@@ -440,7 +502,10 @@
       "unsupportedTip": "Format nicht unterstützt oder keine lesbaren Metadaten."
     },
     "favicon": {
+      "adaptiveSimulator": "Adaptiver Simulator",
       "appearance": "Optik-Konfiguration",
+      "appleIosNative": "Apple iOS nativ",
+      "appleTouchTitle": "Apple-Touch-Symbol",
       "bgFill": "Hintergrundfüllung",
       "bgFillDesc": "Setzt festen Hintergrund für transparente Icons für bessere Kompatibilität.",
       "cta": "Suite exportieren ({count} Items)",
@@ -449,15 +514,23 @@
       "disableSafeZone": "Safe-Zone deaktivieren",
       "enableSafeZone": "Safe-Zone aktivieren",
       "exportControl": "Export-Optionen",
+      "fullAssetPreview": "Vollständige Asset-Vorschau",
+      "maskSimulation": "System-Masken-Simulation ({shape})",
+      "maskableGuideTitle": "Maskable-Leitfaden",
+      "maskableLabel": "Maskable",
+      "matrixTitle": "Asset-Spezifikationsmatrix",
       "mockup": "Umgebungs-Mockup",
       "name": "Favicon-Generator",
       "newTab": "Tab-Vorschau",
+      "outputSize": "Ausgabegröße: {width} × {height} PX",
       "rotateShape": "Formansicht wechseln",
       "safeZone": "Safe-Zone (Padding)",
       "safeZoneAria": "Safe-Zone Indikator",
       "safeZoneGuide": "Auf Android sollte der Kerninhalt im 80%-Bereich liegen für adaptive Formen.",
       "safeZoneTipOff": "Originalproportionen. Kanten könnten abgeschnitten werden.",
       "safeZoneTipOn": "80% Safe-Zone für Plattformkompatibilität angewendet.",
+      "shapeLabel": "Form:",
+      "sizeLabel": "{width} × {height} PX",
       "specPreviewAria": "{name} Spec-Vorschau",
       "specs": {
         "android192": "Android 192x192",

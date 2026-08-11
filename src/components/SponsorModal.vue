@@ -86,25 +86,25 @@ const { t } = useI18n()
             target="_blank"
             rel="noopener noreferrer"
             :aria-label="t('common.modal.sponsor.afdianAria')"
-            class="relative flex flex-row sm:flex-col items-center sm:items-start gap-3 p-4 bg-[oklch(0.6_0.2_300/0.08)] hover:bg-[oklch(0.6_0.2_300/0.12)] border border-[oklch(0.6_0.2_300/0.2)] rounded-[1.5rem] transition-[background-color,border-color,box-shadow] duration-300 group min-w-0 animate-in fade-in slide-in-from-bottom-8 duration-700 ease-apple delay-200"
+            class="relative flex flex-row sm:flex-col items-center sm:items-start gap-3 p-4 bg-primary/5 hover:bg-primary/10 border border-primary/20 rounded-[1.5rem] transition-[background-color,border-color,box-shadow] duration-300 group min-w-0 animate-in fade-in slide-in-from-bottom-8 duration-700 ease-apple delay-200"
             style="animation-fill-mode: both"
           >
             <div class="flex items-center justify-between w-full sm:w-auto">
               <div
-                class="w-8 h-8 bg-[oklch(0.6_0.2_300)] rounded-lg flex items-center justify-center text-white shadow-lg shadow-[oklch(0.6_0.2_300/0.2)] group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 ease-apple"
+                class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 ease-apple"
               >
                 <Zap :size="16" fill="currentColor" />
               </div>
-              <ExternalLink :size="14" class="text-purple-500/40 sm:hidden" />
+              <ExternalLink :size="14" class="text-primary/40 sm:hidden" />
             </div>
             <div class="min-w-0 flex-1 sm:flex-none">
               <div class="flex items-center justify-between sm:block relative">
-                <div class="font-bold text-sm text-purple-600 dark:text-purple-400 truncate">
+                <div class="font-bold text-sm text-primary truncate">
                   {{ t('common.modal.sponsor.afdian') }}
                 </div>
                 <ExternalLink
                   :size="14"
-                  class="text-purple-500/40 hidden sm:block absolute -top-1 -right-1"
+                  class="text-primary/40 hidden sm:block absolute -top-1 -right-1"
                 />
               </div>
               <div
@@ -121,25 +121,25 @@ const { t } = useI18n()
             target="_blank"
             rel="noopener noreferrer"
             :aria-label="t('common.modal.sponsor.kofiAria')"
-            class="relative flex flex-row sm:flex-col items-center sm:items-start gap-3 p-4 bg-[oklch(0.6_0.2_250/0.08)] hover:bg-[oklch(0.6_0.2_250/0.12)] border border-[oklch(0.6_0.2_250/0.2)] rounded-[1.5rem] transition-[background-color,border-color,box-shadow] duration-300 group min-w-0 animate-in fade-in slide-in-from-bottom-8 duration-700 ease-apple delay-300"
+            class="relative flex flex-row sm:flex-col items-center sm:items-start gap-3 p-4 bg-primary/5 hover:bg-primary/10 border border-primary/20 rounded-[1.5rem] transition-[background-color,border-color,box-shadow] duration-300 group min-w-0 animate-in fade-in slide-in-from-bottom-8 duration-700 ease-apple delay-300"
             style="animation-fill-mode: both"
           >
             <div class="flex items-center justify-between w-full sm:w-auto">
               <div
-                class="w-8 h-8 bg-[oklch(0.6_0.2_250)] rounded-lg flex items-center justify-center text-white shadow-lg shadow-[oklch(0.6_0.2_250/0.2)] group-hover:scale-110 group-hover:-rotate-6 transition-all duration-500 ease-apple"
+                class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-500 ease-apple"
               >
                 <Coffee :size="16" />
               </div>
-              <ExternalLink :size="14" class="text-blue-500/40 sm:hidden" />
+              <ExternalLink :size="14" class="text-primary/40 sm:hidden" />
             </div>
             <div class="min-w-0 flex-1 sm:flex-none">
               <div class="flex items-center justify-between sm:block relative">
-                <div class="font-bold text-sm text-blue-600 dark:text-blue-400 truncate">
+                <div class="font-bold text-sm text-primary truncate">
                   {{ t('common.modal.sponsor.kofi') }}
                 </div>
                 <ExternalLink
                   :size="14"
-                  class="text-blue-500/40 hidden sm:block absolute -top-1 -right-1"
+                  class="text-primary/40 hidden sm:block absolute -top-1 -right-1"
                 />
               </div>
               <div

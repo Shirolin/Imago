@@ -37,6 +37,7 @@
         "split": "_分割"
       },
       "targetSize": "目標檔案體積",
+      "colorsUnit": "色數",
       "targetSizeMode": "指定體積匯出",
       "title": "匯出參數配置",
       "width": "像素寬度",
@@ -76,7 +77,12 @@
         "tip": "滾輪縮放 • 拖拽背景平移",
         "title": "畫質對比檢查",
         "zoomIn": "放大",
-        "zoomOut": "縮小"
+        "zoomOut": "縮小",
+        "resetView": "重置視圖",
+        "shortcuts": "快速鍵",
+        "wheelHint": "滾輪",
+        "dragHint": "拖拽",
+        "panHint": "平移"
       },
       "selection": {
         "allSelected": "已全選",
@@ -117,6 +123,7 @@
       "upload": {
         "button": "選擇本地圖片",
         "dropTip": "鬆開滑鼠開始處理",
+        "dropToImago": "拖放到 Imago",
         "errorSize": "檔案 [{name}] 體積過大 ({size} MB)，為了保證性能，建議處理 50 MB 以內的圖片。",
         "pureOffline": "100% 離線處理",
         "quickPaste": "貼上快捷匯入",
@@ -144,6 +151,7 @@
         "downloadDesc1": "此功能需加載高性能 SAM2 AI 模型 (約 12 MB)。",
         "downloadDesc2": "模型將完全在您的設備上運行，確保隱私安全。",
         "downloadTitle": "激活交互式智慧去背",
+        "downloadSize": "45MB",
         "error": "AI 引擎異常",
         "featuresAria": "AI 模型特性",
         "gpuAccel": "GPU 硬體加速",
@@ -193,9 +201,50 @@
     "ui": {
       "clickToEdit": "點擊修改數值",
       "resetToDefault": "恢復預設設定",
-      "select": "請選擇..."
+      "select": "請選擇...",
+      "decrease": "減少",
+      "increase": "增加",
+      "close": "關閉",
+      "fitScreen": "適應螢幕",
+      "zoomIn": "放大視圖",
+      "zoomOut": "縮小視圖",
+      "resetView": "重置視圖",
+      "oneToOne": "原始比例"
     },
-    "workspace": "工作台"
+    "canvas": {
+      "workspaceAria": "圖片工作區",
+      "dragHint": "拖動圖片"
+    },
+    "colorPicker": {
+      "transparent": "透明背景",
+      "picker": "顏色拾取器",
+      "white": "純白填充",
+      "black": "純黑填充"
+    },
+    "workspace": "工作台",
+    "tray": {
+      "sortTitle": "目前排序: {mode} (點擊切換)",
+      "sortUpload": "匯入時間",
+      "sortName": "檔案名稱",
+      "sortStatus": "處理狀態",
+      "prev": "上一個",
+      "next": "下一個",
+      "selectImage": "選擇圖片 {name}",
+      "items": "項目",
+      "srSelected": "目前選中第 {index} 張圖片，共 {count} 張",
+      "srNone": "未選中圖片"
+    },
+    "layout": {
+      "toggleInspector": "切換屬性面板",
+      "expandPanel": "展開面板",
+      "collapsePanel": "摺疊面板",
+      "closePanel": "關閉面板",
+      "showAssets": "顯示資源"
+    },
+    "inspector": {
+      "drawer": "設置面板抽屜",
+      "sidebar": "設置側邊欄"
+    }
   },
   "nav": {
     "allTools": "工具箱",
@@ -206,6 +255,7 @@
       "creative": "創意工坊",
       "edit": "精修編輯"
     },
+    "language": "語言",
     "sponsor": "社群與支援",
     "toggleMobile": "切換移動端選單"
   },
@@ -223,6 +273,10 @@
         "select": "請先匯入圖片"
       },
       "currentModel": "當前運行模型",
+      "modelFull": "ISNet (176MB 全量)",
+      "modelQuant": "ISNet (40MB 量化)",
+      "corePremium": "高級核心",
+      "coreLite": "輕量核心",
       "deleteModel": "清理模型快取",
       "desc": "基於前沿 AI 技術的全自動背景移除工具",
       "disableScaling": "禁用預縮放 (高精度)",
@@ -295,7 +349,7 @@
       "borderRadius": "圖片圓角",
       "canvas": {
         "ariaLabel": "拼接效果預覽",
-        "instructions": "直接拖拽圖片可動態調整拼接順序",
+        "instructions": "使用托盤箭頭按鈕或鍵盤 ←/→ 調整拼接順序",
         "itemAria": "第 {index} 張圖片: {name}",
         "moveNext": "向後移",
         "movePrev": "向前移",
@@ -328,6 +382,7 @@
       },
       "name": "長圖拼接",
       "order": "拼接排序",
+      "originalFormatHint": "「保持原始格式」在拼接中將統一輸出 PNG（支援透明通道）",
       "originalSize": "保持原始比例",
       "padding": "畫布內襯",
       "params": "間距與佈局",
@@ -341,14 +396,18 @@
       "compareTitle": "壓縮質量深度對比",
       "compressed": "壓縮後輸出",
       "cta": {
+        "clickToAbort": "(點擊可中止)",
         "exportResults": "批量匯出壓縮成果",
         "rendering": "正在渲染圖像...",
         "select": "請先匯入圖片",
+        "selectImage": "請選擇要壓縮的圖片",
         "startCompress": "執行壓縮",
         "updateCompress": "更新壓縮參數"
       },
       "desc": "極致壓縮演算法，支援 WebP / AVIF 格式轉換",
+      "gifHint": "GIF 圖片將取首幀轉為靜態圖",
       "infoTip": "採用現代化 Web 圖像演算法，能在保證肉眼無法識別損失的前提下，極大程度壓縮體積。",
+      "maxDimensionHint": "未設定解析度上限時，預設以 {limit}px 長邊為限",
       "name": "壓縮轉換",
       "original": "原始圖像",
       "settingsTitle": "高級壓縮配置",
@@ -366,6 +425,7 @@
       },
       "desc": "自由裁剪、旋轉或固定比例調節",
       "doubleClickReset": "雙擊預覽區重置視圖",
+      "magnetic": "磁性吸附",
       "edgeTrim": "邊緣精準修剪",
       "empty": {
         "desc": "匯入圖片以開啟精準裁剪之旅",
@@ -398,6 +458,7 @@
       "title": "圖像精準裁剪與變換 - 本地極速處理",
       "trimBottom": "下邊緣",
       "trimLeft": "左邊緣",
+      "trimLimitHint": "修剪值已限制在 0–{limit}px",
       "trimRight": "右邊緣",
       "trimTop": "上邊緣",
       "trimWarning": "邊緣修剪將直接移除選定區域外的內容。",
@@ -408,6 +469,7 @@
       "allTags": "全部元數據標籤 (EXIF)",
       "analyzing": "正在解析敏感元數據...",
       "checking": "正在執行隱私掃描...",
+      "checkingCaption": "正在檢查: {name}",
       "cta": {
         "export": "匯出脫敏後的圖片 ({count})",
         "process": "一鍵清除隱私 ({count})",
@@ -441,7 +503,10 @@
       "unsupportedTip": "此檔案格式目前暫不支援深度元數據解析。"
     },
     "favicon": {
+      "adaptiveSimulator": "自適應模擬器",
       "appearance": "站標外觀樣式",
+      "appleIosNative": "Apple iOS 原生",
+      "appleTouchTitle": "Apple Touch 圖示",
       "bgFill": "統一背景底色",
       "bgFillDesc": "為透明背景的圖示設定一個統一的底色以確保相容性。",
       "cta": "匯出全套站標 (共 {count} 個)",
@@ -450,15 +515,23 @@
       "disableSafeZone": "關閉安全邊界",
       "enableSafeZone": "啟用安全邊界",
       "exportControl": "匯出選項配置",
+      "fullAssetPreview": "完整資源預覽",
+      "maskSimulation": "系統遮罩模擬 ({shape})",
+      "maskableGuideTitle": "Maskable 指南",
+      "maskableLabel": "Maskable",
+      "matrixTitle": "資源規格矩陣",
       "mockup": "真實環境模擬",
       "name": "站標生成",
       "newTab": "瀏覽器標籤頁預覽",
+      "outputSize": "輸出尺寸: {width} × {height} PX",
       "rotateShape": "切換預覽形狀",
       "safeZone": "安全保留邊距",
       "safeZoneAria": "安全區示意圖",
       "safeZoneGuide": "依照平台規範，核心內容應保持在 80% 範圍內，以適配自適應圖示裁剪。",
       "safeZoneTipOff": "當前圖示內容可能會在某些平台上被裁掉邊緣。",
       "safeZoneTipOn": "已應用安全區保護，確保各平台下視覺居中。",
+      "shapeLabel": "形狀:",
+      "sizeLabel": "{width} × {height} PX",
       "specPreviewAria": "{name} 規格詳細預覽",
       "specs": {
         "android192": "Android 192x192",

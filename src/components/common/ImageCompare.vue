@@ -106,6 +106,9 @@ const initUrls = async () => {
 // --- 交互逻辑 (Interaction) ---
 const handleWheel = (e: WheelEvent) => {
   if (isDecoding.value) return
+  // P2-14: 仅 Ctrl/Cmd + 滚轮时劫持滚动并缩放；
+  // 普通滚动（浏览长图/页面滚动）不 preventDefault，不劫持。
+  if (!e.ctrlKey && !e.metaKey) return
   e.preventDefault()
 
   const rect = viewportRef.value?.getBoundingClientRect()
@@ -240,6 +243,7 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
         <button
           @click="emit('close')"
           class="w-11 h-11 flex items-center justify-center bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/30 rounded-xl text-white/40 hover:text-rose-500 transition-all active:scale-90"
+          :aria-label="t('common.ui.close')"
         >
           <X :size="20" stroke-width="2.5" />
         </button>
@@ -376,6 +380,7 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
     >
       <button
         class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/10 text-white/40 hover:text-white transition-all active:scale-90"
+        :aria-label="t('common.image.compare.zoomOut')"
         @click="zoom = Math.max(0.05, zoom * 0.8)"
       >
         <ZoomOut :size="18" stroke-width="2.5" />
@@ -391,6 +396,7 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
 
       <button
         class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/10 text-white/40 hover:text-white transition-all active:scale-90"
+        :aria-label="t('common.image.compare.zoomIn')"
         @click="zoom = Math.min(20, zoom * 1.2)"
       >
         <ZoomIn :size="18" stroke-width="2.5" />
@@ -400,12 +406,13 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
 
       <button
         class="flex items-center gap-2 px-3 md:px-4 h-10 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-all active:scale-95"
+        :aria-label="t('common.image.compare.resetView')"
         @click="updateFitView"
       >
         <RotateCcw :size="14" stroke-width="3" />
-        <span class="text-[10px] font-black uppercase tracking-widest hidden md:inline"
-          >Reset View</span
-        >
+        <span class="text-[10px] font-black uppercase tracking-widest hidden md:inline">{{
+          t('common.image.compare.resetView')
+        }}</span>
       </button>
     </div>
 
@@ -417,18 +424,26 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
         class="flex items-center gap-3 text-[9px] font-bold text-white/20 uppercase tracking-[0.2em] italic"
       >
         <div class="w-1.5 h-1.5 rounded-full bg-primary/40 animate-pulse"></div>
-        Inspector Shortcuts
+        {{ t('common.image.compare.shortcuts') }}
       </div>
       <div
         class="flex items-center gap-4 bg-black/20 backdrop-blur-md px-4 py-2 rounded-lg border border-white/5"
       >
         <div class="flex items-center gap-2">
-          <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-[9px] text-white/60">Wheel</kbd>
-          <span class="text-[8px] text-white/30 uppercase">Zoom</span>
+          <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-[9px] text-white/60">{{
+            t('common.image.compare.wheelHint')
+          }}</kbd>
+          <span class="text-[8px] text-white/30 uppercase">{{
+            t('common.image.compare.zoomIn')
+          }}</span>
         </div>
         <div class="flex items-center gap-2">
-          <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-[9px] text-white/60">Drag</kbd>
-          <span class="text-[8px] text-white/30 uppercase">Pan</span>
+          <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-[9px] text-white/60">{{
+            t('common.image.compare.dragHint')
+          }}</kbd>
+          <span class="text-[8px] text-white/30 uppercase">{{
+            t('common.image.compare.panHint')
+          }}</span>
         </div>
       </div>
     </div>

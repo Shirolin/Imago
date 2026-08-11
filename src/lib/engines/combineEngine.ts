@@ -36,6 +36,9 @@ export const combineEngine: MultiImageProcessor<CombineOptions> = async (files, 
       })
     )
 
+    // P2-2：中止检查 —— 加载完成后、布局计算前响应一次
+    if (options.signal?.aborted) throw new Error('AbortError')
+
     // 1. 计算布局参数
     const maxWidth = Math.max(...images.map((img) => img.width))
     const maxHeight = Math.max(...images.map((img) => img.height))
@@ -177,6 +180,8 @@ export const combineEngine: MultiImageProcessor<CombineOptions> = async (files, 
     }
 
     images.forEach((img, i) => {
+      // P2-2：分块绘制间检查中止信号（每 4 张一检），中止立即抛出 AbortError
+      if (i % 4 === 0 && options.signal?.aborted) throw new Error('AbortError')
       const info = drawInfos[i]!
       const { x, y, w, h } = info
 
@@ -210,6 +215,9 @@ export const combineEngine: MultiImageProcessor<CombineOptions> = async (files, 
 
     const outputFormat = (options.format === 'original' ? undefined : options.format) || 'image/png'
     const outputQuality = options.quality ?? 0.9
+
+    // P2-2：编码前再检查一次，避免中止后仍产出大 Blob
+    if (options.signal?.aborted) throw new Error('AbortError')
 
     // toBlob 前验证画布有效尺寸（缩小取整后仍可能归零，须拦截而非静默失败）
     if (canvas.width <= 0 || canvas.height <= 0) throw new Error('拼接结果尺寸无效，无法导出')

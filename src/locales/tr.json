@@ -37,6 +37,7 @@
         "split": "_Bölündü"
       },
       "targetSize": "Hedef Dosya Boyutu",
+      "colorsUnit": "Renk Sayısı",
       "targetSizeMode": "Sabit Boyutlu Dışa Aktarma",
       "title": "Dışa Aktarma Yapılandırması",
       "width": "Genişlik (px)"
@@ -75,7 +76,12 @@
         "tip": "Yakınlaştırmak için Kaydırın • Kaydırmak için Sürükleyin",
         "title": "Kalite Kontrast Kontrolü",
         "zoomIn": "Yakınlaştır",
-        "zoomOut": "Uzaklaştır"
+        "zoomOut": "Uzaklaştır",
+        "resetView": "Görünümü Sıfırla",
+        "shortcuts": "Kısayollar",
+        "wheelHint": "Fare Tekerleği",
+        "dragHint": "Sürükle",
+        "panHint": "Kaydır"
       },
       "selection": {
         "allSelected": "Hepsi Seçildi",
@@ -116,6 +122,7 @@
       "upload": {
         "button": "Yerel Görüntüleri Seç",
         "dropTip": "Başlatmak için Bırakın",
+        "dropToImago": "Imago'ya Bırakın",
         "errorSize": "[{name}] dosyası çok büyük ({size} MB). Önerilen maksimum boyut: 50 MB.",
         "pureOffline": "%100 Çevrimdışı",
         "quickPaste": "Hızlı Yapıştır",
@@ -143,6 +150,7 @@
         "downloadDesc1": "Bu özellik yüksek performanslı SAM2 AI modelini (yaklaşık 12 MB) gerektirir.",
         "downloadDesc2": "Model, gizliliğinizi sağlamak için tamamen yerel olarak çalışır.",
         "downloadTitle": "Etkileşimli Arka Plan Kaldırmayı Etkinleştir",
+        "downloadSize": "45MB",
         "error": "AI Motoru Hatası",
         "featuresAria": "AI model özellikleri",
         "gpuAccel": "GPU Hızlandırma",
@@ -192,9 +200,50 @@
     "ui": {
       "clickToEdit": "Değeri doğrudan düzenlemek için tıklayın",
       "resetToDefault": "Varsayılanlara Geri Dön",
-      "select": "Lütfen seçin..."
+      "select": "Lütfen seçin...",
+      "decrease": "Azalt",
+      "increase": "Artır",
+      "close": "Kapat",
+      "fitScreen": "Ekrana Sığdır",
+      "zoomIn": "Yakınlaştır",
+      "zoomOut": "Uzaklaştır",
+      "resetView": "Görünümü Sıfırla",
+      "oneToOne": "Gerçek Boyut"
     },
-    "workspace": "Çalışma Alanı"
+    "canvas": {
+      "workspaceAria": "Görüntü Çalışma Alanı",
+      "dragHint": "Görüntüyü Sürükle"
+    },
+    "colorPicker": {
+      "transparent": "Şeffaf Arka Plan",
+      "picker": "Renk Seçici",
+      "white": "Düz Beyaz Dolgu",
+      "black": "Düz Siyah Dolgu"
+    },
+    "workspace": "Çalışma Alanı",
+    "tray": {
+      "sortTitle": "Sıralama: {mode} (değiştirmek için tıklayın)",
+      "sortUpload": "İçe Aktarma Zamanı",
+      "sortName": "Dosya Adı",
+      "sortStatus": "İşlem Durumu",
+      "prev": "Önceki",
+      "next": "Sonraki",
+      "selectImage": "{name} görüntüsünü seç",
+      "items": "Öğeler",
+      "srSelected": "Seçili görsel: {index}/{count}",
+      "srNone": "Görsel seçili değil"
+    },
+    "layout": {
+      "toggleInspector": "Özellik Panelini Aç/Kapat",
+      "expandPanel": "Paneli Genişlet",
+      "collapsePanel": "Paneli Daralt",
+      "closePanel": "Paneli Kapat",
+      "showAssets": "Kaynakları Göster"
+    },
+    "inspector": {
+      "drawer": "Denetçi Paneli Çekmecesi",
+      "sidebar": "Denetçi Kenar Çubuğu"
+    }
   },
   "nav": {
     "allTools": "Araç Kutusu",
@@ -205,6 +254,7 @@
       "creative": "Yaratıcı Atölye",
       "edit": "Düzenleme Paketi"
     },
+    "language": "Dil",
     "sponsor": "Destek ve Topluluk",
     "toggleMobile": "Mobil Menüyü Aç/Kapat"
   },
@@ -222,6 +272,10 @@
         "select": "Lütfen bir görüntü seçin"
       },
       "currentModel": "Aktif Model",
+      "modelFull": "ISNet (176MB Tam)",
+      "modelQuant": "ISNet (40MB Nicel)",
+      "corePremium": "Premium Çekirdek",
+      "coreLite": "Lite Çekirdek",
       "deleteModel": "Modeli Sil",
       "desc": "Yerel AI ile tam otomatik arka plan kaldırma",
       "disableScaling": "Ön Ölçeklendirmeyi Devre Dışı Bırak (Yüksek Hassasiyet)",
@@ -294,7 +348,7 @@
       "borderRadius": "Köşe Yarısı",
       "canvas": {
         "ariaLabel": "Sentez Önizlemesi",
-        "instructions": "Birleştirme sırasını ayarlamak için görüntüleri sürükleyin",
+        "instructions": "Birleştirme sırasını paneldeki ok düğmeleriyle veya ←/→ tuşlarıyla ayarlayın",
         "itemAria": "Görüntü {index}: {name}",
         "moveNext": "İleri Taşı",
         "movePrev": "Geri Taşı",
@@ -327,6 +381,7 @@
       },
       "name": "Görüntü Sentezi",
       "order": "Sıralama Düzeni",
+      "originalFormatHint": "\"Orijinal biçimi koru\" birleştirmede her zaman PNG (alfa kanallı) dışa aktarır",
       "originalSize": "Orijinal Boyut",
       "padding": "Tuval Boşluğu",
       "params": "Boşluk ve Düzen",
@@ -340,14 +395,18 @@
       "compareTitle": "Sıkıştırma Analizi",
       "compressed": "Sıkıştırıldı",
       "cta": {
+        "clickToAbort": "(iptal etmek için tıklayın)",
         "exportResults": "Sonuçları Aktar",
         "rendering": "İşleniyor...",
         "select": "Lütfen görüntü seçin",
+        "selectImage": "Sıkıştırılacak görselleri seçin",
         "startCompress": "Sıkıştırmayı Başlat",
         "updateCompress": "Ayarları Güncelle"
       },
       "desc": "WebP / AVIF format desteği ile aşırı sıkıştırma",
+      "gifHint": "GIF görselleri ilk kare kullanılarak statik görsele dönüştürülür",
       "infoTip": "Modern Web algoritmaları, görsel kalite kaybı olmadan dosya boyutunu önemli ölçüde azaltır.",
+      "maxDimensionHint": "Boyut sınırı belirtilmediğinde en uzun kenar {limit}px ile sınırlanır",
       "name": "Sıkıştırma",
       "original": "Orijinal",
       "settingsTitle": "Sıkıştırma Seçenekleri",
@@ -365,6 +424,7 @@
       },
       "desc": "Serbest kırpma veya sabit oranlı dönüşüm",
       "doubleClickReset": "Görünümü sıfırlamak için çift tıklayın",
+      "magnetic": "Manyetik yapışma",
       "edgeTrim": "Kenar Kırpma",
       "empty": {
         "desc": "Hassas kırpmaya başlamak için görüntüleri içe aktarın",
@@ -397,6 +457,7 @@
       "title": "Hassas Görüntü Dönüşümü - Yerel ve Hızlı",
       "trimBottom": "Alt",
       "trimLeft": "Sol",
+      "trimLimitHint": "Kırpma değeri 0–{limit}px ile sınırlandı",
       "trimRight": "Sağ",
       "trimTop": "Üst",
       "trimWarning": "Kırpma, çerçevenin dışındaki içeriği kalıcı olarak kaldırır.",
@@ -407,6 +468,7 @@
       "allTags": "Tam EXIF Metadata Listesi",
       "analyzing": "Metadatalar analiz ediliyor...",
       "checking": "Taranıyor...",
+      "checkingCaption": "Denetleniyor: {name}",
       "cta": {
         "export": "Temizlenmiş Olanı Aktar ({count})",
         "process": "Gizlilik Verilerini Kaldır ({count})",
@@ -440,7 +502,10 @@
       "unsupportedTip": "Format desteklenmiyor veya okunabilir metadata içermiyor."
     },
     "favicon": {
+      "adaptiveSimulator": "Uyarlanabilir Simülatör",
       "appearance": "Görünüm Yapılandırması",
+      "appleIosNative": "Apple iOS Yerel",
+      "appleTouchTitle": "Apple Touch Simgesi",
       "bgFill": "Arka Plan Dolgusu",
       "bgFillDesc": "Daha iyi uyumluluk için şeffaf ikonlara düz bir arka plan ayarlar.",
       "cta": "Paketi Aktar ({count} öğe)",
@@ -449,15 +514,23 @@
       "disableSafeZone": "Güvenli Alanı Devre Dışı Bırak",
       "enableSafeZone": "Güvenli Alanı Etkinleştir",
       "exportControl": "Dışa Aktarma Ayarları",
+      "fullAssetPreview": "Tam Varlık Önizlemesi",
+      "maskSimulation": "Sistem Maske Simülasyonu ({shape})",
+      "maskableGuideTitle": "Maskable Rehberi",
+      "maskableLabel": "Maskable",
+      "matrixTitle": "Varlık Özellik Matrisi",
       "mockup": "Çevre Mockup'ı",
       "name": "Favicon Oluşturucu",
       "newTab": "Yeni Sekme Önizlemesi",
+      "outputSize": "Çıktı boyutu: {width} × {height} PX",
       "rotateShape": "Şekil Görünümünü Değiştir",
       "safeZone": "Güvenli Alan (Boşluk)",
       "safeZoneAria": "Güvenli Alan Göstergesi",
       "safeZoneGuide": "Android'de, çekirdek içeriğin adaptif şekillere uyması için %80 güvenli alan içinde kalması gerekir.",
       "safeZoneTipOff": "Orijinal oranlar. Kenarlar bazı platformlarda kesilebilir.",
       "safeZoneTipOn": "Platform uyumluluğu için %80 güvenli alan uygulandı.",
+      "shapeLabel": "Şekil:",
+      "sizeLabel": "{width} × {height} PX",
       "specPreviewAria": "{name} özellik önizlemesi",
       "specs": {
         "android192": "Android 192x192",

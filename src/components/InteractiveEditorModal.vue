@@ -115,6 +115,12 @@ let worker: Worker | null = null
 
 // 初始化 Worker
 const initWorker = () => {
+  // P2-16: 重复打开模态框会反复创建 Worker，先终止上一个实例防止线程与显存泄漏
+  if (worker) {
+    worker.terminate()
+    worker = null
+  }
+
   // 滚动至中心
   nextTick(() => {
     const container = document.getElementById('sam2-zoom-container')
@@ -183,6 +189,8 @@ const handleCanvasClick = (e: MouseEvent) => {
 
   // 保存历史记录
   historyPast.value.push([...points.value])
+  // P2-16: 撤销栈上限 50，防止长会话无界增长
+  if (historyPast.value.length > 50) historyPast.value.shift()
   historyFuture.value = []
 
   // 左键正向(1)，右键负向(0)
@@ -231,6 +239,8 @@ const clearMask = () => {
 const resetPoints = () => {
   if (points.value.length > 0) {
     historyPast.value.push([...points.value])
+    // P2-16: 撤销栈上限 50
+    if (historyPast.value.length > 50) historyPast.value.shift()
     historyFuture.value = []
   }
   points.value = []
@@ -319,11 +329,20 @@ const setFitToWindow = () => {
   zoom.value = initialZoom.value
 }
 
+// P2-16: 应用遮罩的防重复 guard——fetch 期间重复点击会并发导出同一遮罩，
+// 用 isApplying 锁住入口，AppButton loading 态同时提供视觉反馈。
+const isApplying = ref(false)
+
 const handleApply = async () => {
-  if (!maskUrl.value) return
-  const res = await fetch(maskUrl.value)
-  const blob = await res.blob()
-  emit('apply', blob)
+  if (!maskUrl.value || isApplying.value) return
+  isApplying.value = true
+  try {
+    const res = await fetch(maskUrl.value)
+    const blob = await res.blob()
+    emit('apply', blob)
+  } finally {
+    isApplying.value = false
+  }
 }
 
 onMounted(() => {
@@ -405,6 +424,7 @@ watch(
             <button
               class="p-1.5 rounded-md text-white/40 hover:text-white hover:bg-white/10 transition-colors"
               :title="t('common.modal.interactive.zoomOut')"
+              :aria-label="t('common.modal.interactive.zoomOut')"
               @click="zoomOut"
             >
               <ZoomOut :size="16" />
@@ -415,6 +435,7 @@ watch(
             <button
               class="p-1.5 rounded-md text-white/40 hover:text-white hover:bg-white/10 transition-colors"
               :title="t('common.modal.interactive.zoomIn')"
+              :aria-label="t('common.modal.interactive.zoomIn')"
               @click="zoomIn"
             >
               <ZoomIn :size="16" />
@@ -428,6 +449,7 @@ watch(
                   : 'text-white/40 hover:text-white hover:bg-white/10'
               "
               :title="t('common.modal.interactive.zoomOne')"
+              :aria-label="t('common.modal.interactive.zoomOne')"
               @click="setOneToOne"
             >
               1:1
@@ -440,6 +462,7 @@ watch(
                   : 'text-white/40 hover:text-white hover:bg-white/10'
               "
               :title="t('common.modal.interactive.zoomFit')"
+              :aria-label="t('common.modal.interactive.zoomFit')"
               @click="setFitToWindow"
             >
               <Maximize :size="16" />
@@ -450,7 +473,13 @@ watch(
           <AppButton variant="ghost" size="sm" @click="emit('close')">{{
             t('common.image.toolbar.cancel')
           }}</AppButton>
-          <AppButton variant="primary" size="sm" :disabled="!maskUrl" @click="handleApply">
+          <AppButton
+            variant="primary"
+            size="sm"
+            :disabled="!maskUrl || isApplying"
+            :loading="isApplying"
+            @click="handleApply"
+          >
             {{ t('common.modal.interactive.apply') }}
           </AppButton>
         </div>

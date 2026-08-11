@@ -116,6 +116,19 @@ const isAllTagsExpanded = ref(false)
 const outputFormat = ref<string>('original')
 const outputQuality = ref(0.9)
 
+// P2-10：读取竞态防护 —— 快速切换图片时用序号丢弃过期结果；
+// isReadingExif 以计数管理，批量扫描与单张读取可叠加、互不误清
+let exifReadSeq = 0
+let activeExifReads = 0
+const beginExifRead = () => {
+  activeExifReads++
+  isReadingExif.value = true
+}
+const endExifRead = () => {
+  activeExifReads = Math.max(0, activeExifReads - 1)
+  if (activeExifReads === 0) isReadingExif.value = false
+}
+
 const { isProcessing, processSelected } = useImageProcessor(clearExifEngine)
 
 const displayImages = computed(() => [...store.images].reverse())
@@ -124,28 +137,34 @@ const scanAllImages = async () => {
   const pendingImages = store.images.filter((img) => img.exifCount === undefined)
   if (pendingImages.length === 0) return
 
-  const CHUNK_SIZE = 5
-  for (let i = 0; i < pendingImages.length; i += CHUNK_SIZE) {
-    const chunk = pendingImages.slice(i, i + CHUNK_SIZE)
-    await Promise.all(
-      chunk.map(async (img) => {
-        try {
-          const data = await readExif(img.file)
-          if (data) {
-            store.updateImage(img.id, {
-              exifCount: data.metaCount,
-              isExifUnsupported: data.unsupported,
-              exifError: data.error
-            })
-            exifDataMap.value[img.id] = data
-          } else {
+  // P2-1：批量分析期间显示「扫描中」状态
+  beginExifRead()
+  try {
+    const CHUNK_SIZE = 5
+    for (let i = 0; i < pendingImages.length; i += CHUNK_SIZE) {
+      const chunk = pendingImages.slice(i, i + CHUNK_SIZE)
+      await Promise.all(
+        chunk.map(async (img) => {
+          try {
+            const data = await readExif(img.file)
+            if (data) {
+              store.updateImage(img.id, {
+                exifCount: data.metaCount,
+                isExifUnsupported: data.unsupported,
+                exifError: data.error
+              })
+              exifDataMap.value[img.id] = data
+            } else {
+              store.updateImage(img.id, { exifCount: 0 })
+            }
+          } catch {
             store.updateImage(img.id, { exifCount: 0 })
           }
-        } catch {
-          store.updateImage(img.id, { exifCount: 0 })
-        }
-      })
-    )
+        })
+      )
+    }
+  } finally {
+    endExifRead()
   }
 }
 
@@ -163,7 +182,8 @@ watch(
 
 watch(activeImageId, async (id) => {
   if (id && !exifDataMap.value[id]) {
-    isReadingExif.value = true
+    const seq = ++exifReadSeq
+    beginExifRead()
     try {
       const img = store.images.find((i) => i.id === id)
       if (img) {
@@ -174,6 +194,8 @@ watch(activeImageId, async (id) => {
           : img.file
 
         const data = await readExif(fileToRead)
+        // P2-10：期间用户切换了图片 → 丢弃过期结果
+        if (seq !== exifReadSeq) return
         if (data) {
           exifDataMap.value[id] = data
           store.updateImage(id, {
@@ -184,7 +206,7 @@ watch(activeImageId, async (id) => {
         }
       }
     } finally {
-      isReadingExif.value = false
+      endExifRead()
     }
   }
 })
@@ -376,7 +398,7 @@ const handleCtaClick = async () => {
           >
             <template #overlay="{ image }"
               ><div
-                v-if="activeImageId === image.id"
+                v-if="activeImageId === image.id && isReadingExif"
                 class="px-2 py-0.5 rounded-md text-[10px] font-black flex items-center gap-1 shadow-lg bg-primary text-primary-foreground animate-in fade-in zoom-in duration-300"
               >
                 <Eye :size="10" />{{ t('tools.exif.checking') }}
@@ -436,7 +458,7 @@ const handleCtaClick = async () => {
           class="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-background/80 via-background/20 to-transparent"
         >
           <div class="text-[10px] text-foreground font-bold truncate uppercase tracking-tight">
-            Checking: {{ activeImage.file.name }}
+            {{ t('tools.exif.checkingCaption', { name: activeImage.file.name }) }}
           </div>
         </div>
       </div>
@@ -478,7 +500,13 @@ const handleCtaClick = async () => {
               :icon="MapPin"
               mono
             >
-              {{ activeExifData.latitude.toFixed(4) }}°, {{ activeExifData.longitude?.toFixed(4) }}°
+              <!-- P2-3：经度缺失时显示 '—'，避免悬挂的度数符号 -->
+              {{ activeExifData.latitude.toFixed(4) }}°,
+              {{
+                activeExifData.longitude !== undefined
+                  ? `${activeExifData.longitude.toFixed(4)}°`
+                  : '—'
+              }}
             </AppInfoItem>
           </div>
           <div v-if="activeExifData?.all && Object.keys(activeExifData.all).length > 0">

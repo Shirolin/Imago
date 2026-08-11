@@ -207,7 +207,7 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
                 @update:model-value="emit('update:colors', $event)"
                 :label="t('common.export.maxColors')"
                 :icon="Palette"
-                unit=" Colors"
+                :unit="' ' + t('common.export.colorsUnit')"
                 :min="2"
                 :max="256"
                 :default-value="256"

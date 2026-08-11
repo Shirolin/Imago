@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Languages, Check } from 'lucide-vue-next'
 import { useStorage } from '@vueuse/core'
 
-const { locale } = useI18n()
+const { locale, t } = useI18n()
 const savedLocale = useStorage('imago-locale', 'zh-CN')
 
 const isOpen = ref(false)
@@ -36,15 +36,22 @@ const setLanguage = (code: string) => {
   isOpen.value = false
 }
 
+// P2-20: 具名处理函数，保证 onUnmounted 能移除同一个监听器（此前匿名函数无法移除，造成泄漏）
+const handleWindowClick = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  if (!target.closest('.language-switcher')) {
+    isOpen.value = false
+  }
+}
+
 onMounted(() => {
   updateCurrentName()
   // 点击外部关闭
-  window.addEventListener('click', (e) => {
-    const target = e.target as HTMLElement
-    if (!target.closest('.language-switcher')) {
-      isOpen.value = false
-    }
-  })
+  window.addEventListener('click', handleWindowClick)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', handleWindowClick)
 })
 </script>
 
@@ -54,6 +61,8 @@ onMounted(() => {
       @click="isOpen = !isOpen"
       class="flex items-center justify-center w-11 h-11 rounded-xl hover:bg-primary/5 transition-all text-muted-foreground hover:text-primary active:scale-[0.94] group"
       :title="currentLanguageName"
+      :aria-label="t('nav.language')"
+      :aria-expanded="isOpen"
     >
       <Languages :size="18" class="group-hover:scale-110 transition-transform" />
     </button>

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppModal from './common/AppModal.vue'
 import AppButton from './common/AppButton.vue'
 import { Download, Cpu, ShieldCheck } from 'lucide-vue-next'
 
-defineProps<{
+const props = defineProps<{
   show: boolean
 }>()
 
@@ -14,7 +14,17 @@ const { t } = useI18n()
 
 const isDownloading = ref(false)
 
+// P2: 父级 confirm 流程是同步的（立即关闭模态框），isDownloading 此前置 true 后永不复位，
+// 下次打开时按钮仍是 loading 态。改为随模态框关闭自动复位，并防止重复触发。
+watch(
+  () => props.show,
+  (show) => {
+    if (!show) isDownloading.value = false
+  }
+)
+
 const handleConfirm = () => {
+  if (isDownloading.value) return
   isDownloading.value = true
   emit('confirm')
 }
@@ -38,7 +48,9 @@ const handleConfirm = () => {
           </h3>
           <p class="text-muted-foreground text-sm leading-relaxed">
             {{ t('common.modal.interactive.downloadDesc1') }}
-            <span class="text-primary font-bold">45MB</span>
+            <span class="text-primary font-bold">{{
+              t('common.modal.interactive.downloadSize')
+            }}</span>
             {{ t('common.modal.interactive.downloadDesc2') }}
           </p>
         </div>

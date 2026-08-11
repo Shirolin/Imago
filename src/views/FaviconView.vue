@@ -129,7 +129,7 @@ const handleGenerate = async () => {
     </template>
 
     <template #content>
-      <div class="h-full w-full overflow-y-auto custom-scrollbar bg-muted/5 select-none">
+      <div class="h-full w-full overflow-y-auto custom-scrollbar bg-muted/5">
         <div
           v-if="activeImage"
           :key="activeImage.id"
@@ -210,9 +210,9 @@ const handleGenerate = async () => {
               <section v-if="selectedIds.has('apple')" class="space-y-4">
                 <div class="flex items-center gap-2.5 text-muted-foreground/40 pl-1">
                   <Smartphone :size="14" />
-                  <span class="text-[10px] font-black uppercase tracking-[0.3em]"
-                    >Apple iOS Native</span
-                  >
+                  <span class="text-[10px] font-black uppercase tracking-[0.3em]">{{
+                    t('tools.favicon.appleIosNative')
+                  }}</span>
                 </div>
                 <div
                   class="bg-card border border-border/60 rounded-[2.5rem] p-8 flex flex-col items-center justify-center gap-8 shadow-elevated group hover:border-primary/20 transition-all min-h-[320px]"
@@ -237,12 +237,12 @@ const handleGenerate = async () => {
                     <div
                       class="text-[10px] font-black text-foreground/60 uppercase tracking-widest leading-none mb-1.5"
                     >
-                      Apple Touch Icon
+                      {{ t('tools.favicon.appleTouchTitle') }}
                     </div>
                     <div
                       class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-muted/50 text-[8px] font-bold text-muted-foreground/40 font-mono"
                     >
-                      180 × 180 PX
+                      {{ t('tools.favicon.sizeLabel', { width: 180, height: 180 }) }}
                     </div>
                   </div>
                 </div>
@@ -253,9 +253,9 @@ const handleGenerate = async () => {
                 <div class="flex items-center justify-between pl-1 pr-4">
                   <div class="flex items-center gap-2.5 text-muted-foreground/40">
                     <ShieldCheck :size="14" />
-                    <span class="text-[10px] font-black uppercase tracking-[0.3em]"
-                      >Adaptive Simulator</span
-                    >
+                    <span class="text-[10px] font-black uppercase tracking-[0.3em]">{{
+                      t('tools.favicon.adaptiveSimulator')
+                    }}</span>
                   </div>
                   <div class="flex items-center gap-4">
                     <button
@@ -265,7 +265,7 @@ const handleGenerate = async () => {
                       :title="`${t('tools.favicon.currentShape')}: ${activeMaskShape}`"
                     >
                       <RefreshCw :size="10" />
-                      Shape: {{ activeMaskShape }}
+                      {{ t('tools.favicon.shapeLabel') }} {{ activeMaskShape }}
                     </button>
                   </div>
                 </div>
@@ -334,7 +334,7 @@ const handleGenerate = async () => {
                       }"
                       :style="{
                         backgroundColor:
-                          backgroundColor === 'transparent' ? 'var(--background)' : backgroundColor
+                          backgroundColor === 'transparent' ? 'white' : backgroundColor
                       }"
                     >
                       <!-- 图片逻辑：工业级正向物理映射 -->
@@ -380,8 +380,8 @@ const handleGenerate = async () => {
                       >
                         {{
                           activeMaskShape === 'full'
-                            ? 'Full Asset Preview'
-                            : `System Mask Simulation (${activeMaskShape})`
+                            ? t('tools.favicon.fullAssetPreview')
+                            : t('tools.favicon.maskSimulation', { shape: activeMaskShape })
                         }}
                       </span>
                       <p class="text-[9px] font-bold text-primary/70 leading-relaxed max-w-[280px]">
@@ -395,7 +395,7 @@ const handleGenerate = async () => {
                     <div
                       class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-muted/50 text-[8px] font-bold text-muted-foreground/40 font-mono uppercase"
                     >
-                      Output Size: 512 × 512 PX
+                      {{ t('tools.favicon.outputSize', { width: 512, height: 512 }) }}
                     </div>
                   </div>
                 </div>
@@ -406,9 +406,9 @@ const handleGenerate = async () => {
             <section class="space-y-4">
               <div class="flex items-center gap-2.5 text-muted-foreground/40 pl-1">
                 <LayoutGrid :size="14" />
-                <span class="text-[10px] font-black uppercase tracking-[0.3em]"
-                  >Asset Specification Matrix</span
-                >
+                <span class="text-[10px] font-black uppercase tracking-[0.3em]">{{
+                  t('tools.favicon.matrixTitle')
+                }}</span>
               </div>
               <div
                 class="bg-card border border-border/60 rounded-[2.5rem] p-10 shadow-elevated w-full transition-all hover:border-primary/20"
@@ -436,7 +436,7 @@ const handleGenerate = async () => {
                           spec.id === 'maskable512' &&
                           autoPadding &&
                           backgroundColor === 'transparent'
-                            ? 'var(--background)'
+                            ? 'white'
                             : backgroundColor === 'transparent'
                               ? spec.platform === 'ios'
                                 ? 'white'
@@ -481,7 +481,11 @@ const handleGenerate = async () => {
                       >
                       <span
                         class="text-[7px] font-black text-muted-foreground/20 uppercase tracking-widest leading-none"
-                        >{{ spec.id === 'maskable512' ? 'Maskable' : spec.platform }}</span
+                        >{{
+                          spec.id === 'maskable512'
+                            ? t('tools.favicon.maskableLabel')
+                            : spec.platform
+                        }}</span
                       >
                     </div>
                   </div>
@@ -546,7 +550,17 @@ const handleGenerate = async () => {
                     v-for="spec in specs"
                     :key="spec.id"
                     @click="toggleSpec(spec.id)"
-                    class="flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer group select-none hover:translate-x-0.5"
+                    role="checkbox"
+                    :aria-checked="selectedIds.has(spec.id)"
+                    :aria-label="
+                      spec.id === 'manifest' || spec.id === 'readme'
+                        ? t(`tools.favicon.specs.${spec.id}`)
+                        : spec.size + 'x' + spec.size
+                    "
+                    tabindex="0"
+                    @keydown.enter.prevent="toggleSpec(spec.id)"
+                    @keydown.space.prevent="toggleSpec(spec.id)"
+                    class="flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer group select-none hover:translate-x-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     :class="
                       selectedIds.has(spec.id)
                         ? 'bg-primary/[0.03] border-primary/30 shadow-sm'
@@ -595,7 +609,9 @@ const handleGenerate = async () => {
             >
               <div class="flex items-center gap-2 text-primary">
                 <ShieldCheck :size="14" />
-                <span class="text-[10px] font-black uppercase tracking-widest">Maskable Guide</span>
+                <span class="text-[10px] font-black uppercase tracking-widest">{{
+                  t('tools.favicon.maskableGuideTitle')
+                }}</span>
               </div>
               <p class="text-[9px] text-primary/70 leading-relaxed font-medium">
                 {{ t('tools.favicon.safeZoneGuide') }}

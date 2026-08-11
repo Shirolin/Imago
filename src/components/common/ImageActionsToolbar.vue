@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../../stores/imageStore'
 import { useLayoutStore } from '../../stores/layoutStore'
@@ -24,13 +24,16 @@ const props = withDefaults(
     showResetAll?: boolean
     showDeleteSelected?: boolean
     showClearAll?: boolean
+    /** 是否显示卡片尺寸切换按钮。无卡片网格的视图（如 Combine）传 false 隐藏 */
+    showLayoutToggle?: boolean
   }>(),
   {
     isProcessing: false,
     showDownloadAll: true,
     showResetAll: true,
     showDeleteSelected: true,
-    showClearAll: true
+    showClearAll: true,
+    showLayoutToggle: true
   }
 )
 
@@ -58,6 +61,10 @@ const handleRemoveAction = () => {
 
 const emit = defineEmits(['reset-all'])
 
+// P2-19: 处理中禁用不能只依赖父级 prop（父级默认 isProcessing=false 时，
+// 队列里仍有图片在处理却可继续导出/重置/删除）。内部读取 store.processingCount 兜底，二者取或。
+const isBusy = computed(() => props.isProcessing || store.processingCount > 0)
+
 const handleConfirm = () => {
   if (confirmMode.value === 'clear') {
     store.clearImages()
@@ -79,31 +86,33 @@ const handleConfirm = () => {
   >
     <!-- 1. 视图与导入组 -->
     <div class="flex items-center bg-muted/20 p-0.5 rounded-xl border border-border/20">
-      <!-- 布局切换 -->
-      <button
-        @click="
-          layoutStore.cardSizeMode = layoutStore.cardSizeMode === 'compact' ? 'large' : 'compact'
-        "
-        class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-background hover:shadow-sm text-muted-foreground hover:text-primary transition-all duration-200 active:scale-90 group shrink-0"
-        :aria-label="
-          layoutStore.cardSizeMode === 'compact'
-            ? t('common.image.toolbar.layoutLarge')
-            : t('common.image.toolbar.layoutCompact')
-        "
-        :title="
-          layoutStore.cardSizeMode === 'compact'
-            ? t('common.image.toolbar.layoutLarge')
-            : t('common.image.toolbar.layoutCompact')
-        "
-      >
-        <component
-          :is="layoutStore.cardSizeMode === 'compact' ? LayoutGrid : LayoutList"
-          :size="16"
-          class="transition-colors"
-        />
-      </button>
+      <!-- 布局切换（无卡片网格的视图通过 showLayoutToggle=false 隐藏） -->
+      <template v-if="props.showLayoutToggle">
+        <button
+          @click="
+            layoutStore.cardSizeMode = layoutStore.cardSizeMode === 'compact' ? 'large' : 'compact'
+          "
+          class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-background hover:shadow-sm text-muted-foreground hover:text-primary transition-all duration-200 active:scale-90 group shrink-0"
+          :aria-label="
+            layoutStore.cardSizeMode === 'compact'
+              ? t('common.image.toolbar.layoutLarge')
+              : t('common.image.toolbar.layoutCompact')
+          "
+          :title="
+            layoutStore.cardSizeMode === 'compact'
+              ? t('common.image.toolbar.layoutLarge')
+              : t('common.image.toolbar.layoutCompact')
+          "
+        >
+          <component
+            :is="layoutStore.cardSizeMode === 'compact' ? LayoutGrid : LayoutList"
+            :size="16"
+            class="transition-colors"
+          />
+        </button>
 
-      <div class="w-px h-4 bg-border/40 mx-1"></div>
+        <div class="w-px h-4 bg-border/40 mx-1"></div>
+      </template>
 
       <!-- 导入 -->
       <button
@@ -127,8 +136,8 @@ const handleConfirm = () => {
       v-if="props.showDownloadAll && store.doneCount > 0"
       @click="downloadAllAsZip(viewId)"
       class="flex items-center gap-2 px-4 md:px-5 h-10 rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-[1.02] hover:shadow-primary/30 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 whitespace-nowrap"
-      :class="{ 'opacity-50 cursor-not-allowed grayscale-[0.3]': isProcessing }"
-      :disabled="isProcessing"
+      :class="{ 'opacity-50 cursor-not-allowed grayscale-[0.3]': isBusy }"
+      :disabled="isBusy"
       :aria-label="t('common.image.toolbar.exportAllAria', { count: store.doneCount })"
       :title="t('common.image.toolbar.exportAll')"
     >
@@ -154,7 +163,7 @@ const handleConfirm = () => {
         class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-background hover:shadow-sm text-muted-foreground hover:text-primary transition-all duration-200 active:scale-90 group shrink-0"
         :aria-label="t('common.image.toolbar.resetAllAria')"
         :title="t('common.image.toolbar.resetAll')"
-        :disabled="isProcessing"
+        :disabled="isBusy"
       >
         <RotateCcw
           :size="16"
@@ -180,7 +189,7 @@ const handleConfirm = () => {
             ? t('common.image.toolbar.deleteSelected')
             : t('common.image.toolbar.clearAll')
         "
-        :disabled="isProcessing"
+        :disabled="isBusy"
       >
         <Trash2
           :size="16"

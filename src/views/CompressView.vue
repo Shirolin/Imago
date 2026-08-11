@@ -13,7 +13,7 @@ import ImageCompare from '../components/common/ImageCompare.vue'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppExportSettings from '../components/common/AppExportSettings.vue'
-import { Play, Info, ArrowRight, Download } from 'lucide-vue-next'
+import { Play, Info, ArrowRight, Download, Loader2 } from 'lucide-vue-next'
 import { dualEngine } from '../lib/engines/index'
 import type { CompressionOptions } from '../lib/engines/compressEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
@@ -99,6 +99,16 @@ watch(outputFormat, (fmt) => {
 
 const { isProcessing, processSelected, abortProcessing } = useImageProcessor(dualEngine)
 
+// P2-15：GIF 会被引擎转为静态图（取首帧），选中 GIF 时提示
+const hasGifSelected = computed(() =>
+  store.images.some((img) => store.selectedIds.has(img.id) && img.file.type === 'image/gif')
+)
+
+// P2-17：quality 模式未设分辨率上限时引擎默认按 4096px 长边约束，显示提示
+const showDefaultLimitHint = computed(
+  () => compressionMode.value === 'quality' && !maxWidth.value && !maxHeight.value
+)
+
 const displayImages = computed(() => [...store.images].reverse())
 
 const handleCompare = (id: string) => {
@@ -153,7 +163,8 @@ watch(
 )
 
 const ctaState = computed(() => {
-  if (store.selectedCount === 0)
+  // P2-13：区分「无图片」与「有图片但未选中」——无图提示导入，未选中提示选择
+  if (store.images.length === 0)
     return {
       text: t('tools.compress.cta.select'),
       progress: '',
@@ -162,17 +173,27 @@ const ctaState = computed(() => {
       disabled: true
     }
 
+  if (store.selectedCount === 0)
+    return {
+      text: t('tools.compress.cta.selectImage'),
+      progress: '',
+      icon: Play,
+      action: 'none',
+      disabled: true
+    }
+
+  // P2-9：处理中 CTA 可点击中止（参考 SplitView：action:'abort'、禁用解除、Loader2 图标）
   if (isProcessing.value) {
     const total = store.selectedCount
     const processed = store.images.filter(
       (img) => store.selectedIds.has(img.id) && img.status === 'done'
     ).length
     return {
-      text: t('tools.compress.cta.rendering'),
+      text: `${t('tools.compress.cta.rendering')} ${t('tools.compress.cta.clickToAbort')}`,
       progress: `(${processed}/${total})`,
-      icon: Play,
-      action: 'none',
-      disabled: true
+      icon: Loader2,
+      action: 'abort',
+      disabled: false
     }
   }
 
@@ -210,6 +231,11 @@ const ctaState = computed(() => {
 const handleCtaClick = async () => {
   const state = ctaState.value
   if (state.action === 'none') return
+
+  if (state.action === 'abort') {
+    abortProcessing()
+    return
+  }
 
   if (state.action === 'download') {
     const zipResults = store.images
@@ -313,9 +339,11 @@ const handleCtaClick = async () => {
                     <span
                       class="font-black uppercase text-muted-foreground tracking-widest text-[0.55rem] md:text-[0.6rem]"
                       >{{ t('tools.compress.original') }}</span
-                    ><span class="font-bold text-foreground text-[0.65rem] md:text-[0.75rem]">{{
-                      formatSize(image.originalSize)
-                    }}</span>
+                    >
+                    <span
+                      class="font-bold text-foreground text-[0.65rem] md:text-[0.75rem] tabular-nums"
+                      >{{ formatSize(image.originalSize) }}</span
+                    >
                   </div>
                   <ArrowRight :size="12" class="text-muted-foreground shrink-0" />
                   <div class="flex-1 flex flex-col gap-0.5">
@@ -323,7 +351,7 @@ const handleCtaClick = async () => {
                       class="font-black uppercase text-muted-foreground tracking-widest text-[0.55rem] md:text-[0.6rem]"
                       >{{ t('tools.compress.compressed') }}</span
                     ><span
-                      class="font-bold text-[0.65rem] md:text-[0.75rem]"
+                      class="font-bold text-[0.65rem] md:text-[0.75rem] tabular-nums"
                       :class="
                         image.status === 'done' && results.get(image.id)?.skipped
                           ? 'text-muted-foreground'
@@ -370,6 +398,16 @@ const handleCtaClick = async () => {
 
         <section class="pt-2">
           <div
+            v-if="hasGifSelected"
+            class="p-4 bg-warning/5 border border-warning/20 rounded-2xl flex gap-3 mb-2"
+            role="status"
+          >
+            <Info :size="16" class="text-warning shrink-0 mt-0.5" />
+            <p class="text-[0.65rem] text-warning/80 leading-relaxed">
+              {{ t('tools.compress.gifHint') }}
+            </p>
+          </div>
+          <div
             class="p-4 bg-muted/40 border border-dashed border-primary/30 rounded-2xl flex gap-3 transition-colors hover:bg-muted/60"
           >
             <Info :size="16" class="text-primary shrink-0 mt-0.5" />
@@ -377,6 +415,12 @@ const handleCtaClick = async () => {
               {{ t('tools.compress.infoTip') }}
             </p>
           </div>
+          <p
+            v-if="showDefaultLimitHint"
+            class="text-[0.6rem] text-muted-foreground/70 mt-2 px-1 leading-relaxed tabular-nums"
+          >
+            {{ t('tools.compress.maxDimensionHint', { limit: 4096 }) }}
+          </p>
         </section>
       </template>
 
@@ -386,12 +430,12 @@ const handleCtaClick = async () => {
             size="lg"
             :variant="ctaState.action === 'download' ? 'success' : 'cta'"
             class="w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden"
-            :loading="isProcessing"
             :disabled="ctaState.disabled"
             @click="handleCtaClick"
           >
             <template #icon>
-              <component :is="ctaState.icon" v-if="!isProcessing" :size="18" class="mr-2" />
+              <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
+              <component :is="ctaState.icon" v-else :size="18" class="mr-2" />
             </template>
             <div class="flex items-center justify-center gap-1.5 font-bold text-sm tracking-tight">
               <span>{{ ctaState.text }}</span>

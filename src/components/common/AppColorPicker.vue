@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Pipette } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
 
 interface Props {
   modelValue: string // 格式如 '#ffffff' 或 'transparent'
@@ -13,6 +14,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits(['update:modelValue'])
+const { t } = useI18n()
 
 const isTransparent = computed(() => props.modelValue === 'transparent')
 
@@ -58,7 +60,8 @@ const isColorLight = computed(() => getBrightness(props.modelValue) > 180)
             ? 'border-primary ring-2 ring-primary/10'
             : 'border-border grayscale opacity-60'
         "
-        title="透明背景"
+        :title="t('common.colorPicker.transparent')"
+        :aria-label="t('common.colorPicker.transparent')"
       >
         <div class="absolute inset-0 app-transparency-grid-sm"></div>
       </button>
@@ -72,7 +75,8 @@ const isColorLight = computed(() => getBrightness(props.modelValue) > 180)
             ? 'border-primary shadow-[0_0_12px_hsla(var(--primary),0.3)]'
             : 'border-border'
         "
-        title="纯白填充"
+        :title="t('common.colorPicker.white')"
+        :aria-label="t('common.colorPicker.white')"
       ></button>
 
       <!-- 纯黑 -->
@@ -84,7 +88,8 @@ const isColorLight = computed(() => getBrightness(props.modelValue) > 180)
             ? 'border-primary shadow-[0_0_12px_hsla(var(--primary),0.3)]'
             : 'border-border'
         "
-        title="纯黑填充"
+        :title="t('common.colorPicker.black')"
+        :aria-label="t('common.colorPicker.black')"
       ></button>
 
       <!-- 颜色拾取器 -->
@@ -92,6 +97,7 @@ const isColorLight = computed(() => getBrightness(props.modelValue) > 180)
         <input
           type="color"
           v-model="pickerValue"
+          :aria-label="label || t('common.colorPicker.picker')"
           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
         />
         <div

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useImageStore, type ImageItem } from '../../stores/imageStore'
+import { useEventListener } from '@vueuse/core'
+import { useI18n } from 'vue-i18n'
 import {
   SortAsc,
   Clock,
@@ -13,6 +15,7 @@ import {
 } from 'lucide-vue-next'
 
 const store = useImageStore()
+const { t } = useI18n()
 
 const scrollContainer = ref<HTMLDivElement | null>(null)
 const canScrollLeft = ref(false)
@@ -67,6 +70,10 @@ const handleWheel = (e: WheelEvent) => {
   }
 }
 
+// P2-15: Vue 模板 @wheel 默认以 passive 方式监听，preventDefault() 会被静默忽略；
+// 改用 useEventListener 显式声明 { passive: false }，横向托盘才能劫持垂直滚轮。
+useEventListener(scrollContainer, 'wheel', handleWheel, { passive: false })
+
 const handleSortChange = () => {
   const modes = ['upload', 'name', 'status'] as const
   const currentIndex = modes.indexOf(store.sortMode)
@@ -76,9 +83,9 @@ const handleSortChange = () => {
 
 // 保持排序标题
 const sortTitle = computed(() => {
-  if (store.sortMode === 'upload') return '当前排序: 导入时间 (点击切换)'
-  if (store.sortMode === 'name') return '当前排序: 文件名称 (点击切换)'
-  return '当前排序: 处理状态 (点击切换)'
+  const modeKey =
+    store.sortMode === 'name' ? 'Name' : store.sortMode === 'status' ? 'Status' : 'Upload'
+  return t('common.tray.sortTitle', { mode: t(`common.tray.sort${modeKey}`) })
 })
 
 const getStatusIcon = (status: ImageItem['status']) => {
@@ -114,8 +121,13 @@ const navigate = (direction: 'prev' | 'next') => {
 }
 
 const handleGlobalKeyDown = (e: KeyboardEvent) => {
-  const isInput = ['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)
-  if (isInput) return
+  // P2-15: 仅当焦点不在输入控件时才劫持方向键。除 input/textarea 外，
+  // contentEditable（如在线编辑的文件名）同样不能拦截。
+  const target = e.target as HTMLElement | null
+  const isEditable =
+    target instanceof HTMLElement &&
+    (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+  if (isEditable) return
 
   if (e.key === 'ArrowLeft') {
     e.preventDefault()
@@ -195,6 +207,7 @@ const onDragEnd = () => {
           @click="handleSortChange"
           @dblclick.stop
           :title="sortTitle"
+          :aria-label="sortTitle"
           class="p-1.5 rounded-md text-muted-foreground/80 hover:text-primary hover:bg-primary/5 transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           <Clock v-if="store.sortMode === 'upload'" :size="12" />
@@ -209,7 +222,8 @@ const onDragEnd = () => {
             @click="navigate('prev')"
             @dblclick.stop
             class="p-1 hover:bg-background rounded-md transition-colors text-muted-foreground hover:text-primary active:scale-90"
-            title="上一个 (←)"
+            :title="t('common.tray.prev')"
+            :aria-label="t('common.tray.prev')"
           >
             <ChevronLeft :size="13" />
           </button>
@@ -218,7 +232,8 @@ const onDragEnd = () => {
             @click="navigate('next')"
             @dblclick.stop
             class="p-1 hover:bg-background rounded-md transition-colors text-muted-foreground hover:text-primary active:scale-90"
-            title="下一个 (→)"
+            :title="t('common.tray.next')"
+            :aria-label="t('common.tray.next')"
           >
             <ChevronRight :size="13" />
           </button>
@@ -226,9 +241,9 @@ const onDragEnd = () => {
       </div>
 
       <div class="flex items-center gap-2 mr-1">
-        <span class="text-[0.7rem] font-black text-muted-foreground/70 uppercase tracking-widest"
-          >Items</span
-        >
+        <span class="text-[0.7rem] font-black text-muted-foreground/70 uppercase tracking-widest">{{
+          t('common.tray.items')
+        }}</span>
         <span class="text-xs font-mono font-bold text-primary">{{ store.images.length }}</span>
       </div>
     </div>
@@ -239,8 +254,11 @@ const onDragEnd = () => {
       <div class="sr-only" aria-live="polite" aria-atomic="true">
         {{
           store.activeId
-            ? `当前选中第 ${store.sortedImages.findIndex((i) => i.id === store.activeId) + 1} 张图片，共 ${store.images.length} 张`
-            : '未选中图片'
+            ? t('common.tray.srSelected', {
+                index: store.sortedImages.findIndex((i) => i.id === store.activeId) + 1,
+                count: store.images.length
+              })
+            : t('common.tray.srNone')
         }}
       </div>
       <button
@@ -255,7 +273,6 @@ const onDragEnd = () => {
       <div
         ref="scrollContainer"
         @scroll="checkScroll"
-        @wheel="handleWheel"
         class="flex-1 h-full overflow-x-auto overflow-y-hidden custom-scrollbar-hidden flex items-center gap-3 px-6 py-2 scroll-smooth min-w-0"
       >
         <div
@@ -301,7 +318,7 @@ const onDragEnd = () => {
               class="absolute top-0 left-0 w-7 h-7 flex items-center justify-center z-20 cursor-pointer group/check hover:bg-muted rounded-br-lg transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:z-30"
               role="checkbox"
               :aria-checked="store.selectedIds.has(img.id)"
-              :aria-label="`选择图片 ${img.file.name}`"
+              :aria-label="t('common.tray.selectImage', { name: img.file.name })"
             >
               <div
                 class="w-4 h-4 rounded-md border flex items-center justify-center transition-all shadow-sm group-hover/check:scale-110 group-hover/check:border-primary"

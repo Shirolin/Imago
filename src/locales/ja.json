@@ -37,6 +37,7 @@
         "split": "_分割済み"
       },
       "targetSize": "目標サイズ",
+      "colorsUnit": "色数",
       "targetSizeMode": "サイズ指定导出",
       "title": "書き出し設定",
       "width": "幅"
@@ -75,7 +76,12 @@
         "tip": "ホイールでズーム • ドラッグで移動",
         "title": "詳細比較",
         "zoomIn": "拡大",
-        "zoomOut": "縮小"
+        "zoomOut": "縮小",
+        "resetView": "表示をリセット",
+        "shortcuts": "ショートカット",
+        "wheelHint": "ホイール",
+        "dragHint": "ドラッグ",
+        "panHint": "移動"
       },
       "selection": {
         "allSelected": "すべて選択済み",
@@ -116,6 +122,7 @@
       "upload": {
         "button": "ファイルを選択",
         "dropTip": "離して処理を開始",
+        "dropToImago": "Imago にドロップ",
         "errorSize": "画像 [{name}] のサイズが大きすぎます ({size} MB)。最大 50 MB まで推奨します。",
         "pureOffline": "100% オフライン",
         "quickPaste": "クイック貼り付け",
@@ -143,6 +150,7 @@
         "downloadDesc1": "この機能には高性能 SAM-2 モデル (约 12 MB) のダウンロードが必要です。",
         "downloadDesc2": "ダウンロード後は完全にローカルで実行され、プライバシーが保护されます。",
         "downloadTitle": "対話型 AI 背景削除を有効化",
+        "downloadSize": "45MB",
         "error": "エンジンエラー",
         "featuresAria": "モデル特性リスト",
         "gpuAccel": "GPU アクセラレーション",
@@ -192,9 +200,50 @@
     "ui": {
       "clickToEdit": "クリックして数値を直接編集",
       "resetToDefault": "デフォルトに戻す",
-      "select": "選択してください"
+      "select": "選択してください",
+      "decrease": "減らす",
+      "increase": "増やす",
+      "close": "閉じる",
+      "fitScreen": "画面に合わせる",
+      "zoomIn": "拡大",
+      "zoomOut": "縮小",
+      "resetView": "表示をリセット",
+      "oneToOne": "等倍表示"
     },
-    "workspace": "ワークスペース"
+    "canvas": {
+      "workspaceAria": "画像ワークスペース",
+      "dragHint": "画像をドラッグ"
+    },
+    "colorPicker": {
+      "transparent": "透明背景",
+      "picker": "カラーピッカー",
+      "white": "無地の白で塗りつぶし",
+      "black": "無地の黒で塗りつぶし"
+    },
+    "workspace": "ワークスペース",
+    "tray": {
+      "sortTitle": "並び順: {mode}（クリックで変更）",
+      "sortUpload": "インポート時刻",
+      "sortName": "ファイル名",
+      "sortStatus": "処理状態",
+      "prev": "前へ",
+      "next": "次へ",
+      "selectImage": "画像 {name} を選択",
+      "items": "項目",
+      "srSelected": "選択中: {index} / {count} 枚",
+      "srNone": "画像が選択されていません"
+    },
+    "layout": {
+      "toggleInspector": "プロパティパネルの切り替え",
+      "expandPanel": "パネルを展開",
+      "collapsePanel": "パネルを折りたたむ",
+      "closePanel": "パネルを閉じる",
+      "showAssets": "アセットを表示"
+    },
+    "inspector": {
+      "drawer": "インスペクターパネル（ドロワー）",
+      "sidebar": "インスペクターサイドバー"
+    }
   },
   "nav": {
     "allTools": "すべてのツール",
@@ -205,6 +254,7 @@
       "creative": "クリエイティブツール",
       "edit": "編集ツール"
     },
+    "language": "言語",
     "sponsor": "サポートとコミュニティ",
     "toggleMobile": "モバイルメニューを切り替える"
   },
@@ -222,6 +272,10 @@
         "select": "画像を選択してください"
       },
       "currentModel": "现在ロード中のモデル",
+      "modelFull": "ISNet (176MB フル)",
+      "modelQuant": "ISNet (40MB 量子化)",
+      "corePremium": "プレミアムコア",
+      "coreLite": "ライトコア",
       "deleteModel": "モデルを削除",
       "desc": "ローカル AI 技術による全自動背景削除",
       "disableScaling": "プレスケールを无効化 (高画質)",
@@ -294,7 +348,7 @@
       "borderRadius": "画像の角丸",
       "canvas": {
         "ariaLabel": "結合プレビューキャンバス",
-        "instructions": "画像をドラッグして結合順序を调整できます",
+        "instructions": "トレイの矢印ボタンまたは ←/→ キーで結合順序を調整します",
         "itemAria": "第 {index} 枚目の画像: {name}",
         "moveNext": "後ろに移動",
         "movePrev": "前に移動",
@@ -327,6 +381,7 @@
       },
       "name": "長尺画像結合",
       "order": "并び顺",
+      "originalFormatHint": "「元の形式を保持」は結合時、常に PNG（アルファ対応）で出力されます",
       "originalSize": "オリジナルサイズ",
       "padding": "キャンバス余白",
       "params": "间隔设定",
@@ -340,14 +395,18 @@
       "compareTitle": "圧縮変換の詳細比较",
       "compressed": "圧縮後",
       "cta": {
+        "clickToAbort": "(クリックで中止)",
         "exportResults": "成果をエクスポート",
         "rendering": "レンダリング中...",
         "select": "画像を選択してください",
+        "selectImage": "圧縮する画像を選択してください",
         "startCompress": "圧縮を開始",
         "updateCompress": "圧縮を更新"
       },
       "desc": "WebP / AVIF 形式などの極限圧縮と相互変換",
+      "gifHint": "GIF画像は先頭フレームで静止画に変換されます",
       "infoTip": "先进的な Web 圧縮アルゴリズムを使用して、視覚的な品質を維持しながらファイルサイズを大幅に削减します。",
+      "maxDimensionHint": "サイズ上限未設定時は長辺 {limit}px に制限されます",
       "name": "圧縮・変換",
       "original": "オリジナル画像",
       "settingsTitle": "圧縮设定",
@@ -365,6 +424,7 @@
       },
       "desc": "自由な切り抜きまたは固定比率调整",
       "doubleClickReset": "ダブルクリックでビューをリセット",
+      "magnetic": "マグネットスナップ",
       "edgeTrim": "エッジトリミング",
       "empty": {
         "desc": "画像をインポートして精密切り抜きを開始",
@@ -397,6 +457,7 @@
       "title": "画像の切り抜きと固定比率変換",
       "trimBottom": "下",
       "trimLeft": "左",
+      "trimLimitHint": "トリム値は 0–{limit}px に制限されました",
       "trimRight": "右",
       "trimTop": "上",
       "trimWarning": "トリミングを行うと、枠外の内容が完全に削除されます。",
@@ -407,6 +468,7 @@
       "allTags": "完全な EXIF タグリスト",
       "analyzing": "メタデータを詳細解析中...",
       "checking": "安全スキャン中...",
+      "checkingCaption": "確認中: {name}",
       "cta": {
         "export": "削除済み画像をエクスポート ({count})",
         "process": "一括削除 ({count})",
@@ -440,7 +502,10 @@
       "unsupportedTip": "この形式は未対応か、読み取り可能なメタデータが含まれていません。"
     },
     "favicon": {
+      "adaptiveSimulator": "アダプティブシミュレーター",
       "appearance": "外観设定",
+      "appleIosNative": "Apple iOS ネイティブ",
+      "appleTouchTitle": "Apple Touch アイコン",
       "bgFill": "统一背景色",
       "bgFillDesc": "元のアイコンに透明な領域がある場合、统一された背景色を設定できます。",
       "cta": "一式エクスポート (共 {count} 個)",
@@ -449,15 +514,23 @@
       "disableSafeZone": "セーフゾーンを无効化",
       "enableSafeZone": "セーフゾーンを有効化",
       "exportControl": "エクスポート设定",
+      "fullAssetPreview": "完全アセットプレビュー",
+      "maskSimulation": "システムマスクシミュレーション ({shape})",
+      "maskableGuideTitle": "Maskable ガイド",
+      "maskableLabel": "Maskable",
+      "matrixTitle": "アセット仕様マトリクス",
       "mockup": "环境シミュレーション",
       "name": "ファビコン生成",
       "newTab": "ブラウザタブのプレビュー",
+      "outputSize": "出力サイズ: {width} × {height} PX",
       "rotateShape": "形状を切り替え",
       "safeZone": "セーフゾーン",
       "safeZoneAria": "セーフゾーンインジケーター",
       "safeZoneGuide": "Android では、内容を中央 80% 領域内に収めることが推奨されています。残りの領域は背景として切り抜きに対応します。",
       "safeZoneTipOff": "エッジの内容がプラットフォームによって切り取られる可能性があります。",
       "safeZoneTipOn": "プラットフォーム互换性のため、80% セーフゾーンを適用しました。",
+      "shapeLabel": "形状:",
+      "sizeLabel": "{width} × {height} PX",
       "specPreviewAria": "{name} 仕様プレビュー",
       "specs": {
         "android192": "Android 192x192",

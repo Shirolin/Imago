@@ -382,6 +382,21 @@ const handlePxInputChange = (key: 'x' | 'y' | 'w' | 'h', val: number | string) =
   pxCoords.value = newCoords
 }
 
+// P2-6：trim 输入超界（>100 或 <0）时钳制到有效范围并给出可见提示，
+// 避免引擎收到超界值静默产出 1px 垃圾结果（cropEngine 仅兜底 clamp 到 ≥1）
+const trimWarning = ref('')
+let trimWarningTimer: ReturnType<typeof setTimeout> | undefined
+const handleTrimChange = (dir: keyof typeof trimPx.value, val: number | string) => {
+  const raw = val === '' || val == null ? 0 : typeof val === 'number' ? val : Number(val)
+  const clamped = Number.isFinite(raw) ? Math.min(100, Math.max(0, Math.round(raw))) : 0
+  if (!Number.isFinite(raw) || raw > 100 || raw < 0) {
+    trimWarning.value = t('tools.crop.trimLimitHint', { limit: 100 })
+    if (trimWarningTimer) clearTimeout(trimWarningTimer)
+    trimWarningTimer = setTimeout(() => (trimWarning.value = ''), 2600)
+  }
+  trimPx.value = { ...trimPx.value, [dir]: clamped }
+}
+
 const onCropChange = (data: {
   x: number
   y: number
@@ -390,14 +405,24 @@ const onCropChange = (data: {
   isDragging: boolean
   isSnapping: boolean
 }) => {
-  // 核心优化：仅在拖拽开始和结束时记录
-  if (data.isDragging && !isDragging.value) {
-    recordImmediate() // 记录动作前的原始状态
-  } else if (!data.isDragging && isDragging.value) {
+  // P2-2：拖拽开始已在 pointerdown（dragStart）时提前记录快照，
+  // 这里仅在拖拽结束事件上报最终状态时提交一次历史
+  if (!data.isDragging && isDragging.value) {
     recordImmediate() // 记录动作后的最终状态
   }
   isDragging.value = data.isDragging
   isSnapping.value = data.isSnapping
+}
+
+// P2-2：pointerdown 即记录拖拽前的原始状态（早于任何位移）
+const handleDragStart = () => {
+  recordImmediate()
+}
+
+// P2-1：双击重置走历史记录，可撤销
+const handleCropBoxReset = () => {
+  recordImmediate()
+  internalCrop.value = { x: 0, y: 0, w: 100, h: 100 }
 }
 
 useResizeObserver(containerRef, resetView)
@@ -455,7 +480,10 @@ const handleKeyDown = (e: KeyboardEvent) => {
 }
 
 onMounted(() => window.addEventListener('keydown', handleKeyDown))
-onUnmounted(() => window.removeEventListener('keydown', handleKeyDown))
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown)
+  if (trimWarningTimer) clearTimeout(trimWarningTimer)
+})
 
 // 【核心优化】：图片切换时强制重置所有参数，确保状态隔离。
 // 切换/进入视图属于隐式操作，直接复位不弹确认框（弹窗仅保留用户主动点击“重置”）。
@@ -604,6 +632,9 @@ const ratios = computed(() => [
               :flip-v="flipV"
               :is-hand-mode="workspaceRef?.isHandMode"
               @change="onCropChange"
+              @drag-start="handleDragStart"
+              @drag-end="recordImmediate"
+              @reset="handleCropBoxReset"
             />
           </div>
         </template>
@@ -763,7 +794,7 @@ const ratios = computed(() => [
                 class="h-10 text-xs font-mono transition-all"
                 :class="[
                   pxCoords.x < 0 || pxCoords.x + pxCoords.w > rotDims.w
-                    ? 'border-amber-500/40 bg-amber-500/[0.02] ring-1 ring-amber-500/10'
+                    ? 'border-warning/40 bg-warning/[0.02] ring-1 ring-warning/10'
                     : 'bg-background/50'
                 ]"
               />
@@ -782,7 +813,7 @@ const ratios = computed(() => [
                 class="h-10 text-xs font-mono transition-all"
                 :class="[
                   pxCoords.y < 0 || pxCoords.y + pxCoords.h > rotDims.h
-                    ? 'border-amber-500/40 bg-amber-500/[0.02] ring-1 ring-amber-500/10'
+                    ? 'border-warning/40 bg-warning/[0.02] ring-1 ring-warning/10'
                     : 'bg-background/50'
                 ]"
               />
@@ -807,7 +838,7 @@ const ratios = computed(() => [
                       ? 'border-primary/40 bg-primary/[0.03] ring-1 ring-primary/10'
                       : 'border-border bg-background/50',
                     pxCoords.w < 1 || pxCoords.x + pxCoords.w > rotDims.w
-                      ? 'border-amber-500/40 ring-1 ring-amber-500/10'
+                      ? 'border-warning/40 ring-1 ring-warning/10'
                       : ''
                   ]"
                 />
@@ -846,7 +877,7 @@ const ratios = computed(() => [
                       ? 'border-primary/40 bg-primary/[0.03] ring-1 ring-primary/10'
                       : 'border-border bg-background/50',
                     pxCoords.h < 1 || pxCoords.y + pxCoords.h > rotDims.h
-                      ? 'border-amber-500/40 ring-1 ring-amber-500/10'
+                      ? 'border-warning/40 ring-1 ring-warning/10'
                       : ''
                   ]"
                 />
@@ -868,16 +899,16 @@ const ratios = computed(() => [
       <section class="space-y-4 pt-6 border-t border-border/40">
         <div class="flex items-center justify-between pr-1">
           <AppSectionHeader :title="t('tools.crop.edgeTrim')" :icon="Settings2" />
-          <div class="text-[9px] text-amber-500 font-black uppercase tracking-widest italic">
+          <div class="text-[9px] text-warning font-black uppercase tracking-widest italic">
             Post-Process
           </div>
         </div>
-        <div class="bg-amber-500/5 rounded-2xl p-4 border border-amber-500/20 space-y-4">
-          <div class="flex gap-3 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20">
-            <div class="shrink-0 text-amber-500 mt-0.5">
+        <div class="bg-warning/5 rounded-2xl p-4 border border-warning/20 space-y-4">
+          <div class="flex gap-3 bg-warning/10 p-3 rounded-xl border border-warning/20">
+            <div class="shrink-0 text-warning mt-0.5">
               <Settings2 :size="14" />
             </div>
-            <p class="text-[10px] text-amber-700/80 leading-relaxed font-medium">
+            <p class="text-[10px] text-warning/80 leading-relaxed font-medium">
               {{ t('tools.crop.trimWarning') }}
             </p>
           </div>
@@ -889,12 +920,22 @@ const ratios = computed(() => [
               }}</label>
               <AppInput
                 type="number"
-                v-model.number="trimPx[dir as keyof typeof trimPx]"
+                :model-value="trimPx[dir as keyof typeof trimPx]"
+                @update:model-value="handleTrimChange(dir as keyof typeof trimPx, $event)"
                 :min="0"
                 :max="100"
-                class="bg-background/50 border-border/60 focus:border-amber-500/50"
+                class="bg-background/50 border-border/60 focus:border-warning/50"
               />
             </div>
+          </div>
+          <!-- P2-6：trim 超界钳制提示 -->
+          <div
+            v-if="trimWarning"
+            class="flex items-start gap-2 text-[10px] font-bold text-warning animate-in fade-in"
+            role="status"
+          >
+            <AlertCircle :size="12" class="shrink-0 mt-0.5" />
+            <span>{{ trimWarning }}</span>
           </div>
         </div>
       </section>

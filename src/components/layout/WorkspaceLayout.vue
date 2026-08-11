@@ -53,7 +53,7 @@ onMounted(() => {
           v-if="showSidebar"
           @click="layoutStore.toggleInspector"
           class="hidden lg:flex p-2 hover:bg-muted rounded-lg transition-all text-muted-foreground/60 hover:text-primary active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[40px] min-w-[40px] items-center justify-center"
-          aria-label="Toggle Inspector Panel"
+          :aria-label="t('common.layout.toggleInspector')"
           :aria-expanded="!layoutStore.isInspectorCollapsed"
         >
           <PanelRightOpen v-if="layoutStore.isInspectorCollapsed" :size="18" />
@@ -64,7 +64,7 @@ onMounted(() => {
           v-if="showSidebar && !isDesktop"
           @click="layoutStore.toggleInspector"
           class="flex lg:hidden p-2 hover:bg-muted rounded-lg transition-all text-muted-foreground/60 hover:text-primary min-h-[40px] min-w-[40px] items-center justify-center"
-          aria-label="Toggle Inspector Panel"
+          :aria-label="t('common.layout.toggleInspector')"
           :aria-expanded="!layoutStore.isInspectorCollapsed"
         >
           <PanelRightOpen v-if="layoutStore.isInspectorCollapsed" :size="18" />
@@ -160,7 +160,7 @@ onMounted(() => {
             />
             <span
               class="text-[0.65rem] font-bold text-muted-foreground/40 group-hover:text-primary/60 uppercase tracking-[0.2em] transition-colors"
-              >Show Assets</span
+              >{{ t('common.layout.showAssets') }}</span
             >
           </div>
           <div class="flex-1 flex justify-end">
@@ -179,7 +179,7 @@ onMounted(() => {
         id="inspector-panel"
         class="bg-card/70 backdrop-blur-2xl border-border/40 transition-all duration-500 ease-apple z-[200] lg:static shadow-2xl-up lg:shadow-none"
         role="complementary"
-        :aria-label="isCompact ? '设置面板抽屉' : '设置侧边栏'"
+        :aria-label="isCompact ? t('common.inspector.drawer') : t('common.inspector.sidebar')"
         :class="[
           // XS: 底部抽屉
           isCompact
@@ -212,7 +212,11 @@ onMounted(() => {
             @click="layoutStore.toggleInspector"
             class="flex flex-col items-center justify-center h-11 shrink-0 cursor-pointer touch-none group bg-card border-b border-border/10"
             role="button"
-            :aria-label="layoutStore.isInspectorCollapsed ? '展开面板' : '折叠面板'"
+            :aria-label="
+              layoutStore.isInspectorCollapsed
+                ? t('common.layout.expandPanel')
+                : t('common.layout.collapsePanel')
+            "
           >
             <div
               class="w-12 h-1.5 bg-muted-foreground/20 rounded-full transition-all group-hover:bg-muted-foreground/40"
@@ -238,7 +242,7 @@ onMounted(() => {
             <button
               @click="layoutStore.toggleInspector"
               class="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground/40 hover:text-primary"
-              aria-label="关闭面板"
+              :aria-label="t('common.layout.closePanel')"
             >
               <PanelRightClose :size="18" />
             </button>

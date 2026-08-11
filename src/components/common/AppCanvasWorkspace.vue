@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import AppCanvasControls from './AppCanvasControls.vue'
 import { useCanvasView } from '../../composables/useCanvasView'
 import { useBreakpoints } from '../../composables/useBreakpoints'
+import { useI18n } from 'vue-i18n'
 
 interface Props {
   transformDuration?: string
@@ -25,7 +26,10 @@ const emit = defineEmits<{
 const containerRef = ref<HTMLDivElement | null>(null)
 
 const isHovered = ref(false)
+// P2-1: 无动画自动适配时的瞬时标记（临时禁用 CSS 过渡）
+const isInstant = ref(false)
 const { isCompact } = useBreakpoints()
+const { t } = useI18n()
 
 const {
   scale,
@@ -63,10 +67,15 @@ const onPointerUp = (e: PointerEvent) => {
 const triggerAutoFit = (contentW: number, contentH: number, padding = 80, useAnimation = true) => {
   const newScale = getAutoFitScale(contentW, contentH, padding)
 
-  // 核心修复：如果是超大图切换，瞬间归零 offset 且可以禁用动画防止偏移
   if (!useAnimation) {
+    // P2-1: 无动画分支——切换超大图时瞬间归零 offset，跳过 CSS 过渡防止视觉漂移。
+    // 通过 isInstant 临时挂上 transition-none，确保 transformDuration 过渡不生效。
+    isInstant.value = true
     scale.value = newScale
     offset.value = { x: 0, y: 0 }
+    nextTick(() => {
+      isInstant.value = false
+    })
   } else {
     scale.value = newScale
     offset.value = { x: 0, y: 0 }
@@ -93,7 +102,7 @@ defineExpose({
       ref="containerRef"
       class="flex-1 bg-muted/20 border border-border/60 rounded-3xl overflow-hidden relative w-full group select-none touch-none transition-all duration-300"
       role="application"
-      :aria-label="($attrs['aria-label'] as string) || '图片工作区'"
+      :aria-label="($attrs['aria-label'] as string) || t('common.canvas.workspaceAria')"
       :aria-describedby="$attrs['aria-describedby'] as string"
       :class="[
         isPanning ? 'cursor-grabbing-forced' : isHandMode ? 'cursor-grab-forced' : 'cursor-default',
@@ -111,7 +120,7 @@ defineExpose({
       <!-- 核心修复：零尺寸锚点系统 -->
       <div
         class="absolute top-1/2 left-1/2 w-0 h-0 flex items-center justify-center pointer-events-none will-change-transform isolate"
-        :class="[isPanning ? 'transition-none' : transformDuration]"
+        :class="[isPanning || isInstant ? 'transition-none' : transformDuration]"
         :style="{
           transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale})`
         }"
@@ -171,7 +180,7 @@ defineExpose({
             <div class="w-px h-4 bg-border/40"></div>
             <span
               class="text-[10px] md:text-xs text-foreground/60 font-black tracking-widest uppercase"
-              >拖动图片</span
+              >{{ t('common.canvas.dragHint') }}</span
             >
           </div>
         </div>

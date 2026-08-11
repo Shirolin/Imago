@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Plus, Minus } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 interface Props {
   id?: string
@@ -102,7 +105,9 @@ const handleDecrement = () => {
           type="button"
           :disabled="isAtMin"
           class="w-6 h-7 flex items-center justify-center rounded-lg hover:bg-primary/10 text-muted-foreground/60 hover:text-primary active:scale-90 transition-all outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:opacity-30 disabled:cursor-not-allowed"
-          :aria-label="ariaLabel || undefined"
+          :aria-label="
+            ariaLabel ? `${ariaLabel} ${t('common.ui.decrease')}` : t('common.ui.decrease')
+          "
         >
           <Minus :size="14" />
         </button>
@@ -112,7 +117,9 @@ const handleDecrement = () => {
           type="button"
           :disabled="isAtMax"
           class="w-6 h-7 flex items-center justify-center rounded-lg hover:bg-primary/10 text-muted-foreground/60 hover:text-primary active:scale-90 transition-all outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:opacity-30 disabled:cursor-not-allowed"
-          :aria-label="ariaLabel || undefined"
+          :aria-label="
+            ariaLabel ? `${ariaLabel} ${t('common.ui.increase')}` : t('common.ui.increase')
+          "
         >
           <Plus :size="14" />
         </button>

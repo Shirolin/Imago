@@ -1,20 +1,28 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 
+// P2-17: localStorage 脏值防护。布尔值统一走 readBool（仅字面量 'true' 为真），
+// 任何第三方写入的脏字符串（如 '1'、'yes'、'false '）都不会被误解析。
+const readBool = (key: string) => localStorage.getItem(key) === 'true'
+
+// 卡片尺寸仅接受 'compact' | 'large'，其余脏值一律回退默认 'large'
+const readCardSizeMode = (): 'compact' | 'large' => {
+  const raw = localStorage.getItem('imago-card-size-mode')
+  return raw === 'compact' ? 'compact' : 'large'
+}
+
 export const useLayoutStore = defineStore('layout', () => {
   // 侧边栏菜单状态
-  const isMenuCollapsed = ref(localStorage.getItem('imago-menu-collapsed') === 'true')
+  const isMenuCollapsed = ref(readBool('imago-menu-collapsed'))
 
   // 右侧属性面板状态
-  const isInspectorCollapsed = ref(localStorage.getItem('imago-inspector-collapsed') === 'true')
+  const isInspectorCollapsed = ref(readBool('imago-inspector-collapsed'))
 
   // 底部资源托盘折叠状态
-  const isAssetsTrayCollapsed = ref(localStorage.getItem('imago-assets-tray-collapsed') === 'true')
+  const isAssetsTrayCollapsed = ref(readBool('imago-assets-tray-collapsed'))
 
   // 卡片尺寸模式: 'compact' | 'large'
-  const cardSizeMode = ref<'compact' | 'large'>(
-    (localStorage.getItem('imago-card-size-mode') as 'compact' | 'large') || 'large'
-  )
+  const cardSizeMode = ref<'compact' | 'large'>(readCardSizeMode())
 
   // 切换侧边栏
   const toggleMenu = () => {

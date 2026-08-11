@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, onUnmounted, watch, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 interface Props {
   aspectRatio?: number
@@ -23,7 +26,7 @@ const props = withDefaults(defineProps<Props>(), {
   flipV: false,
   isHandMode: false
 })
-const emit = defineEmits(['update:modelValue', 'change'])
+const emit = defineEmits(['update:modelValue', 'change', 'drag-start', 'drag-end', 'reset'])
 
 const imgRef = ref<HTMLImageElement | null>(null)
 const containerRef = ref<HTMLDivElement | null>(null)
@@ -271,6 +274,9 @@ const handleStart = (e: MouseEvent | TouchEvent, mode: typeof dragMode.value) =>
   startY = t?.clientY ?? 0
   startCrop = { ...internalCrop.value }
 
+  // P2-2：pointerdown 即上报拖拽开始，供宿主在移动发生前记录历史快照
+  emit('drag-start')
+
   window.addEventListener('mousemove', handleMove)
   window.addEventListener('mouseup', handleEnd)
   window.addEventListener('touchmove', handleMove, { passive: false })
@@ -437,6 +443,8 @@ const handleEnd = () => {
   window.removeEventListener('mouseup', handleEnd)
   window.removeEventListener('touchmove', handleMove)
   window.removeEventListener('touchend', handleEnd)
+  // P2-2：拖拽结束上报最终状态，供宿主提交拖拽后的历史快照
+  emit('drag-end')
 }
 
 onUnmounted(() => {
@@ -524,7 +532,7 @@ onUnmounted(() => {
             willChange: isDragging ? 'left, top, width, height' : 'auto'
           }"
           @mousedown="handleStart($event, 'move')"
-          @dblclick="updateCrop({ x: 0, y: 0, w: 100, h: 100 })"
+          @dblclick="emit('reset')"
         >
           <!-- 构图参考线 (使用主题前景色增强对比) -->
           <div
@@ -642,7 +650,7 @@ onUnmounted(() => {
             :class="isSnapping ? 'bg-primary animate-pulse' : 'bg-foreground/20'"
           ></div>
           <span class="text-[8px] text-foreground font-black tracking-widest uppercase italic">{{
-            isSnapping ? 'Magnetic' : 'Precision'
+            isSnapping ? t('tools.crop.magnetic') : t('tools.crop.precision')
           }}</span>
         </div>
       </div>

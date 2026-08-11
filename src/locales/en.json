@@ -37,6 +37,7 @@
         "split": "_Split"
       },
       "targetSize": "Target File Size",
+      "colorsUnit": "Colors",
       "targetSizeMode": "Fixed Size Export",
       "title": "Export Configuration",
       "width": "Width"
@@ -76,7 +77,12 @@
         "tip": "Scroll to Zoom • Drag to Pan",
         "title": "Quality Contrast Check",
         "zoomIn": "Zoom In",
-        "zoomOut": "Zoom Out"
+        "zoomOut": "Zoom Out",
+        "resetView": "Reset view",
+        "shortcuts": "Shortcuts",
+        "wheelHint": "Wheel",
+        "dragHint": "Drag",
+        "panHint": "Pan"
       },
       "selection": {
         "allSelected": "All Selected",
@@ -117,6 +123,7 @@
       "upload": {
         "button": "Select Local Images",
         "dropTip": "Release to start",
+        "dropToImago": "Drop to Imago",
         "errorSize": "File [{name}] is too large ({size} MB). Recommended maximum is 50 MB.",
         "pureOffline": "100% Offline",
         "quickPaste": "Quick Paste",
@@ -144,6 +151,7 @@
         "downloadDesc1": "This feature requires the high-performance SAM2 AI model (approx. 12 MB).",
         "downloadDesc2": "The model runs entirely on your device to ensure privacy.",
         "downloadTitle": "Activate Interactive Background Removal",
+        "downloadSize": "45MB",
         "error": "AI Engine Error",
         "featuresAria": "AI Model Features",
         "gpuAccel": "GPU Acceleration",
@@ -193,12 +201,49 @@
     "ui": {
       "clickToEdit": "Click to edit value directly",
       "resetToDefault": "Restore Defaults",
-      "select": "Please select..."
+      "select": "Please select...",
+      "decrease": "Decrease",
+      "increase": "Increase",
+      "close": "Close",
+      "fitScreen": "Fit to screen",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "resetView": "Reset view",
+      "oneToOne": "Actual size"
+    },
+    "canvas": {
+      "workspaceAria": "Image workspace",
+      "dragHint": "Drag image"
+    },
+    "colorPicker": {
+      "transparent": "Transparent background",
+      "picker": "Color picker",
+      "white": "Solid white fill",
+      "black": "Solid black fill"
     },
     "workspace": "Workspace",
     "assets": {
       "trayAria": "Assets Tray Navigation",
       "expandTray": "Expand Assets Tray (Tab)"
+    },
+    "tray": {
+      "sortTitle": "Sort: {mode} (click to change)",
+      "sortUpload": "Import time",
+      "sortName": "File name",
+      "sortStatus": "Status",
+      "prev": "Previous",
+      "next": "Next",
+      "selectImage": "Select image {name}",
+      "items": "Items",
+      "srSelected": "Selected image {index} of {count}",
+      "srNone": "No image selected"
+    },
+    "layout": {
+      "toggleInspector": "Toggle inspector panel",
+      "expandPanel": "Expand panel",
+      "collapsePanel": "Collapse panel",
+      "closePanel": "Close panel",
+      "showAssets": "Show assets"
     },
     "inspector": {
       "drawer": "Inspector Panel Drawer",
@@ -214,6 +259,7 @@
       "creative": "Creative Workshop",
       "edit": "Editing Suite"
     },
+    "language": "Language",
     "sponsor": "Support & Community",
     "toggleMobile": "Toggle Mobile Menu"
   },
@@ -231,6 +277,10 @@
         "select": "Please select an image"
       },
       "currentModel": "Active Model",
+      "modelFull": "ISNet (176MB Full)",
+      "modelQuant": "ISNet (40MB Quant)",
+      "corePremium": "Premium Core",
+      "coreLite": "Lite Core",
       "deleteModel": "Delete Model",
       "desc": "Fully automatic background removal with local AI",
       "disableScaling": "Disable Pre-scaling (High Precision)",
@@ -303,7 +353,7 @@
       "borderRadius": "Corner Radius",
       "canvas": {
         "ariaLabel": "Synthesis Preview",
-        "instructions": "Drag images to adjust combination sequence",
+        "instructions": "Adjust the combine order with the tray arrow buttons or the ←/→ keys",
         "itemAria": "Image {index}: {name}",
         "moveNext": "Move Forward",
         "movePrev": "Move Backward",
@@ -336,6 +386,7 @@
       },
       "name": "Image Synthesis",
       "order": "Sequence Order",
+      "originalFormatHint": "\"Keep original format\" always exports PNG (with alpha) in Combine",
       "originalSize": "Original Size",
       "padding": "Canvas Padding",
       "params": "Spacing & Layout",
@@ -349,14 +400,18 @@
       "compareTitle": "Compression Analysis",
       "compressed": "Compressed",
       "cta": {
+        "clickToAbort": "(click to abort)",
         "exportResults": "Export Results",
         "rendering": "Rendering...",
         "select": "Please select images",
+        "selectImage": "Select the images to compress",
         "startCompress": "Start Compression",
         "updateCompress": "Update Settings"
       },
       "desc": "Extreme compression with WebP / AVIF format support",
+      "gifHint": "GIF images are converted to a static image (first frame)",
       "infoTip": "Modern Web algorithms reduce file size significantly without visible quality loss.",
+      "maxDimensionHint": "When no size limit is set, the longest edge is capped at {limit}px",
       "name": "Compression",
       "original": "Original",
       "settingsTitle": "Compression Options",
@@ -374,6 +429,7 @@
       },
       "desc": "Free cropping or fixed-ratio transformation",
       "doubleClickReset": "Double-click to reset view",
+      "magnetic": "Magnetic snap",
       "edgeTrim": "Edge Trimming",
       "empty": {
         "desc": "Import images to start precision cropping",
@@ -406,6 +462,7 @@
       "title": "Precision Image Transformation - Local & Fast",
       "trimBottom": "Bottom",
       "trimLeft": "Left",
+      "trimLimitHint": "Trim value clamped to 0–{limit}px",
       "trimRight": "Right",
       "trimTop": "Top",
       "trimWarning": "Trimming permanently removes content outside the frame.",
@@ -416,6 +473,7 @@
       "allTags": "Full EXIF Metadata List",
       "analyzing": "Analyzing metadata...",
       "checking": "Scanning...",
+      "checkingCaption": "Checking: {name}",
       "cta": {
         "export": "Export Sanitized ({count})",
         "process": "Remove Privacy Data ({count})",
@@ -449,7 +507,10 @@
       "unsupportedTip": "Format not supported or contains no readable metadata."
     },
     "favicon": {
+      "adaptiveSimulator": "Adaptive Simulator",
       "appearance": "Appearance Config",
+      "appleIosNative": "Apple iOS Native",
+      "appleTouchTitle": "Apple Touch Icon",
       "bgFill": "Background Fill",
       "bgFillDesc": "Sets a solid background for transparent icons for better compatibility.",
       "cta": "Export Suite ({count} items)",
@@ -458,15 +519,23 @@
       "disableSafeZone": "Disable Safe Zone",
       "enableSafeZone": "Enable Safe Zone",
       "exportControl": "Export Settings",
+      "fullAssetPreview": "Full Asset Preview",
+      "maskSimulation": "System Mask Simulation ({shape})",
+      "maskableGuideTitle": "Maskable Guide",
+      "maskableLabel": "Maskable",
+      "matrixTitle": "Asset Specification Matrix",
       "mockup": "Environment Mockup",
       "name": "Favicon Builder",
       "newTab": "New Tab Preview",
+      "outputSize": "Output Size: {width} × {height} PX",
       "rotateShape": "Toggle Shape View",
       "safeZone": "Safe Zone (Padding)",
       "safeZoneAria": "Safe Zone Indicator",
       "safeZoneGuide": "On Android, core content should stay within the 80% safe area to fit adaptive shapes.",
       "safeZoneTipOff": "Original proportions. Edges may be cut off on some platforms.",
       "safeZoneTipOn": "80% safe zone applied for platform compatibility.",
+      "shapeLabel": "Shape:",
+      "sizeLabel": "{width} × {height} PX",
       "specPreviewAria": "{name} spec preview",
       "specs": {
         "android192": "Android 192x192",

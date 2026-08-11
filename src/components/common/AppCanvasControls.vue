@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ZoomIn, ZoomOut, Maximize } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
 
 interface Props {
   scale: number
@@ -7,6 +8,7 @@ interface Props {
 
 const props = defineProps<Props>()
 const emit = defineEmits(['zoomIn', 'zoomOut', 'reset', 'zoom100', 'update:scale'])
+const { t } = useI18n()
 
 const handleZoomIn = () => emit('zoomIn')
 const handleZoomOut = () => emit('zoomOut')
@@ -20,6 +22,7 @@ const handleZoom100 = () => emit('zoom100')
   >
     <button
       @click="handleZoomOut"
+      :aria-label="t('common.ui.zoomOut')"
       class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted active:scale-90 transition-all"
     >
       <ZoomOut :size="16" />
@@ -29,6 +32,7 @@ const handleZoom100 = () => emit('zoom100')
     </div>
     <button
       @click="handleZoomIn"
+      :aria-label="t('common.ui.zoomIn')"
       class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted active:scale-90 transition-all"
     >
       <ZoomIn :size="16" />
@@ -36,14 +40,16 @@ const handleZoom100 = () => emit('zoom100')
     <div class="w-px h-4 bg-border/20 mx-1"></div>
     <button
       @click="handleZoom100"
+      :aria-label="t('common.ui.oneToOne')"
       class="h-9 px-3 rounded-xl hover:bg-muted text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all"
     >
       1:1
     </button>
     <button
       @click="handleReset"
+      :aria-label="t('common.ui.fitScreen')"
+      :title="t('common.ui.fitScreen')"
       class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-primary/10 text-primary active:scale-90 transition-all"
-      title="适应屏幕"
     >
       <Maximize :size="16" />
     </button>

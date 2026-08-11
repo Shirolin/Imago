@@ -71,18 +71,42 @@ export function useCanvasView(containerRef: Ref<HTMLElement | null>) {
     isPanning.value = false
   }
 
+  // P2-3: 窗口失焦（如切换标签页/点击地址栏）时 Space 键状态会残留，
+  // 导致回到页面后画布一直被当作抓手模式。blur 时统一复位。
+  const handleBlur = () => {
+    isSpacePressed.value = false
+    isPanning.value = false
+  }
+
   onMounted(() => {
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
+    window.addEventListener('blur', handleBlur)
   })
 
   onUnmounted(() => {
     window.removeEventListener('keydown', handleKeyDown)
     window.removeEventListener('keyup', handleKeyUp)
+    window.removeEventListener('blur', handleBlur)
   })
 
-  const zoomIn = () => (scale.value *= 1.2)
-  const zoomOut = () => (scale.value *= 0.8)
+  // P2-2: 与 handleWheel 一致的 [0.01, 20] 钳制 + 中心缩放。
+  // 缩放围绕画布中心进行：offset 按 newScale/scale 等比补偿，中心锚点不动。
+  const zoomIn = () => {
+    const newScale = Math.min(scale.value * 1.2, 20)
+    if (newScale === scale.value) return
+    const ratio = newScale / scale.value
+    offset.value = { x: offset.value.x * ratio, y: offset.value.y * ratio }
+    scale.value = newScale
+  }
+
+  const zoomOut = () => {
+    const newScale = Math.max(scale.value * 0.8, 0.01)
+    if (newScale === scale.value) return
+    const ratio = newScale / scale.value
+    offset.value = { x: offset.value.x * ratio, y: offset.value.y * ratio }
+    scale.value = newScale
+  }
   const zoom100 = () => {
     scale.value = 1
     offset.value = { x: 0, y: 0 }

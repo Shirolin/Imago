@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue'
+import { ref, watch, onMounted, computed, useId } from 'vue'
 import { X } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
 
 interface Props {
   show: boolean
@@ -17,6 +18,12 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits(['close', 'after-leave'])
+
+const { t } = useI18n()
+
+// P2-7: 每个实例生成唯一 id，避免多个 AppModal 同时挂载时
+// 硬编码 id="modal-title" 造成 aria-labelledby 指向错乱
+const modalTitleId = useId()
 
 const dialogRef = ref<HTMLDialogElement | null>(null)
 const contentReady = ref(false)
@@ -63,7 +70,7 @@ onMounted(() => {
       class="fixed inset-0 w-full h-full max-w-full max-h-full p-0 bg-transparent border-none outline-none backdrop:bg-black/60 dark:backdrop:bg-background/80 backdrop:backdrop-blur-sm m-0 overflow-hidden"
       @cancel.prevent="emit('close')"
       aria-modal="true"
-      :aria-labelledby="title ? 'modal-title' : undefined"
+      :aria-labelledby="title ? modalTitleId : undefined"
     >
       <!-- 对话框模式：居中卡片 -->
       <div v-if="variant === 'dialog'" class="w-full h-full flex items-center justify-center p-4">
@@ -73,7 +80,7 @@ onMounted(() => {
           >
             <slot name="header">
               <h3
-                id="modal-title"
+                :id="modalTitleId"
                 class="font-bold text-foreground text-xs uppercase tracking-widest"
               >
                 {{ title }}
@@ -82,7 +89,7 @@ onMounted(() => {
             <button
               @click="emit('close')"
               class="text-muted-foreground hover:text-foreground transition-colors p-1"
-              aria-label="关闭对话框"
+              :aria-label="t('common.ui.close')"
             >
               <X :size="18" />
             </button>
@@ -116,7 +123,7 @@ onMounted(() => {
             <div class="flex items-center gap-3">
               <slot name="header">
                 <h3
-                  id="modal-title"
+                  :id="modalTitleId"
                   class="font-bold text-foreground text-xs uppercase tracking-widest"
                 >
                   {{ title }}
@@ -126,7 +133,7 @@ onMounted(() => {
             <button
               @click="emit('close')"
               class="w-9 h-9 flex items-center justify-center hover:bg-muted rounded-lg text-muted-foreground transition-colors"
-              aria-label="关闭对话框"
+              :aria-label="t('common.ui.close')"
             >
               <X :size="18" />
             </button>

@@ -56,7 +56,7 @@ const triggerSelect = () => {
 
 <template>
   <div
-    class="relative w-full min-h-[320px] md:min-h-[480px] bg-card border-2 border-dashed border-border rounded-3xl md:rounded-[40px] flex items-center justify-center cursor-pointer overflow-hidden p-6 md:p-8 outline-none transition-all duration-400 focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 hover:border-primary hover:bg-muted md:hover:-translate-y-1 shadow-elevated hover:shadow-2xl hover:shadow-primary/5 group @container"
+    class="relative w-full min-h-[320px] md:min-h-[480px] bg-card border-2 border-dashed border-border rounded-3xl md:rounded-[40px] flex items-center justify-center cursor-pointer overflow-hidden p-6 md:p-8 outline-none transition-all duration-500 focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 hover:border-primary hover:bg-muted md:hover:-translate-y-1 shadow-elevated hover:shadow-2xl hover:shadow-primary/5 group @container"
     @click="triggerSelect"
   >
     <input
@@ -97,13 +97,15 @@ const triggerSelect = () => {
         <h2
           class="font-black text-foreground mb-4 md:mb-5 tracking-tight px-2 leading-[1.1] [text-wrap:balance]"
           style="font-size: clamp(1.5rem, 6cqw, 2.25rem)"
-          v-html="$t('common.image.upload.title')"
-        ></h2>
+        >
+          {{ $t('common.image.upload.title') }}
+        </h2>
         <p
           class="text-muted-foreground font-medium leading-relaxed px-4 [text-wrap:balance] opacity-80"
           style="font-size: clamp(0.9rem, 3cqw, 1.05rem)"
-          v-html="$t('common.image.upload.subtitle')"
-        ></p>
+        >
+          {{ $t('common.image.upload.subtitle') }}
+        </p>
       </div>
 
       <!-- 快捷键提示 (Polished) -->
@@ -123,7 +125,7 @@ const triggerSelect = () => {
         <div
           class="flex items-center gap-2 text-[0.7rem] text-muted-foreground font-bold uppercase tracking-widest"
         >
-          <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+          <span class="w-1.5 h-1.5 bg-success rounded-full animate-pulse"></span>
           {{ $t('common.image.upload.pureOffline') }}
         </div>
       </div>

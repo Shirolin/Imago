@@ -30,6 +30,8 @@ export function useHistory<T>(state: Ref<T>) {
     // 将当前状态推入 future 供 redo 使用
     const current = serialize(state.value)
     future.value.unshift(current)
+    // P2-18: future 与 past 一致设置上限，防止极端撤销/重做序列撑爆内存
+    if (future.value.length > 50) future.value.pop()
 
     // 弹出上一条记录
     const previous = past.value.pop()!
@@ -42,6 +44,8 @@ export function useHistory<T>(state: Ref<T>) {
     // 将当前状态回推入 past
     const current = serialize(state.value)
     past.value.push(current)
+    // P2-18: 与 commit 的 50 条上限保持一致
+    if (past.value.length > 50) past.value.shift()
 
     // 弹出下一条记录
     const next = future.value.shift()!

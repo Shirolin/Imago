@@ -46,7 +46,7 @@ const selectionLabel = computed(() => {
         <!-- 成功状态小圆点 -->
         <div
           v-if="allDone"
-          class="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 border-2 border-background animate-pulse"
+          class="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-success border-2 border-background animate-pulse"
         ></div>
       </div>
 

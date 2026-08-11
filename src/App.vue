@@ -247,9 +247,9 @@ const currentRouteName = computed(() => {
             <MousePointer2 :size="64" class="relative z-10 animate-bounce" stroke-width="2.5" />
           </div>
           <div class="flex flex-col items-center gap-2">
-            <span class="font-black text-3xl md:text-4xl tracking-tighter uppercase"
-              >Drop to Imago</span
-            >
+            <span class="font-black text-3xl md:text-4xl tracking-tighter uppercase">{{
+              t('common.image.upload.dropToImago')
+            }}</span>
             <p class="text-primary/70 font-bold text-sm tracking-[0.2em] uppercase">
               {{ t('common.image.upload.dropTip') }}
             </p>

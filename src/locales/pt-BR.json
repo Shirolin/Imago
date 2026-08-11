@@ -37,6 +37,7 @@
         "split": "_Dividido"
       },
       "targetSize": "Tamanho de Arquivo Alvo",
+      "colorsUnit": "Cores",
       "targetSizeMode": "Exportar por Tamanho Fixo",
       "title": "Configuração de Exportação",
       "width": "Largura (px)"
@@ -75,7 +76,12 @@
         "tip": "Scroll para Zoom • Arraste para Mover",
         "title": "Contraste de Qualidade",
         "zoomIn": "Aumentar",
-        "zoomOut": "Reduzir"
+        "zoomOut": "Reduzir",
+        "resetView": "Redefinir Visualização",
+        "shortcuts": "Atalhos",
+        "wheelHint": "Roda do Mouse",
+        "dragHint": "Arraste",
+        "panHint": "Mover"
       },
       "selection": {
         "allSelected": "Tudo Selecionado",
@@ -116,6 +122,7 @@
       "upload": {
         "button": "Selecionar Imagens",
         "dropTip": "Solte para começar",
+        "dropToImago": "Soltar no Imago",
         "errorSize": "O arquivo [{name}] é muito grande ({size} MB). Máximo recomendado: 50 MB.",
         "pureOffline": "100% Offline",
         "quickPaste": "Colar",
@@ -143,6 +150,7 @@
         "downloadDesc1": "Esta função requer o modelo de IA SAM2 (aprox. 12 MB).",
         "downloadDesc2": "O modelo é executado localmente no seu dispositivo para garantir privacidade.",
         "downloadTitle": "Ativar Remoção de Fundo Interativa",
+        "downloadSize": "45MB",
         "error": "Erro no Motor de IA",
         "featuresAria": "Recursos do modelo de IA",
         "gpuAccel": "Aceleração por GPU",
@@ -192,9 +200,50 @@
     "ui": {
       "clickToEdit": "Clique para editar o valor diretamente",
       "resetToDefault": "Restaurar Padrões",
-      "select": "Por favor selecione..."
+      "select": "Por favor selecione...",
+      "decrease": "Diminuir",
+      "increase": "Aumentar",
+      "close": "Fechar",
+      "fitScreen": "Ajustar à Tela",
+      "zoomIn": "Aumentar",
+      "zoomOut": "Reduzir",
+      "resetView": "Redefinir Visualização",
+      "oneToOne": "Tamanho Real"
     },
-    "workspace": "Área de Trabalho"
+    "canvas": {
+      "workspaceAria": "Área de Trabalho da Imagem",
+      "dragHint": "Arraste a imagem"
+    },
+    "colorPicker": {
+      "transparent": "Fundo Transparente",
+      "picker": "Seletor de Cores",
+      "white": "Preenchimento Branco Sólido",
+      "black": "Preenchimento Preto Sólido"
+    },
+    "workspace": "Área de Trabalho",
+    "tray": {
+      "sortTitle": "Ordenação: {mode} (clique para alterar)",
+      "sortUpload": "Hora da Importação",
+      "sortName": "Nome do Arquivo",
+      "sortStatus": "Status do Processamento",
+      "prev": "Anterior",
+      "next": "Próximo",
+      "selectImage": "Selecionar imagem {name}",
+      "items": "Itens",
+      "srSelected": "Imagem selecionada {index} de {count}",
+      "srNone": "Nenhuma imagem selecionada"
+    },
+    "layout": {
+      "toggleInspector": "Alternar Painel de Propriedades",
+      "expandPanel": "Expandir Painel",
+      "collapsePanel": "Recolher Painel",
+      "closePanel": "Fechar Painel",
+      "showAssets": "Mostrar Recursos"
+    },
+    "inspector": {
+      "drawer": "Gaveta do Painel do Inspetor",
+      "sidebar": "Barra Lateral do Inspetor"
+    }
   },
   "nav": {
     "allTools": "Ferramentas",
@@ -205,6 +254,7 @@
       "creative": "Oficina Criativa",
       "edit": "Suíte de Edição"
     },
+    "language": "Idioma",
     "sponsor": "Suporte e Comunidade",
     "toggleMobile": "Alternar Menu Móvel"
   },
@@ -222,6 +272,10 @@
         "select": "Por favor selecione uma imagem"
       },
       "currentModel": "Modelo Ativo",
+      "modelFull": "ISNet (176MB Completo)",
+      "modelQuant": "ISNet (40MB Quantizado)",
+      "corePremium": "Núcleo Premium",
+      "coreLite": "Núcleo Lite",
       "deleteModel": "Remover Modelo",
       "desc": "Remoção automática de fundo com IA local",
       "disableScaling": "Desativar Pré-escalonamento (Alta Precisão)",
@@ -294,7 +348,7 @@
       "borderRadius": "Raio do Canto",
       "canvas": {
         "ariaLabel": "Pré-visualização da Síntese",
-        "instructions": "Arraste imagens para ajustar a ordem de combinação",
+        "instructions": "Ajuste a ordem da combinação com os botões de seta do painel ou as teclas ←/→",
         "itemAria": "Imagem {index}: {name}",
         "moveNext": "Mover para Frente",
         "movePrev": "Mover para Trás",
@@ -327,6 +381,7 @@
       },
       "name": "Síntese de Imagem",
       "order": "Ordem da Sequência",
+      "originalFormatHint": "\"Manter formato original\" sempre exporta PNG (com canal alfa)",
       "originalSize": "Tamanho Original",
       "padding": "Preenchimento da Tela",
       "params": "Espaçamento e Layout",
@@ -340,14 +395,18 @@
       "compareTitle": "Análise de Compressão",
       "compressed": "Comprimido",
       "cta": {
+        "clickToAbort": "(clique para cancelar)",
         "exportResults": "Exportar Resultados",
         "rendering": "Renderizando...",
         "select": "Por favor selecione imagens",
+        "selectImage": "Selecione as imagens para comprimir",
         "startCompress": "Iniciar Compressão",
         "updateCompress": "Atualizar Ajustes"
       },
       "desc": "Compressão extrema com suporte a WebP / AVIF",
+      "gifHint": "Imagens GIF são convertidas em imagem estática (primeiro quadro)",
       "infoTip": "Algoritmos web modernos que reduzem o tamanho significativamente sem perda visual.",
+      "maxDimensionHint": "Sem limite definido, o maior lado é limitado a {limit}px",
       "name": "Compressão",
       "original": "Original",
       "settingsTitle": "Opções de Compressão",
@@ -365,6 +424,7 @@
       },
       "desc": "Recorte livre ou transformação com proporção fixa",
       "doubleClickReset": "Clique duplo para redefinir a visualização",
+      "magnetic": "Ajuste magnético",
       "edgeTrim": "Ajuste de Bordas",
       "empty": {
         "desc": "Importe imagens para iniciar o recorte de precisão",
@@ -397,6 +457,7 @@
       "title": "Transformação de Precisão - Local e Rápida",
       "trimBottom": "Baixo",
       "trimLeft": "Esquerda",
+      "trimLimitHint": "Valor de corte limitado a 0–{limit}px",
       "trimRight": "Direita",
       "trimTop": "Cima",
       "trimWarning": "O recorte remove permanentemente o conteúdo fora do quadro.",
@@ -407,6 +468,7 @@
       "allTags": "Lista Completa de Metadados EXIF",
       "analyzing": "Analisando metadados...",
       "checking": "Escaneando...",
+      "checkingCaption": "Verificando: {name}",
       "cta": {
         "export": "Exportar Sanitizadas ({count})",
         "process": "Remover Dados de Privacidade ({count})",
@@ -440,7 +502,10 @@
       "unsupportedTip": "Formato não suportado ou sem metadados legíveis."
     },
     "favicon": {
+      "adaptiveSimulator": "Simulador adaptativo",
       "appearance": "Configuração de Aparência",
+      "appleIosNative": "Apple iOS nativo",
+      "appleTouchTitle": "Ícone Apple Touch",
       "bgFill": "Preenchimento de Fundo",
       "bgFillDesc": "Define um fundo sólido para ícones transparentes para melhor compatibilidade.",
       "cta": "Exportar Suíte ({count} itens)",
@@ -449,15 +514,23 @@
       "disableSafeZone": "Desativar Zona Segura",
       "enableSafeZone": "Ativar Zona Segura",
       "exportControl": "Configurações de Exportação",
+      "fullAssetPreview": "Visualização completa do ativo",
+      "maskSimulation": "Simulação de máscara do sistema ({shape})",
+      "maskableGuideTitle": "Guia Maskable",
+      "maskableLabel": "Maskable",
+      "matrixTitle": "Matriz de especificações de ativos",
       "mockup": "Simulação de Ambiente",
       "name": "Gerador de Favicons",
       "newTab": "Pré-visualização em Aba",
+      "outputSize": "Tamanho de saída: {width} × {height} PX",
       "rotateShape": "Alterar Forma",
       "safeZone": "Zona Segura (Padding)",
       "safeZoneAria": "Indicador de Zona Segura",
       "safeZoneGuide": "No Android, o conteúdo central deve ficar dentro dos 80% para se adaptar a ícones adaptativos.",
       "safeZoneTipOff": "Proporções originais. As bordas podem ser cortadas.",
       "safeZoneTipOn": "Zona segura de 80% aplicada para compatibilidade.",
+      "shapeLabel": "Forma:",
+      "sizeLabel": "{width} × {height} PX",
       "specPreviewAria": "Pré-visualização de {name}",
       "specs": {
         "android192": "Android 192x192",

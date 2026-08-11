@@ -102,8 +102,13 @@ export const splitEngine: ImageProcessor<SplitOptions> = async (file, options) =
               const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true })
               if (tempCtx) {
                 tempCtx.drawImage(img, sourceX, sourceY, sourceW, sourceH, 0, 0, sourceW, sourceH)
-                const bgPixel = tempCtx.getImageData(0, 0, 1, 1).data
-                const bounds = getContentBounds(tempCtx, bgPixel)
+                // P2-4：背景色不再取左上角单像素——采样四角/边缘中点并取中位数，
+                // 抗噪点与渐变边缘；全透明背景返回 null 直接平铺内容
+                const bgPixel = sampleEdgeBg(tempCtx)
+                const bounds = getContentBounds(
+                  tempCtx,
+                  bgPixel ?? new Uint8ClampedArray([255, 255, 255, 255])
+                )
 
                 if (bounds && bgPixel) {
                   let finalW = sourceW
@@ -173,6 +178,56 @@ export const splitEngine: ImageProcessor<SplitOptions> = async (file, options) =
     }
     img.src = url
   })
+}
+
+/**
+ * 边缘背景色采样（P2-4）：取四角 + 四边中点 + 稀疏边缘扫描的逐通道中位数，
+ * 避免左上角单像素受噪点/渐变影响；中位 alpha < 64 视为透明背景，返回 null。
+ */
+function sampleEdgeBg(ctx: CanvasRenderingContext2D): Uint8ClampedArray | null {
+  const { width, height } = ctx.canvas
+  if (width < 2 || height < 2) return ctx.getImageData(0, 0, 1, 1).data
+
+  const step = Math.max(1, Math.round(Math.min(width, height) / 40))
+  const rs: number[] = []
+  const gs: number[] = []
+  const bs: number[] = []
+  const as: number[] = []
+
+  const push = (x: number, y: number) => {
+    const d = ctx.getImageData(x, y, 1, 1).data
+    rs.push(d[0]!)
+    gs.push(d[1]!)
+    bs.push(d[2]!)
+    as.push(d[3]!)
+  }
+
+  // 四角 + 四边中点
+  push(0, 0)
+  push(width - 1, 0)
+  push(0, height - 1)
+  push(width - 1, height - 1)
+  push(Math.floor(width / 2), 0)
+  push(Math.floor(width / 2), height - 1)
+  push(0, Math.floor(height / 2))
+  push(width - 1, Math.floor(height / 2))
+  // 稀疏扫描上下两行 + 左右两列
+  for (let x = 0; x < width; x += step) {
+    push(x, 0)
+    push(x, height - 1)
+  }
+  for (let y = 0; y < height; y += step) {
+    push(0, y)
+    push(width - 1, y)
+  }
+
+  const med = (arr: number[]) => {
+    arr.sort((a, b) => a - b)
+    return arr[Math.floor(arr.length / 2)] ?? 0
+  }
+  const bg = [med(rs), med(gs), med(bs), med(as)]
+  if (bg[3]! < 64) return null
+  return new Uint8ClampedArray(bg)
 }
 
 function getContentBounds(ctx: CanvasRenderingContext2D, bgPixel: Uint8ClampedArray) {

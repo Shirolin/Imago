@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onUnmounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ImageItem } from '../stores/imageStore'
 import { useImageStore } from '../stores/imageStore'
@@ -70,6 +70,17 @@ onUnmounted(() => {
   cleanupResults()
 })
 
+// P2-20：跨视图状态残留 —— 卸载时本地 results 已清空但 store.status 仍为 done。
+// 挂载时把「无本地结果却标记 done」的图片复位为 idle，避免误显示已处理/可导出；
+// 不影响其他视图：其他视图的本地结果同样随其卸载清空，回来后本就按未处理展示。
+onMounted(() => {
+  store.images.forEach((img) => {
+    if (img.status === 'done' && !results.value.has(img.id)) {
+      store.updateImage(img.id, { status: 'idle', progress: 0 })
+    }
+  })
+})
+
 // 监听图片列表变化，自动清理已删除图片的本地结果
 watch(
   () => store.images,
@@ -97,6 +108,7 @@ const engineOptions = computed(() => [
 // --- 参数默认值 ---
 const DEFAULT_MATCH_TOLERANCE = 15
 const DEFAULT_MATCH_FEATHER = 5
+const DEFAULT_MATCH_COLOR = '#ffffff'
 const DEFAULT_AI_STRICTNESS = 0
 const DEFAULT_AI_OFFSET = 0
 const DEFAULT_AI_SMOOTHNESS = 0
@@ -105,6 +117,10 @@ const DEFAULT_AI_SMOOTHNESS = 0
 const matchTolerance = ref(DEFAULT_MATCH_TOLERANCE)
 const matchFeather = ref(DEFAULT_MATCH_FEATHER)
 const matchColor = ref('#ffffff')
+
+// P2-14：模型体积常量（0MB 匹配 / 40MB 智能 / 176MB 专业），集中管理避免散落硬编码
+const MODEL_SIZE = { match: '0MB', smart: '40MB', pro: '176MB' } as const
+const modelSize = computed(() => MODEL_SIZE[engineMode.value])
 
 // AI 精修参数
 const aiStrictness = ref(DEFAULT_AI_STRICTNESS)
@@ -119,7 +135,9 @@ const outputQuality = ref(1.0)
 const isMatchDirty = computed(() => {
   return (
     Math.abs(matchTolerance.value - DEFAULT_MATCH_TOLERANCE) > 0.001 ||
-    Math.abs(matchFeather.value - DEFAULT_MATCH_FEATHER) > 0.001
+    Math.abs(matchFeather.value - DEFAULT_MATCH_FEATHER) > 0.001 ||
+    // P2-13：取色目标（matchColor）纳入脏检测
+    matchColor.value.toLowerCase() !== DEFAULT_MATCH_COLOR.toLowerCase()
   )
 })
 
@@ -197,6 +215,8 @@ const handleInteractiveApply = async (maskBlob: Blob) => {
   const originalUrl = activeInteractiveImage.value.preview
 
   // === 遮罩合成：将 SAM2 遮罩叠加到原图，生成透明背景抠图 ===
+  // P2-19：遮罩 objectURL 用完即 revoke，避免泄漏
+  const maskUrl = URL.createObjectURL(maskBlob)
   const [origImg, maskImg] = await Promise.all([
     // 加载原图
     new Promise<HTMLImageElement>((resolve, reject) => {
@@ -210,8 +230,11 @@ const handleInteractiveApply = async (maskBlob: Blob) => {
     new Promise<HTMLImageElement>((resolve, reject) => {
       const img = new Image()
       img.onload = () => resolve(img)
-      img.onerror = reject
-      img.src = URL.createObjectURL(maskBlob)
+      img.onerror = () => {
+        URL.revokeObjectURL(maskUrl)
+        reject(new Error('遮罩图片加载失败'))
+      }
+      img.src = maskUrl
     })
   ])
 
@@ -232,6 +255,7 @@ const handleInteractiveApply = async (maskBlob: Blob) => {
   maskCanvas.height = canvas.height
   const maskCtx = maskCanvas.getContext('2d')!
   maskCtx.drawImage(maskImg, 0, 0, canvas.width, canvas.height)
+  URL.revokeObjectURL(maskUrl) // P2-19：遮罩像素已读入 maskCanvas，URL 立即释放
   const maskData = maskCtx.getImageData(0, 0, canvas.width, canvas.height)
 
   // 3. 遮罩的 R 通道即为 Alpha（白色=255=完全保留，黑色=0=完全透明）
@@ -341,7 +365,9 @@ const handleInitialize = async () => {
     await preload({
       model: targetModel,
       progress: (key, current, total) => {
-        if (key.includes('fetch')) initProgress.value = Math.round((current / total) * 100)
+        // P2-21：total 可能为 0，防除零
+        if (key.includes('fetch'))
+          initProgress.value = Math.round((current / Math.max(1, total)) * 100)
       }
     })
     statusRef.value = 'ready'
@@ -356,7 +382,6 @@ const handleInitialize = async () => {
 const ctaState = computed(() => {
   const status = currentStatus.value
   if (status === 'not_ready' || status === 'error') {
-    const size = engineMode.value === 'pro' ? '176MB' : '40MB'
     return {
       text:
         status === 'error'
@@ -364,7 +389,7 @@ const ctaState = computed(() => {
           : t('tools.bgRemove.activateModel', {
               model:
                 engineMode.value === 'pro' ? t('tools.bgRemove.pro') : t('tools.bgRemove.smart'),
-              size
+              size: MODEL_SIZE[engineMode.value]
             }),
       icon: Zap,
       action: 'show_init',
@@ -506,14 +531,15 @@ const handleCtaClick = async () => {
 }
 
 const handleResetEngine = async () => {
-  // 1. 物理删除：清理浏览器 Cache Storage 中的大文件资产
+  // 1. 物理删除：清理浏览器 Cache Storage 中的大文件资产。
+  //    P2-12：不再依赖 'imgly' 前缀匹配（@imgly 版本升级可能换缓存名），
+  //    直接枚举并删除本域全部 Cache 键；本应用无 Service Worker，无其他缓存需要保留。
+  //    IndexedDB：代码库无 indexedDB 使用（grep 确认），模型资产仅存 CacheStorage，无需处理。
   try {
     const cacheKeys = await caches.keys()
     for (const key of cacheKeys) {
-      if (key.includes('imgly')) {
-        await caches.delete(key)
-        console.log(`[Imago] 🗑️ Erased Cache Storage: ${key}`)
-      }
+      await caches.delete(key)
+      console.log(`[Imago] 🗑️ Erased Cache Storage: ${key}`)
     }
   } catch (err) {
     console.error('[Imago] Failed to clear Cache Storage:', err)
@@ -577,12 +603,12 @@ const handleResetParams = () => {
             <p class="text-sm text-muted-foreground font-medium leading-relaxed mb-8">
               <template v-if="engineMode === 'pro'"
                 >{{ t('tools.bgRemove.initDescPro1') }}
-                <span class="text-primary font-bold">176MB</span>
+                <span class="text-primary font-bold">{{ modelSize }}</span>
                 {{ t('tools.bgRemove.initDescPro2') }}</template
               >
               <template v-else
                 >{{ t('tools.bgRemove.initDescSmart1') }}
-                <span class="text-primary font-bold">40MB</span>
+                <span class="text-primary font-bold">{{ modelSize }}</span>
                 {{ t('tools.bgRemove.initDescSmart2') }}</template
               >
             </p>
@@ -629,9 +655,7 @@ const handleResetParams = () => {
               {{
                 currentStatus === 'error'
                   ? t('tools.bgRemove.retryDownload')
-                  : t('tools.bgRemove.agreeDownload', {
-                      size: engineMode === 'pro' ? '176MB' : '40MB'
-                    })
+                  : t('tools.bgRemove.agreeDownload', { size: modelSize })
               }}
             </AppButton>
           </div>
@@ -743,17 +767,17 @@ const handleResetParams = () => {
         <AppTip :icon="Info">
           <span v-if="engineMode === 'match'"
             >{{ t('tools.bgRemove.tipMatch1') }}
-            <span class="text-primary font-bold uppercase">0MB</span>
+            <span class="text-primary font-bold uppercase">{{ modelSize }}</span>
             {{ t('tools.bgRemove.tipMatch2') }}</span
           >
           <span v-else-if="engineMode === 'smart'"
             >{{ t('tools.bgRemove.tipSmart1') }}
-            <span class="text-primary font-bold uppercase">40MB</span>
+            <span class="text-primary font-bold uppercase">{{ modelSize }}</span>
             {{ t('tools.bgRemove.tipSmart2') }}</span
           >
           <span v-else
             >{{ t('tools.bgRemove.tipPro1') }}
-            <span class="text-primary font-black uppercase">176MB</span>
+            <span class="text-primary font-black uppercase">{{ modelSize }}</span>
             {{ t('tools.bgRemove.tipPro2') }}</span
           >
         </AppTip>
@@ -786,7 +810,11 @@ const handleResetParams = () => {
               class="text-[10px] font-bold"
               :class="engineMode === 'pro' ? 'text-primary' : 'text-foreground'"
             >
-              {{ engineMode === 'pro' ? 'ISNet (176MB Full)' : 'ISNet (40MB Quant)' }}
+              {{
+                engineMode === 'pro'
+                  ? t('tools.bgRemove.modelFull')
+                  : t('tools.bgRemove.modelQuant')
+              }}
             </span>
           </div>
           <div class="flex items-center justify-between">
@@ -796,11 +824,11 @@ const handleResetParams = () => {
             <div class="flex items-center gap-1.5">
               <span
                 class="h-1.5 w-1.5 rounded-full"
-                :class="currentStatus === 'ready' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'"
+                :class="currentStatus === 'ready' ? 'bg-success' : 'bg-warning animate-pulse'"
               ></span>
               <span
                 class="text-[10px] font-bold"
-                :class="currentStatus === 'ready' ? 'text-emerald-500' : 'text-amber-500'"
+                :class="currentStatus === 'ready' ? 'text-success' : 'text-warning'"
               >
                 {{
                   currentStatus === 'ready'
@@ -865,7 +893,9 @@ const handleResetParams = () => {
             >
               <CheckCircle2 :size="10" class="text-primary" />
               <span class="text-[9px] font-black text-primary uppercase">{{
-                engineMode === 'pro' ? 'Premium Core' : 'Lite Core'
+                engineMode === 'pro'
+                  ? t('tools.bgRemove.corePremium')
+                  : t('tools.bgRemove.coreLite')
               }}</span>
             </div>
           </div>

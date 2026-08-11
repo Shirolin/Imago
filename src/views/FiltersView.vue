@@ -95,7 +95,6 @@ const blur = ref(0)
 const sepia = ref(0)
 const outputFormat = ref<string>('original')
 const outputQuality = ref(0.9)
-const isSettingsDirty = ref(false)
 const activePresetId = ref<string>('none')
 const lastPresetId = ref<string>('none')
 
@@ -305,7 +304,6 @@ const handleApplyFilters = async () => {
       })
     }
   )
-  isSettingsDirty.value = false
 }
 
 const handleDownload = (id: string) => {
@@ -326,7 +324,6 @@ const handleReset = (id: string) => {
 watch(
   [brightness, contrast, saturation, blur, sepia, outputFormat, outputQuality],
   () => {
-    isSettingsDirty.value = true
     results.value.forEach((res) => {
       res.isDirty = true
     })
