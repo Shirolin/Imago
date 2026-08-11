@@ -81,9 +81,7 @@ const handleConfirm = () => {
 </script>
 
 <template>
-  <div
-    class="flex items-center gap-2 md:gap-3 bg-card/60 backdrop-blur-md px-1.5 py-1 rounded-2xl border border-border/50 shadow-inner-glow"
-  >
+  <div class="flex items-center gap-2 md:gap-3 px-0.5 py-1">
     <!-- 1. 视图与导入组 -->
     <div class="flex items-center bg-muted/20 p-0.5 rounded-xl border border-border/20">
       <!-- 布局切换（无卡片网格的视图通过 showLayoutToggle=false 隐藏） -->
