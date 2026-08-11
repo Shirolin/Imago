@@ -34,7 +34,8 @@
         "filtered": "_Filtrelendi",
         "processed": "_İşlendi",
         "resized": "_Boyutlandırıldı",
-        "split": "_Bölündü"
+        "split": "_Bölündü",
+        "combined": "_Birleştirildi"
       },
       "targetSize": "Hedef Dosya Boyutu",
       "colorsUnit": "Renk Sayısı",
@@ -58,6 +59,7 @@
         "dirty": "Güncelleme Bekleniyor",
         "download": "Görüntüyü Kaydet",
         "idle": "Boşta",
+        "previewAlt": "{name} önizlemesi",
         "ready": "Hazır",
         "remove": "Kaldır",
         "reset": "Orijinali Geri Yükle",
@@ -137,6 +139,7 @@
         "title": "İndirme Hazır"
       },
       "interactive": {
+        "altTarget": "Etkileşimli hedef",
         "add": "Konu Ekle",
         "agreeDownload": "Onayla ve Etkinleştir",
         "apply": "Maskeyi Uygula",
@@ -221,6 +224,16 @@
       "black": "Düz Siyah Dolgu"
     },
     "workspace": "Çalışma Alanı",
+    "collapse": "Daralt",
+    "expand": "Genişlet",
+    "assets": {
+      "trayAria": "Varlık Tepsisi Gezinme",
+      "expandTray": "Varlık Tepsisini Genişlet (Tab)"
+    },
+    "toolbar": {
+      "layoutLarge": "Geniş Düzen",
+      "layoutCompact": "Kompakt Düzen"
+    },
     "tray": {
       "sortTitle": "Sıralama: {mode} (değiştirmek için tıklayın)",
       "sortUpload": "İçe Aktarma Zamanı",
@@ -524,6 +537,14 @@
       "newTab": "Yeni Sekme Önizlemesi",
       "outputSize": "Çıktı boyutu: {width} × {height} PX",
       "rotateShape": "Şekil Görünümünü Değiştir",
+      "canvasAlt": "Tuval Sınır Referansı",
+      "croppedAlt": "Kırpılmış Önizleme ({shape})",
+      "shapes": {
+        "full": "Tam",
+        "circle": "Daire",
+        "squircle": "Yuvarlatılmış Kare",
+        "rounded": "Yuvarlatılmış"
+      },
       "safeZone": "Güvenli Alan (Boşluk)",
       "safeZoneAria": "Güvenli Alan Göstergesi",
       "safeZoneGuide": "Android'de, çekirdek içeriğin adaptif şekillere uyması için %80 güvenli alan içinde kalması gerekir.",

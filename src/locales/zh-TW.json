@@ -34,14 +34,14 @@
         "filtered": "_濾鏡",
         "processed": "_已處理",
         "resized": "_縮放",
-        "split": "_分割"
+        "split": "_分割",
+        "combined": "_合併"
       },
       "targetSize": "目標檔案體積",
       "colorsUnit": "色數",
       "targetSizeMode": "指定體積匯出",
       "title": "匯出參數配置",
-      "width": "像素寬度",
-      "widthUnit": "寬"
+      "width": "像素寬度"
     },
     "go": "立即體驗",
     "heroDesc": "所有圖片處理均在瀏覽器本地完成，檔案無需上傳。真正私密、離線、高效的生產力工具。",
@@ -59,6 +59,7 @@
         "dirty": "待同步",
         "download": "匯出當前圖片",
         "idle": "空閒",
+        "previewAlt": "{name} 的預覽圖",
         "ready": "已就緒",
         "remove": "移除",
         "reset": "還原",
@@ -138,6 +139,7 @@
         "title": "下載準備就緒"
       },
       "interactive": {
+        "altTarget": "互動分割目標",
         "add": "標記主體",
         "agreeDownload": "同意並激活",
         "apply": "應用選區",
@@ -222,6 +224,16 @@
       "black": "純黑填充"
     },
     "workspace": "工作台",
+    "collapse": "摺疊",
+    "expand": "展開",
+    "assets": {
+      "trayAria": "資源托盤導覽",
+      "expandTray": "展開資源托盤 (Tab)"
+    },
+    "toolbar": {
+      "layoutLarge": "大圖佈局",
+      "layoutCompact": "緊湊佈局"
+    },
     "tray": {
       "sortTitle": "目前排序: {mode} (點擊切換)",
       "sortUpload": "匯入時間",
@@ -525,6 +537,14 @@
       "newTab": "瀏覽器標籤頁預覽",
       "outputSize": "輸出尺寸: {width} × {height} PX",
       "rotateShape": "切換預覽形狀",
+      "canvasAlt": "畫布邊界參考",
+      "croppedAlt": "裁剪預覽 ({shape})",
+      "shapes": {
+        "full": "完整",
+        "circle": "圓形",
+        "squircle": "圓角方形",
+        "rounded": "圓角"
+      },
       "safeZone": "安全保留邊距",
       "safeZoneAria": "安全區示意圖",
       "safeZoneGuide": "依照平台規範，核心內容應保持在 80% 範圍內，以適配自適應圖示裁剪。",

@@ -34,7 +34,8 @@
         "filtered": "_필터링됨",
         "processed": "_처리됨",
         "resized": "_크기조정됨",
-        "split": "_분할됨"
+        "split": "_분할됨",
+        "combined": "_결합됨"
       },
       "targetSize": "목표 용량",
       "colorsUnit": "색상 수",
@@ -58,6 +59,7 @@
         "dirty": "업데이트 대기",
         "download": "처리된 이미지 저장",
         "idle": "대기 중",
+        "previewAlt": "{name} 미리보기",
         "ready": "준비 완료",
         "remove": "이미지 제거",
         "reset": "원본으로 복구",
@@ -137,6 +139,7 @@
         "title": "다운로드 준비"
       },
       "interactive": {
+        "altTarget": "대화형 분할 대상",
         "add": "주체 추가",
         "agreeDownload": "활성화 확인",
         "apply": "추출 적용",
@@ -221,6 +224,16 @@
       "black": "순흑색 채우기"
     },
     "workspace": "워크스페이스",
+    "collapse": "접기",
+    "expand": "펼치기",
+    "assets": {
+      "trayAria": "에셋 트레이 탐색",
+      "expandTray": "에셋 트레이 펼치기 (Tab)"
+    },
+    "toolbar": {
+      "layoutLarge": "큰 레이아웃",
+      "layoutCompact": "컴팩트 레이아웃"
+    },
     "tray": {
       "sortTitle": "정렬: {mode} (클릭하여 변경)",
       "sortUpload": "가져온 시간",
@@ -288,9 +301,9 @@
       },
       "engineAria": "제거 엔진 전환",
       "engineDashboard": "모델 대시보드",
-      "engineMatch": "색상 일치 식별 (0 MB)",
-      "enginePro": "프로 제거 (전체)",
-      "engineSmart": "스마트 식별 (경량)",
+      "engineMatch": "색상 일치 (빠름)",
+      "enginePro": "프로 제거 (ISNet)",
+      "engineSmart": "스마트 제거 (경량)",
       "engineTitle": "제거 엔진",
       "feather": "페더 (가장자리 부드럽게)",
       "featherDesc": "제거된 가장자리를 부드럽게 만듭니다.",
@@ -524,6 +537,14 @@
       "newTab": "브라우저 탭 미리보기",
       "outputSize": "출력 크기: {width} × {height} PX",
       "rotateShape": "모양 전환",
+      "canvasAlt": "캔버스 경계 참조",
+      "croppedAlt": "잘라낸 미리보기 ({shape})",
+      "shapes": {
+        "full": "전체",
+        "circle": "원형",
+        "squircle": "둥근 사각형",
+        "rounded": "둥근 모서리"
+      },
       "safeZone": "세이프 존",
       "safeZoneAria": "세이프 존 표시",
       "safeZoneGuide": "Android 에서는 콘텐츠를 중앙 80% 영역 내에 유지하는 것이 권장됩니다. 나머지 영역은 배경으로 사용됩니다.",

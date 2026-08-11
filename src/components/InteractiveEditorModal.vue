@@ -524,7 +524,7 @@ watch(
                 ref="imageRef"
                 :src="imageItem.url"
                 class="w-full h-full block select-none pointer-events-none rounded-sm border border-white/5 max-w-none max-h-none"
-                alt="Interactive target"
+                :alt="t('common.modal.interactive.altTarget')"
                 @load="updateDisplayRect"
               />
 

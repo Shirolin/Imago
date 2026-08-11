@@ -34,7 +34,8 @@
         "filtered": "_Gefiltert",
         "processed": "_Verarbeitet",
         "resized": "_Skaliert",
-        "split": "_Geteilt"
+        "split": "_Geteilt",
+        "combined": "_Kombiniert"
       },
       "targetSize": "Zieldateigröße",
       "colorsUnit": "Farben",
@@ -58,6 +59,7 @@
         "dirty": "Update ausstehend",
         "download": "Bild speichern",
         "idle": "Leerlauf",
+        "previewAlt": "Vorschau von {name}",
         "ready": "Bereit",
         "remove": "Entfernen",
         "reset": "Original wiederherstellen",
@@ -137,6 +139,7 @@
         "title": "Download bereit"
       },
       "interactive": {
+        "altTarget": "Interaktives Ziel",
         "add": "Motiv markieren",
         "agreeDownload": "Zustimmen & Aktivieren",
         "apply": "Maske anwenden",
@@ -221,6 +224,16 @@
       "black": "Schwarze Vollfüllung"
     },
     "workspace": "Arbeitsbereich",
+    "collapse": "Einklappen",
+    "expand": "Ausklappen",
+    "assets": {
+      "trayAria": "Asset-Leiste Navigation",
+      "expandTray": "Asset-Leiste erweitern (Tab)"
+    },
+    "toolbar": {
+      "layoutLarge": "Große Ansicht",
+      "layoutCompact": "Kompakte Ansicht"
+    },
     "tray": {
       "sortTitle": "Sortierung: {mode} (zum Ändern klicken)",
       "sortUpload": "Importzeitpunkt",
@@ -263,7 +276,7 @@
       "activateModel": "{model} aktivieren ({size})",
       "agreeDownload": "Bestätigen & Herunterladen ({size})",
       "bgColorToRemove": "Ziel-Hintergrundfarbe",
-      "compareTitle": "Hintergrundentfernung Kontrast",
+      "compareTitle": "Hintergrundentfernungs-Vergleich",
       "connectionStatus": "Laufzeitstatus",
       "cta": {
         "export": "Transparenten Hintergrund exportieren ({count})",
@@ -298,7 +311,7 @@
       "initDescPro1": "Pro-Modell ca. ",
       "initDescPro2": ", basierend auf ISNet für komplexe Kanten wie Haare. Einmaliger Download.",
       "initDescSmart1": "Smart-Modell ca. ",
-      "initDescSmart2": ", perfekte Balance zwischen Speed und Qualität. Einmaliger Download.",
+      "initDescSmart2": ", perfekte Balance zwischen Geschwindigkeit und Qualität. Einmaliger Download.",
       "initError": "Initialisierungsfehler",
       "initTitlePro": "Profi-KI laden",
       "initTitleSmart": "Leichte KI laden",
@@ -323,11 +336,11 @@
       "smoothness": "Glättung",
       "smoothnessDesc": "Reduziert Aliasing und verbessert Kantenqualität.",
       "statusReady": "Lokale Engine bereit",
-      "statusUpdate": "Echtzeit-Synchronisierung",
+      "statusUpdate": "Ausstehende Synchronisierung",
       "strictness": "Erkennungsstrenge",
       "strictnessDesc": "Steuert, wie streng die KI das Motiv identifiziert.",
       "tip": "KI-Verarbeitung erfolgt lokal. Bilder verlassen Ihr Gerät nicht.",
-      "tipMatch1": "Abgleich-Modus: Identifiziert Hintergrund über Farähnlichkeit, ",
+      "tipMatch1": "Abgleich-Modus: Identifiziert Hintergrund über Farbähnlichkeit, ",
       "tipMatch2": "ideal für einfarbige Hintergründe.",
       "tipPro1": "Pro-Modus: Industrie-KI, ",
       "tipPro2": "spezialisiert auf Haare, Produkte und komplexe Details.",
@@ -524,6 +537,14 @@
       "newTab": "Tab-Vorschau",
       "outputSize": "Ausgabegröße: {width} × {height} PX",
       "rotateShape": "Formansicht wechseln",
+      "canvasAlt": "Canvas-Rahmenreferenz",
+      "croppedAlt": "Zugeschnittene Vorschau ({shape})",
+      "shapes": {
+        "full": "Voll",
+        "circle": "Kreis",
+        "squircle": "Abgerundetes Quadrat",
+        "rounded": "Abgerundet"
+      },
       "safeZone": "Safe-Zone (Padding)",
       "safeZoneAria": "Safe-Zone Indikator",
       "safeZoneGuide": "Auf Android sollte der Kerninhalt im 80%-Bereich liegen für adaptive Formen.",

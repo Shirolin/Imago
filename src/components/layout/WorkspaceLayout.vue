@@ -260,14 +260,14 @@ onMounted(() => {
 
           <!-- 工作流工具栏 -->
           <div
-            v-if="(!layoutStore.isInspectorCollapsed || isDesktop) && $slots.toolbar"
+            v-if="!layoutStore.isInspectorCollapsed && $slots.toolbar"
             class="shrink-0 px-4 md:px-5 py-2 border-t border-border/20 bg-card"
           >
             <slot name="toolbar"></slot>
           </div>
 
-          <!-- 核心操作按钮区 -->
-          <div v-if="!layoutStore.isInspectorCollapsed || isDesktop" class="shrink-0 z-30">
+          <!-- 核心操作按钮区 (折叠时整体隐藏，避免桌面端 w-0 裁剪产生不可见焦点) -->
+          <div v-if="!layoutStore.isInspectorCollapsed" class="shrink-0 z-30">
             <slot name="footer"></slot>
           </div>
         </div>

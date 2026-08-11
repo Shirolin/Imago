@@ -119,7 +119,7 @@ const tools = computed(() => [
             variant="primary"
             :icon="ArrowRight"
             @click="scrollToTools"
-            class="text-lg px-10 h-14 active:scale-95 transition-all duration-300"
+            class="text-lg px-10 h-14 transition-all duration-300"
           >
             {{ t('common.start') }}
           </AppButton>

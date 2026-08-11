@@ -135,7 +135,7 @@ const handleConfirm = () => {
     <button
       v-if="props.showDownloadAll && store.doneCount > 0"
       @click="downloadAllAsZip(viewId)"
-      class="flex items-center gap-2 px-4 md:px-5 h-10 rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-[1.02] hover:shadow-primary/30 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 whitespace-nowrap"
+      class="flex items-center gap-2 px-4 md:px-5 h-10 rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:-translate-y-px hover:shadow-primary/40 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97] whitespace-nowrap"
       :class="{ 'opacity-50 cursor-not-allowed grayscale-[0.3]': isBusy }"
       :disabled="isBusy"
       :aria-label="t('common.image.toolbar.exportAllAria', { count: store.doneCount })"

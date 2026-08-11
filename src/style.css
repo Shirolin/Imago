@@ -215,6 +215,35 @@
   .animate-bounce-subtle {
     animation: bounce-subtle 2s infinite;
   }
+
+  /* 骨架屏 shimmer：图片预览解码/加载中显示（复用 App.vue @keyframes shimmer 的平移思路） */
+  @keyframes imago-shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .shimmer-skeleton {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    background-color: hsl(var(--muted) / 0.7);
+  }
+
+  .shimmer-skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--primary) / 0.12),
+      transparent
+    );
+    animation: imago-shimmer 1.5s ease-in-out infinite;
+  }
 }
 
 @keyframes pulse-subtle {

@@ -34,7 +34,8 @@
         "filtered": "_Filtrado",
         "processed": "_Processado",
         "resized": "_Redimensionado",
-        "split": "_Dividido"
+        "split": "_Dividido",
+        "combined": "_Combinado"
       },
       "targetSize": "Tamanho de Arquivo Alvo",
       "colorsUnit": "Cores",
@@ -58,6 +59,7 @@
         "dirty": "Atualização Pendente",
         "download": "Salvar Imagem",
         "idle": "Inativo",
+        "previewAlt": "Pré-visualização de {name}",
         "ready": "Pronto",
         "remove": "Remover",
         "reset": "Restaurar Original",
@@ -137,6 +139,7 @@
         "title": "Download Pronto"
       },
       "interactive": {
+        "altTarget": "Alvo interativo",
         "add": "Marcar Assunto",
         "agreeDownload": "Concordar e Ativar",
         "apply": "Aplicar Máscara",
@@ -221,6 +224,16 @@
       "black": "Preenchimento Preto Sólido"
     },
     "workspace": "Área de Trabalho",
+    "collapse": "Recolher",
+    "expand": "Expandir",
+    "assets": {
+      "trayAria": "Navegação da Bandeja de Ativos",
+      "expandTray": "Expandir Bandeja de Ativos (Tab)"
+    },
+    "toolbar": {
+      "layoutLarge": "Layout Grande",
+      "layoutCompact": "Layout Compacto"
+    },
     "tray": {
       "sortTitle": "Ordenação: {mode} (clique para alterar)",
       "sortUpload": "Hora da Importação",
@@ -524,6 +537,14 @@
       "newTab": "Pré-visualização em Aba",
       "outputSize": "Tamanho de saída: {width} × {height} PX",
       "rotateShape": "Alterar Forma",
+      "canvasAlt": "Referência de Limite do Canvas",
+      "croppedAlt": "Pré-visualização Recortada ({shape})",
+      "shapes": {
+        "full": "Completo",
+        "circle": "Círculo",
+        "squircle": "Quadrado Arredondado",
+        "rounded": "Arredondado"
+      },
       "safeZone": "Zona Segura (Padding)",
       "safeZoneAria": "Indicador de Zona Segura",
       "safeZoneGuide": "No Android, o conteúdo central deve ficar dentro dos 80% para se adaptar a ícones adaptativos.",

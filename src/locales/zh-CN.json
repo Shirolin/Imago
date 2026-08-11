@@ -34,7 +34,8 @@
         "filtered": "_滤镜",
         "processed": "_已处理",
         "resized": "_缩放",
-        "split": "_分割"
+        "split": "_分割",
+        "combined": "_合并"
       },
       "targetSize": "目标文件体积",
       "colorsUnit": "色数",
@@ -138,6 +139,7 @@
         "title": "下载准备就绪"
       },
       "interactive": {
+        "altTarget": "交互分割目标",
         "add": "标记主体",
         "agreeDownload": "同意并激活",
         "apply": "应用选区",
@@ -222,9 +224,15 @@
       "black": "纯黑填充"
     },
     "workspace": "工作台",
+    "collapse": "折叠",
+    "expand": "展开",
     "assets": {
       "trayAria": "资源托盘导航",
       "expandTray": "展开资源托盘 (Tab)"
+    },
+    "toolbar": {
+      "layoutLarge": "大图布局",
+      "layoutCompact": "紧凑布局"
     },
     "tray": {
       "sortTitle": "当前排序: {mode} (点击切换)",
@@ -333,7 +341,7 @@
       "strictness": "判定强度",
       "strictnessDesc": "控制 AI 提取主体的严格程度。",
       "tip": "所有 AI 计算均在您的浏览器中完成，图片绝不离身。",
-      "tipMatch1": "取色模式：通过背景色彩匹配进行过虑，",
+      "tipMatch1": "取色模式：通过背景色彩匹配进行过滤，",
       "tipMatch2": "，最适合纯色或简易背景。",
       "tipPro1": "专业模式：工业级深度学习模型，",
       "tipPro2": "，专攻人像、复杂细节与产品图。",
@@ -530,6 +538,14 @@
       "newTab": "浏览器标签页预览",
       "outputSize": "输出尺寸: {width} × {height} PX",
       "rotateShape": "切换预览形状",
+      "canvasAlt": "画布边界参考",
+      "croppedAlt": "裁剪预览 ({shape})",
+      "shapes": {
+        "full": "完整",
+        "circle": "圆形",
+        "squircle": "圆角方形",
+        "rounded": "圆角"
+      },
       "safeZone": "安全保留边距",
       "safeZoneAria": "安全区示意图",
       "safeZoneGuide": "依照平台规范，核心内容应保持在 80% 范围内，以适配自适应图标裁剪。",

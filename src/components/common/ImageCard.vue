@@ -189,6 +189,12 @@ const displayUrl = computed(() => {
   }
   return props.image.preview
 })
+
+// 骨架屏：预览解码完成前显示 shimmer（纯视觉状态，不影响任何业务逻辑）
+const previewLoaded = ref(false)
+watch(displayUrl, () => {
+  previewLoaded.value = false
+})
 </script>
 
 <template>
@@ -222,10 +228,18 @@ const displayUrl = computed(() => {
         <div class="absolute inset-0 z-10 pointer-events-none">
           <slot name="visual-effects" :image="image"></slot>
         </div>
+        <!-- 骨架屏：预览未解码时显示 shimmer，解码完成后移除 -->
+        <div
+          v-if="!previewLoaded"
+          class="shimmer-skeleton rounded-t-[calc(1rem-1px)]"
+          aria-hidden="true"
+        ></div>
         <img
           :src="displayUrl"
           :alt="t('common.image.card.previewAlt', { name: image.file.name })"
           class="w-full h-full object-contain transition-all duration-700"
+          @load="previewLoaded = true"
+          @error="previewLoaded = true"
           :class="{
             'group-hover/canvas:scale-105': !showMagnifier && !isDirtyDone,
             'opacity-40 grayscale-[0.5] blur-[1px] scale-95': image.status === 'processing'

@@ -262,10 +262,11 @@ const handleGenerate = async () => {
                       @click="rotateMaskShape"
                       class="flex items-center gap-1.5 text-[9px] font-black text-primary uppercase hover:opacity-80 transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 rounded-sm outline-none"
                       :aria-label="t('tools.favicon.rotateShape')"
-                      :title="`${t('tools.favicon.currentShape')}: ${activeMaskShape}`"
+                      :title="`${t('tools.favicon.currentShape')}: ${t('tools.favicon.shapes.' + activeMaskShape)}`"
                     >
                       <RefreshCw :size="10" />
-                      {{ t('tools.favicon.shapeLabel') }} {{ activeMaskShape }}
+                      {{ t('tools.favicon.shapeLabel') }}
+                      {{ t('tools.favicon.shapes.' + activeMaskShape) }}
                     </button>
                   </div>
                 </div>
@@ -315,7 +316,7 @@ const handleGenerate = async () => {
                           height: autoPadding ? '128px' : '160px',
                           maxWidth: 'none'
                         }"
-                        alt="Canvas Boundary Reference"
+                        :alt="t('tools.favicon.canvasAlt')"
                       />
                     </div>
 
@@ -367,7 +368,11 @@ const handleGenerate = async () => {
                                   : '125%',
                             maxWidth: 'none'
                           }"
-                          :alt="`Cropped Preview (${activeMaskShape})`"
+                          :alt="
+                            t('tools.favicon.croppedAlt', {
+                              shape: t('tools.favicon.shapes.' + activeMaskShape)
+                            })
+                          "
                         />
                       </div>
                     </div>
@@ -381,7 +386,9 @@ const handleGenerate = async () => {
                         {{
                           activeMaskShape === 'full'
                             ? t('tools.favicon.fullAssetPreview')
-                            : t('tools.favicon.maskSimulation', { shape: activeMaskShape })
+                            : t('tools.favicon.maskSimulation', {
+                                shape: t('tools.favicon.shapes.' + activeMaskShape)
+                              })
                         }}
                       </span>
                       <p class="text-[9px] font-bold text-primary/70 leading-relaxed max-w-[280px]">
@@ -629,7 +636,7 @@ const handleGenerate = async () => {
         <AppButton
           size="lg"
           variant="cta"
-          class="w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden"
+          class="w-full h-12 rounded-xl shadow-lg transition-all duration-500 group overflow-hidden"
           :loading="isProcessing"
           :disabled="!activeImage || selectedIds.size === 0"
           @click="handleGenerate"

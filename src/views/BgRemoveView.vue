@@ -641,6 +641,7 @@ const handleResetParams = () => {
             <div
               v-if="currentStatus === 'error'"
               class="mb-8 p-4 bg-destructive/5 border border-destructive/20 rounded-2xl flex items-start gap-3 text-left"
+              role="alert"
             >
               <AlertCircle :size="18" class="text-destructive shrink-0 mt-0.5" />
               <div class="text-xs font-bold text-destructive leading-normal">{{ initError }}</div>
@@ -663,7 +664,7 @@ const handleResetParams = () => {
 
         <div
           v-if="store.images.length === 0"
-          class="flex flex-col items-center justify-center py-32 animate-in fade-in duration-700"
+          class="flex flex-col items-center justify-center py-24 md:py-32 animate-in fade-in duration-700"
         >
           <div class="bg-muted/30 p-8 rounded-full mb-6">
             <ImageMinus :size="48" class="text-muted-foreground/40" />
@@ -671,7 +672,7 @@ const handleResetParams = () => {
           <p class="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground/60 mb-2">
             {{ t('tools.bgRemove.empty.title') }}
           </p>
-          <p class="text-[11px] font-medium text-muted-foreground/40">
+          <p class="text-[11px] font-medium text-muted-foreground/40 max-w-[280px]">
             {{ t('tools.bgRemove.empty.desc') }}
           </p>
         </div>
@@ -959,7 +960,7 @@ const handleResetParams = () => {
         <AppButton
           size="lg"
           :variant="ctaState.variant"
-          class="w-full h-12 rounded-xl shadow-lg transition-all active:scale-95 group overflow-hidden"
+          class="w-full h-12 rounded-xl shadow-lg transition-all group overflow-hidden"
           :loading="currentStatus === 'loading'"
           :disabled="ctaState.disabled"
           @click="handleCtaClick"

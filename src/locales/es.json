@@ -34,7 +34,8 @@
         "filtered": "_Filtrado",
         "processed": "_Procesado",
         "resized": "_Redimensionado",
-        "split": "_Dividido"
+        "split": "_Dividido",
+        "combined": "_Combinado"
       },
       "targetSize": "Tamaño de Archivo Objetivo",
       "colorsUnit": "Colores",
@@ -58,6 +59,7 @@
         "dirty": "Actualización Pendiente",
         "download": "Guardar Imagen",
         "idle": "Inactivo",
+        "previewAlt": "Vista previa de {name}",
         "ready": "Listo",
         "remove": "Eliminar",
         "reset": "Restaurar Original",
@@ -137,6 +139,7 @@
         "title": "Descarga Lista"
       },
       "interactive": {
+        "altTarget": "Objetivo interactivo",
         "add": "Marcar Sujeto",
         "agreeDownload": "Aceptar y Activar",
         "apply": "Aplicar Máscara",
@@ -221,6 +224,16 @@
       "black": "Relleno Negro Sólido"
     },
     "workspace": "Área de Trabajo",
+    "collapse": "Contraer",
+    "expand": "Expandir",
+    "assets": {
+      "trayAria": "Navegación de la Bandeja de Activos",
+      "expandTray": "Expandir Bandeja de Activos (Tab)"
+    },
+    "toolbar": {
+      "layoutLarge": "Diseño Grande",
+      "layoutCompact": "Diseño Compacto"
+    },
     "tray": {
       "sortTitle": "Orden: {mode} (clic para cambiar)",
       "sortUpload": "Hora de Importación",
@@ -524,6 +537,14 @@
       "newTab": "Vista Previa en Pestaña",
       "outputSize": "Tamaño de salida: {width} × {height} PX",
       "rotateShape": "Cambiar Forma",
+      "canvasAlt": "Referencia del Límite del Lienzo",
+      "croppedAlt": "Vista Previa Recortada ({shape})",
+      "shapes": {
+        "full": "Completo",
+        "circle": "Círculo",
+        "squircle": "Cuadrado Redondeado",
+        "rounded": "Redondeado"
+      },
       "safeZone": "Zona Segura (Padding)",
       "safeZoneAria": "Indicador de Zona Segura",
       "safeZoneGuide": "En Android, el contenido core debe estar dentro del 80% para adaptarse a iconos adaptativos.",

@@ -78,28 +78,75 @@ const backgroundColor = ref('transparent')
 const outputFormat = ref<string>('image/png')
 const outputQuality = ref(0.9)
 
-// 缓存已加载的预览图对象
-const imageCache = new Map<string, HTMLImageElement>()
+// 预览用降采样位图缓存（最长边 ~2048）：不缓存全尺寸解码图（4000×3000 ≈ 48MB/张），
+// 每次重绘只把 ~2048 小图 drawImage 到预览画布，采样与显存开销约降 4 倍；
+// 导出路径（combineEngine）仍用原始文件全尺寸，两者分离互不影响（P1-6 预览性能）
+const thumbCache = new Map<string, HTMLImageElement | ImageBitmap>()
+// 同一图片并发解码去重：拖动参数时多次 requestDraw 可能同时触发首次加载
+const pendingThumbLoads = new Map<string, Promise<HTMLImageElement | ImageBitmap>>()
+const THUMB_MAX_SIDE = 2048
 // 解码失败的预览图 id（P0-1：失败图片标记错误态而非永久挂起）
 const previewErrorIds = ref<Set<string>>(new Set())
 let isDrawingRaf = false
 let pendingDraw = false
 
-const loadAndCacheImage = (imgData: ImageItem): Promise<HTMLImageElement> => {
-  if (imageCache.has(imgData.id)) return Promise.resolve(imageCache.get(imgData.id)!)
+const closeBitmap = (src: HTMLImageElement | ImageBitmap) => {
+  if (src instanceof ImageBitmap) src.close()
+}
 
+// createImageBitmap 不可用（如 HEIC/SVG）时退回 HTMLImageElement 全尺寸解码
+const loadFullImage = (imgData: ImageItem): Promise<HTMLImageElement> => {
   return new Promise((resolve, reject) => {
     const img = new Image()
-    img.onload = () => {
-      imageCache.set(imgData.id, img)
-      resolve(img)
-    }
+    img.onload = () => resolve(img)
     img.onerror = () => {
       // P0-1：不可解码图片必须 reject，否则 Promise.all 会永久挂起
       reject(new Error(`图片预览加载失败: ${imgData.file.name}`))
     }
     img.src = imgData.preview
   })
+}
+
+const loadPreviewImage = (imgData: ImageItem): Promise<HTMLImageElement | ImageBitmap> => {
+  const cached = thumbCache.get(imgData.id)
+  if (cached) return Promise.resolve(cached)
+  const pending = pendingThumbLoads.get(imgData.id)
+  if (pending) return pending
+
+  const promise = (async (): Promise<HTMLImageElement | ImageBitmap> => {
+    const srcW = imgData.width || 0
+    const srcH = imgData.height || 0
+    // 等比降采样：createImageBitmap 一次性按最长边 ~2048 解码，后续重绘零重采样成本
+    if (srcW > THUMB_MAX_SIDE || srcH > THUMB_MAX_SIDE) {
+      const scale = THUMB_MAX_SIDE / Math.max(srcW, srcH)
+      try {
+        return await createImageBitmap(imgData.file, {
+          resizeWidth: Math.max(1, Math.round(srcW * scale)),
+          resizeHeight: Math.max(1, Math.round(srcH * scale)),
+          resizeQuality: 'medium'
+        })
+      } catch {
+        // 降采样失败 → 退回全尺寸解码（保功能）
+      }
+    }
+    try {
+      return await createImageBitmap(imgData.file)
+    } catch {
+      // createImageBitmap 整体不可用 → 退回 HTMLImageElement（原行为）
+      return loadFullImage(imgData)
+    }
+  })()
+
+  pendingThumbLoads.set(imgData.id, promise)
+  // 缓存结果；解码期间图片被移除则丢弃缓存，防已删除图片的位图残留
+  void promise.then(
+    (src) => {
+      pendingThumbLoads.delete(imgData.id)
+      if (store.images.some((img) => img.id === imgData.id)) thumbCache.set(imgData.id, src)
+    },
+    () => pendingThumbLoads.delete(imgData.id)
+  )
+  return promise
 }
 
 // 预览失败提示（复用引擎错误消息的中文风格，不新增 i18n 键）
@@ -117,8 +164,8 @@ const drawPreview = async () => {
   if (!canvas || !ctx || store.images.length === 0) return
 
   // P0-1：Promise.allSettled 隔离解码失败的图片，单张失败不卡死整块画布
-  const settled = await Promise.allSettled(store.images.map(loadAndCacheImage))
-  const loadedImages: HTMLImageElement[] = []
+  const settled = await Promise.allSettled(store.images.map(loadPreviewImage))
+  const loadedImages: (HTMLImageElement | ImageBitmap)[] = []
   const failedIds = new Set<string>()
   store.images.forEach((item, i) => {
     const r = settled[i]
@@ -316,6 +363,9 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (sortNoticeTimer) clearTimeout(sortNoticeTimer)
+  // 释放预览降采样位图（ImageBitmap 需显式 close 才能回收显存/内存）
+  thumbCache.forEach(closeBitmap)
+  thumbCache.clear()
 })
 
 // 监听图片列表变化，如果有图片被删除，强制重置拼接结果以防过期
@@ -345,8 +395,12 @@ watch(
   () => store.images.map((img) => img.id),
   (newIds) => {
     const idSet = new Set(newIds)
-    for (const id of imageCache.keys()) {
-      if (!idSet.has(id)) imageCache.delete(id)
+    for (const id of thumbCache.keys()) {
+      if (!idSet.has(id)) {
+        const src = thumbCache.get(id)
+        if (src) closeBitmap(src)
+        thumbCache.delete(id)
+      }
     }
     // 同步清理已移除图片的预览错误标记
     if (previewErrorIds.value.size > 0) {
@@ -529,6 +583,13 @@ useResizeObserver(containerRef, resetView)
                 class="block rounded-sm will-change-contents backface-hidden"
               />
 
+              <!-- 骨架屏：预览解码/首帧绘制完成前显示 shimmer -->
+              <div
+                v-if="isInitialLoad"
+                class="shimmer-skeleton rounded-sm animate-in fade-in duration-300"
+                aria-hidden="true"
+              ></div>
+
               <!-- P0-1：解码失败图片的可见错误态 -->
               <div
                 v-if="previewErrorText"
@@ -612,7 +673,7 @@ useResizeObserver(containerRef, resetView)
               <AppButton
                 variant="cta"
                 size="md"
-                class="rounded-full px-10 pointer-events-auto shadow-xl shadow-primary/20 transition-all active:scale-95"
+                class="rounded-full px-10 pointer-events-auto shadow-xl shadow-primary/20 transition-all"
                 @click="triggerFileInput"
               >
                 <Plus :size="18" class="mr-1.5" />{{ t('tools.combine.importNow') }}
@@ -764,7 +825,7 @@ useResizeObserver(containerRef, resetView)
             v-if="hasEnoughImages"
             size="lg"
             variant="cta"
-            class="w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden"
+            class="w-full h-12 rounded-xl shadow-lg transition-all duration-500 group overflow-hidden"
             @click="handleCombine"
           >
             <template #icon>

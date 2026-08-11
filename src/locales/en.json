@@ -34,7 +34,8 @@
         "filtered": "_Filtered",
         "processed": "_Processed",
         "resized": "_Resized",
-        "split": "_Split"
+        "split": "_Split",
+        "combined": "_Combined"
       },
       "targetSize": "Target File Size",
       "colorsUnit": "Colors",
@@ -138,6 +139,7 @@
         "title": "Download Ready"
       },
       "interactive": {
+        "altTarget": "Interactive target",
         "add": "Add Subject",
         "agreeDownload": "Agree & Activate",
         "apply": "Apply Mask",
@@ -222,9 +224,15 @@
       "black": "Solid black fill"
     },
     "workspace": "Workspace",
+    "collapse": "Collapse",
+    "expand": "Expand",
     "assets": {
       "trayAria": "Assets Tray Navigation",
       "expandTray": "Expand Assets Tray (Tab)"
+    },
+    "toolbar": {
+      "layoutLarge": "Large Layout",
+      "layoutCompact": "Compact Layout"
     },
     "tray": {
       "sortTitle": "Sort: {mode} (click to change)",
@@ -529,6 +537,14 @@
       "newTab": "New Tab Preview",
       "outputSize": "Output Size: {width} × {height} PX",
       "rotateShape": "Toggle Shape View",
+      "canvasAlt": "Canvas Boundary Reference",
+      "croppedAlt": "Cropped Preview ({shape})",
+      "shapes": {
+        "full": "Full",
+        "circle": "Circle",
+        "squircle": "Squircle",
+        "rounded": "Rounded"
+      },
       "safeZone": "Safe Zone (Padding)",
       "safeZoneAria": "Safe Zone Indicator",
       "safeZoneGuide": "On Android, core content should stay within the 80% safe area to fit adaptive shapes.",

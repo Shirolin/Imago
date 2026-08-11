@@ -37,3 +37,6 @@ dist-ssr
 .i18n-snapshots.json
 .i18n-prefs.json
 !.i18n-skill.json
+
+# omp 截图输出
+.omp-screens/

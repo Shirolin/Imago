@@ -134,7 +134,7 @@ const triggerSelect = () => {
         size="lg"
         variant="cta"
         @click.stop="triggerSelect"
-        class="!px-10 !h-14 !text-sm md:!text-base !rounded-2xl shrink-0 active:scale-95 transition-all duration-300"
+        class="!px-10 !h-14 !text-sm md:!text-base !rounded-2xl shrink-0 transition-all duration-300"
       >
         <template #icon><Upload class="mr-2.5 w-5 h-5" /></template>
         {{ $t('common.image.upload.button') }}
