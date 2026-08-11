@@ -67,7 +67,7 @@ onMounted(() => {
   <Teleport to="body">
     <dialog
       ref="dialogRef"
-      class="fixed inset-0 w-full h-full max-w-full max-h-full p-0 bg-transparent border-none outline-none backdrop:bg-black/60 dark:backdrop:bg-background/80 backdrop:backdrop-blur-sm m-0 overflow-hidden"
+      class="fixed inset-0 w-full h-full max-w-full max-h-full p-0 bg-transparent border-none outline-none backdrop:bg-black/60 dark:backdrop:bg-background/80 backdrop:backdrop-blur-sm m-0 overflow-hidden text-foreground"
       @cancel.prevent="emit('close')"
       aria-modal="true"
       :aria-labelledby="title ? modalTitleId : undefined"
