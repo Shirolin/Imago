@@ -825,7 +825,7 @@ useResizeObserver(containerRef, resetView)
             v-if="hasEnoughImages"
             size="lg"
             variant="cta"
-            class="w-full h-12 rounded-xl shadow-lg transition-all duration-500 group overflow-hidden"
+            class="w-full h-12 rounded-xl transition-all duration-500 group overflow-hidden"
             @click="handleCombine"
           >
             <template #icon>

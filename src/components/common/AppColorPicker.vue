@@ -72,7 +72,7 @@ const isColorLight = computed(() => getBrightness(props.modelValue) > 180)
         class="w-10 h-10 rounded-xl border-2 transition-all bg-white hover:scale-110 active:scale-95 shrink-0"
         :class="
           !isTransparent && modelValue.toLowerCase() === '#ffffff'
-            ? 'border-primary shadow-[0_0_12px_hsla(var(--primary),0.3)]'
+            ? 'border-primary shadow-[0_0_12px_hsla(var(--primary)/0.3)]'
             : 'border-border'
         "
         :title="t('common.colorPicker.white')"
@@ -85,7 +85,7 @@ const isColorLight = computed(() => getBrightness(props.modelValue) > 180)
         class="w-10 h-10 rounded-xl border-2 transition-all bg-black hover:scale-110 active:scale-95 shrink-0"
         :class="
           !isTransparent && modelValue.toLowerCase() === '#000000'
-            ? 'border-primary shadow-[0_0_12px_hsla(var(--primary),0.3)]'
+            ? 'border-primary shadow-[0_0_12px_hsla(var(--primary)/0.3)]'
             : 'border-border'
         "
         :title="t('common.colorPicker.black')"
@@ -114,7 +114,7 @@ const isColorLight = computed(() => getBrightness(props.modelValue) > 180)
             !isTransparent &&
             modelValue.toLowerCase() !== '#ffffff' &&
             modelValue.toLowerCase() !== '#000000'
-              ? 'border-primary shadow-[0_0_15px_hsla(var(--primary),0.4)]'
+              ? 'border-primary shadow-[0_0_15px_hsla(var(--primary)/0.4)]'
               : 'border-border opacity-80'
           "
         >

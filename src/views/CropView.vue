@@ -991,7 +991,7 @@ const ratios = computed(() => [
         <AppButton
           size="lg"
           :variant="ctaState.action === 'download' ? 'success' : 'cta'"
-          class="w-full h-12 rounded-xl shadow-lg transition-all duration-500 group overflow-hidden"
+          class="w-full h-12 rounded-xl transition-all duration-500 group overflow-hidden"
           :loading="isProcessing"
           :disabled="ctaState.disabled"
           @click="handleCtaClick"

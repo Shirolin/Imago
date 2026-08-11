@@ -387,7 +387,7 @@ const onDragEnd = () => {
   display: none;
 }
 .assets-tray {
-  box-shadow: 0 -10px 40px -10px hsla(var(--shadow-color), 0.1);
+  box-shadow: 0 -10px 40px -10px hsla(var(--shadow-color) / 0.1);
 }
 .fade-pop-enter-active {
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);

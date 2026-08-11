@@ -649,7 +649,7 @@ const handleResetParams = () => {
             <AppButton
               size="lg"
               variant="cta"
-              class="w-full h-14 rounded-2xl text-lg shadow-lg"
+              class="w-full h-14 rounded-2xl text-lg"
               :loading="currentStatus === 'loading'"
               @click="handleInitialize"
             >
@@ -960,7 +960,7 @@ const handleResetParams = () => {
         <AppButton
           size="lg"
           :variant="ctaState.variant"
-          class="w-full h-12 rounded-xl shadow-lg transition-all group overflow-hidden"
+          class="w-full h-12 rounded-xl transition-all group overflow-hidden"
           :loading="currentStatus === 'loading'"
           :disabled="ctaState.disabled"
           @click="handleCtaClick"

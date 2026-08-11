@@ -74,15 +74,13 @@ const extraClasses = computed(() => {
 
     if (props.variant === 'cta') {
       classes +=
-        'bg-gradient-to-b from-[hsl(var(--cta-hover))] to-[hsl(var(--cta))] text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2),0_10px_20px_-5px_hsla(var(--cta),var(--button-shadow-opacity))] hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.3),0_15px_30px_-5px_hsla(var(--cta),0.4)] '
+        'bg-gradient-to-b from-[hsl(var(--cta-hover))] to-[hsl(var(--cta))] text-white btn-shadow-cta '
     }
     if (props.variant === 'primary') {
-      classes +=
-        'bg-primary text-primary-foreground shadow-[0_10px_20px_-5px_hsla(var(--primary),var(--button-shadow-opacity))] hover:shadow-[0_15px_30px_-5px_hsla(var(--primary),0.4)] '
+      classes += 'bg-primary text-primary-foreground btn-shadow-primary '
     }
     if (props.variant === 'success') {
-      classes +=
-        'bg-success text-success-foreground shadow-[0_10px_20px_-5px_hsla(var(--success),var(--button-shadow-opacity))] hover:shadow-[0_15px_30px_-5px_hsla(var(--success),0.4)] '
+      classes += 'bg-success text-success-foreground btn-shadow-success '
     }
     if (props.variant === 'tool') {
       classes += 'text-muted-foreground hover:bg-muted hover:text-primary '
