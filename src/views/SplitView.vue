@@ -22,7 +22,8 @@ import {
   Trash2,
   Download,
   RotateCcw,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-vue-next'
 import { splitEngine } from '../lib/engines/splitEngine'
 import type { ViewSettings, ProcessResult } from '../lib/engines/types'
@@ -396,16 +397,18 @@ const handleKeyDown = (e: KeyboardEvent) => {
   }
 
   const step = e.shiftKey ? 10 : 1
-  const max = axis === 'x' ? selectedImage.value.width! : selectedImage.value.height!
 
   if (axis === 'x') {
-    if (e.key === 'ArrowLeft') linesX.value[index] = Math.max(0, linesX.value[index]! - step)
+    if (e.key === 'ArrowLeft')
+      linesX.value[index] = clampDraggedLine('x', index, linesX.value[index]! - step)
     else if (e.key === 'ArrowRight')
-      linesX.value[index] = Math.min(max, linesX.value[index]! + step)
+      linesX.value[index] = clampDraggedLine('x', index, linesX.value[index]! + step)
     else return
   } else {
-    if (e.key === 'ArrowUp') linesY.value[index] = Math.max(0, linesY.value[index]! - step)
-    else if (e.key === 'ArrowDown') linesY.value[index] = Math.min(max, linesY.value[index]! + step)
+    if (e.key === 'ArrowUp')
+      linesY.value[index] = clampDraggedLine('y', index, linesY.value[index]! - step)
+    else if (e.key === 'ArrowDown')
+      linesY.value[index] = clampDraggedLine('y', index, linesY.value[index]! + step)
     else return
   }
 
@@ -462,6 +465,40 @@ const getLogicPos = (e: PointerEvent) => {
   return { x: (e.clientX - rect.left) / scale, y: (e.clientY - rect.top) / scale }
 }
 
+// P1-3：把位置钳制在 [相邻线+1, 相邻线-1] ∩ [1, max-1]，保证每个切片至少 1px、线不重叠
+const clampWithin = (pos: number, prev: number, next: number, max: number) => {
+  const lo = Math.min(Math.max(prev + 1, 1), max - 1)
+  const hi = Math.max(Math.min(next - 1, max - 1), lo)
+  return Math.min(Math.max(pos, lo), hi)
+}
+
+// 拖拽中的线：以相邻线为界钳制
+const clampDraggedLine = (axis: 'x' | 'y', index: number, pos: number) => {
+  const img = selectedImage.value
+  if (!img) return pos
+  const max = axis === 'x' ? img.width! : img.height!
+  const lines = axis === 'x' ? linesX.value : linesY.value
+  const prev = index > 0 ? lines[index - 1]! : 0
+  const next = index < lines.length - 1 ? lines[index + 1]! : max
+  return clampWithin(pos, prev, next, max)
+}
+
+// 新添加的线：按插入位置（lines 保持有序）以相邻线为界钳制；
+// 相邻线之间已无空隙（间隙 ≤1px）时返回 null，避免插入与既有线重合的重复线
+const clampNewLine = (axis: 'x' | 'y', pos: number): number | null => {
+  const img = selectedImage.value
+  if (!img) return pos
+  const max = axis === 'x' ? img.width! : img.height!
+  const lines = axis === 'x' ? linesX.value : linesY.value
+  let k = 0
+  while (k < lines.length && lines[k]! <= pos) k++
+  const prev = k > 0 ? lines[k - 1]! : 0
+  const next = k < lines.length ? lines[k]! : max
+  const clamped = clampWithin(pos, prev, next, max)
+  if (clamped >= next || clamped <= prev) return null
+  return clamped
+}
+
 const snapLine = (pos: number, axis: 'x' | 'y') => {
   const img = selectedImage.value
   if (!img) return { pos, snapped: false }
@@ -512,26 +549,34 @@ const handlePointerDown = (e: PointerEvent) => {
   if (editMode.value === 'custom') {
     if (activeAxis.value === 'x') {
       const { pos: snappedX, snapped } = snapLine(pos.x, 'x')
-      linesX.value.push(snappedX)
+      // P1-3：吸附后钳制到相邻线之间，避免零宽切片；吸附位置无空隙时退回原始位置
+      let clampedX = clampNewLine('x', snappedX)
+      if (clampedX === null) clampedX = clampNewLine('x', pos.x)
+      if (clampedX === null) return
+      linesX.value.push(clampedX)
       linesX.value.sort((a, b) => a - b)
       srMessage.value = t('tools.split.messages.lineAdded', {
         axis: t('tools.split.verticalLine'),
-        pos: Math.round(snappedX)
+        pos: Math.round(clampedX)
       })
       // 自动选中新添加的线
-      const newIndex = linesX.value.indexOf(snappedX)
+      const newIndex = linesX.value.indexOf(clampedX)
       selectedLine.value = { axis: 'x', index: newIndex }
       if (snapped) triggerHaptic(8)
     } else {
       const { pos: snappedY, snapped } = snapLine(pos.y, 'y')
-      linesY.value.push(snappedY)
+      // P1-3：吸附后钳制到相邻线之间，避免零宽切片；吸附位置无空隙时退回原始位置
+      let clampedY = clampNewLine('y', snappedY)
+      if (clampedY === null) clampedY = clampNewLine('y', pos.y)
+      if (clampedY === null) return
+      linesY.value.push(clampedY)
       linesY.value.sort((a, b) => a - b)
       srMessage.value = t('tools.split.messages.lineAdded', {
         axis: t('tools.split.horizontalLine'),
-        pos: Math.round(snappedY)
+        pos: Math.round(clampedY)
       })
       // 自动选中新添加的线
-      const newIndex = linesY.value.indexOf(snappedY)
+      const newIndex = linesY.value.indexOf(clampedY)
       selectedLine.value = { axis: 'y', index: newIndex }
       if (snapped) triggerHaptic(8)
     }
@@ -551,7 +596,9 @@ const handlePointerMove = (e: PointerEvent) => {
     const { axis, index } = draggingLine.value
     const currentLines = axis === 'x' ? linesX.value : linesY.value
     const oldVal = currentLines[index]
-    const { pos: newVal, snapped } = snapLine(axis === 'x' ? pos.x : pos.y, axis)
+    const { pos: snappedVal, snapped } = snapLine(axis === 'x' ? pos.x : pos.y, axis)
+    // P1-3：吸附后钳制在 [相邻线+1, 相邻线-1] ∩ [1, max-1]，避免零宽切片与线重叠
+    const newVal = clampDraggedLine(axis, index, snappedVal)
 
     if (axis === 'x') linesX.value[index] = newVal
     else linesY.value[index] = newVal
@@ -646,6 +693,29 @@ const clearLines = () => {
   saveMeta()
 }
 
+// P1-1：网格 ↔ 自由编辑切换时保持画布状态一致
+// - grid → custom：把虚拟网格线物化为实体线，保证切换后画布不空
+// - custom → grid：清空实体线，避免 custom→grid→custom 旧线复活
+watch(editMode, (newMode, oldMode) => {
+  const img = selectedImage.value
+  if (newMode === 'grid') {
+    linesX.value = []
+    linesY.value = []
+    selectedLine.value = null
+    draggingLine.value = null
+    hoveredLine.value = null
+    return
+  }
+  if (oldMode === 'grid' && img) {
+    const newLinesX: number[] = []
+    const newLinesY: number[] = []
+    for (let i = 1; i < cols.value; i++) newLinesX.push((img.width! / cols.value) * i)
+    for (let i = 1; i < rows.value; i++) newLinesY.push((img.height! / rows.value) * i)
+    linesX.value = newLinesX
+    linesY.value = newLinesY
+  }
+})
+
 watch(
   [rows, cols, editMode, centerMode, shave, outputFormat, outputQuality],
   () => {
@@ -657,9 +727,46 @@ watch(
   { deep: true }
 )
 
+// P1-2：视图层校验切分参数，阻止产生零宽/零高切片（配合引擎兜底 reject）
+const validateSplit = (): string | null => {
+  const img = selectedImage.value
+  if (!img) return null
+  const w = img.width!
+  const h = img.height!
+
+  let bX: number[]
+  let bY: number[]
+  if (editMode.value === 'custom') {
+    bX = [0, ...[...linesX.value].sort((a, b) => a - b), w]
+    bY = [0, ...[...linesY.value].sort((a, b) => a - b), h]
+  } else {
+    bX = Array.from({ length: cols.value + 1 }, (_, i) => (w / cols.value) * i)
+    bY = Array.from({ length: rows.value + 1 }, (_, i) => (h / rows.value) * i)
+  }
+
+  for (let r = 0; r < bY.length - 1; r++) {
+    for (let c = 0; c < bX.length - 1; c++) {
+      const sw = bX[c + 1]! - bX[c]! - shave.value * 2
+      const sh = bY[r + 1]! - bY[r]! - shave.value * 2
+      if (sw <= 0 || sh <= 0) {
+        return '切分参数导致切片尺寸为零，请减小裁剪边距或调整分割线位置'
+      }
+    }
+  }
+  return null
+}
+
 const handleApplyProcess = async () => {
   if (!selectedImage.value) return
   const id = selectedImage.value.id
+
+  // P1-2：视图层阻止无效分割，避免静默产出空切片
+  const invalid = validateSplit()
+  if (invalid) {
+    srMessage.value = invalid
+    return
+  }
+
   const res = await processSingle(id, {
     rows: editMode.value === 'custom' ? linesY.value.length + 1 : rows.value,
     cols: editMode.value === 'custom' ? linesX.value.length + 1 : cols.value,
@@ -679,6 +786,13 @@ const handleApplyProcess = async () => {
       blobs,
       isDirty: false
     })
+    return
+  }
+
+  // 处理失败（引擎错误/中止）：不写入结果 → CTA 不会显示绿色导出；播报可显示的引擎错误
+  const img = store.images.find((i) => i.id === id)
+  if (img && img.status === 'error' && img.error) {
+    srMessage.value = img.error
   }
 }
 
@@ -1068,14 +1182,18 @@ const handleCtaClick = async () => {
           size="lg"
           :variant="ctaState.action === 'download' ? 'success' : 'cta'"
           class="w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden"
-          :loading="isProcessing"
           :disabled="ctaState.disabled"
           @click="handleCtaClick"
         >
           <template #icon>
-            <component :is="ctaState.icon" v-if="!isProcessing" :size="18" class="mr-2" />
+            <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
+            <component :is="ctaState.icon" v-else :size="18" class="mr-2" />
           </template>
-          <span class="font-bold text-sm tracking-tight">{{ ctaState.text }}</span>
+          <span
+            class="font-bold text-sm tracking-tight"
+            :class="{ 'tabular-nums': isProcessing }"
+            >{{ ctaState.text }}</span
+          >
         </AppButton>
       </InspectorFooter>
     </template>

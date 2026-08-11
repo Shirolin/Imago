@@ -90,7 +90,10 @@ export const splitEngine: ImageProcessor<SplitOptions> = async (file, options) =
             const sourceW = endX - startX - shave * 2
             const sourceH = endY - startY - shave * 2
 
-            if (sourceW <= 0 || sourceH <= 0) continue
+            // P1-2：零宽/零高切片不再静默跳过，直接报错给出可显示信息，避免 resolve 出缺失/空切片
+            if (sourceW <= 0 || sourceH <= 0) {
+              throw new Error('切分参数导致切片尺寸为零，请减小裁剪边距或调整分割线位置')
+            }
 
             if (centerMode !== 'none') {
               const tempCanvas = document.createElement('canvas')
@@ -147,9 +150,11 @@ export const splitEngine: ImageProcessor<SplitOptions> = async (file, options) =
               }
             })
 
-            if (blob) {
-              results.push(blob)
+            if (!blob) {
+              // 不再静默吞错：切片编码失败视为整体失败，给出可显示错误
+              throw new Error('切片编码失败，请检查图片尺寸或导出格式设置')
             }
+            results.push(blob)
             canvas.width = canvas.height = 0
           }
         }

@@ -14,29 +14,52 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
       currentController = null
       isProcessing.value = false
       progress.value = 0
+      // 队列场景下由队列 controller 统一中止，这里兜底复位所有 processing 状态
+      store.images.forEach((img) => {
+        if (img.status === 'processing') {
+          store.updateImage(img.id, { status: 'idle', abortController: undefined })
+        }
+      })
     }
   }
 
+  /**
+   * 处理单张图片。
+   * - manageProcessing=false 时由调用方（processQueue）管理 isProcessing 与队列级 AbortController，
+   *   用于修复批量处理时「取消只中止最后一个任务」与「进度聚合被覆盖」两个缺陷。
+   * - 单独调用（如 SplitView 的 processSingle）时 manageProcessing 默认 true，
+   *   修复此前 isProcessing 从不置位导致 CTA 无进度/可重复点击的问题。
+   */
   const processSingle = async (
     id: string,
-    options: T
+    options: T,
+    externalOnProgress?: (p: number) => void,
+    manageProcessing = true
   ): Promise<ProcessResult | Blob | Blob[] | undefined> => {
     const item = store.images.find((img) => img.id === id)
     if (!item) return
 
-    const abortController = new AbortController()
-    currentController = abortController
-    store.updateImage(id, { status: 'processing', progress: 0, abortController })
-    progress.value = 0
+    const externalSignal = (options as { signal?: AbortSignal }).signal
+    const ownController = externalSignal ? null : new AbortController()
+    if (ownController) currentController = ownController
+    if (manageProcessing) isProcessing.value = true
+
+    store.updateImage(id, {
+      status: 'processing',
+      progress: 0,
+      abortController: ownController ?? undefined
+    })
 
     try {
       const result = await (processor as ImageProcessor<T>)(item.file, {
         ...options,
         jobId: id,
-        signal: abortController.signal,
+        signal: externalSignal ?? ownController!.signal,
         onProgress: (p: number) => {
-          progress.value = p
+          // 单任务场景直接暴露进度；队列场景由 externalOnProgress 聚合后统一写入
+          if (manageProcessing) progress.value = p
           store.updateImage(id, { progress: p })
+          externalOnProgress?.(p)
         }
       })
 
@@ -45,11 +68,13 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
         progress: 1,
         abortController: undefined
       })
-      currentController = null
-      progress.value = 0
+      if (manageProcessing) {
+        progress.value = 0
+        currentController = null
+      }
       return result
     } catch (error) {
-      progress.value = 0
+      if (manageProcessing) progress.value = 0
       currentController = null
       const err = error as Error
       if (
@@ -66,6 +91,8 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
         error: err.message || '处理失败',
         abortController: undefined
       })
+    } finally {
+      if (manageProcessing) isProcessing.value = false
     }
   }
 
@@ -99,6 +126,12 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
     const total = items.length
     if (total === 0) return
 
+    // 队列级 AbortController：取消时中止整批任务，而非只杀最后一个
+    const queueController = new AbortController()
+    currentController = queueController
+    isProcessing.value = true
+    progress.value = 0
+
     const CONCURRENCY_LIMIT = 3
     let index = 0
     const results: Promise<void>[] = []
@@ -114,21 +147,22 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
     const worker = async () => {
       while (index < items.length) {
         const item = items[index++]
-        if (item) {
-          itemProgress.set(item.id, 0)
-          const result = await processSingle(item.id, {
-            ...options,
-            onProgress: (p: number) => {
-              itemProgress.set(item.id, p)
-              updateGlobalProgress()
-            }
-          })
-          if (result && onResult) {
-            onResult(item.id, result as ProcessResult | Blob | Blob[])
-          }
-          itemProgress.set(item.id, 1) // 确保完成后计为 1
-          updateGlobalProgress()
+        if (!item) continue
+        itemProgress.set(item.id, 0)
+        const result = await processSingle(
+          item.id,
+          { ...options, signal: queueController.signal },
+          (p: number) => {
+            itemProgress.set(item.id, p)
+            updateGlobalProgress()
+          },
+          false
+        )
+        if (result && onResult) {
+          onResult(item.id, result as ProcessResult | Blob | Blob[])
         }
+        itemProgress.set(item.id, 1) // 确保完成后计为 1
+        updateGlobalProgress()
       }
     }
 
@@ -138,26 +172,26 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
     }
 
     await Promise.all(results)
+
+    currentController = null
+    isProcessing.value = false
+    progress.value = 0
   }
 
   const processAll = async (
     options: T,
     onResult?: (id: string, result: ProcessResult | Blob | Blob[]) => void
   ) => {
-    isProcessing.value = true
     const pendingImages = store.images.filter((img) => img.status !== 'done')
     await processQueue(pendingImages, options, onResult)
-    isProcessing.value = false
   }
 
   const processSelected = async (
     options: T,
     onResult?: (id: string, result: ProcessResult | Blob | Blob[]) => void
   ) => {
-    isProcessing.value = true
     const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
     await processQueue(selectedImages, options, onResult)
-    isProcessing.value = false
   }
 
   return {

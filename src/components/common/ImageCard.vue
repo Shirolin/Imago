@@ -9,7 +9,8 @@ import {
   Columns2,
   RotateCcw,
   AlertCircle,
-  Loader2
+  Loader2,
+  Sparkles
 } from 'lucide-vue-next'
 import { useFileHelpers } from '../../composables/useFileHelpers'
 import { useImageStore } from '../../stores/imageStore'
@@ -179,9 +180,7 @@ const displayUrl = computed(() => {
       isSelected
         ? 'ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/[0.03]'
         : '',
-      isDirtyDone
-        ? 'animate-dirty-pulse border-amber-500/20'
-        : ''
+      isDirtyDone ? 'animate-dirty-pulse border-amber-500/20' : ''
     ]"
     tabindex="0"
     @click="emit('toggle', image.id)"
@@ -269,7 +268,7 @@ const displayUrl = computed(() => {
       <!-- 【模式 B】：Hover HUD 托盘 (仅在小图模式下浮现) -->
       <div
         v-if="!isLargeMode"
-        class="absolute bottom-3 left-3 right-3 z-30 bg-background/80 backdrop-blur-xl border border-white/20 rounded-xl p-1.5 shadow-2xl flex items-center justify-between gap-1.5 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 pointer-events-auto"
+        class="absolute bottom-3 left-3 right-3 z-30 bg-background/80 backdrop-blur-xl border border-white/20 rounded-xl p-1.5 shadow-2xl flex items-center justify-between gap-1.5 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 pointer-events-auto touch-reveal"
       >
         <div class="flex items-center gap-1">
           <button
@@ -291,6 +290,16 @@ const displayUrl = computed(() => {
         </div>
         <div class="flex items-center gap-1.5">
           <button
+            v-if="image.status === 'done'"
+            @click.stop="emit('interactive', image.id)"
+            class="p-1.5 hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-lg transition-all"
+            :aria-label="t('common.image.card.sam2')"
+            :title="t('common.image.card.sam2')"
+          >
+            <Sparkles :size="14" />
+          </button>
+          <button
+            v-if="image.status === 'done'"
             @click.stop="emit('download', image.id)"
             class="p-1.5 bg-primary text-primary-foreground rounded-lg shadow-lg active:scale-90 transition-all"
             :aria-label="t('common.image.card.download')"
@@ -318,7 +327,7 @@ const displayUrl = computed(() => {
       <button
         v-if="!showMagnifier"
         @click.stop="store.removeImage(image.id)"
-        class="absolute top-3 right-3 z-30 bg-background/40 hover:bg-destructive text-foreground/60 hover:text-destructive-foreground p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-border/40 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        class="absolute top-3 right-3 z-30 bg-background/40 hover:bg-destructive text-foreground/60 hover:text-destructive-foreground p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-border/40 outline-none focus-visible:ring-2 focus-visible:ring-primary touch-reveal"
         :title="$t('common.image.card.remove')"
         :aria-label="$t('common.image.card.remove')"
       >
@@ -328,7 +337,7 @@ const displayUrl = computed(() => {
       <!-- 处理中中心进度 -->
       <div
         v-if="image.status === 'processing'"
-        class="absolute inset-0 bg-background/60 backdrop-blur-[2px] z-35 flex items-center justify-center"
+        class="absolute inset-0 bg-background/60 backdrop-blur-[2px] z-30 flex items-center justify-center"
       >
         <Loader2 :size="24" class="text-primary animate-spin" />
       </div>
@@ -336,6 +345,18 @@ const displayUrl = computed(() => {
 
     <!-- Layer 2: Info Area -->
     <div class="p-3.5 flex flex-col gap-1.5 min-w-0">
+      <!-- 处理失败提示 -->
+      <div
+        v-if="image.status === 'error'"
+        class="flex items-center gap-1.5 text-[11px] font-bold text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-2 py-1.5"
+        role="alert"
+      >
+        <AlertCircle :size="13" class="shrink-0" />
+        <span class="truncate min-w-0">{{
+          image.error || $t('common.image.compare.errorTitle')
+        }}</span>
+      </div>
+
       <div class="flex items-center justify-between gap-2">
         <h4 class="font-bold text-foreground truncate text-sm flex-1">{{ image.file.name }}</h4>
         <div class="shrink-0 flex items-center gap-1.5">
@@ -387,8 +408,18 @@ const displayUrl = computed(() => {
           <RotateCcw :size="14" />
           <span>{{ t('common.image.card.reset') }}</span>
         </button>
+        <button
+          v-if="image.status === 'done'"
+          class="flex-1 flex items-center justify-center gap-2 h-9 rounded-xl bg-muted/30 hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all text-[10px] font-black uppercase tracking-wider border border-transparent hover:border-primary/20 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          @click.stop="emit('interactive', image.id)"
+          :aria-label="t('common.image.card.sam2')"
+        >
+          <Sparkles :size="14" />
+          <span>{{ t('common.image.card.sam2') }}</span>
+        </button>
         <div class="flex gap-2 ml-auto pl-2 border-l border-border/40">
           <button
+            v-if="image.status === 'done'"
             @click.stop="emit('download', image.id)"
             class="p-2 bg-primary text-primary-foreground rounded-xl shadow-lg shadow-primary/20 hover:scale-110 hover:shadow-primary/40 active:scale-95 transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-primary"
             :title="t('common.image.card.download')"
@@ -443,16 +474,27 @@ const displayUrl = computed(() => {
 </template>
 
 <style scoped>
+/* 触屏设备：hover 不可靠，HUD 与删除按钮常驻显示 */
+@media (hover: none) {
+  .touch-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
 .animate-dirty-pulse {
   animation: dirty-pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 @keyframes dirty-pulse {
   0%,
   100% {
-    box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.15), 0 4px 15px -3px rgba(245, 158, 11, 0.05);
+    box-shadow:
+      inset 0 0 0 1px rgba(245, 158, 11, 0.15),
+      0 4px 15px -3px rgba(245, 158, 11, 0.05);
   }
   50% {
-    box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.4), 0 4px 15px -3px rgba(245, 158, 11, 0.15);
+    box-shadow:
+      inset 0 0 0 1px rgba(245, 158, 11, 0.4),
+      0 4px 15px -3px rgba(245, 158, 11, 0.15);
   }
 }
 .ease-apple {

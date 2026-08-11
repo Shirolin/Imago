@@ -395,24 +395,27 @@ const handleCtaClick = async () => {
                 :default-value="100"
               />
             </div>
-            <div v-else class="space-y-5">
-              <div class="grid grid-cols-2 gap-3">
-                <AppInput
-                  v-model.number="width"
-                  type="number"
-                  :placeholder="t('tools.resize.width')"
-                  :suffix="t('tools.resize.widthUnit')"
-                  :aria-label="t('tools.resize.width')"
-                />
-                <AppInput
-                  v-model.number="height"
-                  type="number"
-                  :placeholder="t('tools.resize.height')"
-                  :suffix="t('tools.resize.heightUnit')"
-                  :aria-label="t('tools.resize.height')"
-                />
-              </div>
-              <div class="flex items-center justify-between px-1">
+            <div v-else class="space-y-3">
+              <!-- 单列布局：grid-cols-2 下输入框过窄（~83px），4 位数文本会溢出/与步进按钮重叠 -->
+              <AppInput
+                v-model.number="width"
+                type="number"
+                :placeholder="t('tools.resize.width')"
+                :suffix="t('tools.resize.widthUnit')"
+                :aria-label="t('tools.resize.width')"
+                :min="1"
+                :max="16384"
+              />
+              <AppInput
+                v-model.number="height"
+                type="number"
+                :placeholder="t('tools.resize.height')"
+                :suffix="t('tools.resize.heightUnit')"
+                :aria-label="t('tools.resize.height')"
+                :min="1"
+                :max="16384"
+              />
+              <div class="flex items-center justify-between px-1 pt-0.5">
                 <AppCheckbox
                   v-model="maintainAspectRatio"
                   :label="t('tools.resize.lockAspectRatio')"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   Minimize2,
@@ -32,6 +32,8 @@ import LanguageSwitcher from './components/common/LanguageSwitcher.vue'
 const store = useImageStore()
 const layoutStore = useLayoutStore()
 const { t } = useI18n()
+const router = useRouter()
+const route = useRoute()
 
 const theme = ref<'light' | 'dark' | 'system'>('system')
 
@@ -100,6 +102,11 @@ const handleFiles = (files: FileList | File[]) => {
 
   if (validFiles.length > 0) {
     store.addImages(validFiles)
+    // 首页（工具导航页）无图片工作区：收到拖入/粘贴的图片后自动跳入核心工具，
+    // 避免图片被加入 store 却无任何可见入口（流程断裂）
+    if (route.name === 'home') {
+      router.push('/compress')
+    }
   }
 }
 
@@ -197,7 +204,7 @@ const menuGroups = computed(() => [
 ])
 
 const currentRouteName = computed(() => {
-  const routeName = useRoute().name as string
+  const routeName = route.name as string
   if (routeName === 'home') return t('nav.allTools')
   const toolKey = [
     'compress',

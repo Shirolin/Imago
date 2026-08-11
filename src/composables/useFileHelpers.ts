@@ -162,6 +162,23 @@ export function useFileHelpers() {
     isDownloadingAll.value = true
     try {
       const zip = new JSZip()
+      // 同名条目去重：ZIP 中同名 file/folder 会静默互相覆盖（数据丢失）
+      const usedNames = new Set<string>()
+      const uniqueName = (name: string) => {
+        let candidate = name
+        let i = 2
+        while (usedNames.has(candidate)) {
+          const lastDot = candidate.lastIndexOf('.')
+          if (lastDot !== -1 && name === candidate) {
+            candidate = `${name.substring(0, lastDot)} (${i})${name.substring(lastDot)}`
+          } else {
+            candidate = `${name} (${i})`
+          }
+          i++
+        }
+        usedNames.add(candidate)
+        return candidate
+      }
 
       validImages.forEach((img) => {
         const lastDot = img.file.name.lastIndexOf('.')
@@ -169,7 +186,7 @@ export function useFileHelpers() {
 
         if (img.processedBlobs && img.processedBlobs.length > 0) {
           // 场景 A: 该图片产生了多个结果（如切图）
-          const folder = zip.folder(baseName)
+          const folder = zip.folder(uniqueName(baseName))
           img.processedBlobs.forEach((b: Blob, idx: number) => {
             const finalName = getNewFileName(`${baseName}_tile_${idx + 1}`, b.type, finalTag)
             folder?.file(finalName, b)
@@ -177,7 +194,7 @@ export function useFileHelpers() {
         } else if (img.processedBlob) {
           // 场景 B: 常见的单图处理
           const finalName = getNewFileName(img.file.name, img.processedBlob.type, finalTag)
-          zip.file(finalName, img.processedBlob)
+          zip.file(uniqueName(finalName), img.processedBlob)
         }
       })
 

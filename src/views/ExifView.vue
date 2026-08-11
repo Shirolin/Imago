@@ -22,7 +22,8 @@ import {
   ChevronUp,
   FileSearch,
   Eye,
-  Download
+  Download,
+  AlertCircle
 } from 'lucide-vue-next'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
@@ -53,15 +54,22 @@ interface LocalResult {
 const results = ref<Map<string, LocalResult>>(new Map())
 
 const cleanupResults = () => {
+  const affectedIds = [...results.value.keys()]
   results.value.forEach((res) => {
     URL.revokeObjectURL(res.preview)
   })
   results.value.clear()
+  // 重置 EXIF 分析状态：清除清理结果后按原图重新分析，
+  // 避免仍展示“已清理/安全”的误导性状态
+  affectedIds.forEach((id) => handleReset(id))
 }
 
 onUnmounted(() => {
   cleanupResults()
 })
+
+// 已见过的图片 id，用于识别拖入的新图
+const knownImageIds = new Set<string>(store.images.map((img) => img.id))
 
 // 监听图片列表变化，自动清理已删除图片的本地结果
 watch(
@@ -79,6 +87,20 @@ watch(
     Object.keys(exifDataMap.value).forEach((id) => {
       if (!currentIds.has(id)) delete exifDataMap.value[id]
     })
+
+    // 拖入新图时自动激活（取第一个新图），触发其 EXIF 分析
+    for (const img of newImages) {
+      if (!knownImageIds.has(img.id)) {
+        activeImageId.value = img.id
+        break
+      }
+    }
+
+    // 维护已知 id 集合（移除已删除的，记录新加入的）
+    knownImageIds.forEach((id) => {
+      if (!currentIds.has(id)) knownImageIds.delete(id)
+    })
+    newImages.forEach((img) => knownImageIds.add(img.id))
   },
   { deep: true }
 )
@@ -364,26 +386,32 @@ const handleCtaClick = async () => {
               <AppBadge
                 v-if="image.exifCount !== undefined"
                 :variant="
-                  image.isExifUnsupported
-                    ? 'muted'
-                    : image.exifCount > 0
-                      ? 'destructive'
-                      : 'primary'
+                  image.exifError
+                    ? 'destructive'
+                    : image.isExifUnsupported
+                      ? 'muted'
+                      : image.exifCount > 0
+                        ? 'destructive'
+                        : 'primary'
                 "
                 :icon="
-                  !image.isExifUnsupported && image.exifCount > 0
-                    ? ShieldAlert
-                    : !image.isExifUnsupported
-                      ? ShieldCheck
-                      : Info
+                  image.exifError
+                    ? AlertCircle
+                    : !image.isExifUnsupported && image.exifCount > 0
+                      ? ShieldAlert
+                      : !image.isExifUnsupported
+                        ? ShieldCheck
+                        : Info
                 "
               >
                 {{
-                  image.isExifUnsupported
-                    ? t('tools.exif.unsupported')
-                    : image.exifCount > 0
-                      ? t('tools.exif.riskCount', { count: image.exifCount })
-                      : t('tools.exif.safe')
+                  image.exifError
+                    ? t('common.image.compare.errorTitle')
+                    : image.isExifUnsupported
+                      ? t('tools.exif.unsupported')
+                      : image.exifCount > 0
+                        ? t('tools.exif.riskCount', { count: image.exifCount })
+                        : t('tools.exif.safe')
                 }}
               </AppBadge>
               <div v-else class="h-6 flex items-center">
@@ -484,7 +512,23 @@ const handleCtaClick = async () => {
               </div>
             </div>
           </div>
-          <div v-if="!activeExifData?.metaCount" class="py-10 text-center space-y-3">
+          <div v-if="activeExifData?.error" class="py-10 text-center space-y-3" role="alert">
+            <div
+              class="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mx-auto"
+            >
+              <AlertCircle :size="24" class="text-destructive" />
+            </div>
+            <div class="text-xs font-bold text-destructive px-4 leading-relaxed">
+              {{ t('common.image.compare.errorTitle') }}
+            </div>
+            <p class="text-[10px] text-muted-foreground/70 px-6 break-words">
+              {{ activeExifData.error }}
+            </p>
+          </div>
+          <div
+            v-if="!activeExifData?.metaCount && !activeExifData?.error"
+            class="py-10 text-center space-y-3"
+          >
             <div
               :class="[activeExifData?.unsupported ? 'bg-muted/30' : 'bg-primary/5']"
               class="w-12 h-12 rounded-full flex items-center justify-center mx-auto"
@@ -523,6 +567,7 @@ const handleCtaClick = async () => {
       <AppExportSettings
         v-model:format="outputFormat"
         v-model:quality="outputQuality"
+        canvas-only
         class="pt-6 border-t border-border/40"
       />
     </template>

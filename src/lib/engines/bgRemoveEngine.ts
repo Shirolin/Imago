@@ -41,18 +41,27 @@ export const bgRemoveEngine: ImageProcessor<BgRemoveOptions> = (file, options) =
       if (type === 'progress') {
         if (options.onProgress) options.onProgress(value)
       } else if (type === 'done') {
+        clearTimeout(timeoutId)
         worker.removeEventListener('message', handleMessage)
         resolve(blob)
       } else if (type === 'error') {
+        clearTimeout(timeoutId)
         worker.removeEventListener('message', handleMessage)
         reject(new Error(message || 'Worker 内部错误'))
       }
     }
 
+    // 长任务兜底：单张超过 120s 判定失败，避免无限等待
+    const timeoutId = setTimeout(() => {
+      worker.removeEventListener('message', handleMessage)
+      reject(new Error('处理超时（120 秒）'))
+    }, 120_000)
+
     worker.addEventListener('message', handleMessage)
 
     const handleError = (error: ErrorEvent) => {
       console.error('[Imago Engine] Worker Error:', error)
+      clearTimeout(timeoutId)
       worker.removeEventListener('message', handleMessage)
       sharedWorker = null // 标记损坏，下次重新创建
       reject(new Error(`Worker 计算失败: ${error.message}`))
@@ -64,6 +73,7 @@ export const bgRemoveEngine: ImageProcessor<BgRemoveOptions> = (file, options) =
       options.signal.addEventListener(
         'abort',
         () => {
+          clearTimeout(timeoutId)
           worker.removeEventListener('message', handleMessage)
           reject(new Error('AbortError'))
         },
@@ -81,7 +91,9 @@ export const bgRemoveEngine: ImageProcessor<BgRemoveOptions> = (file, options) =
         maskThreshold: options.maskThreshold,
         maskBlur: options.maskBlur,
         maskShrink: options.maskShrink,
-        jobId: options.jobId
+        jobId: options.jobId,
+        format: options.format,
+        quality: options.quality
       }
     })
   })

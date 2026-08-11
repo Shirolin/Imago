@@ -45,6 +45,8 @@ const onFileSelect = (e: Event) => {
   if (target.files) {
     handleFiles(target.files)
   }
+  // 重置 value，使重复选择同一文件仍能触发 change 事件
+  target.value = ''
 }
 
 const triggerSelect = () => {

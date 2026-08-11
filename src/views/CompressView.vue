@@ -32,6 +32,8 @@ interface LocalResult {
   preview: string
   size: number
   isDirty: boolean
+  /** 压缩结果未减小（保留原图），UI 显示「已跳过」而非虚假成功 */
+  skipped?: boolean
 }
 const results = ref<Map<string, LocalResult>>(new Map())
 
@@ -43,6 +45,8 @@ const cleanupResults = () => {
 }
 
 onUnmounted(() => {
+  // 路由切换中止处理：DESIGN.md 2.2 要求全局清理挂起任务，避免后台继续跑 + 结果泄漏
+  abortProcessing()
   cleanupResults()
 })
 
@@ -68,6 +72,15 @@ const outputFormat = ref<string>('original')
 const pngColors = ref(256)
 const pngEffort = ref(7)
 const targetSizeKB = ref(500)
+// 目标体积输入为空/非法时钳制到最小有效值，避免 ''→0→静默 10MB 兜底
+const sanitizeTargetSize = (val: unknown) => {
+  const n = Number(val)
+  if (!Number.isFinite(n) || n < 1) return 1
+  return Math.round(n)
+}
+const handleTargetSize = (val: string | number | undefined) => {
+  targetSizeKB.value = sanitizeTargetSize(val)
+}
 const keepOriginalIfLarger = ref(true)
 const preserveExif = ref(false)
 const maxWidth = ref<number | undefined>(undefined)
@@ -76,7 +89,15 @@ const maxHeight = ref<number | undefined>(undefined)
 const showCompareModal = ref(false)
 const comparingImage = ref<ImageItem | null>(null)
 
-const { isProcessing, processSelected } = useImageProcessor(dualEngine)
+// 切到 PNG 后「目标体积」模式无意义（PNG 为无损），重置为 quality 模式，
+// 修复 P1-4：目标模式下切 PNG 后参数残留、引擎静默按目标循环降分辨率
+watch(outputFormat, (fmt) => {
+  if (fmt === 'image/png' && compressionMode.value === 'target') {
+    compressionMode.value = 'quality'
+  }
+})
+
+const { isProcessing, processSelected, abortProcessing } = useImageProcessor(dualEngine)
 
 const displayImages = computed(() => [...store.images].reverse())
 
@@ -215,7 +236,10 @@ const handleCtaClick = async () => {
           ? undefined
           : outputFormat.value) as CompressionOptions['format'],
         mode: compressionMode.value,
-        maxSizeMB: compressionMode.value === 'target' ? targetSizeKB.value / 1024 : undefined,
+        maxSizeMB:
+          compressionMode.value === 'target' && Number(targetSizeKB.value) > 0
+            ? Number(targetSizeKB.value) / 1024
+            : undefined,
         colors: outputFormat.value === 'image/png' ? pngColors.value : undefined,
         effort: outputFormat.value === 'image/png' ? pngEffort.value : undefined,
         keepOriginalIfLarger: keepOriginalIfLarger.value,
@@ -234,7 +258,8 @@ const handleCtaClick = async () => {
           blob,
           preview: URL.createObjectURL(blob),
           size: typedResult.size || blob.size,
-          isDirty: false
+          isDirty: false,
+          skipped: typedResult.skipped
         })
       }
     )
@@ -250,6 +275,7 @@ const handleCtaClick = async () => {
         ><ImageActionsToolbar
           view-id="compress"
           :is-processing="isProcessing"
+          :show-download-all="false"
           show-clear-all
           @reset-all="cleanupResults"
       /></template>
@@ -298,12 +324,23 @@ const handleCtaClick = async () => {
                       >{{ t('tools.compress.compressed') }}</span
                     ><span
                       class="font-bold text-[0.65rem] md:text-[0.75rem]"
-                      :class="image.status === 'done' ? 'text-primary' : 'text-foreground'"
+                      :class="
+                        image.status === 'done' && results.get(image.id)?.skipped
+                          ? 'text-muted-foreground'
+                          : image.status === 'done'
+                            ? 'text-primary'
+                            : 'text-foreground'
+                      "
                       >{{
                         image.status === 'done' && results.has(image.id)
                           ? formatSize(results.get(image.id)!.size)
                           : '--'
                       }}</span
+                    >
+                    <span
+                      v-if="image.status === 'done' && results.get(image.id)?.skipped"
+                      class="text-[0.55rem] md:text-[0.6rem] font-black uppercase tracking-wider text-amber-500"
+                      >{{ t('common.export.skipIfLarger') }}</span
                     >
                   </div>
                 </div>
@@ -319,6 +356,7 @@ const handleCtaClick = async () => {
           v-model:quality="quality"
           v-model:mode="compressionMode"
           v-model:target-size-k-b="targetSizeKB"
+          @update:target-size-k-b="handleTargetSize"
           v-model:colors="pngColors"
           v-model:effort="pngEffort"
           v-model:max-width="maxWidth"

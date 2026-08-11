@@ -209,6 +209,9 @@ const undo = () => {
   if (points.value.length > 0) {
     triggerDecode()
   } else {
+    // 撤销到空点：logits 停留在旧状态会导致下一次推理基于旧会话，
+    // 与 resetPoints 保持一致，通知 Worker 重置累积式分割会话
+    worker?.postMessage({ type: 'reset' })
     clearMask()
   }
 }

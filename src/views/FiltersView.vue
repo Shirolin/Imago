@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useImageStore } from '../stores/imageStore'
+import { useImageStore, type ImageItem } from '../stores/imageStore'
 import { useLayoutStore } from '../stores/layoutStore'
 import { useFileHelpers, type ZipResultItem } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
@@ -9,6 +9,7 @@ import AppButton from '../components/common/AppButton.vue'
 import AppSlider from '../components/common/AppSlider.vue'
 import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import ImageCard from '../components/common/ImageCard.vue'
+import ImageCompare from '../components/common/ImageCompare.vue'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppExportSettings from '../components/common/AppExportSettings.vue'
@@ -25,6 +26,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
+  Loader2,
   AlertCircle
 } from 'lucide-vue-next'
 import { filterEngine } from '../lib/engines/filterEngine'
@@ -35,7 +37,7 @@ import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
-const { downloadImage, downloadAllAsZip } = useFileHelpers()
+const { downloadImage, downloadAllAsZip, formatSize } = useFileHelpers()
 const { t } = useI18n()
 
 // 本地结果存储
@@ -72,11 +74,14 @@ watch(
 
     if (newImages.length === 0) {
       activePresetId.value = 'none'
+      lastPresetId.value = 'none'
       brightness.value = 100
       contrast.value = 100
       saturation.value = 100
       blur.value = 0
       sepia.value = 0
+      // 基准值随预设重置点一并复位，避免清空后残留旧预设基准
+      baselineValues.value = { brightness: 100, contrast: 100, saturation: 100, blur: 0, sepia: 0 }
     }
   },
   { deep: true }
@@ -151,10 +156,23 @@ onMounted(() => {
   setTimeout(checkScroll, 100)
 })
 
-const { isProcessing, processSelected } = useImageProcessor(filterEngine)
+const { isProcessing, processSelected, abortProcessing } = useImageProcessor(filterEngine)
 
 // 确认框状态
 const showResetConfirm = ref(false)
+
+// 对比模态框（对齐 BgRemoveView 接线）
+const showCompareModal = ref(false)
+const comparingImage = ref<ImageItem | null>(null)
+const handleCompare = (id: string) => {
+  const item = store.images.find((img) => img.id === id)
+  const result = results.value.get(id)
+  if (!item || !result) return
+  comparingImage.value = item
+  showCompareModal.value = true
+}
+const closeCompare = () => (showCompareModal.value = false)
+const handleModalLeave = () => (comparingImage.value = null)
 
 const resetFilters = () => {
   showResetConfirm.value = true
@@ -321,10 +339,10 @@ const ctaState = computed(() => {
     return { text: t('tools.filters.cta.select'), icon: Sparkles, action: 'none', disabled: true }
   if (isProcessing.value)
     return {
-      text: t('tools.filters.cta.rendering'),
+      text: `${t('tools.filters.cta.rendering')} ${t('tools.split.cta.clickToAbort')}`,
       icon: Sparkles,
-      action: 'none',
-      disabled: true
+      action: 'abort',
+      disabled: false
     }
 
   const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
@@ -361,6 +379,11 @@ const ctaState = computed(() => {
 const handleCtaClick = async () => {
   const state = ctaState.value
   if (state.action === 'none') return
+
+  if (state.action === 'abort') {
+    abortProcessing()
+    return
+  }
 
   if (state.action === 'download') {
     const zipResults = store.images
@@ -419,6 +442,7 @@ const handleCtaClick = async () => {
               :allow-magnifier="false"
               @toggle="store.toggleSelection"
               @remove="store.removeImage"
+              @compare="handleCompare"
               @download="handleDownload"
               @reset="handleReset"
             >
@@ -628,6 +652,7 @@ const handleCtaClick = async () => {
         <AppExportSettings
           v-model:format="outputFormat"
           v-model:quality="outputQuality"
+          canvas-only
           class="pt-6 border-t border-border/40"
         />
       </template>
@@ -638,12 +663,12 @@ const handleCtaClick = async () => {
             size="lg"
             :variant="ctaState.action === 'download' ? 'success' : 'cta'"
             class="w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden"
-            :loading="isProcessing"
             :disabled="ctaState.disabled"
             @click="handleCtaClick"
           >
             <template #icon>
-              <component :is="ctaState.icon" v-if="!isProcessing" :size="18" class="mr-2" />
+              <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
+              <component v-else :is="ctaState.icon" :size="18" class="mr-2" />
             </template>
             <span class="font-bold text-sm tracking-tight">{{ ctaState.text }}</span>
           </AppButton>
@@ -692,6 +717,24 @@ const handleCtaClick = async () => {
           </AppButton>
         </div>
       </div>
+    </AppModal>
+
+    <!-- 对比模态框：接通 ImageCard 的对比按钮 -->
+    <AppModal
+      :show="showCompareModal"
+      pane-only
+      hide-header
+      @close="closeCompare"
+      @after-leave="handleModalLeave"
+    >
+      <ImageCompare
+        v-if="comparingImage && results.has(comparingImage.id)"
+        :original-url="comparingImage.file"
+        :processed-url="results.get(comparingImage.id)!.blob"
+        :original-size="formatSize(comparingImage.originalSize)"
+        :processed-size="formatSize(results.get(comparingImage.id)!.size)"
+        @close="closeCompare"
+      />
     </AppModal>
   </div>
 </template>

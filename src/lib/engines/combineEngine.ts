@@ -139,18 +139,41 @@ export const combineEngine: MultiImageProcessor<CombineOptions> = async (files, 
       totalHeight = rows * cellH + (rows - 1) * options.spacing
     }
 
-    // 2. 创建画布并执行绘制
+    // 2. 校验画布尺寸上限并创建画布
+    // Chrome 画布上限：单边 32767、总面积约 2^28（268M）像素；
+    // 超限时按比例缩小输出，避免创建超大画布导致崩溃或静默失败（P0-2）
+    const rawW = totalWidth + padding * 2
+    const rawH = totalHeight + padding * 2
+    const MAX_CANVAS_SIDE = 32767
+    const MAX_CANVAS_AREA = 268_435_456
+    const exceedsLimit =
+      rawW > MAX_CANVAS_SIDE || rawH > MAX_CANVAS_SIDE || rawW * rawH > MAX_CANVAS_AREA
+    const scale = exceedsLimit
+      ? Math.min(
+          MAX_CANVAS_SIDE / rawW,
+          MAX_CANVAS_SIDE / rawH,
+          Math.sqrt(MAX_CANVAS_AREA / (rawW * rawH))
+        )
+      : 1
+
+    // floor 保证取整后面积/单边严格不超过上限（round 在边界可能超 2^28 面积）
+    const finalWidth = Math.max(1, Math.floor(rawW * scale))
+    const finalHeight = Math.max(1, Math.floor(rawH * scale))
+
     const canvas = document.createElement('canvas')
-    canvas.width = totalWidth + padding * 2
-    canvas.height = totalHeight + padding * 2
+    canvas.width = finalWidth
+    canvas.height = finalHeight
     const ctx = canvas.getContext('2d', { alpha: true })
     if (!ctx) throw new Error('无法初始化 Canvas 绘图上下文')
 
+    // 超限缩小：ctx.scale 让后续所有坐标/裁剪/圆角在同一缩放空间内绘制
+    if (scale < 1) ctx.scale(scale, scale)
+
     if (options.backgroundColor === 'transparent') {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.clearRect(0, 0, Math.ceil(canvas.width / scale), Math.ceil(canvas.height / scale))
     } else {
       ctx.fillStyle = options.backgroundColor
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.fillRect(0, 0, Math.ceil(canvas.width / scale), Math.ceil(canvas.height / scale))
     }
 
     images.forEach((img, i) => {
@@ -187,6 +210,9 @@ export const combineEngine: MultiImageProcessor<CombineOptions> = async (files, 
 
     const outputFormat = (options.format === 'original' ? undefined : options.format) || 'image/png'
     const outputQuality = options.quality ?? 0.9
+
+    // toBlob 前验证画布有效尺寸（缩小取整后仍可能归零，须拦截而非静默失败）
+    if (canvas.width <= 0 || canvas.height <= 0) throw new Error('拼接结果尺寸无效，无法导出')
 
     const blob = await new Promise<Blob | null>((resolve) => {
       canvas.toBlob((b) => resolve(b), outputFormat, outputQuality)

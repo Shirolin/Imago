@@ -20,6 +20,7 @@ import {
   AlignStartVertical,
   AlignCenterVertical,
   AlignEndVertical,
+  AlertCircle,
   Plus,
   ArrowUp,
   Trash2
@@ -44,6 +45,11 @@ const { t } = useI18n()
 // 状态
 const srMessage = ref('')
 const combinedResult = ref<Blob | null>(null)
+// P1-1：拼接失败可见错误（复用引擎错误消息，不新增 i18n 键）
+const combineError = ref('')
+// P1-3：托盘排序被强制回锁时的可见提示
+const sortOrderNotice = ref('')
+let sortNoticeTimer: ReturnType<typeof setTimeout> | undefined
 
 // 【打磨】：触感反馈辅助函数
 const triggerHaptic = (intensity = 5) => {
@@ -74,27 +80,59 @@ const outputQuality = ref(0.9)
 
 // 缓存已加载的预览图对象
 const imageCache = new Map<string, HTMLImageElement>()
+// 解码失败的预览图 id（P0-1：失败图片标记错误态而非永久挂起）
+const previewErrorIds = ref<Set<string>>(new Set())
 let isDrawingRaf = false
+let pendingDraw = false
 
 const loadAndCacheImage = (imgData: ImageItem): Promise<HTMLImageElement> => {
   if (imageCache.has(imgData.id)) return Promise.resolve(imageCache.get(imgData.id)!)
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const img = new Image()
     img.onload = () => {
       imageCache.set(imgData.id, img)
       resolve(img)
     }
+    img.onerror = () => {
+      // P0-1：不可解码图片必须 reject，否则 Promise.all 会永久挂起
+      reject(new Error(`图片预览加载失败: ${imgData.file.name}`))
+    }
     img.src = imgData.preview
   })
 }
+
+// 预览失败提示（复用引擎错误消息的中文风格，不新增 i18n 键）
+const previewErrorText = computed(() => {
+  if (previewErrorIds.value.size === 0) return ''
+  const names = store.images
+    .filter((img) => previewErrorIds.value.has(img.id))
+    .map((img) => img.file.name)
+  return names.length > 0 ? `部分图片无法预览，已跳过: ${names.join('、')}` : ''
+})
 
 const drawPreview = async () => {
   const canvas = canvasRef.value
   const ctx = canvas?.getContext('2d')
   if (!canvas || !ctx || store.images.length === 0) return
 
-  const loadedImages = await Promise.all(store.images.map(loadAndCacheImage))
+  // P0-1：Promise.allSettled 隔离解码失败的图片，单张失败不卡死整块画布
+  const settled = await Promise.allSettled(store.images.map(loadAndCacheImage))
+  const loadedImages: HTMLImageElement[] = []
+  const failedIds = new Set<string>()
+  store.images.forEach((item, i) => {
+    const r = settled[i]
+    if (r && r.status === 'fulfilled') loadedImages.push(r.value)
+    else failedIds.add(item.id)
+  })
+  previewErrorIds.value = failedIds
+
+  // 全部解码失败：清空画布，仅保留可见错误提示
+  if (loadedImages.length === 0) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    return
+  }
 
   const maxWidth = Math.max(...loadedImages.map((img) => img.width))
   const maxHeight = Math.max(...loadedImages.map((img) => img.height))
@@ -188,24 +226,33 @@ const drawPreview = async () => {
   const finalW = totalWidth + padding.value * 2
   const finalH = totalHeight + padding.value * 2
 
-  const sizeChanged = canvas.width !== finalW || canvas.height !== finalH
+  // P1-5：预览降采样 —— 超大拼接（如 6000x80000）不撑爆预览画布，
+  // 同时降低每次重绘的像素开销，保证拖动参数时界面可用
+  const MAX_PREVIEW_SIDE = 8192
+  const previewScale = Math.min(1, MAX_PREVIEW_SIDE / finalW, MAX_PREVIEW_SIDE / finalH)
+  const scaledW = Math.max(1, Math.round(finalW * previewScale))
+  const scaledH = Math.max(1, Math.round(finalH * previewScale))
+
+  const sizeChanged = canvas.width !== scaledW || canvas.height !== scaledH
   if (sizeChanged) {
-    canvas.width = finalW
-    canvas.height = finalH
+    canvas.width = scaledW
+    canvas.height = scaledH
 
     // 【核心修复】：如果是初始加载或重大属性变化，执行 AutoFit
     if (isInitialLoad.value) {
       nextTick(() => {
-        workspaceRef.value?.triggerAutoFit(finalW, finalH, 80, false)
+        workspaceRef.value?.triggerAutoFit(scaledW, scaledH, 80, false)
         isInitialLoad.value = false
       })
     }
   }
 
-  ctx.clearRect(0, 0, finalW, finalH)
+  // 画布尺寸赋值会重置变换，这里幂等应用预览缩放；背景填充覆盖整个画布
+  ctx.setTransform(previewScale, 0, 0, previewScale, 0, 0)
+  ctx.clearRect(0, 0, Math.ceil(scaledW / previewScale), Math.ceil(scaledH / previewScale))
   if (backgroundColor.value !== 'transparent') {
     ctx.fillStyle = backgroundColor.value
-    ctx.fillRect(0, 0, finalW, finalH)
+    ctx.fillRect(0, 0, Math.ceil(scaledW / previewScale), Math.ceil(scaledH / previewScale))
   }
 
   loadedImages.forEach((img, i) => {
@@ -238,20 +285,38 @@ const drawPreview = async () => {
 }
 
 const requestDraw = () => {
-  if (isDrawingRaf) return
+  // P1-5：rAF 合并重绘；绘制期间收到的新请求合并为一次（pendingDraw），
+  // 拖动参数时每帧至多重绘一次，避免同步阻塞
+  if (isDrawingRaf) {
+    pendingDraw = true
+    return
+  }
   isDrawingRaf = true
   requestAnimationFrame(() => {
     drawPreview()
-    isDrawingRaf = false
+      .catch(() => {
+        /* 预览绘制异常不打断后续重绘 */
+      })
+      .finally(() => {
+        isDrawingRaf = false
+        if (pendingDraw) {
+          pendingDraw = false
+          requestDraw()
+        }
+      })
   })
 }
 
 onMounted(() => {
+  // P1-3：拼接顺序依赖导入顺序（预览与引擎均按 store.images 绘制），
+  // 进入视图时锁定托盘排序，保证「托盘顺序 == 拼接顺序」
+  store.sortMode = 'upload'
   requestDraw()
 })
 
 onUnmounted(() => {
   combinedResult.value = null
+  if (sortNoticeTimer) clearTimeout(sortNoticeTimer)
 })
 
 // 监听图片列表变化，如果有图片被删除，强制重置拼接结果以防过期
@@ -260,6 +325,7 @@ watch(
   (newLen, oldLen) => {
     if (newLen < oldLen) {
       combinedResult.value = null
+      combineError.value = ''
     }
   }
 )
@@ -270,11 +336,13 @@ watch([() => store.images.length, combineDirection, layoutMode], (newValues, old
   if (oldValues) triggerHaptic(10)
   requestDraw()
   combinedResult.value = null
+  combineError.value = ''
 })
 
 watch([alignment, spacing, columns, padding, borderRadius, backgroundColor], () => {
   requestDraw()
   combinedResult.value = null
+  combineError.value = ''
 })
 
 watch(
@@ -284,9 +352,31 @@ watch(
     for (const id of imageCache.keys()) {
       if (!idSet.has(id)) imageCache.delete(id)
     }
+    // 同步清理已移除图片的预览错误标记
+    if (previewErrorIds.value.size > 0) {
+      const kept = new Set([...previewErrorIds.value].filter((id) => idSet.has(id)))
+      if (kept.size !== previewErrorIds.value.size) previewErrorIds.value = kept
+    }
     requestDraw()
   },
   { deep: true }
+)
+
+// P1-3：拼接顺序一致性 —— 托盘按 sortedImages 展示，若被切到名称/状态排序，
+// 会与预览/导出（store.images 顺序）矛盾，回锁为导入顺序并提示
+watch(
+  () => store.sortMode,
+  (mode) => {
+    if (mode !== 'upload') {
+      store.sortMode = 'upload'
+      srMessage.value = '拼接顺序已锁定为导入顺序（与预览及导出一致）'
+      sortOrderNotice.value = '拼接顺序已锁定为导入顺序'
+      if (sortNoticeTimer) clearTimeout(sortNoticeTimer)
+      sortNoticeTimer = setTimeout(() => {
+        sortOrderNotice.value = ''
+      }, 3200)
+    }
+  }
 )
 
 const resetView = () => {
@@ -329,6 +419,7 @@ const alignmentOptions = computed(() => {
 const handleCombine = async () => {
   if (store.images.length < 2) return
   triggerHaptic(15) // 启动任务反馈
+  combineError.value = ''
   try {
     const result = await processCombine({
       direction: combineDirection.value,
@@ -350,6 +441,9 @@ const handleCombine = async () => {
       downloadImage(blob, `_Imago${t('common.export.suffix.combined')}_${Date.now()}`, 'combine')
     }
   } catch (error) {
+    // P1-1：拼接失败必须有可见反馈，不能仅 console.error
+    const err = error as Error
+    combineError.value = err?.message || '拼接失败，请重试'
     console.error('Combine failed:', error)
   }
 }
@@ -418,6 +512,24 @@ useResizeObserver(containerRef, resetView)
                 ref="canvasRef"
                 class="block rounded-sm will-change-contents backface-hidden"
               />
+
+              <!-- P0-1：解码失败图片的可见错误态 -->
+              <div
+                v-if="previewErrorText"
+                class="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none max-w-[92%] px-4 py-2 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-[11px] font-bold leading-normal text-center shadow-lg backdrop-blur-md animate-in fade-in"
+                role="alert"
+              >
+                {{ previewErrorText }}
+              </div>
+
+              <!-- P1-3：托盘排序被回锁为导入顺序的提示 -->
+              <div
+                v-if="sortOrderNotice"
+                class="absolute top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none px-3 py-1.5 rounded-full bg-card/95 backdrop-blur border border-border/60 text-[11px] font-bold text-foreground shadow-lg animate-in fade-in"
+                role="status"
+              >
+                {{ sortOrderNotice }}
+              </div>
 
               <!-- 【无障碍层】：逻辑排序层 -->
               <div class="sr-only" role="list" :aria-label="t('tools.combine.canvas.sortListAria')">
@@ -599,9 +711,12 @@ useResizeObserver(containerRef, resetView)
           </div>
         </section>
 
+        <!-- P1-4：canvas 引擎只支持 toBlob 原生格式（original/webp/jpeg/png），
+             canvasOnly 移除 JXL/AVIF/WebP2 选项，避免导出格式静默降级为 PNG -->
         <AppExportSettings
           v-model:format="outputFormat"
           v-model:quality="outputQuality"
+          canvas-only
           class="pt-6 border-t border-border/40"
         />
       </div>
@@ -609,21 +724,39 @@ useResizeObserver(containerRef, resetView)
 
     <template #footer>
       <InspectorFooter>
-        <AppButton
-          size="lg"
-          variant="cta"
-          class="w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden"
-          :loading="isProcessing"
-          :disabled="!hasEnoughImages"
-          @click="handleCombine"
-        >
-          <template #icon>
-            <Layers v-if="!isProcessing" :size="19" class="mr-2 animate-in zoom-in duration-300" />
-          </template>
-          <span class="font-bold text-sm tracking-tight">{{
-            isProcessing ? t('tools.combine.cta.processing') : t('tools.combine.cta.export')
-          }}</span>
-        </AppButton>
+        <div class="w-full space-y-3">
+          <!-- P1-1：拼接失败可见反馈（不再仅 console.error） -->
+          <div
+            v-if="combineError"
+            class="p-3 bg-destructive/5 border border-destructive/20 rounded-xl flex items-start gap-2.5 text-left animate-in fade-in"
+            role="alert"
+          >
+            <AlertCircle :size="16" class="text-destructive shrink-0 mt-0.5" />
+            <div class="text-xs font-bold text-destructive leading-normal break-words">
+              {{ combineError }}
+            </div>
+          </div>
+          <!-- P1-2：图片不足（0/1 张）时仅保留空态覆盖层单个 CTA，避免双琥珀按钮 -->
+          <AppButton
+            v-if="hasEnoughImages"
+            size="lg"
+            variant="cta"
+            class="w-full h-12 rounded-xl shadow-lg transition-all duration-500 active:scale-95 group overflow-hidden"
+            :loading="isProcessing"
+            @click="handleCombine"
+          >
+            <template #icon>
+              <Layers
+                v-if="!isProcessing"
+                :size="19"
+                class="mr-2 animate-in zoom-in duration-300"
+              />
+            </template>
+            <span class="font-bold text-sm tracking-tight">{{
+              isProcessing ? t('tools.combine.cta.processing') : t('tools.combine.cta.export')
+            }}</span>
+          </AppButton>
+        </div>
       </InspectorFooter>
     </template>
   </WorkspaceLayout>

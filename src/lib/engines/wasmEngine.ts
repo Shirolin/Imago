@@ -120,7 +120,8 @@ export const wasmEngine: ImageProcessor<CompressionOptions> = async (file, optio
   if (shouldKeepOriginal && compressedBlob.size >= file.size) {
     return {
       blob: file,
-      size: file.size
+      size: file.size,
+      skipped: true
     }
   }
 

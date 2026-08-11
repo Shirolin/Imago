@@ -64,11 +64,12 @@ export const cropEngine: ImageProcessor<CropOptions> = async (file, options) => 
         cropH = (cropH / 100) * rotatedHeight
       }
 
-      // 起点用 ceil，终点用 floor 确保边缘抗锯齿像素向内紧致收缩
-      let finalX = Math.ceil(cropX)
-      let finalY = Math.ceil(cropY)
-      let finalW = Math.max(1, Math.floor(cropX + cropW) - finalX)
-      let finalH = Math.max(1, Math.floor(cropY + cropH) - finalY)
+      // 起点/终点统一用 round，与显示端（CropView pxCoords）共享同一取整规则，
+      // 修复裁剪输出比目标少 1px（此前起点 ceil、终点 floor，每条边最多向内收 1px）
+      let finalX = Math.round(cropX)
+      let finalY = Math.round(cropY)
+      let finalW = Math.max(1, Math.round(cropX + cropW) - finalX)
+      let finalH = Math.max(1, Math.round(cropY + cropH) - finalY)
 
       // 应用边框修剪（用户手动指定的像素内缩）
       const trim = options.trimPx ?? {}

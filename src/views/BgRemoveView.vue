@@ -392,11 +392,15 @@ const ctaState = computed(() => {
   if (isProcessing.value) {
     const p =
       engineMode.value === 'match' ? matchProcessor.progress.value : proProcessor.progress.value
+    // 队列聚合进度为 0-100、单任务进度为 0-1，统一归一化为整数百分比
+    const pct = Math.round(p <= 1 ? p * 100 : p)
     return {
-      text: t('tools.bgRemove.cta.processing', { progress: p }),
+      text: `${t('tools.bgRemove.cta.processing', { progress: pct })} ${t(
+        'tools.split.cta.clickToAbort'
+      )}`,
       icon: Sparkles,
-      action: 'none',
-      disabled: true,
+      action: 'abort',
+      disabled: false,
       variant: 'cta' as const
     }
   }
@@ -428,6 +432,12 @@ const ctaState = computed(() => {
 const handleCtaClick = async () => {
   const state = ctaState.value
   if (state.action === 'none') return
+  if (state.action === 'abort') {
+    // 长任务可中止：两个处理器各持队列级 AbortController，未激活的一侧自动空转
+    matchProcessor.abortProcessing()
+    proProcessor.abortProcessing()
+    return
+  }
   if (state.action === 'show_init') {
     showInitModal.value = true
     return
@@ -719,11 +729,17 @@ const handleResetParams = () => {
             </transition>
           </div>
         </div>
-        <AppSegmentedControl
-          v-model="engineMode"
-          :options="engineOptions"
-          :aria-label="t('tools.bgRemove.engineAria')"
-        />
+        <fieldset
+          :disabled="isProcessing"
+          :class="{ 'opacity-60': isProcessing }"
+          class="border-0 p-0 m-0 min-w-0"
+        >
+          <AppSegmentedControl
+            v-model="engineMode"
+            :options="engineOptions"
+            :aria-label="t('tools.bgRemove.engineAria')"
+          />
+        </fieldset>
         <AppTip :icon="Info">
           <span v-if="engineMode === 'match'"
             >{{ t('tools.bgRemove.tipMatch1') }}
@@ -900,7 +916,11 @@ const handleResetParams = () => {
 
       <!-- 第四分区：导出设置 -->
       <section class="pt-6 border-t border-border/40">
-        <AppExportSettings v-model:format="outputFormat" v-model:quality="outputQuality" />
+        <AppExportSettings
+          v-model:format="outputFormat"
+          v-model:quality="outputQuality"
+          canvas-only
+        />
       </section>
     </template>
 
@@ -910,17 +930,19 @@ const handleResetParams = () => {
           size="lg"
           :variant="ctaState.variant"
           class="w-full h-12 rounded-xl shadow-lg transition-all active:scale-95 group overflow-hidden"
-          :loading="isProcessing || currentStatus === 'loading'"
+          :loading="currentStatus === 'loading'"
           :disabled="ctaState.disabled"
           @click="handleCtaClick"
         >
-          <template #icon
-            ><component
+          <template #icon>
+            <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
+            <component
+              v-else-if="currentStatus !== 'loading'"
               :is="ctaState.icon"
-              v-if="!isProcessing && currentStatus !== 'loading'"
               :size="18"
               class="mr-2"
-          /></template>
+            />
+          </template>
           <span class="font-bold text-sm tracking-tight">{{ ctaState.text }}</span>
         </AppButton>
       </InspectorFooter>

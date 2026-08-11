@@ -154,10 +154,11 @@ const handleConfirm = () => {
         class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-background hover:shadow-sm text-muted-foreground hover:text-primary transition-all duration-200 active:scale-90 group shrink-0"
         :aria-label="t('common.image.toolbar.resetAllAria')"
         :title="t('common.image.toolbar.resetAll')"
+        :disabled="isProcessing"
       >
         <RotateCcw
           :size="16"
-          class="group-hover:text-primary group-hover:rotate-[-45deg] transition-all duration-300"
+          class="group-hover:text-primary group-hover:rotate-[-45deg] transition-all duration-300 disabled:opacity-30"
         />
       </button>
 
@@ -179,6 +180,7 @@ const handleConfirm = () => {
             ? t('common.image.toolbar.deleteSelected')
             : t('common.image.toolbar.clearAll')
         "
+        :disabled="isProcessing"
       >
         <Trash2
           :size="16"

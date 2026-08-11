@@ -120,6 +120,30 @@ export interface FaviconResult {
   zip: Blob
 }
 
+/**
+ * 将 PNG 字节封装为真正的 ICO 容器（ICONDIR 头 + 单条目 ICONDIRENTRY + PNG 数据）。
+ * PNG-compressed 的 ICO 条目自 Windows Vista 起即被支持，现代浏览器均能识别，
+ * 避免 "favicon.ico" 名下实为 PNG 字节导致的浏览器/系统不兼容。
+ */
+async function wrapIcoPng(png: Blob, size: number): Promise<Blob> {
+  const pngBytes = new Uint8Array(await png.arrayBuffer())
+  const ico = new Uint8Array(22 + pngBytes.length)
+  const view = new DataView(ico.buffer)
+  view.setUint16(0, 0, true) // reserved
+  view.setUint16(2, 1, true) // type: 1 = icon
+  view.setUint16(4, 1, true) // image count
+  view.setUint8(6, size >= 256 ? 0 : size) // width (0 = 256)
+  view.setUint8(7, size >= 256 ? 0 : size) // height (0 = 256)
+  view.setUint8(8, 0) // palette color count
+  view.setUint8(9, 0) // reserved
+  view.setUint16(10, 1, true) // color planes
+  view.setUint16(12, 32, true) // bits per pixel
+  view.setUint32(14, pngBytes.length, true) // resource byte length
+  view.setUint32(18, 22, true) // offset to image data
+  ico.set(pngBytes, 22)
+  return new Blob([ico], { type: 'image/x-icon' })
+}
+
 export interface FaviconOptions extends ProcessingOptions {
   backgroundColor?: string
   selectedIds: Set<string>
@@ -141,7 +165,9 @@ export const faviconEngine = {
         const finalBg =
           isMaskable && shouldScale && backgroundColor === 'transparent' ? 'white' : backgroundColor
 
-        const blob = await this.renderToBlob(img, spec.size, finalBg, shouldScale)
+        let blob = await this.renderToBlob(img, spec.size, finalBg, shouldScale)
+        // ico 规格必须打包为真正的 ICO 容器，而不是 PNG 字节
+        if (spec.id === 'ico') blob = await wrapIcoPng(blob, spec.size)
         zip.file(spec.name, blob)
       }
     }
@@ -209,10 +235,18 @@ ${headCode}${chromeGuide}
   },
 
   loadImage(file: File): Promise<HTMLImageElement> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const img = new Image()
-      img.onload = () => resolve(img)
-      img.src = URL.createObjectURL(file)
+      const url = URL.createObjectURL(file)
+      img.onload = () => {
+        URL.revokeObjectURL(url)
+        resolve(img)
+      }
+      img.onerror = () => {
+        URL.revokeObjectURL(url)
+        reject(new Error('Failed to load image'))
+      }
+      img.src = url
     })
   },
 

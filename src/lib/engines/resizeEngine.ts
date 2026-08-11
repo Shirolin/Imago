@@ -33,8 +33,9 @@ export const resizeEngine: ImageProcessor<ResizeOptions> = async (file, options)
           targetWidth = Math.max(1, bitmap.width * factor)
           targetHeight = Math.max(1, bitmap.height * factor)
         } else {
-          targetWidth = options.width ?? bitmap.width
-          targetHeight = options.height ?? bitmap.height
+          // 像素模式：钳制非法输入（0/负数/超界），防止 OffscreenCanvas 崩溃
+          targetWidth = Math.max(1, Math.min(16384, Math.round(options.width ?? bitmap.width)))
+          targetHeight = Math.max(1, Math.min(16384, Math.round(options.height ?? bitmap.height)))
 
           if (options.maintainAspectRatio) {
             const ratio = bitmap.width / bitmap.height
@@ -42,14 +43,9 @@ export const resizeEngine: ImageProcessor<ResizeOptions> = async (file, options)
               targetHeight = targetWidth / ratio
             } else if (options.height && !options.width) {
               targetWidth = targetHeight * ratio
-            } else if (options.width && options.height) {
-              const targetRatio = targetWidth / targetHeight
-              if (targetRatio > ratio) {
-                targetWidth = targetHeight * ratio
-              } else {
-                targetHeight = targetWidth / ratio
-              }
             }
+            // 宽高均已显式提供：直接使用用户输入值（视图联动已保证比例在取整误差内），
+            // 不再二次比例修正——此前 9999 会被引擎悄悄改写成 9998（少 1px）
           }
         }
 

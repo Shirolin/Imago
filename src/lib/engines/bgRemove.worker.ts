@@ -7,6 +7,8 @@ interface WorkerOptions {
   maskBlur?: number
   maskShrink?: number
   jobId?: string
+  format?: string
+  quality?: number
 }
 
 interface WorkerMessage {
@@ -26,7 +28,9 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
     maskThreshold = 0,
     maskBlur = 0,
     maskShrink = 0,
-    jobId
+    jobId,
+    format,
+    quality
   } = options
 
   try {
@@ -144,7 +148,9 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
     finalCtx.globalCompositeOperation = 'destination-in'
     finalCtx.drawImage(maskCanvas, 0, 0)
 
-    const finalBlob = await finalCanvas.convertToBlob({ type: 'image/png' })
+    // 导出格式透传：'original' 保留 PNG 语义（抠图结果含透明通道）
+    const outType = !format || format === 'original' ? 'image/png' : format
+    const finalBlob = await finalCanvas.convertToBlob({ type: outType, quality })
     originalImage.close()
 
     if (!finalBlob) throw new Error('图像生成失败')

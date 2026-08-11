@@ -114,7 +114,14 @@ export const clearExifEngine: ImageProcessor<ExifOptions> = async (file, options
 
       ctx.drawImage(img, 0, 0)
 
-      const outputFormat = (options.format === 'original' ? undefined : options.format) || file.type
+      // 'image/jpeg-li' 是部分视图导出面板的历史取值，canvas.toBlob 无法识别，
+      // 直传会导致静默回退为 PNG；统一映射为标准 MIME。
+      let outputFormat = options.format
+      if (outputFormat === 'original' || outputFormat === undefined) {
+        outputFormat = file.type
+      } else if (outputFormat === 'image/jpeg-li') {
+        outputFormat = 'image/jpeg'
+      }
       const outputQuality = options.quality ?? 0.95
 
       canvas.toBlob(

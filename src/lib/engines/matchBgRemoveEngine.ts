@@ -4,6 +4,8 @@ export interface MatchBgRemoveOptions {
   targetColor?: { r: number; g: number; b: number }
   tolerance?: number // 0 to 1
   feather?: number // 0 to 1
+  format?: string
+  quality?: number
 }
 
 /**
@@ -51,18 +53,53 @@ export const matchBgRemoveEngine: ImageProcessor<MatchBgRemoveOptions> = async (
       type: 'module'
     })
 
+    let settled = false
+    const cleanup = () => {
+      if (options.signal) options.signal.removeEventListener('abort', onAbort)
+      clearTimeout(timeoutId)
+    }
+    const onAbort = () => {
+      if (settled) return
+      settled = true
+      cleanup()
+      worker.terminate()
+      reject(new DOMException('Aborted', 'AbortError'))
+    }
+    // 长任务兜底：像素级计算单张超过 120s 判定失败
+    const timeoutId = setTimeout(() => {
+      if (settled) return
+      settled = true
+      cleanup()
+      worker.terminate()
+      reject(new Error('处理超时（120 秒）'))
+    }, 120_000)
+
     worker.onmessage = (e) => {
       if (e.data.type === 'progress') {
         if (options.onProgress) options.onProgress(e.data.progress)
       } else if (e.data.type === 'done') {
+        if (settled) return
+        settled = true
+        cleanup()
         resolve(e.data.pixels)
         worker.terminate()
       }
     }
 
     worker.onerror = (err) => {
+      if (settled) return
+      settled = true
+      cleanup()
       reject(err)
       worker.terminate()
+    }
+
+    if (options.signal) {
+      if (options.signal.aborted) {
+        onAbort()
+        return
+      }
+      options.signal.addEventListener('abort', onAbort, { once: true })
     }
 
     // 传输模式：将像素数组以可转移对象（Transferable Objects）形式发给 Worker
@@ -84,9 +121,15 @@ export const matchBgRemoveEngine: ImageProcessor<MatchBgRemoveOptions> = async (
   ctx.putImageData(finalImageData, 0, 0)
 
   return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob) resolve(blob)
-      else reject(new Error('Canvas toBlob failed'))
-    }, 'image/png')
+    // 'original' 保留 PNG 语义（抠图结果含透明通道）
+    const outType = !options.format || options.format === 'original' ? 'image/png' : options.format
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob)
+        else reject(new Error('Canvas toBlob failed'))
+      },
+      outType,
+      options.quality
+    )
   })
 }

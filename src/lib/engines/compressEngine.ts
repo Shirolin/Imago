@@ -37,9 +37,23 @@ export const compressEngine: ImageProcessor<CompressionOptions> = async (file, o
     }
   }
 
+  // maxWidthOrHeight 计算：
+  // browser-image-compression 只接受单个「长边」约束。若同时给了宽高，
+  // 先按原图尺寸求同时满足两边约束的缩放因子，再换算成长边值，
+  // 修复此前 maxHeight < maxWidth 时高度约束被静默忽略的问题
+  let maxWidthOrHeight = options.maxWidth || options.maxHeight || 4096
+  if (options.maxWidth && options.maxHeight) {
+    const probe = await createImageBitmap(file)
+    const imgW = probe.width
+    const imgH = probe.height
+    probe.close()
+    const scale = Math.min(1, options.maxWidth / imgW, options.maxHeight / imgH)
+    maxWidthOrHeight = Math.max(1, Math.round(Math.max(imgW, imgH) * scale))
+  }
+
   const compressionOptions = {
     maxSizeMB: options.maxSizeMB || 10,
-    maxWidthOrHeight: options.maxWidth || options.maxHeight || 4096,
+    maxWidthOrHeight,
     useWebWorker: true,
     initialQuality: options.quality,
     fileType: options.format,
@@ -71,7 +85,8 @@ export const compressEngine: ImageProcessor<CompressionOptions> = async (file, o
   if (shouldKeepOriginal && finalBlob.size >= file.size) {
     return {
       blob: file,
-      size: file.size
+      size: file.size,
+      skipped: true
     }
   }
 

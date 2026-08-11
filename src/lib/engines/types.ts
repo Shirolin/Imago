@@ -5,6 +5,8 @@ export interface ProcessResult {
   width?: number
   height?: number
   format?: string
+  /** 处理被跳过（如压缩后体积未减小，保留原图） */
+  skipped?: boolean
 }
 
 export interface ProcessingOptions {

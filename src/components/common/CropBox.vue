@@ -110,14 +110,26 @@ const magnifierCropLines = computed(() => {
   return style
 })
 
+/**
+ * 旋转感知的比例换算系数。
+ * 引擎的裁剪框在“旋转后画布帧”上取值（输出 = 旋转帧矩形 (cw, ch)），而本组件的
+ * internalCrop 是“未旋转局部帧”百分比。旋转 90°/270° 时局部 w 轴映射到输出高度、
+ * h 轴映射到输出宽度，输出宽高比 = (h·nh)/(w·nw)；未旋转时 = (w·nw)/(h·nh)。
+ * 要锁定“输出宽高比 == ar”，两种状态下的 visualRatio（n.h = n.w / VR）互为倒数：
+ *   未旋转: VR = ar·nh/nw；旋转: VR = nh/(ar·nw)
+ */
+const visualRatioFor = (ar: number) => {
+  const nw = imgNaturalSize.value.w,
+    nh = imgNaturalSize.value.h
+  return props.rotation % 180 !== 0 ? nh / (ar * nw) : (ar * nh) / nw
+}
+
 watch(
-  () => props.aspectRatio,
-  (ar) => {
+  // 旋转变化时若已锁定比例，围绕中心重新拟合，保证“输出宽高比 = ar”始终成立
+  [() => props.aspectRatio, () => props.rotation],
+  ([ar]) => {
     if (!ar || ar <= 0 || !imgNaturalSize.value.w) return
-    const nw = imgNaturalSize.value.w,
-      nh = imgNaturalSize.value.h
-    const imgRatio = nw / nh
-    const visualRatio = ar / imgRatio
+    const visualRatio = visualRatioFor(ar)
 
     const n = { ...internalCrop.value }
     const centerX = n.x + n.w / 2
@@ -386,9 +398,7 @@ const handleMove = (e: MouseEvent | TouchEvent) => {
       }
 
       if (props.aspectRatio) {
-        const ar = props.aspectRatio,
-          imgRatio = nw / nh,
-          visualRatio = ar / imgRatio
+        const visualRatio = visualRatioFor(props.aspectRatio)
         if (mode === 'n' || mode === 's') n.w = n.h * visualRatio
         else n.h = n.w / visualRatio
       }

@@ -212,34 +212,173 @@ const resetView = () => {
   workspaceRef.value?.triggerAutoFit(w, h)
 }
 
+/**
+ * 坐标帧统一：CropBox 覆盖层的 internalCrop 是“未旋转原图局部帧”百分比（按原图 W×H），
+ * 而 cropEngine 的裁剪坐标定义在“旋转/翻转后画布帧”（workCanvas，尺寸 rotatedWidth×rotatedHeight）。
+ * 两者相差一次 90° 旋转（含镜像），不换算时旋转后输出区域与选区错位、比例锁定失效。
+ *
+ * 推导：引擎变换 p' = T(rotW/2, rotH/2) · R(θ) · S(sx, sy) · (p − (W/2, H/2))，
+ * 对 90° 倍数每个输出轴只依赖一个输入轴，轴对齐框的映射可逐轴闭式求解。
+ * 以旋转 90°（无翻转）为例：X = H − oy、Y = ox，故局部框 (px,py,pw,ph)
+ * → 旋转帧 (H − py − ph, px, ph, pw)；180°：镜像 (W − px − pw, H − py − ph, pw, ph)；
+ * 270°：(py, W − px − pw, ph, pw)。flipH/flipV（sx/sy ∈ {±1}）参与各轴符号。
+ */
+type RotRect = { x: number; y: number; w: number; h: number }
+
+const toRotatedFrame = (
+  crop: RotRect,
+  W: number,
+  H: number,
+  rotation: number,
+  flipH: boolean,
+  flipV: boolean
+): RotRect => {
+  const rot = ((rotation % 360) + 360) % 360
+  const sx = flipH ? -1 : 1
+  const sy = flipV ? -1 : 1
+  const px = (crop.x / 100) * W
+  const py = (crop.y / 100) * H
+  const pw = (crop.w / 100) * W
+  const ph = (crop.h / 100) * H
+
+  switch (rot) {
+    case 90:
+      return {
+        x: sy === 1 ? H - py - ph : py,
+        y: sx === 1 ? px : W - px - pw,
+        w: ph,
+        h: pw
+      }
+    case 180:
+      return {
+        x: sx === 1 ? W - px - pw : px,
+        y: sy === 1 ? H - py - ph : py,
+        w: pw,
+        h: ph
+      }
+    case 270:
+      return {
+        x: sy === 1 ? py : H - py - ph,
+        y: sx === 1 ? W - px - pw : px,
+        w: ph,
+        h: pw
+      }
+    default:
+      return {
+        x: sx === 1 ? px : W - px - pw,
+        y: sy === 1 ? py : H - py - ph,
+        w: pw,
+        h: ph
+      }
+  }
+}
+
+/** 反向：旋转帧像素矩形 → 未旋转局部帧百分比（供数字输入回写 internalCrop） */
+const fromRotatedFrame = (
+  rect: RotRect,
+  W: number,
+  H: number,
+  rotation: number,
+  flipH: boolean,
+  flipV: boolean
+): RotRect => {
+  const rot = ((rotation % 360) + 360) % 360
+  const sx = flipH ? -1 : 1
+  const sy = flipV ? -1 : 1
+  const { x: X, y: Y, w: cw, h: ch } = rect
+
+  let px: number, py: number, pw: number, ph: number
+  switch (rot) {
+    case 90:
+      px = sx === 1 ? Y : W - Y - ch
+      pw = ch
+      py = sy === 1 ? H - X - cw : X
+      ph = cw
+      break
+    case 180:
+      px = sx === 1 ? W - X - cw : X
+      pw = cw
+      py = sy === 1 ? H - Y - ch : Y
+      ph = ch
+      break
+    case 270:
+      px = sx === 1 ? W - Y - ch : Y
+      pw = ch
+      py = sy === 1 ? X : H - X - cw
+      ph = cw
+      break
+    default:
+      px = sx === 1 ? X : W - X - cw
+      pw = cw
+      py = sy === 1 ? Y : H - Y - ch
+      ph = ch
+  }
+  return {
+    x: (px / W) * 100,
+    y: (py / H) * 100,
+    w: (pw / W) * 100,
+    h: (ph / H) * 100
+  }
+}
+
+// 旋转后画布尺寸（引擎 workCanvas）：90°/270° 时宽高互换
+const rotDims = computed(() => {
+  const img = selectedImage.value
+  if (!img || !img.width || !img.height) return { w: 0, h: 0 }
+  return rotation.value % 180 !== 0
+    ? { w: img.height!, h: img.width! }
+    : { w: img.width!, h: img.height! }
+})
+
+/** 裁剪矩形是否落在旋转画布内（越界时禁用 CTA 并点亮琥珀警告） */
+const cropBoundsValid = computed(() => {
+  const dims = rotDims.value
+  if (!dims.w || !dims.h) return true
+  const c = pxCoords.value
+  return c.x >= 0 && c.y >= 0 && c.w >= 1 && c.h >= 1 && c.x + c.w <= dims.w && c.y + c.h <= dims.h
+})
+
+// pxCoords 统一为“旋转帧像素坐标”（与引擎输出一致）：显示与数字输入均按 rotatedWidth/rotatedHeight
 const pxCoords = computed({
   get: () => {
     const img = selectedImage.value
     if (!img || !img.width || !img.height) return { x: 0, y: 0, w: 0, h: 0 }
-    return {
-      x: Math.round((internalCrop.value.x / 100) * img.width),
-      y: Math.round((internalCrop.value.y / 100) * img.height),
-      w: Math.round((internalCrop.value.w / 100) * img.width),
-      h: Math.round((internalCrop.value.h / 100) * img.height)
-    }
+    const r = toRotatedFrame(
+      internalCrop.value,
+      img.width,
+      img.height,
+      rotation.value,
+      flipH.value,
+      flipV.value
+    )
+    return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.w), h: Math.round(r.h) }
   },
   set: (val) => {
     const img = selectedImage.value
     if (!img || !img.width || !img.height) return
+    const p = fromRotatedFrame(val, img.width, img.height, rotation.value, flipH.value, flipV.value)
+    // 基本护栏，防止非法百分比透传（与 CropBox 拖拽允许范围一致）
+    p.x = Math.max(-50, Math.min(150, p.x))
+    p.y = Math.max(-50, Math.min(150, p.y))
+    p.w = Math.max(0.5, Math.min(200, p.w))
+    p.h = Math.max(0.5, Math.min(200, p.h))
     internalCrop.value = {
-      x: (val.x / img.width) * 100,
-      y: (val.y / img.height) * 100,
-      w: (val.w / img.width) * 100,
-      h: (val.h / img.height) * 100
+      x: Number(p.x.toFixed(4)),
+      y: Number(p.y.toFixed(4)),
+      w: Number(p.w.toFixed(4)),
+      h: Number(p.h.toFixed(4))
     }
   }
 })
 
-const handlePxInputChange = (key: 'x' | 'y' | 'w' | 'h', val: number) => {
+const handlePxInputChange = (key: 'x' | 'y' | 'w' | 'h', val: number | string) => {
+  if (val === '' || val == null) return
+  const num = typeof val === 'number' ? val : Number(val)
+  if (Number.isNaN(num)) return
   // 输入框更新使用防抖提交
   recordDebounced()
   const newCoords = { ...pxCoords.value }
-  newCoords[key] = val
+  newCoords[key] = num
   pxCoords.value = newCoords
 }
 
@@ -265,11 +404,8 @@ useResizeObserver(containerRef, resetView)
 // 确认框状态
 const showResetConfirm = ref(false)
 
-const handleReset = () => {
-  showResetConfirm.value = true
-}
-
-const confirmReset = () => {
+/** 复位全部裁剪状态（不清结果 Map 中其他图片的产物） */
+const resetAllState = () => {
   rotation.value = 0
   flipH.value = false
   flipV.value = false
@@ -288,6 +424,15 @@ const confirmReset = () => {
 
   clearHistory()
   resetView()
+}
+
+const handleReset = () => {
+  // 仅用户主动点击“重置”才弹确认框
+  showResetConfirm.value = true
+}
+
+const confirmReset = () => {
+  resetAllState()
   showResetConfirm.value = false
 }
 
@@ -312,11 +457,13 @@ const handleKeyDown = (e: KeyboardEvent) => {
 onMounted(() => window.addEventListener('keydown', handleKeyDown))
 onUnmounted(() => window.removeEventListener('keydown', handleKeyDown))
 
-// 【核心优化】：图片切换时强制重置所有参数，确保状态隔离
+// 【核心优化】：图片切换时强制重置所有参数，确保状态隔离。
+// 切换/进入视图属于隐式操作，直接复位不弹确认框（弹窗仅保留用户主动点击“重置”）。
 watch(
   () => store.activeId,
-  () => {
-    handleReset()
+  (newId) => {
+    if (!newId) return
+    resetAllState()
   },
   { immediate: true }
 )
@@ -354,7 +501,15 @@ const ctaState = computed(() => {
     }
   }
 
-  // 默认 -> 应用裁剪 (蓝色)
+  // 默认 -> 应用裁剪 (蓝色)；X/Y/W/H 越界时禁用（输入框琥珀警告提示）
+  if (!cropBoundsValid.value) {
+    return {
+      text: t('tools.crop.cta.apply', { count: 1 }),
+      icon: Scissors,
+      action: 'none',
+      disabled: true
+    }
+  }
   return {
     text: result?.isDirty
       ? t('tools.crop.cta.apply', { count: 1 })
@@ -380,12 +535,13 @@ const handleCtaClick = async () => {
   }
 
   if (state.action === 'process') {
+    const coords = pxCoords.value
     const res = await processSingle(img.id, {
-      x: internalCrop.value.x,
-      y: internalCrop.value.y,
-      width: internalCrop.value.w,
-      height: internalCrop.value.h,
-      usePercentage: true,
+      x: coords.x,
+      y: coords.y,
+      width: coords.w,
+      height: coords.h,
+      usePercentage: false,
       rotation: rotation.value,
       flipH: flipH.value,
       flipV: flipV.value,
@@ -601,10 +757,12 @@ const ratios = computed(() => [
               <AppInput
                 type="number"
                 :model-value="Math.round(pxCoords.x)"
+                :min="0"
+                :max="Math.max(0, rotDims.w - pxCoords.w)"
                 @update:model-value="handlePxInputChange('x', $event)"
                 class="h-10 text-xs font-mono transition-all"
                 :class="[
-                  pxCoords.x < 0 || pxCoords.x + pxCoords.w > (selectedImage?.width || 0)
+                  pxCoords.x < 0 || pxCoords.x + pxCoords.w > rotDims.w
                     ? 'border-amber-500/40 bg-amber-500/[0.02] ring-1 ring-amber-500/10'
                     : 'bg-background/50'
                 ]"
@@ -618,10 +776,12 @@ const ratios = computed(() => [
               <AppInput
                 type="number"
                 :model-value="Math.round(pxCoords.y)"
+                :min="0"
+                :max="Math.max(0, rotDims.h - pxCoords.h)"
                 @update:model-value="handlePxInputChange('y', $event)"
                 class="h-10 text-xs font-mono transition-all"
                 :class="[
-                  pxCoords.y < 0 || pxCoords.y + pxCoords.h > (selectedImage?.height || 0)
+                  pxCoords.y < 0 || pxCoords.y + pxCoords.h > rotDims.h
                     ? 'border-amber-500/40 bg-amber-500/[0.02] ring-1 ring-amber-500/10'
                     : 'bg-background/50'
                 ]"
@@ -638,13 +798,15 @@ const ratios = computed(() => [
                 <AppInput
                   type="number"
                   :model-value="Math.round(pxCoords.w)"
+                  :min="1"
+                  :max="Math.max(1, rotDims.w - pxCoords.x)"
                   @update:model-value="handlePxInputChange('w', $event)"
                   class="h-10 text-xs font-mono transition-all"
                   :class="[
                     currentRatio > 0
                       ? 'border-primary/40 bg-primary/[0.03] ring-1 ring-primary/10'
                       : 'border-border bg-background/50',
-                    pxCoords.w > (selectedImage?.width || 0)
+                    pxCoords.w < 1 || pxCoords.x + pxCoords.w > rotDims.w
                       ? 'border-amber-500/40 ring-1 ring-amber-500/10'
                       : ''
                   ]"
@@ -675,13 +837,15 @@ const ratios = computed(() => [
                 <AppInput
                   type="number"
                   :model-value="Math.round(pxCoords.h)"
+                  :min="1"
+                  :max="Math.max(1, rotDims.h - pxCoords.y)"
                   @update:model-value="handlePxInputChange('h', $event)"
                   class="h-10 text-xs font-mono transition-all"
                   :class="[
                     currentRatio > 0
                       ? 'border-primary/40 bg-primary/[0.03] ring-1 ring-primary/10'
                       : 'border-border bg-background/50',
-                    pxCoords.h > (selectedImage?.height || 0)
+                    pxCoords.h < 1 || pxCoords.y + pxCoords.h > rotDims.h
                       ? 'border-amber-500/40 ring-1 ring-amber-500/10'
                       : ''
                   ]"
@@ -775,6 +939,7 @@ const ratios = computed(() => [
         v-model:quality="outputQuality"
         v-model:preserve-exif="preserveExif"
         show-exif-option
+        canvas-only
         :title="t('common.export.title')"
         class="pt-2 pb-6 border-t border-border/40"
       />

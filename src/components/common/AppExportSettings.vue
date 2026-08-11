@@ -36,6 +36,9 @@ interface Props {
   allowManualQuality?: boolean
   showExifOption?: boolean
   title?: string
+  /** 仅暴露浏览器 canvas.toBlob 支持的格式（jpeg/png/webp），
+   *  用于 Crop/Combine/Filters/Exif 等直连 canvas 引擎的视图，避免 JXL/WebP2/AVIF 静默降级为 PNG */
+  canvasOnly?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -48,7 +51,8 @@ const props = withDefaults(defineProps<Props>(), {
   preserveExif: false,
   allowManualQuality: false,
   showExifOption: false,
-  title: ''
+  title: '',
+  canvasOnly: false
 })
 
 const displayTitle = computed(() => props.title || t('common.export.title'))
@@ -69,20 +73,30 @@ const emit = defineEmits<{
 
 const showAdvanced = ref(false)
 
-const formatOptions = computed(() => [
-  { label: t('common.export.formatOriginal'), value: 'original' },
-  { label: t('common.export.formatWebp'), value: 'image/webp' },
-  { label: t('common.export.formatJpeg'), value: 'image/jpeg-li' },
-  { label: t('common.export.formatPng'), value: 'image/png' },
-  { label: t('common.export.formatAvif'), value: 'image/avif' },
-  { label: t('common.export.formatJxl'), value: 'image/jxl' },
-  { label: t('common.export.formatWebp2'), value: 'image/webp2' }
-])
+const formatOptions = computed(() => {
+  const all = [
+    { label: t('common.export.formatOriginal'), value: 'original' },
+    { label: t('common.export.formatWebp'), value: 'image/webp' },
+    {
+      label: t('common.export.formatJpeg'),
+      value: props.canvasOnly ? 'image/jpeg' : 'image/jpeg-li'
+    },
+    { label: t('common.export.formatPng'), value: 'image/png' },
+    { label: t('common.export.formatAvif'), value: 'image/avif' },
+    { label: t('common.export.formatJxl'), value: 'image/jxl' },
+    { label: t('common.export.formatWebp2'), value: 'image/webp2' }
+  ]
+  if (!props.canvasOnly) return all
+  // canvas.toBlob 只保证 png/jpeg/webp；其余格式静默回退 PNG 且无提示，必须移除
+  const supported = new Set(['original', 'image/webp', 'image/jpeg', 'image/png'])
+  return all.filter((o) => supported.has(o.value))
+})
 
 const recommendedQualities: Record<string, number> = {
   original: 0.8,
   'image/webp': 0.75,
   'image/jpeg-li': 0.75,
+  'image/jpeg': 0.75,
   'image/png': 1.0,
   'image/avif': 0.55,
   'image/jxl': 0.7,
@@ -179,6 +193,9 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
               @update:model-value="emit('update:targetSizeKB', $event)"
               type="number"
               suffix="KB"
+              :min="1"
+              :max="100000"
+              :aria-label="t('common.export.targetSize')"
             />
           </div>
 
