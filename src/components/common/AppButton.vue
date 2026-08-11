@@ -73,8 +73,7 @@ const extraClasses = computed(() => {
     classes += 'hover:translate-y-[var(--button-hover-offset)] '
 
     if (props.variant === 'cta') {
-      classes +=
-        'bg-gradient-to-b from-[hsl(var(--cta-hover))] to-[hsl(var(--cta))] text-white btn-shadow-cta '
+      classes += 'bg-[hsl(var(--cta))] hover:bg-[hsl(var(--cta-hover))] text-white btn-shadow-cta '
     }
     if (props.variant === 'primary') {
       classes += 'bg-primary text-primary-foreground btn-shadow-primary '
