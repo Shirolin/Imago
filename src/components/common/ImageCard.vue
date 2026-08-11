@@ -199,7 +199,7 @@ watch(displayUrl, () => {
 
 <template>
   <div
-    class="relative bg-card rounded-2xl overflow-hidden border border-border/60 transition-all duration-500 cursor-pointer flex flex-col group hover:shadow-elevated hover:-translate-y-0.5 hover:shadow-primary/10 hover:border-primary/30 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background shadow-inner-glow"
+    class="relative bg-card rounded-2xl overflow-hidden border border-border/60 transition-all duration-500 cursor-pointer flex flex-col group hover:-translate-y-0.5 hover:shadow-primary/10 hover:border-primary/30 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background shadow-inner-glow"
     :class="[
       isSelected
         ? 'ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/[0.03]'
@@ -299,9 +299,9 @@ watch(displayUrl, () => {
         </div>
       </div>
 
-      <!-- 【模式 B】：Hover HUD 托盘 (仅在小图模式下浮现) -->
+      <!-- 【模式 B】：Hover HUD 托盘 (仅在小图模式 + 有可用操作时浮现) -->
       <div
-        v-if="!isLargeMode"
+        v-if="!isLargeMode && (image.status === 'done' || image.status === 'error')"
         class="absolute bottom-3 left-3 right-3 z-30 bg-background/80 backdrop-blur-xl border border-white/20 rounded-xl p-1.5 shadow-2xl flex items-center justify-between gap-1.5 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 pointer-events-auto touch-reveal"
       >
         <div class="flex items-center gap-1">
