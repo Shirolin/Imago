@@ -1,9 +1,9 @@
 {
   "app": {
-    "localProcessing": "로컬 처리",
-    "privacyFirst": "프라이버시 우선",
+    "localProcessing": "로컬 · 업로드 없음",
+    "privacyFirst": "로컬 · 업로드 없음",
     "processing": "처리 중...",
-    "subtitle": "미니멀리스트 이미지 처리 도구",
+    "subtitle": "라이트 테이블",
     "title": "Imago"
   },
   "common": {
@@ -43,10 +43,10 @@
       "title": "내보내기 설정",
       "width": "너비 (px)"
     },
-    "go": "지금 시작",
+    "go": "열기",
     "heroDesc": "모든 이미지 처리는 브라우저 내에서 로컬로 완료되며, 파일이 서버에 업로드되지 않습니다. 진정한 오프라인 생산성 도구.",
-    "heroTitle1": "심플, 고속",
-    "heroTitle2": "프라이버시 안전",
+    "heroTitle1": "라이트 테이블",
+    "heroTitle2": "로컬 이미지 작업대",
     "history": {
       "redo": "다시 실행",
       "undo": "실행 취소"
@@ -124,12 +124,12 @@
       "upload": {
         "button": "파일 선택",
         "dropTip": "놓아서 처리 시작",
-        "dropToImago": "Imago로 드래그",
+        "dropToImago": "라이트 테이블에 놓기",
         "errorSize": "이미지 [{name}] 의 크기가 너무 큽니다 ({size} MB). 최대 50 MB 지원.",
         "pureOffline": "100% 오프라인",
         "quickPaste": "빠른 붙여넣기",
-        "subtitle": "이미지 드래그, 클릭 또는 붙여넣기 · 100% 개인정보 안전",
-        "title": "이미지 처리 시작"
+        "subtitle": "드래그, 붙여넣기, 또는 클릭해서 선택",
+        "title": "라이트 테이블에 이미지를 놓으세요"
       }
     },
     "modal": {
@@ -161,7 +161,7 @@
         "guide": "클릭하거나 드래그하여 객체를 추가하고 Alt 를 눌러 영역을 제외하세요.",
         "later": "나중에",
         "leftClick": "왼쪽 클릭",
-        "privacy": "개인정보 보호",
+        "privacy": "로컬 실행",
         "privacyDesc": "모델이 로컬에서 실행되어 이미지가 외부로 나가지 않습니다.",
         "readyTip": "엔진 준비 완료. 피사체를 선택해 주세요",
         "redo": "다시 실행",
@@ -191,10 +191,10 @@
         "title": "Imago 후원하기"
       }
     },
-    "pageTitleHome": "프라이버시 중심, 오프라인 지원 미니멀리스트 이미지 도구",
+    "pageTitleHome": "로컬 이미지 작업대",
     "processing": "처리 중...",
     "ready": "준비 완료",
-    "start": "빠른 시작",
+    "start": "시작",
     "theme": {
       "dark": "다크 모드",
       "light": "라이트 모드",
@@ -255,7 +255,8 @@
     },
     "inspector": {
       "drawer": "검사기 패널 서랍",
-      "sidebar": "검사기 사이드바"
+      "sidebar": "검사기 사이드바",
+      "spec": "스펙"
     }
   },
   "nav": {
@@ -263,9 +264,9 @@
     "collapse": "메뉴 접기",
     "expand": "메뉴 펼치기",
     "groups": {
-      "core": "핵심 도구",
-      "creative": "창의적 도구",
-      "edit": "편집 도구"
+      "core": "처리",
+      "creative": "기타",
+      "edit": "캔버스"
     },
     "language": "언어",
     "sponsor": "지원 및 커뮤니티",

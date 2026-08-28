@@ -673,7 +673,7 @@ useResizeObserver(containerRef, resetView)
               <AppButton
                 variant="cta"
                 size="md"
-                class="rounded-full px-10 pointer-events-auto shadow-xl shadow-primary/20 transition-all"
+                class="rounded-[var(--radius)] px-8 pointer-events-auto"
                 @click="triggerFileInput"
               >
                 <Plus :size="18" class="mr-1.5" />{{ t('tools.combine.importNow') }}

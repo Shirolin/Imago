@@ -31,7 +31,7 @@ const contentReady = ref(false)
 // 计算容器样式类
 const containerClasses = computed(() => {
   if (props.variant === 'dialog') {
-    return 'w-[90vw] max-w-md h-auto my-auto mx-auto rounded-3xl shadow-2xl border border-border bg-background flex flex-col overflow-hidden'
+    return 'w-[90vw] max-w-md h-auto my-auto mx-auto rounded-[var(--radius)] border border-border bg-[var(--chrome)] flex flex-col overflow-hidden'
   }
   // 全屏模式下，如果开启 paneOnly，则去除一切内边距
   return `w-full h-full flex flex-col ${props.paneOnly ? 'p-0' : 'p-3 md:p-6'}`
@@ -67,7 +67,7 @@ onMounted(() => {
   <Teleport to="body">
     <dialog
       ref="dialogRef"
-      class="fixed inset-0 w-full h-full max-w-full max-h-full p-0 bg-transparent border-none outline-none backdrop:bg-black/60 dark:backdrop:bg-background/80 backdrop:backdrop-blur-sm m-0 overflow-hidden text-foreground"
+      class="fixed inset-0 w-full h-full max-w-full max-h-full p-0 bg-transparent border-none outline-none backdrop:bg-black/60 m-0 overflow-hidden text-foreground"
       @cancel.prevent="emit('close')"
       aria-modal="true"
       :aria-labelledby="title ? modalTitleId : undefined"

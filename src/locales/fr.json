@@ -1,9 +1,9 @@
 {
   "app": {
-    "localProcessing": "Traitement Local Hors Ligne",
-    "privacyFirst": "Confidentialité Prioritaire",
+    "localProcessing": "Local · pas d’envoi",
+    "privacyFirst": "Local · pas d’envoi",
     "processing": "Traitement en cours...",
-    "subtitle": "Processeur d'images minimaliste, privé et multiplateforme",
+    "subtitle": "Table lumineuse",
     "title": "Imago"
   },
   "common": {
@@ -43,10 +43,10 @@
       "title": "Configuration d'Exportation",
       "width": "Largeur (px)"
     },
-    "go": "Commencer Maintenant",
+    "go": "Ouvrir",
     "heroDesc": "Tout le traitement se fait localement dans votre navigateur. Les fichiers ne sont jamais téléchargés. Un véritable outil de productivité hors ligne et privé.",
-    "heroTitle1": "Simplifier la Complexité",
-    "heroTitle2": "Confidentialité Sans Limites",
+    "heroTitle1": "Table lumineuse",
+    "heroTitle2": "Atelier image local",
     "history": {
       "redo": "Refaire",
       "undo": "Annuler"
@@ -124,12 +124,12 @@
       "upload": {
         "button": "Sélectionner des Images",
         "dropTip": "Relâcher pour commencer",
-        "dropToImago": "Déposer dans Imago",
+        "dropToImago": "Déposer sur la table lumineuse",
         "errorSize": "Le fichier [{name}] est trop volumineux ({size} Mo). Maximum recommandé : 50 Mo.",
         "pureOffline": "100% Hors Ligne",
         "quickPaste": "Coller",
-        "subtitle": "Glisser, Cliquer ou Coller des Images • 100% Privé",
-        "title": "Lancez votre Traitement d'Image Professionnel"
+        "subtitle": "Glisser, coller, ou cliquer pour choisir",
+        "title": "Posez l’image sur la table lumineuse"
       }
     },
     "modal": {
@@ -161,7 +161,7 @@
         "guide": "Cliquer ou glisser pour ajouter des objets ; maintenir Alt pour exclure des zones.",
         "later": "Plus tard",
         "leftClick": "Clic Gauche",
-        "privacy": "Confidentialité d'Abord",
+        "privacy": "S’exécute en local",
         "privacyDesc": "Les algorithmes s'exécutent localement ; les images ne quittent jamais votre navigateur.",
         "readyTip": "Moteur prêt. Cliquez pour sélectionner le sujet",
         "redo": "Refaire",
@@ -184,17 +184,17 @@
         "githubAria": "Visiter le Dépôt GitHub",
         "githubDesc": "Open source et transparent. Votre Étoile est notre plus grande motivation.",
         "githubStar": "Étoile sur GitHub",
-        "heroTitle": "Soutenir l'Évolution d'Imago",
+        "heroTitle": "Soutenir Imago",
         "kofi": "Ko-fi",
         "kofiAria": "Soutenir via Ko-fi",
         "kofiTip": "Prend en charge les Cartes de Crédit",
         "title": "Soutenez-nous"
       }
     },
-    "pageTitleHome": "Suite de Traitement d'Image Locale Haute Performance",
+    "pageTitleHome": "Atelier image local",
     "processing": "Traitement en cours...",
     "ready": "Prêt",
-    "start": "Démarrage Rapide",
+    "start": "Démarrer",
     "theme": {
       "dark": "Mode Sombre",
       "light": "Mode Clair",
@@ -255,7 +255,8 @@
     },
     "inspector": {
       "drawer": "Tiroir du panneau d'inspection",
-      "sidebar": "Barre latérale de l'inspecteur"
+      "sidebar": "Barre latérale de l'inspecteur",
+      "spec": "Cahier"
     }
   },
   "nav": {
@@ -263,9 +264,9 @@
     "collapse": "Réduire la Barre Latérale",
     "expand": "Développer la Barre Latérale",
     "groups": {
-      "core": "Outils Core",
-      "creative": "Atelier Créatif",
-      "edit": "Suite d'Édition"
+      "core": "Traitement",
+      "creative": "Autre",
+      "edit": "Canevas"
     },
     "language": "Langue",
     "sponsor": "Support & Communauté",

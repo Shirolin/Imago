@@ -21,84 +21,74 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: [
-          'Inter',
-          'Noto Sans SC',
-          'ui-sans-serif',
-          'system-ui',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          '"Segoe UI"',
-          'Roboto',
-          '"Helvetica Neue"',
-          'Arial',
-          '"Noto Sans"',
-          'sans-serif',
-          '"Apple Color Emoji"',
-          '"Segoe UI Emoji"',
-          '"Segoe UI Symbol"',
-          '"Noto Color Emoji"'
-        ]
+        sans: ['IBM Plex Sans', 'Noto Sans SC', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'ui-monospace', 'monospace']
       },
       colors: {
+        room: 'var(--room)',
+        chrome: 'var(--chrome)',
+        well: 'var(--well)',
+        ink: 'var(--ink)',
+        'ink-well': 'var(--ink-well)',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
+        background: 'var(--room)',
+        foreground: 'var(--ink)',
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))'
+          DEFAULT: 'var(--accent)',
+          foreground: 'var(--ink)'
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))'
+          foreground: 'var(--ink)'
         },
         destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))'
+          DEFAULT: 'var(--danger)',
+          foreground: 'var(--ink)'
         },
         muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))'
+          DEFAULT: 'hsl(var(--muted-hsl))',
+          foreground: 'var(--muted)'
         },
         accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))'
+          DEFAULT: 'var(--accent)',
+          foreground: 'var(--ink)'
         },
         popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))'
+          DEFAULT: 'var(--chrome)',
+          foreground: 'var(--ink)'
         },
         card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))'
+          DEFAULT: 'var(--chrome)',
+          foreground: 'var(--ink)'
         },
         success: {
-          DEFAULT: 'hsl(var(--success))',
-          foreground: 'hsl(var(--success-foreground))'
+          DEFAULT: 'var(--accent)',
+          foreground: 'var(--ink)'
         },
         warning: {
-          DEFAULT: 'hsl(var(--warning))',
-          foreground: 'hsl(var(--warning-foreground))'
+          DEFAULT: 'var(--muted)',
+          foreground: 'var(--ink)'
         },
         info: {
-          DEFAULT: 'hsl(var(--info))',
-          foreground: 'hsl(var(--info-foreground))'
+          DEFAULT: 'var(--accent)',
+          foreground: 'var(--ink)'
         }
       },
       borderRadius: {
-        '2xl': '1.25rem',
-        xl: '1rem',
+        '3xl': 'var(--radius)',
+        '2xl': 'var(--radius)',
+        xl: 'var(--radius)',
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)'
+        sm: 'calc(var(--radius) - 4px)',
+        DEFAULT: 'var(--radius)'
       },
       boxShadow: {
-        soft: '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-        elevated: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-        primary:
-          '0 10px 15px -3px hsla(var(--primary) / 0.15), 0 4px 6px -2px hsla(var(--primary) / 0.1)'
+        soft: '0 1px 3px rgba(18, 21, 26, 0.22)',
+        elevated: '0 1px 3px rgba(18, 21, 26, 0.22)',
+        primary: 'none'
       },
       keyframes: {
         'accordion-down': {
@@ -115,7 +105,7 @@ export default {
         'accordion-up': 'accordion-up 0.2s ease-out'
       },
       transitionTimingFunction: {
-        apple: 'cubic-bezier(0.32, 0.72, 0, 1)'
+        apple: 'ease-out'
       }
     }
   },

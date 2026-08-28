@@ -59,43 +59,31 @@ const shadcnSize = computed(() => {
 
 const extraClasses = computed(() => {
   let classes =
-    'font-bold transition-all duration-300 whitespace-nowrap shrink-0 flex items-center justify-center select-none active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background outline-none '
+    'transition-colors duration-150 whitespace-nowrap shrink-0 flex items-center justify-center select-none rounded-[var(--radius)] '
 
   if (props.icon || props.loading) {
-    classes += 'gap-2.5 '
+    classes += 'gap-2 '
   }
 
   if (props.variant === 'link') {
     classes +=
       'p-0 h-auto text-primary hover:bg-transparent hover:underline shadow-none border-none '
-  } else {
-    // 物理一致性：统一的悬停位移
-    classes += 'hover:translate-y-[var(--button-hover-offset)] '
-
-    if (props.variant === 'cta') {
-      classes += 'bg-[hsl(var(--cta))] hover:bg-[hsl(var(--cta-hover))] text-white btn-shadow-cta '
-    }
-    if (props.variant === 'primary') {
-      classes += 'bg-primary text-primary-foreground btn-shadow-primary '
-    }
-    if (props.variant === 'success') {
-      classes += 'bg-success text-success-foreground btn-shadow-success '
-    }
-    if (props.variant === 'tool') {
-      classes += 'text-muted-foreground hover:bg-muted hover:text-primary '
-    }
-    if (props.variant === 'secondary') {
-      classes +=
-        'bg-secondary/40 border border-border/60 hover:border-primary/40 hover:bg-secondary/60 hover:text-foreground text-muted-foreground/80 '
-    }
-    if (props.variant === 'ghost') {
-      classes +=
-        'bg-transparent hover:bg-muted/50 border border-transparent hover:border-border/40 text-muted-foreground hover:text-foreground '
-    }
-    if (props.variant === 'danger') {
-      classes +=
-        'bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive hover:text-destructive-foreground '
-    }
+  } else if (
+    props.variant === 'cta' ||
+    props.variant === 'primary' ||
+    props.variant === 'success'
+  ) {
+    classes += 'bg-[var(--accent)] text-[var(--ink)] hover:brightness-110 shadow-none border-none '
+  } else if (props.variant === 'tool') {
+    classes += 'text-muted-foreground hover:bg-secondary hover:text-foreground '
+  } else if (props.variant === 'secondary') {
+    classes +=
+      'bg-transparent border border-border hover:border-[var(--accent)] hover:text-foreground text-muted-foreground '
+  } else if (props.variant === 'ghost') {
+    classes +=
+      'bg-transparent hover:bg-secondary border border-transparent text-muted-foreground hover:text-foreground '
+  } else if (props.variant === 'danger') {
+    classes += 'bg-[var(--danger)] text-[var(--ink)] hover:brightness-110 border-none shadow-none '
   }
   return classes
 })
@@ -105,16 +93,14 @@ const iconSize = computed(() => {
     case 'sm':
       return 14
     case 'lg':
-      return 20
-    default:
       return 18
+    default:
+      return 16
   }
 })
 
-// 依靠高质量字体（Inter + Noto Sans SC）实现自然的视觉对齐。
-// 移除所有手动的 Optical Bias 补丁，回归标准的 Flex 垂直居中。
 const iconClass = computed(() => {
-  return ['shrink-0 transition-transform duration-300']
+  return ['shrink-0']
 })
 </script>
 
@@ -126,7 +112,6 @@ const iconClass = computed(() => {
     :class="extraClasses"
     :aria-label="ariaLabel"
   >
-    <!-- 核心修复：Lucide 加载图标 -->
     <Loader2 v-if="loading" class="animate-spin shrink-0" :size="iconSize" />
 
     <slot name="icon" v-if="!loading">
@@ -143,7 +128,6 @@ const iconClass = computed(() => {
       :is="icon"
       :size="iconSize"
       :class="iconClass"
-      class="group-hover:translate-x-1"
     />
   </Button>
 </template>

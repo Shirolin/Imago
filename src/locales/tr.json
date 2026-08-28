@@ -1,9 +1,9 @@
 {
   "app": {
-    "localProcessing": "Çevrimdışı Yerel İşleme",
-    "privacyFirst": "Önce Gizlilik",
+    "localProcessing": "Yerel · yükleme yok",
+    "privacyFirst": "Yerel · yükleme yok",
     "processing": "İşleniyor...",
-    "subtitle": "Minimalist, Özel, Çok Platformlu Görüntü İşlemcisi",
+    "subtitle": "Işık masası",
     "title": "Imago"
   },
   "common": {
@@ -43,10 +43,10 @@
       "title": "Dışa Aktarma Yapılandırması",
       "width": "Genişlik (px)"
     },
-    "go": "Hemen Başla",
+    "go": "Aç",
     "heroDesc": "Tüm işlemler tarayıcınızda yerel olarak gerçekleşir. Dosyalar asla yüklenmez. Gerçekten özel ve verimli bir çevrimdışı üretkenlik aracı.",
-    "heroTitle1": "Karmaşıklığı Basitleştirin",
-    "heroTitle2": "Sınırsız Gizlilik",
+    "heroTitle1": "Işık masası",
+    "heroTitle2": "Yerel görüntü tezgâhı",
     "history": {
       "redo": "Yinele",
       "undo": "Geri Al"
@@ -124,12 +124,12 @@
       "upload": {
         "button": "Yerel Görüntüleri Seç",
         "dropTip": "Başlatmak için Bırakın",
-        "dropToImago": "Imago'ya Bırakın",
+        "dropToImago": "Işık masasına bırak",
         "errorSize": "[{name}] dosyası çok büyük ({size} MB). Önerilen maksimum boyut: 50 MB.",
         "pureOffline": "%100 Çevrimdışı",
         "quickPaste": "Hızlı Yapıştır",
-        "subtitle": "Görüntüleri Sürükleyin, Tıklayın veya Yapıştırın • %100 Özel",
-        "title": "Profesyonel Görüntü İşlemeye Başlayın"
+        "subtitle": "Sürükle, yapıştır veya tıklayıp seç",
+        "title": "Görseli ışık masasına koy"
       }
     },
     "modal": {
@@ -161,7 +161,7 @@
         "guide": "Nesne eklemek için tıklayın veya sürükleyin; alanları hariç tutmak için Alt tuşuna basın.",
         "later": "Daha Sonra",
         "leftClick": "Sol Tıklama",
-        "privacy": "Önce Gizlilik",
+        "privacy": "Yerelde çalışır",
         "privacyDesc": "Algoritmalar yerel olarak çalışır; görüntüler asla tarayıcınızdan çıkmaz.",
         "readyTip": "Motor hazır. Konuyu seçmek için tıklayın",
         "redo": "Yinele",
@@ -184,17 +184,17 @@
         "githubAria": "GitHub Deposunu Ziyaret Et",
         "githubDesc": "Açık kaynak ve şeffaf. Yıldızınız en büyük motivasyonumuz.",
         "githubStar": "GitHub'da Yıldızla",
-        "heroTitle": "Imago Gelişimini Destekle",
+        "heroTitle": "Imago’yu destekle",
         "kofi": "Ko-fi",
         "kofiAria": "Ko-fi üzerinden destekle",
         "kofiTip": "Kredi Kartlarını Destekler",
         "title": "Bizi Destekleyin"
       }
     },
-    "pageTitleHome": "Özel, Güvenli, Yüksek Performanslı Yerel Görüntü Paketi",
+    "pageTitleHome": "Yerel görüntü tezgâhı",
     "processing": "İşleniyor...",
     "ready": "Hazır",
-    "start": "Hızlı Başlangıç",
+    "start": "Başla",
     "theme": {
       "dark": "Koyu Mod",
       "light": "Açık Mod",
@@ -255,7 +255,8 @@
     },
     "inspector": {
       "drawer": "Denetçi Paneli Çekmecesi",
-      "sidebar": "Denetçi Kenar Çubuğu"
+      "sidebar": "Denetçi Kenar Çubuğu",
+      "spec": "Özellik"
     }
   },
   "nav": {
@@ -263,9 +264,9 @@
     "collapse": "Kenar Çubuğunu Daralt",
     "expand": "Kenar Çubuğunu Genişlet",
     "groups": {
-      "core": "Çekirdek Araçlar",
-      "creative": "Yaratıcı Atölye",
-      "edit": "Düzenleme Paketi"
+      "core": "İşle",
+      "creative": "Diğer",
+      "edit": "Tuval"
     },
     "language": "Dil",
     "sponsor": "Destek ve Topluluk",

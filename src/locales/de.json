@@ -1,9 +1,9 @@
 {
   "app": {
-    "localProcessing": "Offline-Verarbeitung",
-    "privacyFirst": "Datenschutz Priorität",
+    "localProcessing": "Lokal · kein Upload",
+    "privacyFirst": "Lokal · kein Upload",
     "processing": "Verarbeitung läuft...",
-    "subtitle": "Minimalistischer, privater Bildprozessor",
+    "subtitle": "Leuchttisch",
     "title": "Imago"
   },
   "common": {
@@ -43,10 +43,10 @@
       "title": "Export-Konfiguration",
       "width": "Breite (px)"
     },
-    "go": "Jetzt starten",
+    "go": "Öffnen",
     "heroDesc": "Die Bildverarbeitung erfolgt lokal in Ihrem Browser. Dateien werden niemals hochgeladen. Ein privates und effizientes Offline-Produktivitätstool.",
-    "heroTitle1": "Komplexität vereinfachen",
-    "heroTitle2": "Grenzenlose Privatsphäre",
+    "heroTitle1": "Leuchttisch",
+    "heroTitle2": "Lokale Bildwerkbank",
     "history": {
       "redo": "Wiederholen",
       "undo": "Rückgängig"
@@ -124,12 +124,12 @@
       "upload": {
         "button": "Lokale Bilder wählen",
         "dropTip": "Loslassen zum Starten",
-        "dropToImago": "In Imago ablegen",
+        "dropToImago": "Auf den Leuchttisch legen",
         "errorSize": "Datei [{name}] ist zu groß ({size} MB). Empfohlenes Maximum: 50 MB.",
         "pureOffline": "100% Offline",
         "quickPaste": "Einfügen",
-        "subtitle": "Bilder ziehen, klicken oder einfügen • 100% Privat",
-        "title": "Professionelle Bildverarbeitung starten"
+        "subtitle": "Ziehen, einfügen oder hier klicken",
+        "title": "Bild auf den Leuchttisch legen"
       }
     },
     "modal": {
@@ -161,7 +161,7 @@
         "guide": "Klicken oder ziehen zum Hinzufügen; Alt halten zum Ausschließen.",
         "later": "Später",
         "leftClick": "Linksklick",
-        "privacy": "Privatsphäre zuerst",
+        "privacy": "Läuft lokal",
         "privacyDesc": "Algorithmen laufen lokal; Bilder werden niemals hochgeladen.",
         "readyTip": "Engine bereit. Motiv auswählen",
         "redo": "Wiederholen",
@@ -184,17 +184,17 @@
         "githubAria": "GitHub-Repository besuchen",
         "githubDesc": "Open-Source und transparent. Ihr Stern ist unsere größte Motivation.",
         "githubStar": "Stern auf GitHub",
-        "heroTitle": "Imago-Evolution unterstützen",
+        "heroTitle": "Imago unterstützen",
         "kofi": "Ko-fi",
         "kofiAria": "Über Ko-fi unterstützen",
         "kofiTip": "Unterstützt Kreditkarten",
         "title": "Unterstützen Sie uns"
       }
     },
-    "pageTitleHome": "Private, sichere Hochleistungs-Bildverarbeitung",
+    "pageTitleHome": "Lokale Bildwerkbank",
     "processing": "Verarbeitung läuft...",
     "ready": "Bereit",
-    "start": "Schnellstart",
+    "start": "Start",
     "theme": {
       "dark": "Dunkelmodus",
       "light": "Hellmodus",
@@ -255,7 +255,8 @@
     },
     "inspector": {
       "drawer": "Inspektor-Panel (Schublade)",
-      "sidebar": "Inspektor-Seitenleiste"
+      "sidebar": "Inspektor-Seitenleiste",
+      "spec": "Vorgabe"
     }
   },
   "nav": {
@@ -263,9 +264,9 @@
     "collapse": "Sidebar einklappen",
     "expand": "Sidebar ausklappen",
     "groups": {
-      "core": "Kernfunktionen",
-      "creative": "Kreativ-Workshop",
-      "edit": "Bearbeitung"
+      "core": "Bearbeiten",
+      "creative": "Sonstiges",
+      "edit": "Leinwand"
     },
     "language": "Sprache",
     "sponsor": "Support & Community",

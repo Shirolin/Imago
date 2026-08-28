@@ -367,7 +367,7 @@ const handleCtaClick = async () => {
                     >
                     <span
                       v-if="image.status === 'done' && results.get(image.id)?.skipped"
-                      class="text-[0.55rem] md:text-[0.6rem] font-black uppercase tracking-wider text-amber-500"
+                      class="text-[0.55rem] md:text-[0.6rem] font-medium tracking-wider text-[var(--muted)]"
                       >{{ t('common.export.skipIfLarger') }}</span
                     >
                   </div>

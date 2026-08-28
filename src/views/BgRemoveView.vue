@@ -16,7 +16,7 @@ import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
 import {
-  Sparkles,
+  Eraser,
   Download,
   ImageMinus,
   Info,
@@ -423,7 +423,7 @@ const ctaState = computed(() => {
       text: `${t('tools.bgRemove.cta.processing', { progress: pct })} ${t(
         'tools.split.cta.clickToAbort'
       )}`,
-      icon: Sparkles,
+      icon: Eraser,
       action: 'abort',
       disabled: false,
       variant: 'cta' as const
@@ -447,7 +447,7 @@ const ctaState = computed(() => {
     }
   return {
     text: t('tools.bgRemove.cta.process', { count: store.selectedCount }),
-    icon: Sparkles,
+    icon: Eraser,
     action: 'process',
     disabled: false,
     variant: 'cta' as const
@@ -728,7 +728,7 @@ const handleResetParams = () => {
       <!-- 第一分区：方案设定 -->
       <section class="space-y-4">
         <div class="flex items-center justify-between pr-1">
-          <AppSectionHeader :title="t('tools.bgRemove.engineTitle')" :icon="Sparkles" />
+          <AppSectionHeader :title="t('tools.bgRemove.engineTitle')" :icon="Eraser" />
           <div class="flex items-center gap-1">
             <transition name="fade">
               <div

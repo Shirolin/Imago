@@ -59,12 +59,12 @@ onUnmounted(() => {
   <div class="relative language-switcher">
     <button
       @click="isOpen = !isOpen"
-      class="flex items-center justify-center w-11 h-11 rounded-xl hover:bg-primary/5 transition-all text-muted-foreground hover:text-primary active:scale-[0.94] group"
+      class="flex items-center justify-center w-9 h-9 rounded-[var(--radius)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] transition-colors text-[var(--muted)] hover:text-[var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
       :title="currentLanguageName"
       :aria-label="t('nav.language')"
       :aria-expanded="isOpen"
     >
-      <Languages :size="18" class="group-hover:scale-110 transition-transform" />
+      <Languages :size="16" />
     </button>
 
     <transition
@@ -77,7 +77,7 @@ onUnmounted(() => {
     >
       <div
         v-if="isOpen"
-        class="absolute left-0 bottom-full mb-3 w-40 bg-card border border-border shadow-2xl z-[100] py-2 rounded-2xl overflow-hidden backdrop-blur-xl"
+        class="absolute left-0 bottom-full mb-2 w-40 bg-[var(--chrome)] border border-[color-mix(in_srgb,var(--ink)_10%,transparent)] z-[100] py-1 rounded-[var(--radius)] overflow-hidden"
       >
         <div class="max-h-[300px] overflow-y-auto custom-scrollbar">
           <button

@@ -9,7 +9,6 @@ import AppSegmentedControl from './AppSegmentedControl.vue'
 import AppInput from './AppInput.vue'
 import {
   FileType,
-  Sparkles,
   Target,
   CircleGauge,
   Palette,
@@ -147,7 +146,7 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
           :model-value="mode"
           @update:model-value="handleModeChange"
           :options="[
-            { label: t('common.export.qualityMode'), value: 'quality', icon: Sparkles },
+            { label: t('common.export.qualityMode'), value: 'quality', icon: CircleGauge },
             { label: t('common.export.targetSizeMode'), value: 'target', icon: Target }
           ]"
         />

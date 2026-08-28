@@ -1,9 +1,9 @@
 {
   "app": {
-    "localProcessing": "本地离线处理",
-    "privacyFirst": "隐私至上",
+    "localProcessing": "本地 · 不上传",
+    "privacyFirst": "本地 · 不上传",
     "processing": "正在处理...",
-    "subtitle": "极简、隐私、跨平台的本地图片处理助手",
+    "subtitle": "灯箱",
     "title": "Imago"
   },
   "common": {
@@ -25,7 +25,7 @@
       "qualityMode": "画质优先模式",
       "resolutionLimit": "分辨率上限 (可选)",
       "showMagnifier": "开启局部对比放大镜",
-      "skipIfLarger": "智能跳过体积增大的文件",
+      "skipIfLarger": "体积未减小则保留原图",
       "suffix": {
         "bgRemoved": "_去背景",
         "compressed": "_压缩",
@@ -43,10 +43,10 @@
       "title": "导出参数配置",
       "width": "像素宽度"
     },
-    "go": "立即体验",
-    "heroDesc": "所有图片处理均在浏览器本地完成，文件无需上传。真正私密、离线、高效的生产力工具。",
-    "heroTitle1": "化繁为简",
-    "heroTitle2": "隐私无界",
+    "go": "打开",
+    "heroDesc": "拖入、粘贴，或点这里选文件。处理在浏览器里完成。",
+    "heroTitle1": "灯箱",
+    "heroTitle2": "本地图片工作台",
     "history": {
       "redo": "重做",
       "undo": "撤销"
@@ -122,14 +122,14 @@
         "resetAllAria": "将所有图片还原至初始状态"
       },
       "upload": {
-        "button": "选择本地图片",
-        "dropTip": "松开鼠标开始处理",
-        "dropToImago": "拖放到 Imago",
+        "button": "选文件",
+        "dropTip": "松开即可",
+        "dropToImago": "放到灯箱上",
         "errorSize": "文件 [{name}] 体积过大 ({size} MB)，为了保证性能，建议处理 50 MB 以内的图片。",
-        "pureOffline": "100% 离线处理",
+        "pureOffline": "本地 · 不上传",
         "quickPaste": "粘贴快捷导入",
-        "subtitle": "拖拽、点击或粘贴图片 · 数据不离身",
-        "title": "开启您的专业图片处理之旅"
+        "subtitle": "拖入、粘贴，或点这里选文件",
+        "title": "把图放到灯箱上"
       }
     },
     "modal": {
@@ -150,9 +150,9 @@
         "confirm": "完成提取",
         "confirmTitle": "模型激活确认",
         "connecting": "正在连接 AI 引擎...",
-        "downloadDesc1": "此功能需加载高性能 SAM2 AI 模型 (约 12 MB)。",
+        "downloadDesc1": "此功能需加载 SAM2 模型 (约 12 MB)。",
         "downloadDesc2": "模型将完全在您的设备上运行，确保隐私安全。",
-        "downloadTitle": "激活交互式智能抠图",
+        "downloadTitle": "激活交互式抠图",
         "downloadSize": "45MB",
         "error": "AI 引擎异常",
         "featuresAria": "AI 模型特性",
@@ -161,13 +161,13 @@
         "guide": "点击或框选以添加对象，按住 Alt 排除区域。",
         "later": "暂不使用",
         "leftClick": "左键点击",
-        "privacy": "隐私至上",
+        "privacy": "本地运行",
         "privacyDesc": "算法在本地执行，图片绝不上传。",
         "readyTip": "引擎已就绪，请点击图像选择主体",
         "redo": "重做",
         "remove": "标记排除",
         "rightClick": "右键点击 (或 Alt)",
-        "title": "交互式智能分割 (SAM2)",
+        "title": "交互式分割 (SAM2)",
         "undo": "撤销",
         "zoomFit": "自适应窗口",
         "zoomIn": "放大视图",
@@ -184,17 +184,17 @@
         "githubAria": "访问 GitHub 仓库",
         "githubDesc": "开源透明，您的 Star 是对我们最大的鼓励。",
         "githubStar": "在 GitHub 上关注我们",
-        "heroTitle": "支持 Imago 持续演进",
+        "heroTitle": "支持 Imago",
         "kofi": "Ko-fi",
         "kofiAria": "通过 Ko-fi 进行国际赞助",
         "kofiTip": "支持国际信用卡支付",
         "title": "赞助支持"
       }
     },
-    "pageTitleHome": "隐私、安全、高性能的本地图片处理套件",
+    "pageTitleHome": "本地图片工作台",
     "processing": "正在处理...",
     "ready": "已就绪",
-    "start": "即刻体验",
+    "start": "开始",
     "theme": {
       "dark": "深色模式",
       "light": "浅色模式",
@@ -242,8 +242,7 @@
       "prev": "上一个",
       "next": "下一个",
       "selectImage": "选择图片 {name}",
-      "items": "项目"
-,
+      "items": "项目",
       "srSelected": "当前选中第 {index} 张图片，共 {count} 张",
       "srNone": "未选中图片"
     },
@@ -256,7 +255,8 @@
     },
     "inspector": {
       "drawer": "设置面板抽屉",
-      "sidebar": "设置侧边栏"
+      "sidebar": "设置侧边栏",
+      "spec": "规格"
     }
   },
   "nav": {
@@ -264,9 +264,9 @@
     "collapse": "折叠导航",
     "expand": "展开导航",
     "groups": {
-      "core": "核心能力",
-      "creative": "创意工坊",
-      "edit": "精修编辑"
+      "core": "处理",
+      "creative": "其他",
+      "edit": "画布"
     },
     "language": "语言",
     "sponsor": "社区与支持",
@@ -281,7 +281,7 @@
       "connectionStatus": "运行状态",
       "cta": {
         "export": "导出透明背景图 ({count})",
-        "process": "一键智能抠图 ({count})",
+        "process": "去底 ({count})",
         "processing": "AI 处理中... {progress}%",
         "select": "请先导入图片"
       },
@@ -304,18 +304,18 @@
       "engineDashboard": "模型状态面板",
       "engineMatch": "色值过滤 (极速)",
       "enginePro": "专业抠图 (ISNet)",
-      "engineSmart": "智能抠图 (轻量级)",
+      "engineSmart": "轻量抠图",
       "engineTitle": "抠图算法选择",
       "feather": "边缘羽化",
       "featherDesc": "让抠出的主体边缘更加柔和自然。",
       "forceInit": "强制重新初始化",
       "initDescPro1": "专业版模型约 ",
       "initDescPro2": "，采用 ISNet 架构，专为复杂边缘 (如毛发) 设计。仅需下载一次。",
-      "initDescSmart1": "智能版模型约 ",
+      "initDescSmart1": "轻量模型约 ",
       "initDescSmart2": "，在速度与质量间取得完美平衡。仅需下载一次。",
       "initError": "模型初始化异常",
       "initTitlePro": "加载专业级 AI 模型",
-      "initTitleSmart": "加载轻量级 AI 模型",
+      "initTitleSmart": "加载轻量模型",
       "initializing": "引擎加载中... {progress}%",
       "matchAdjust": "色值精修",
       "mode": "处理模式",
@@ -324,7 +324,7 @@
       "modelLoading": "模型载入中...",
       "modelReady": "模型已就绪",
       "modelStatus": "算法模型状态",
-      "name": "智能抠图",
+      "name": "去底",
       "offset": "边缘收缩",
       "offsetDesc": "微调抠图边缘的内外偏移。",
       "pro": "专业版",
@@ -333,7 +333,7 @@
       "resetParams": "恢复默认参数",
       "retryDownload": "重试模型下载",
       "retryInit": "重试引擎加载",
-      "smart": "智能版",
+      "smart": "轻量",
       "smoothness": "平滑程度",
       "smoothnessDesc": "有效减少边缘锯齿，提升观感。",
       "statusReady": "本地引擎就绪",
@@ -345,9 +345,9 @@
       "tipMatch2": "，最适合纯色或简易背景。",
       "tipPro1": "专业模式：工业级深度学习模型，",
       "tipPro2": "，专攻人像、复杂细节与产品图。",
-      "tipSmart1": "智能模式：通用语义识别算法，",
+      "tipSmart1": "轻量模式：通用语义识别，",
       "tipSmart2": "，能够快速处理日常场景。",
-      "title": "本地 AI 智能抠图 - 自动移除图像背景",
+      "title": "本地去底",
       "tolerance": "色彩容差",
       "toleranceDesc": "适当增加容差以涵盖更多相近的背景色。"
     },
@@ -381,7 +381,7 @@
       "dirVertical": "垂直分布",
       "direction": "主轴方向",
       "empty": {
-        "desc": "导入至少两张图片以开启拼接魔法",
+        "desc": "导入至少两张图片再拼接",
         "title": "列表空空如也"
       },
       "end": "末尾对齐",
@@ -393,13 +393,13 @@
         "moved": "已将图片从位置 {from} 移动至 {to}",
         "removed": "已移除图片 {name}"
       },
-      "name": "长图拼接",
+      "name": "拼接",
       "order": "拼接排序",
       "originalFormatHint": "「保持原始格式」在拼接中将统一输出 PNG（支持透明通道）",
       "originalSize": "保持原始比例",
       "padding": "画布内衬",
       "params": "间距与布局",
-      "smartScale": "智能等宽 / 等高缩放",
+      "smartScale": "等宽 / 等高缩放",
       "spacing": "图片间隙",
       "start": "起始对齐",
       "title": "无缝长图合成 - 本地快速拼接",
@@ -410,21 +410,21 @@
       "compressed": "压缩后输出",
       "cta": {
         "clickToAbort": "(点击可中止)",
-        "exportResults": "批量导出压缩成果",
+        "exportResults": "导出选中",
         "rendering": "正在渲染图像...",
         "select": "请先导入图片",
         "selectImage": "请选择要压缩的图片",
-        "startCompress": "执行压缩",
+        "startCompress": "开始压缩",
         "updateCompress": "更新压缩参数"
       },
-      "desc": "极致压缩算法，支持 WebP / AVIF 格式转换",
+      "desc": "压缩并转换 WebP / AVIF / JPEG / PNG",
       "gifHint": "GIF 图片将取首帧转为静态图",
-      "infoTip": "采用现代化 Web 图像算法，能在保证肉眼无法识别损失的前提下，极大程度压缩体积。",
+      "infoTip": "在浏览器里压缩并转换格式。体积变大时保留原图。",
       "maxDimensionHint": "未设置分辨率上限时，默认按 {limit}px 长边约束",
-      "name": "压缩转换",
+      "name": "压缩",
       "original": "原始图像",
-      "settingsTitle": "高级压缩配置",
-      "title": "图像极致压缩与格式转换 - 100% 隐私安全"
+      "settingsTitle": "规格",
+      "title": "压缩与格式转换"
     },
     "crop": {
       "aspectRatio": "比例预设",
@@ -441,7 +441,7 @@
       "magnetic": "磁性吸附",
       "edgeTrim": "边缘精准修剪",
       "empty": {
-        "desc": "导入图片以开启精准裁剪之旅",
+        "desc": "导入图片后在灯箱上裁剪",
         "title": "暂无待处理图片"
       },
       "fillAll": "自适应填充",
@@ -456,7 +456,7 @@
       "height": "高度 (px)",
       "history": "操作记录",
       "lockRatio": "锁定当前比例",
-      "name": "图像裁剪",
+      "name": "裁剪",
       "noGrid": "隐藏参考线",
       "posX": "水平偏移 (X)",
       "posY": "垂直偏移 (Y)",
@@ -502,7 +502,7 @@
         "software": "后期编辑软件",
         "time": "拍摄与创作时间"
       },
-      "name": "隐私脱敏",
+      "name": "EXIF",
       "privacyList": "检测到的隐私项",
       "riskCount": "发现 {count} 处潜在隐私风险",
       "riskDetail": "包含 {count} 项敏感标签",
@@ -534,7 +534,7 @@
       "maskableLabel": "Maskable",
       "matrixTitle": "资源规格矩阵",
       "mockup": "真实环境模拟",
-      "name": "站标生成",
+      "name": "站标",
       "newTab": "浏览器标签页预览",
       "outputSize": "输出尺寸: {width} × {height} PX",
       "rotateShape": "切换预览形状",
@@ -579,13 +579,13 @@
       "cta": {
         "apply": "应用选定滤镜 ({count})",
         "export": "导出调色成果 ({count})",
-        "rendering": "AI 滤镜渲染中...",
+        "rendering": "滤镜渲染中...",
         "select": "请先导入图片",
         "update": "更新当前滤镜 ({count})"
       },
       "desc": "内置专业级电影感滤镜与色彩微调工具",
       "fineAdjustment": "色彩精準微调",
-      "name": "色彩滤镜",
+      "name": "滤镜",
       "presets": {
         "aden": "浅梦",
         "clarendon": "经典冷调",
@@ -622,7 +622,7 @@
       "height": "图像高度",
       "heightUnit": "高",
       "lockAspectRatio": "维持纵横比",
-      "name": "尺寸调整",
+      "name": "尺寸",
       "resetDimensions": "还原原始尺寸",
       "resizeMode": "重调模式",
       "scaleRatio": "缩放百分比",
@@ -638,7 +638,7 @@
     },
     "split": {
       "alignMode": "主体对齐模式",
-      "alignModeDesc": "智能探测主体并应用居中裁剪或补白，适配正方形展示。",
+      "alignModeDesc": "探测主体并居中裁剪或补白，适配正方形。",
       "canvas": {
         "ariaLabel": "图像切分交互区",
         "clickToAdd": "点击此处添加切分线",
@@ -686,7 +686,7 @@
         "resetToGrid": "辅助线已基于网格参数重新计算",
         "switchedToFree": "现已切换至手动自由切分模式"
       },
-      "name": "网格切图",
+      "name": "分割",
       "restoreDefaultView": "重置预览视角",
       "shave": "边缘微量收缩 (Shave)",
       "square": "正方形画幅",

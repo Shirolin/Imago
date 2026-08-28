@@ -2,15 +2,23 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#1abc9c" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111827" />
-    
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="theme-color" content="#12151a" />
+
     <!-- Primary Meta Tags -->
     <title>Imago | 极简本地图片处理工具 - 隐私安全、离线可用的图片生产力</title>
     <meta name="title" content="Imago | 极简本地图片处理工具 - 隐私安全、离线可用的图片生产力" />
-    <meta name="description" content="Imago 是一款完全基于浏览器的本地图片处理工具。支持 AI 背景移除、格式转换 (WebP/AVIF/JPG)、图片压缩、裁剪、网格分割及 EXIF 隐私清除。全程断网可用，数据绝不上传服务器，保护您的绝对隐私。" />
-    <meta name="keywords" content="图片压缩, 背景移除, AI 背景移除, 格式转换, WebP转换, AVIF转换, 图片裁剪, 图片拼接, 图片分割, 移除EXIF, 本地处理, 隐私安全, 离线工具, Imago, 浏览器图片编辑" />
+    <meta
+      name="description"
+      content="Imago 是一款完全基于浏览器的本地图片处理工具。支持 AI 背景移除、格式转换 (WebP/AVIF/JPG)、图片压缩、裁剪、网格分割及 EXIF 隐私清除。全程断网可用，数据绝不上传服务器，保护您的绝对隐私。"
+    />
+    <meta
+      name="keywords"
+      content="图片压缩, 背景移除, AI 背景移除, 格式转换, WebP转换, AVIF转换, 图片裁剪, 图片拼接, 图片分割, 移除EXIF, 本地处理, 隐私安全, 离线工具, Imago, 浏览器图片编辑"
+    />
     <meta name="author" content="Shirolin" />
     <meta name="robots" content="index, follow" />
 
@@ -18,14 +26,20 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://imago.app/" />
     <meta property="og:title" content="Imago | 隐私安全的极简本地图片处理工具" />
-    <meta property="og:description" content="无需上传服务器的 AI 背景移除与图片处理工具：支持压缩、转换、裁剪、拼接及隐私清除。保障您的数据安全。" />
+    <meta
+      property="og:description"
+      content="无需上传服务器的 AI 背景移除与图片处理工具：支持压缩、转换、裁剪、拼接及隐私清除。保障您的数据安全。"
+    />
     <meta property="og:image" content="https://imago.app/favicon.svg" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://imago.app/" />
     <meta property="twitter:title" content="Imago | 隐私安全的极简本地图片处理工具" />
-    <meta property="twitter:description" content="无需上传服务器的 AI 背景移除与图片处理工具：支持压缩、转换、裁剪、拼接及隐私清除。保障您的数据安全。" />
+    <meta
+      property="twitter:description"
+      content="无需上传服务器的 AI 背景移除与图片处理工具：支持压缩、转换、裁剪、拼接及隐私清除。保障您的数据安全。"
+    />
     <meta property="twitter:image" content="https://imago.app/favicon.svg" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -33,67 +47,70 @@
     <link rel="canonical" href="https://imago.app/" />
 
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
-    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
     <!-- GEO & SEO Structured Data -->
     <script type="application/ld+json">
-    [
-      {
-        "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "Imago",
-        "description": "基于浏览器的极简本地图片处理工具。支持 AI 背景移除、格式压缩转换、尺寸调整、裁剪拼接及 EXIF 隐私清除。完全在客户端运行，无需上传，断网可用。",
-        "applicationCategory": "MultimediaApplication",
-        "operatingSystem": "Web Browser (Chrome, Edge, Safari, Firefox)",
-        "author": {
-          "@type": "Person",
-          "name": "Shirolin"
-        },
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD"
-        },
-        "featureList": [
-          "AI 自动背景移除/背景移除",
-          "图片压缩 (WebP, AVIF, JPEG, PNG)",
-          "格式转换",
-          "图片尺寸调整与裁剪",
-          "图片网格分割与长图拼接",
-          "EXIF 元数据隐私清除",
-          "100% 本地离线处理，隐私无忧"
-        ]
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "Imago 处理图片需要上传到服务器吗？",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "不需要。Imago 采用现代浏览器技术（WebAssembly），所有图片处理逻辑均在您的本地计算机浏览器中完成，图片数据绝不上传，甚至在断网状态下也能正常使用。"
-            }
+      [
+        {
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "Imago",
+          "description": "基于浏览器的极简本地图片处理工具。支持 AI 背景移除、格式压缩转换、尺寸调整、裁剪拼接及 EXIF 隐私清除。完全在客户端运行，无需上传，断网可用。",
+          "applicationCategory": "MultimediaApplication",
+          "operatingSystem": "Web Browser (Chrome, Edge, Safari, Firefox)",
+          "author": {
+            "@type": "Person",
+            "name": "Shirolin"
           },
-          {
-            "@type": "Question",
-            "name": "Imago 支持哪些图片格式？",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "支持 WebP, AVIF, JPEG, PNG, JXL 等主流格式的相互转换和压缩。"
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "featureList": [
+            "AI 自动背景移除/背景移除",
+            "图片压缩 (WebP, AVIF, JPEG, PNG)",
+            "格式转换",
+            "图片尺寸调整与裁剪",
+            "图片网格分割与长图拼接",
+            "EXIF 元数据隐私清除",
+            "100% 本地离线处理，隐私无忧"
+          ]
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Imago 处理图片需要上传到服务器吗？",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "不需要。Imago 采用现代浏览器技术（WebAssembly），所有图片处理逻辑均在您的本地计算机浏览器中完成，图片数据绝不上传，甚至在断网状态下也能正常使用。"
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Imago 支持哪些图片格式？",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "支持 WebP, AVIF, JPEG, PNG, JXL 等主流格式的相互转换和压缩。"
+              }
             }
-          }
-        ]
-      }
-    ]
+          ]
+        }
+      ]
     </script>
   </head>
   <body>
     <!-- Semantic content for SEO/GEO crawlers -->
-    <div style="display:none">
+    <div style="display: none">
       <h1>Imago - 极简本地图片处理工具</h1>
       <p>您的隐私卫士。一个无需上传服务器、在浏览器本地完成所有操作的图片处理生产力工具。</p>
       <ul>

@@ -29,7 +29,7 @@ const select = (value: T) => {
 
 <template>
   <div
-    class="segmented-control p-1 bg-muted/50 rounded-xl border border-border/40 w-full select-none isolate relative overflow-hidden"
+    class="segmented-control p-1 bg-muted/50 rounded-[var(--radius)] border border-border/40 w-full select-none isolate relative overflow-hidden"
     role="radiogroup"
     :aria-label="ariaLabel"
   >

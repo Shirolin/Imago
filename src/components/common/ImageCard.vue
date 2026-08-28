@@ -10,7 +10,7 @@ import {
   RotateCcw,
   AlertCircle,
   Loader2,
-  Sparkles
+  MousePointer2
 } from 'lucide-vue-next'
 import { useFileHelpers } from '../../composables/useFileHelpers'
 import { useImageStore } from '../../stores/imageStore'
@@ -199,12 +199,10 @@ watch(displayUrl, () => {
 
 <template>
   <div
-    class="relative bg-card rounded-2xl overflow-hidden border border-border/60 transition-all duration-500 cursor-pointer flex flex-col group hover:-translate-y-0.5 hover:shadow-primary/10 hover:border-primary/30 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background shadow-inner-glow"
+    class="imago-sheet relative overflow-hidden cursor-pointer flex flex-col group outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--well)]"
     :class="[
-      isSelected
-        ? 'ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/[0.03]'
-        : '',
-      isDirtyDone ? 'animate-dirty-pulse border-amber-500/20' : ''
+      isSelected ? 'ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--well)]' : '',
+      isDirtyDone ? 'ring-1 ring-[var(--muted)]' : ''
     ]"
     tabindex="0"
     role="button"
@@ -231,7 +229,7 @@ watch(displayUrl, () => {
         <!-- 骨架屏：预览未解码时显示 shimmer，解码完成后移除 -->
         <div
           v-if="!previewLoaded"
-          class="shimmer-skeleton rounded-t-[calc(1rem-1px)]"
+          class="absolute inset-0 bg-[var(--chrome)]"
           aria-hidden="true"
         ></div>
         <img
@@ -302,7 +300,7 @@ watch(displayUrl, () => {
       <!-- 【模式 B】：Hover HUD 托盘 (仅在小图模式 + 有可用操作时浮现) -->
       <div
         v-if="!isLargeMode && (image.status === 'done' || image.status === 'error')"
-        class="absolute bottom-3 left-3 right-3 z-30 bg-background/80 backdrop-blur-xl border border-white/20 rounded-xl p-1.5 shadow-2xl flex items-center justify-between gap-1.5 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 pointer-events-auto touch-reveal"
+        class="absolute bottom-3 left-3 right-3 z-30 bg-[var(--chrome)] border border-[color-mix(in_srgb,var(--ink)_12%,transparent)] rounded-[var(--radius)] p-1.5 flex items-center justify-between gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto touch-reveal"
       >
         <div class="flex items-center gap-1">
           <button
@@ -326,11 +324,11 @@ watch(displayUrl, () => {
           <button
             v-if="image.status === 'done'"
             @click.stop="emit('interactive', image.id)"
-            class="p-1.5 hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-lg transition-all"
+            class="p-1.5 hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-[var(--radius)] transition-colors"
             :aria-label="t('common.image.card.sam2')"
             :title="t('common.image.card.sam2')"
           >
-            <Sparkles :size="14" />
+            <MousePointer2 :size="14" />
           </button>
           <button
             v-if="image.status === 'done'"
@@ -361,7 +359,7 @@ watch(displayUrl, () => {
       <button
         v-if="!showMagnifier"
         @click.stop="store.removeImage(image.id)"
-        class="absolute top-3 right-3 z-30 bg-background/40 hover:bg-destructive text-foreground/60 hover:text-destructive-foreground p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-border/40 outline-none focus-visible:ring-2 focus-visible:ring-primary touch-reveal"
+        class="absolute top-3 right-3 z-30 bg-[var(--chrome)] hover:bg-[var(--danger)] text-[var(--muted)] hover:text-[var(--ink)] p-1.5 rounded-[var(--radius)] opacity-0 group-hover:opacity-100 transition-colors border border-[color-mix(in_srgb,var(--ink)_12%,transparent)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] touch-reveal"
         :title="$t('common.image.card.remove')"
         :aria-label="$t('common.image.card.remove')"
       >
@@ -371,7 +369,7 @@ watch(displayUrl, () => {
       <!-- 处理中中心进度 -->
       <div
         v-if="image.status === 'processing'"
-        class="absolute inset-0 bg-background/60 backdrop-blur-[2px] z-30 flex items-center justify-center"
+        class="absolute inset-0 bg-[var(--chrome)]/70 z-30 flex items-center justify-center"
       >
         <Loader2 :size="24" class="text-primary animate-spin" />
       </div>
@@ -397,7 +395,7 @@ watch(displayUrl, () => {
           <div
             v-if="image.status === 'done'"
             class="w-2 h-2 rounded-full bg-success"
-            :class="{ 'bg-amber-500 animate-pulse': isDirty }"
+            :class="{ 'bg-[var(--muted)]': isDirty }"
           ></div>
           <Loader2
             v-else-if="image.status === 'processing'"
@@ -448,14 +446,14 @@ watch(displayUrl, () => {
           @click.stop="emit('interactive', image.id)"
           :aria-label="t('common.image.card.sam2')"
         >
-          <Sparkles :size="14" />
+          <MousePointer2 :size="14" />
           <span>{{ t('common.image.card.sam2') }}</span>
         </button>
         <div class="flex gap-2 ml-auto pl-2 border-l border-border/40">
           <button
             v-if="image.status === 'done'"
             @click.stop="emit('download', image.id)"
-            class="p-2 bg-primary text-primary-foreground rounded-xl shadow-lg shadow-primary/20 hover:scale-110 hover:shadow-primary/40 active:scale-95 transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            class="p-2 bg-[var(--accent)] text-[var(--ink)] rounded-[var(--radius)] hover:brightness-110 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             :title="t('common.image.card.download')"
             :aria-label="t('common.image.card.download')"
           >

@@ -97,10 +97,10 @@ defineExpose({
 </script>
 
 <template>
-  <div class="h-full flex flex-col p-4 md:p-6 overflow-hidden w-full relative bg-muted/10">
+  <div class="h-full flex flex-col overflow-hidden w-full relative">
     <div
       ref="containerRef"
-      class="flex-1 bg-muted/20 border border-border/60 rounded-3xl overflow-hidden relative w-full group select-none touch-none transition-all duration-300"
+      class="flex-1 overflow-hidden relative w-full group select-none touch-none"
       role="application"
       :aria-label="($attrs['aria-label'] as string) || t('common.canvas.workspaceAria')"
       :aria-describedby="$attrs['aria-describedby'] as string"
@@ -139,7 +139,7 @@ defineExpose({
         :class="isHandMode ? 'opacity-0 scale-95' : 'opacity-100 scale-100'"
       >
         <div
-          class="px-3 py-2 md:px-4 md:py-2 bg-card/90 backdrop-blur-md border border-border/40 rounded-full flex items-center gap-2.5 md:gap-3 shadow-2xl ring-1 ring-primary/5"
+          class="px-3 py-1.5 bg-[var(--chrome)] border border-[color-mix(in_srgb,var(--ink)_10%,transparent)] rounded-[var(--radius)] flex items-center gap-2.5 text-[var(--ink)]"
         >
           <!-- 核心操作提示 -->
           <div class="flex items-center gap-1.5 md:gap-2">
