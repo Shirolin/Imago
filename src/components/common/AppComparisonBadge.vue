@@ -18,12 +18,16 @@ withDefaults(defineProps<Props>(), {
 
 <template>
   <div
-    class="flex items-center bg-muted/50 dark:bg-muted border border-border/60 transition-all duration-300 group-hover:border-primary/20 overflow-hidden shadow-inner-glow"
-    :class="[compact ? 'gap-1.5 p-1.5 rounded-xl' : 'gap-3 p-3 rounded-2xl']"
+    class="flex items-center bg-muted/50 dark:bg-muted border border-[var(--hairline)] transition-colors group-hover:border-primary/20 overflow-hidden"
+    :class="[
+      compact
+        ? 'gap-1.5 p-1.5 rounded-[var(--radius-ctrl)]'
+        : 'gap-3 p-3 rounded-[var(--radius-ctrl)]'
+    ]"
   >
     <div class="flex-1 flex flex-col gap-0.5 min-w-0">
       <span
-        class="font-medium text-muted-foreground mt-0.5 uppercase tracking-wider"
+        class="font-medium text-muted-foreground mt-0.5"
         :class="compact ? 'text-[0.5rem]' : 'text-[0.6rem]'"
         >{{ beforeLabel }}</span
       >
@@ -38,7 +42,7 @@ withDefaults(defineProps<Props>(), {
     </div>
     <div class="flex-1 flex flex-col gap-0.5 min-w-0">
       <span
-        class="font-medium text-muted-foreground mt-0.5 uppercase tracking-wider"
+        class="font-medium text-muted-foreground mt-0.5"
         :class="compact ? 'text-[0.5rem]' : 'text-[0.6rem]'"
         >{{ afterLabel }}</span
       >

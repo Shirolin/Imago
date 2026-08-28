@@ -87,7 +87,7 @@ const handleDecrement = () => {
         :min="type === 'number' && min !== undefined ? min : undefined"
         :max="type === 'number' && max !== undefined ? max : undefined"
         :step="type === 'number' ? step : undefined"
-        class="w-full h-10 bg-muted/30 dark:bg-muted/50 border border-border/40 rounded-lg text-xs font-bold text-muted-foreground focus:text-foreground focus:border-primary focus:bg-background/80 outline-none transition-all tabular-nums placeholder:text-muted-foreground/40 pl-3 focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 focus:ring-offset-background"
+        class="w-full h-10 bg-muted/30 dark:bg-muted/50 border border-[var(--hairline)] rounded-lg text-xs font-bold text-muted-foreground focus:text-foreground focus:border-primary focus:bg-background/80 outline-none transition-all tabular-nums placeholder:text-muted-foreground/40 pl-3 focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 focus:ring-offset-background"
         :class="[
           type === 'number' ? 'pr-14' : suffix ? 'pr-8' : 'pr-3',
           { 'ring-2 ring-amber-500/30 border-amber-500/40': type === 'number' && isAtMax }
@@ -104,7 +104,7 @@ const handleDecrement = () => {
           @click.stop="handleDecrement"
           type="button"
           :disabled="isAtMin"
-          class="w-6 h-7 flex items-center justify-center rounded-lg hover:bg-primary/10 text-muted-foreground/60 hover:text-primary active:scale-90 transition-all outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:opacity-30 disabled:cursor-not-allowed"
+          class="w-6 h-7 flex items-center justify-center rounded-lg hover:bg-primary/10 text-muted-foreground/60 hover:text-primary transition-colors outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:opacity-30 disabled:cursor-not-allowed"
           :aria-label="
             ariaLabel ? `${ariaLabel} ${t('common.ui.decrease')}` : t('common.ui.decrease')
           "
@@ -116,7 +116,7 @@ const handleDecrement = () => {
           @click.stop="handleIncrement"
           type="button"
           :disabled="isAtMax"
-          class="w-6 h-7 flex items-center justify-center rounded-lg hover:bg-primary/10 text-muted-foreground/60 hover:text-primary active:scale-90 transition-all outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:opacity-30 disabled:cursor-not-allowed"
+          class="w-6 h-7 flex items-center justify-center rounded-lg hover:bg-primary/10 text-muted-foreground/60 hover:text-primary transition-colors outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:opacity-30 disabled:cursor-not-allowed"
           :aria-label="
             ariaLabel ? `${ariaLabel} ${t('common.ui.increase')}` : t('common.ui.increase')
           "

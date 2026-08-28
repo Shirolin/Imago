@@ -378,7 +378,7 @@ watch(
     :title="t('common.modal.interactive.title')"
     @close="emit('close')"
   >
-    <div class="flex-1 flex flex-col bg-[#050505] select-none overflow-hidden min-h-0">
+    <div class="flex-1 flex flex-col bg-[var(--product)] select-none overflow-hidden min-h-0">
       <!-- 顶部工具栏 -->
       <div class="h-14 border-b border-white/5 flex items-center justify-between px-4 shrink-0">
         <div class="flex items-center gap-4">
@@ -543,8 +543,8 @@ watch(
               <div
                 v-for="(p, i) in points"
                 :key="i"
-                class="absolute w-4 h-4 -ml-2 -mt-2 rounded-full border-2 border-white shadow-2xl flex items-center justify-center pointer-events-none z-20 animate-in zoom-in-0 duration-200"
-                :class="p.label === 1 ? 'bg-emerald-500' : 'bg-rose-500'"
+                class="absolute w-4 h-4 -ml-2 -mt-2 rounded-full border-2 border-[var(--on-product)] flex items-center justify-center pointer-events-none z-20"
+                :class="p.label === 1 ? 'bg-[var(--accent)]' : 'bg-[var(--danger)]'"
                 :style="{ left: p.x * 100 + '%', top: p.y * 100 + '%' }"
               ></div>
             </div>
@@ -553,16 +553,16 @@ watch(
 
         <!-- 悬浮指令提示板 (恢复) -->
         <div
-          class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-6 px-6 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/5 text-[10px] font-bold text-white/40 pointer-events-none transition-all duration-300 group-hover:opacity-100 opacity-60 uppercase tracking-widest italic"
+          class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-6 px-6 py-2 bg-[var(--product)] rounded-[var(--radius-ctrl)] border border-[var(--hairline)] text-[10px] font-medium text-[var(--on-product)]/70 pointer-events-none"
         >
           <div class="flex items-center gap-2">
-            <span class="text-emerald-400">{{ t('common.modal.interactive.leftClick') }}</span>
-            <span class="text-white/20">/</span>
+            <span class="text-[var(--accent)]">{{ t('common.modal.interactive.leftClick') }}</span>
+            <span class="text-[var(--on-product)]/25">/</span>
             <span>{{ t('common.modal.interactive.add') }}</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-rose-400">{{ t('common.modal.interactive.rightClick') }}</span>
-            <span class="text-white/20">/</span>
+            <span class="text-[var(--danger)]">{{ t('common.modal.interactive.rightClick') }}</span>
+            <span class="text-[var(--on-product)]/25">/</span>
             <span>{{ t('common.modal.interactive.remove') }}</span>
           </div>
         </div>

@@ -643,7 +643,7 @@ onUnmounted(() => {
           ></div>
         </div>
         <div
-          class="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 px-2 py-0.5 bg-background/70 backdrop-blur-md rounded-full border border-border/40 flex items-center gap-1.5 shadow-xl"
+          class="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 px-2 py-0.5 bg-background/70 backdrop-blur-md rounded-full border border-[var(--hairline)] flex items-center gap-1.5 shadow-xl"
         >
           <div
             class="w-1 h-1 rounded-full"

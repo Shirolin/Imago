@@ -117,7 +117,7 @@ onMounted(() => {
               (layoutStore.isAssetsTrayCollapsed && isDesktop) ||
               (isCompact && showSidebar && !layoutStore.isInspectorCollapsed)
                 ? 'h-0 border-t-0'
-                : 'h-28 border-t border-[color-mix(in_srgb,var(--ink)_8%,transparent)]'
+                : 'h-28 border-t border-[var(--hairline)]'
             ]"
           >
             <div
@@ -140,7 +140,7 @@ onMounted(() => {
               layoutStore.isAssetsTrayCollapsed
             "
             @click="layoutStore.toggleAssetsTray"
-            class="h-8 bg-[var(--board)] cursor-pointer transition-colors border-t border-[color-mix(in_srgb,var(--ink)_8%,transparent)] shrink-0 group flex items-center justify-between px-4"
+            class="h-8 bg-[var(--board)] cursor-pointer transition-colors border-t border-[var(--hairline)] shrink-0 group flex items-center justify-between px-4"
             :title="t('common.assets.expandTray')"
             role="button"
             tabindex="0"
@@ -166,7 +166,7 @@ onMounted(() => {
       <aside
         v-if="showSidebar"
         id="inspector-panel"
-        class="imago-board border-[color-mix(in_srgb,var(--ink)_8%,transparent)] transition-all duration-200 z-[200] lg:static"
+        class="imago-board border-[var(--hairline)] transition-all duration-200 z-[200] lg:static"
         role="complementary"
         :aria-label="isCompact ? t('common.inspector.drawer') : t('common.inspector.sidebar')"
         :class="[
@@ -192,7 +192,7 @@ onMounted(() => {
           <div
             v-if="isCompact"
             @click="layoutStore.toggleInspector"
-            class="flex flex-col items-center justify-center h-10 shrink-0 cursor-pointer touch-none group bg-[var(--board)] border-b border-[color-mix(in_srgb,var(--ink)_8%,transparent)]"
+            class="flex flex-col items-center justify-center h-10 shrink-0 cursor-pointer touch-none group bg-[var(--board)] border-b border-[var(--hairline)]"
             role="button"
             :aria-label="
               layoutStore.isInspectorCollapsed
@@ -215,7 +215,7 @@ onMounted(() => {
 
           <div
             v-if="isMedium || isDesktop"
-            class="h-10 flex items-center justify-between px-4 border-b border-[color-mix(in_srgb,var(--ink)_8%,transparent)] shrink-0"
+            class="h-10 flex items-center justify-between px-4 border-b border-[var(--hairline)] shrink-0"
           >
             <span class="text-[13px] font-medium text-[var(--ink)]">{{
               t('common.inspector.spec')
@@ -241,7 +241,7 @@ onMounted(() => {
 
           <div
             v-if="!layoutStore.isInspectorCollapsed && $slots.toolbar"
-            class="shrink-0 px-3 py-2 border-t border-[color-mix(in_srgb,var(--ink)_8%,transparent)] bg-[var(--board)]"
+            class="shrink-0 px-3 py-2 border-t border-[var(--hairline)] bg-[var(--board)]"
           >
             <slot name="toolbar"></slot>
           </div>

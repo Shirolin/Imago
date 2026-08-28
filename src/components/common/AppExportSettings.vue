@@ -153,7 +153,7 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
 
         <div
           v-if="showQualitySlider || showTargetSizeInput || showPngOptions"
-          class="bg-muted/10 rounded-2xl p-5 border border-border/40 mt-3 space-y-7"
+          class="bg-muted/10 rounded-2xl p-5 border border-[var(--hairline)] mt-3 space-y-7"
         >
           <!-- A. 输出质量 -->
           <div v-if="showQualitySlider" class="space-y-3">
@@ -232,7 +232,7 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
     <!-- 2. 进阶微调 -->
     <section
       v-if="showExifOption || allowManualQuality"
-      class="space-y-5 @container pt-2 border-t border-border/40"
+      class="space-y-5 @container pt-2 border-t border-[var(--hairline)]"
     >
       <button
         @click="showAdvanced = !showAdvanced"

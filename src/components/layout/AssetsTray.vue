@@ -200,7 +200,7 @@ const onDragEnd = () => {
   >
     <!-- 头部工具栏 -->
     <div
-      class="flex items-center justify-between px-3 h-7 border-b border-border/10 bg-muted/5 shrink-0"
+      class="flex items-center justify-between px-3 h-7 border-b border-[var(--hairline)] bg-muted/5 shrink-0"
     >
       <div class="flex items-center gap-2">
         <button
@@ -217,11 +217,13 @@ const onDragEnd = () => {
 
         <div class="h-2.5 w-px bg-border/20 mx-0.5"></div>
 
-        <div class="flex items-center bg-background/40 p-0.5 rounded-lg border border-border/20">
+        <div
+          class="flex items-center bg-background/40 p-0.5 rounded-lg border border-[var(--hairline)]"
+        >
           <button
             @click="navigate('prev')"
             @dblclick.stop
-            class="p-1 hover:bg-background rounded-md transition-colors text-muted-foreground hover:text-primary active:scale-90"
+            class="p-1 hover:bg-background rounded-md transition-colors text-muted-foreground hover:text-primary"
             :title="t('common.tray.prev')"
             :aria-label="t('common.tray.prev')"
           >
@@ -231,7 +233,7 @@ const onDragEnd = () => {
           <button
             @click="navigate('next')"
             @dblclick.stop
-            class="p-1 hover:bg-background rounded-md transition-colors text-muted-foreground hover:text-primary active:scale-90"
+            class="p-1 hover:bg-background rounded-md transition-colors text-muted-foreground hover:text-primary"
             :title="t('common.tray.next')"
             :aria-label="t('common.tray.next')"
           >
@@ -241,7 +243,7 @@ const onDragEnd = () => {
       </div>
 
       <div class="flex items-center gap-2 mr-1">
-        <span class="text-[0.7rem] font-black text-muted-foreground/70 uppercase tracking-widest">{{
+        <span class="text-[11px] font-medium text-muted-foreground/70">{{
           t('common.tray.items')
         }}</span>
         <span class="text-xs font-semibold tabular-nums text-primary">{{
@@ -267,7 +269,7 @@ const onDragEnd = () => {
         v-if="canScrollLeft"
         @click="scroll('left')"
         @dblclick.stop
-        class="absolute left-2 z-30 w-8 h-8 rounded-full bg-background/90 border border-border shadow-elevated flex items-center justify-center text-muted-foreground hover:text-primary transition-all active:scale-90 animate-in fade-in zoom-in duration-300"
+        class="absolute left-2 z-30 w-8 h-8 rounded-[var(--radius-ctrl)] bg-[var(--board)] border border-[var(--hairline)] flex items-center justify-center text-muted-foreground hover:text-primary transition-colors animate-in fade-in zoom-in duration-300"
       >
         <ChevronLeft :size="18" stroke-width="3" />
       </button>
@@ -301,7 +303,7 @@ const onDragEnd = () => {
             :class="[
               store.activeId === img.id
                 ? 'border-primary shadow-lg ring-2 ring-primary/20 scale-105 z-10'
-                : 'border-border/40 hover:border-primary/40 opacity-70 hover:opacity-100'
+                : 'border-[var(--hairline)] hover:border-primary/40 opacity-70 hover:opacity-100'
             ]"
           >
             <img :src="img.preview" class="w-full h-full object-cover" alt="" />
@@ -323,11 +325,11 @@ const onDragEnd = () => {
               :aria-label="t('common.tray.selectImage', { name: img.file.name })"
             >
               <div
-                class="w-4 h-4 rounded-md border flex items-center justify-center transition-all shadow-sm group-hover/check:scale-110 group-hover/check:border-primary"
+                class="w-4 h-4 rounded-md border flex items-center justify-center transition-colors shadow-sm group-hover/check:border-primary"
                 :class="
                   store.selectedIds.has(img.id)
                     ? 'bg-primary border-primary text-primary-foreground scale-100'
-                    : 'bg-muted/80 border-border/40 opacity-0 group-hover/item:opacity-100 group-hover/check:opacity-100 scale-90'
+                    : 'bg-muted/80 border-[var(--hairline)] opacity-0 group-hover/item:opacity-100 group-hover/check:opacity-100 scale-90'
                 "
               >
                 <CheckCircle2 v-if="store.selectedIds.has(img.id)" :size="10" stroke-width="3" />
@@ -340,7 +342,7 @@ const onDragEnd = () => {
 
             <div
               v-if="img.status !== 'idle'"
-              class="absolute bottom-1.5 right-1.5 p-0.5 rounded-md bg-background/60 backdrop-blur-md shadow-sm z-10"
+              class="absolute bottom-1.5 right-1.5 p-0.5 rounded-md bg-[var(--board)] z-10"
             >
               <!-- 核心修复：如果是处理中，使用纯 CSS 旋转圆环 -->
               <div
@@ -362,7 +364,7 @@ const onDragEnd = () => {
 
           <!-- 活动指示 -->
           <div
-            class="absolute bottom-3 left-1/2 -translate-x-1/2 h-1 bg-primary rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(var(--primary-rgb),0.4)]"
+            class="absolute bottom-3 left-1/2 -translate-x-1/2 h-1 bg-primary rounded-full transition-all duration-500"
             :class="store.activeId === img.id ? 'w-6 opacity-100' : 'w-0 opacity-0'"
           ></div>
         </div>
@@ -372,7 +374,7 @@ const onDragEnd = () => {
         v-if="canScrollRight"
         @click="scroll('right')"
         @dblclick.stop
-        class="absolute right-2 z-30 w-8 h-8 rounded-full bg-background/90 border border-border shadow-elevated flex items-center justify-center text-muted-foreground hover:text-primary transition-all active:scale-90 animate-in fade-in zoom-in duration-300"
+        class="absolute right-2 z-30 w-8 h-8 rounded-[var(--radius-ctrl)] bg-[var(--board)] border border-[var(--hairline)] flex items-center justify-center text-muted-foreground hover:text-primary transition-colors animate-in fade-in zoom-in duration-300"
       >
         <ChevronRight :size="18" stroke-width="3" />
       </button>

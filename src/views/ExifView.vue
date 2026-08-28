@@ -399,7 +399,7 @@ const handleCtaClick = async () => {
             <template #overlay="{ image }"
               ><div
                 v-if="activeImageId === image.id && isReadingExif"
-                class="px-2 py-0.5 rounded-md text-[10px] font-black flex items-center gap-1 shadow-lg bg-primary text-primary-foreground animate-in fade-in zoom-in duration-300"
+                class="px-2 py-0.5 rounded-[var(--radius-ctrl)] text-[10px] font-medium flex items-center gap-1 bg-[var(--accent)] text-[var(--on-product)]"
               >
                 <Eye :size="10" />{{ t('tools.exif.checking') }}
               </div></template
@@ -448,7 +448,7 @@ const handleCtaClick = async () => {
     <template #sidebar>
       <div
         v-if="activeImage"
-        class="relative aspect-video bg-muted/20 rounded-xl overflow-hidden border border-border/40 shadow-sm mb-4 shrink-0"
+        class="relative aspect-video bg-muted/20 rounded-xl overflow-hidden border border-[var(--hairline)] mb-4 shrink-0"
       >
         <img
           :src="results.get(activeImageId!)?.preview || activeImage.preview"
@@ -457,7 +457,7 @@ const handleCtaClick = async () => {
         <div
           class="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-background/80 via-background/20 to-transparent"
         >
-          <div class="text-[10px] text-foreground font-bold truncate uppercase tracking-tight">
+          <div class="text-[11px] text-foreground font-medium truncate">
             {{ t('tools.exif.checkingCaption', { name: activeImage.file.name }) }}
           </div>
         </div>
@@ -517,13 +517,13 @@ const handleCtaClick = async () => {
               :aria-label="isAllTagsExpanded ? t('common.collapse') : t('common.expand')"
               aria-controls="exif-tags-details"
             >
-              <span class="text-[0.65rem] font-bold uppercase tracking-widest leading-none">{{
+              <span class="text-[11px] font-medium leading-none">{{
                 t('tools.exif.allTags')
               }}</span>
               <component
                 :is="isAllTagsExpanded ? ChevronUp : ChevronDown"
                 :size="14"
-                class="transition-transform group-hover:scale-110"
+                class="transition-colors"
               />
             </button>
             <div
@@ -534,7 +534,7 @@ const handleCtaClick = async () => {
               <div
                 v-for="(val, key) in activeExifData.all"
                 :key="key"
-                class="px-2 py-1 bg-muted/30 border border-border/40 rounded-lg text-[10px] text-muted-foreground font-medium transition-colors hover:bg-muted/50"
+                class="px-2 py-1 bg-muted/30 border border-[var(--hairline)] rounded-lg text-[10px] text-muted-foreground font-medium transition-colors hover:bg-muted/50"
               >
                 {{ key }}
               </div>
@@ -580,13 +580,12 @@ const handleCtaClick = async () => {
           v-else-if="isReadingExif"
           class="py-20 flex flex-col items-center gap-4 text-muted-foreground"
         >
-          <RefreshCcw :size="24" class="animate-spin" /><span
-            class="text-xs font-medium uppercase tracking-widest"
-            >{{ t('tools.exif.analyzing') }}</span
-          >
+          <RefreshCcw :size="24" class="animate-spin" /><span class="text-xs font-medium">{{
+            t('tools.exif.analyzing')
+          }}</span>
         </div>
         <div v-else class="py-20 flex flex-col items-center gap-4 opacity-30">
-          <Fingerprint :size="32" /><span class="text-xs font-bold uppercase tracking-widest">{{
+          <Fingerprint :size="32" /><span class="text-xs font-medium">{{
             t('tools.exif.selectToView')
           }}</span>
         </div>
@@ -596,7 +595,7 @@ const handleCtaClick = async () => {
         v-model:format="outputFormat"
         v-model:quality="outputQuality"
         canvas-only
-        class="pt-6 border-t border-border/40"
+        class="pt-6 border-t border-[var(--hairline)]"
       />
     </template>
 

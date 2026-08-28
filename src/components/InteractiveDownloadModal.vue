@@ -61,7 +61,9 @@ const handleConfirm = () => {
         role="region"
         :aria-label="t('common.modal.interactive.featuresAria')"
       >
-        <div class="p-4 bg-muted/30 border border-border/20 rounded-xl flex items-center gap-3">
+        <div
+          class="p-4 bg-muted/30 border border-[var(--hairline)] rounded-xl flex items-center gap-3"
+        >
           <Cpu :size="18" class="text-muted-foreground/60" />
           <div class="text-xs">
             <dt class="text-foreground font-semibold">
@@ -72,7 +74,9 @@ const handleConfirm = () => {
             </dd>
           </div>
         </div>
-        <div class="p-4 bg-muted/30 border border-border/20 rounded-xl flex items-center gap-3">
+        <div
+          class="p-4 bg-muted/30 border border-[var(--hairline)] rounded-xl flex items-center gap-3"
+        >
           <ShieldCheck :size="18" class="text-muted-foreground/60" />
           <div class="text-xs">
             <dt class="text-foreground font-semibold">

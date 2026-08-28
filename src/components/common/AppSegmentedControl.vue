@@ -29,7 +29,7 @@ const select = (value: T) => {
 
 <template>
   <div
-    class="segmented-control p-1 bg-muted/50 rounded-[var(--radius)] border border-border/40 w-full select-none isolate relative overflow-hidden"
+    class="segmented-control p-1 bg-[var(--well)] rounded-[var(--radius-ctrl)] border border-[var(--hairline)] w-full select-none isolate relative overflow-hidden"
     role="radiogroup"
     :aria-label="ariaLabel"
   >
@@ -49,7 +49,7 @@ const select = (value: T) => {
       >
         <div class="w-full h-full p-0.5">
           <div
-            class="w-full h-full bg-card rounded-lg shadow-sm ring-1 ring-border/80 shadow-inner-glow"
+            class="w-full h-full bg-[var(--board)] rounded-[var(--radius-ctrl)] border border-[var(--hairline)]"
           ></div>
         </div>
       </div>
@@ -61,7 +61,7 @@ const select = (value: T) => {
         type="button"
         role="radio"
         :aria-checked="modelValue === option.value"
-        class="relative z-10 flex flex-col items-center justify-center py-2.5 px-1 rounded-lg transition-colors duration-300 outline-none min-w-0"
+        class="relative z-10 flex flex-col items-center justify-center py-2.5 px-1 rounded-[var(--radius-ctrl)] transition-colors duration-150 outline-none min-w-0"
         :class="
           modelValue === option.value
             ? 'text-primary'
@@ -78,7 +78,7 @@ const select = (value: T) => {
             :stroke-width="2"
           />
         </div>
-        <span class="text-[11px] font-bold truncate w-full text-center">{{ option.label }}</span>
+        <span class="text-[11px] font-medium truncate w-full text-center">{{ option.label }}</span>
       </button>
     </div>
   </div>
@@ -96,6 +96,6 @@ const select = (value: T) => {
 }
 
 .indicator {
-  transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+  transition: transform 0.15s ease-out;
 }
 </style>

@@ -199,7 +199,7 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
 
 <template>
   <div
-    class="w-full h-full flex flex-col bg-[#050505] relative overflow-hidden select-none"
+    class="w-full h-full flex flex-col bg-[var(--product)] relative overflow-hidden select-none"
     @contextmenu.prevent
   >
     <!--沉浸式专业 HUD：顶栏 -->
@@ -207,34 +207,30 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
       class="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black/80 to-transparent z-[100] flex items-center justify-between px-8 pointer-events-none"
     >
       <div class="flex items-center gap-4 pointer-events-auto">
-        <div
-          class="p-2.5 bg-primary/20 rounded-xl border border-primary/30 text-primary shadow-2xl shadow-primary/20"
-        >
+        <div class="p-2.5 bg-primary/20 rounded-xl border border-primary/30 text-primary">
           <Layout :size="20" stroke-width="2.5" />
         </div>
         <div class="flex flex-col">
-          <h3 class="text-sm font-black text-white uppercase tracking-[0.25em]">
+          <h3 class="text-sm font-medium text-white">
             {{ t('common.image.compare.title') }}
           </h3>
-          <span class="text-[9px] font-bold text-white/30 uppercase tracking-widest mt-0.5"
-            >Professional Inspection Mode</span
-          >
+          <span class="text-[11px] font-medium text-[var(--on-product)]/50 mt-0.5">{{
+            t('common.image.compare.subtitle')
+          }}</span>
         </div>
       </div>
 
       <div class="flex items-center gap-6 pointer-events-auto">
         <!-- Before/After 标签组 -->
-        <div
-          class="flex items-center bg-white/5 backdrop-blur-md rounded-xl p-1 border border-white/10 shadow-2xl"
-        >
+        <div class="flex items-center bg-white/10 rounded-xl p-1 border border-white/10">
           <div
-            class="px-4 py-1.5 rounded-lg text-[10px] font-black text-white/40 uppercase tracking-widest transition-all"
+            class="px-4 py-1.5 rounded-lg text-[11px] font-medium text-white/40 transition-colors"
           >
             {{ t('common.image.card.before') }}
           </div>
           <div class="w-px h-3 bg-white/10"></div>
           <div
-            class="px-4 py-1.5 rounded-lg text-[10px] font-black text-primary uppercase tracking-widest transition-all"
+            class="px-4 py-1.5 rounded-lg text-[11px] font-medium text-primary transition-colors"
           >
             {{ t('common.image.card.after') }}
           </div>
@@ -242,7 +238,7 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
 
         <button
           @click="emit('close')"
-          class="w-11 h-11 flex items-center justify-center bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/30 rounded-xl text-white/40 hover:text-rose-500 transition-all active:scale-90"
+          class="w-11 h-11 flex items-center justify-center bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/30 rounded-xl text-white/40 hover:text-rose-500 transition-colors"
           :aria-label="t('common.ui.close')"
         >
           <X :size="20" stroke-width="2.5" />
@@ -261,7 +257,7 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
         <AlertCircle :size="40" class="text-destructive" />
       </div>
       <div class="space-y-2">
-        <h4 class="text-xl font-black text-white tracking-tight">
+        <h4 class="text-xl font-medium text-white">
           {{ t('common.image.compare.errorTitle') }}
         </h4>
         <p class="text-sm text-white/30 max-w-xs leading-relaxed font-medium">{{ error }}</p>
@@ -282,12 +278,10 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
         </div>
       </div>
       <div class="flex flex-col items-center gap-2">
-        <p class="text-[11px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">
+        <p class="text-[11px] font-medium text-primary">
           {{ t('common.image.compare.decoding') }}
         </p>
-        <span class="text-[9px] font-bold text-white/10 uppercase tracking-widest"
-          >Preparing Hardware Acceleration</span
-        >
+        <span class="text-[11px] font-medium text-white/10">Preparing Hardware Acceleration</span>
       </div>
     </div>
 
@@ -319,9 +313,9 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
             />
             <!-- 物理 HUD：处理后尺寸 -->
             <div
-              class="absolute bottom-6 right-6 px-4 py-2 bg-black/60 backdrop-blur-xl rounded-xl border border-white/5 text-[10px] font-mono text-white/60 tabular-nums shadow-2xl"
+              class="absolute bottom-6 right-6 px-4 py-2 bg-[var(--board)] rounded-xl border border-white/5 text-[10px] font-mono text-white/60 tabular-nums"
             >
-              <span class="opacity-40 mr-2 font-sans font-black">AFTER</span
+              <span class="opacity-40 mr-2 font-sans font-medium">After</span
               >{{ processedSize || '--' }}
             </div>
           </div>
@@ -342,9 +336,9 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
             />
             <!-- 物理 HUD：原图尺寸 -->
             <div
-              class="absolute bottom-6 left-6 px-4 py-2 bg-black/60 backdrop-blur-xl rounded-xl border border-white/5 text-[10px] font-mono text-white/60 tabular-nums shadow-2xl"
+              class="absolute bottom-6 left-6 px-4 py-2 bg-[var(--board)] rounded-xl border border-white/5 text-[10px] font-mono text-white/60 tabular-nums"
             >
-              <span class="opacity-40 mr-2 font-sans font-black">BEFORE</span
+              <span class="opacity-40 mr-2 font-sans font-medium">Before</span
               >{{ originalSize || '--' }}
             </div>
           </div>
@@ -361,13 +355,8 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
         <div
           class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center pointer-events-auto cursor-ew-resize compare-slider-handle group"
         >
-          <!-- 外层投影光圈 -->
           <div
-            class="absolute inset-0 bg-black/20 rounded-full scale-50 group-hover:scale-100 transition-transform duration-500 blur-2xl"
-          ></div>
-          <!-- 核心触控体 -->
-          <div
-            class="w-10 h-10 bg-white rounded-full shadow-[0_0_0_1px_rgba(0,0,0,0.1),0_8px_24px_rgba(0,0,0,0.4)] flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-active:scale-90 border-[4px] border-white"
+            class="w-10 h-10 bg-white rounded-full shadow-[0_0_0_1px_rgba(0,0,0,0.1),0_2px_8px_rgba(0,0,0,0.25)] flex items-center justify-center border-[4px] border-white"
           >
             <GripVertical :size="18" class="text-black" stroke-width="3" />
           </div>
@@ -376,10 +365,10 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
     </div>
 
     <div
-      class="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[1.25rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] animate-in fade-in slide-in-from-bottom-4 duration-700"
+      class="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 bg-[var(--board)] border border-white/10 rounded-[1.25rem] z-[100] animate-in fade-in slide-in-from-bottom-4 duration-700"
     >
       <button
-        class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/10 text-white/40 hover:text-white transition-all active:scale-90"
+        class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/10 text-white/40 hover:text-white transition-colors"
         :aria-label="t('common.image.compare.zoomOut')"
         @click="zoom = Math.max(0.05, zoom * 0.8)"
       >
@@ -388,14 +377,14 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
 
       <div class="px-4 min-w-[80px] flex items-center justify-center border-x border-white/10">
         <span
-          class="text-[11px] font-black font-mono text-white/90 tabular-nums translate-y-[0.5px]"
+          class="text-[11px] font-medium font-mono text-white/90 tabular-nums translate-y-[0.5px]"
         >
           {{ Math.round(zoom * 100) }}%
         </span>
       </div>
 
       <button
-        class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/10 text-white/40 hover:text-white transition-all active:scale-90"
+        class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/10 text-white/40 hover:text-white transition-colors"
         :aria-label="t('common.image.compare.zoomIn')"
         @click="zoom = Math.min(20, zoom * 1.2)"
       >
@@ -405,12 +394,12 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
       <div class="w-2"></div>
 
       <button
-        class="flex items-center gap-2 px-3 md:px-4 h-10 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-all active:scale-95"
+        class="flex items-center gap-2 px-3 md:px-4 h-10 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-colors"
         :aria-label="t('common.image.compare.resetView')"
         @click="updateFitView"
       >
         <RotateCcw :size="14" stroke-width="3" />
-        <span class="text-[10px] font-black uppercase tracking-widest hidden md:inline">{{
+        <span class="text-[11px] font-medium hidden md:inline">{{
           t('common.image.compare.resetView')
         }}</span>
       </button>
@@ -420,30 +409,24 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
     <div
       class="absolute bottom-12 left-10 hidden xl:flex flex-col gap-3 pointer-events-none z-[100]"
     >
-      <div
-        class="flex items-center gap-3 text-[9px] font-bold text-white/20 uppercase tracking-[0.2em] italic"
-      >
+      <div class="flex items-center gap-3 text-[11px] font-medium text-white/20">
         <div class="w-1.5 h-1.5 rounded-full bg-primary/40 animate-pulse"></div>
         {{ t('common.image.compare.shortcuts') }}
       </div>
       <div
-        class="flex items-center gap-4 bg-black/20 backdrop-blur-md px-4 py-2 rounded-lg border border-white/5"
+        class="flex items-center gap-4 bg-[var(--board)] px-4 py-2 rounded-lg border border-white/5"
       >
         <div class="flex items-center gap-2">
           <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-[9px] text-white/60">{{
             t('common.image.compare.wheelHint')
           }}</kbd>
-          <span class="text-[8px] text-white/30 uppercase">{{
-            t('common.image.compare.zoomIn')
-          }}</span>
+          <span class="text-[11px] text-white/30">{{ t('common.image.compare.zoomIn') }}</span>
         </div>
         <div class="flex items-center gap-2">
           <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-[9px] text-white/60">{{
             t('common.image.compare.dragHint')
           }}</kbd>
-          <span class="text-[8px] text-white/30 uppercase">{{
-            t('common.image.compare.panHint')
-          }}</span>
+          <span class="text-[11px] text-white/30">{{ t('common.image.compare.panHint') }}</span>
         </div>
       </div>
     </div>

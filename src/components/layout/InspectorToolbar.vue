@@ -22,9 +22,7 @@ const { t } = useI18n()
         :aria-label="t('common.history.undo')"
         class="flex items-center justify-center w-8 h-8 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         :class="
-          canUndo
-            ? 'text-foreground hover:bg-muted active:scale-90'
-            : 'text-muted-foreground/30 cursor-not-allowed'
+          canUndo ? 'text-foreground hover:bg-muted' : 'text-muted-foreground/30 cursor-not-allowed'
         "
       >
         <Undo2 :size="16" />
@@ -37,9 +35,7 @@ const { t } = useI18n()
         :aria-label="t('common.history.redo')"
         class="flex items-center justify-center w-8 h-8 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         :class="
-          canRedo
-            ? 'text-foreground hover:bg-muted active:scale-90'
-            : 'text-muted-foreground/30 cursor-not-allowed'
+          canRedo ? 'text-foreground hover:bg-muted' : 'text-muted-foreground/30 cursor-not-allowed'
         "
       >
         <Redo2 :size="16" />

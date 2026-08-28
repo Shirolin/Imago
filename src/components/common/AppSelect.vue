@@ -50,16 +50,14 @@ onUnmounted(() => {
 
 <template>
   <div class="space-y-1.5" ref="selectRef">
-    <label
-      v-if="label"
-      class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest"
-      >{{ label }}</label
-    >
+    <label v-if="label" class="text-[11px] font-medium text-muted-foreground ml-1">{{
+      label
+    }}</label>
     <div class="relative">
       <button
         type="button"
         @click="toggleDropdown"
-        class="w-full h-10 px-3 flex items-center justify-between bg-background border border-border/60 rounded-xl text-xs font-medium hover:border-primary/30 transition-all active:scale-[0.99] outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+        class="w-full h-10 px-3 flex items-center justify-between bg-background border border-[var(--hairline)] rounded-xl text-xs font-medium hover:border-primary/30 transition-all active:scale-[0.99] outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
         :class="{ 'border-primary/40 ring-2 ring-primary/10': isOpen }"
       >
         <span class="truncate" :class="{ 'text-muted-foreground/50': !modelValue }">{{
@@ -82,7 +80,7 @@ onUnmounted(() => {
       >
         <div
           v-if="isOpen"
-          class="absolute z-[100] mt-2 w-full bg-card border border-border/60 rounded-xl shadow-xl overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-200"
+          class="absolute z-[100] mt-2 w-full bg-card border border-[var(--hairline)] rounded-xl overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-200"
         >
           <div class="max-h-60 overflow-y-auto custom-scrollbar">
             <button
@@ -98,7 +96,7 @@ onUnmounted(() => {
               "
             >
               <div class="flex items-center justify-between">
-                <span class="font-bold">{{ option.label }}</span>
+                <span class="font-medium">{{ option.label }}</span>
                 <Check v-if="modelValue === option.value" :size="12" />
               </div>
               <span

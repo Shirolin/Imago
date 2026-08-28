@@ -19,10 +19,7 @@ withDefaults(defineProps<Props>(), {
   <div class="relative shrink-0 z-30">
     <footer
       class="relative bg-[var(--board)]"
-      :class="[
-        showBorder ? 'border-t border-[color-mix(in_srgb,var(--ink)_8%,transparent)]' : '',
-        padding
-      ]"
+      :class="[showBorder ? 'border-t border-[var(--hairline)]' : '', padding]"
     >
       <div class="flex items-center gap-2 w-full">
         <slot></slot>

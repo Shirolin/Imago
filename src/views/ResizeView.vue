@@ -433,7 +433,7 @@ const handleCtaClick = async () => {
           </AppSidebarCard>
         </section>
 
-        <section class="pt-6 border-t border-border/40">
+        <section class="pt-6 border-t border-[var(--hairline)]">
           <AppExportSettings
             v-model:format="outputFormat"
             v-model:quality="outputQuality"
@@ -492,7 +492,7 @@ const handleCtaClick = async () => {
             <AlertCircle :size="24" />
           </div>
           <div>
-            <h3 class="text-lg font-black text-foreground mb-1 tracking-tight">
+            <h3 class="text-lg font-medium text-foreground mb-1">
               {{ t('common.image.toolbar.confirmReset') }}
             </h3>
             <p class="text-muted-foreground text-sm leading-relaxed font-medium">
@@ -513,7 +513,7 @@ const handleCtaClick = async () => {
           </AppButton>
           <AppButton
             variant="danger"
-            class="flex-1 rounded-xl h-11 shadow-lg shadow-destructive/10"
+            class="flex-1 rounded-xl h-11"
             @click="confirmResetDimensions"
           >
             {{ t('common.image.toolbar.confirm') }}

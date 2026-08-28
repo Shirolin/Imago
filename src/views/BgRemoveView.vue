@@ -588,12 +588,12 @@ const handleResetParams = () => {
         >
           <div class="p-8 text-center">
             <div
-              class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6"
+              class="w-20 h-20 rounded-[var(--radius-ctrl)] flex items-center justify-center mx-auto mb-6"
             >
               <Zap v-if="currentStatus !== 'loading'" :size="40" class="text-primary" />
               <Loader2 v-else :size="40" class="text-primary animate-spin" />
             </div>
-            <h2 class="text-2xl font-black mb-3 tracking-tight text-foreground">
+            <h2 class="text-2xl font-medium mb-3 text-foreground">
               {{
                 engineMode === 'pro'
                   ? t('tools.bgRemove.initTitlePro')
@@ -631,9 +631,7 @@ const handleResetParams = () => {
                   :style="{ width: `${initProgress}%` }"
                 ></div>
               </div>
-              <div
-                class="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground/60"
-              >
+              <div class="flex justify-between text-[11px] font-medium text-muted-foreground/60">
                 <span>{{ t('tools.bgRemove.downloading') }}</span
                 ><span aria-hidden="true">{{ initProgress }}%</span>
               </div>
@@ -666,10 +664,10 @@ const handleResetParams = () => {
           v-if="store.images.length === 0"
           class="flex flex-col items-center justify-center py-24 md:py-32 animate-in fade-in duration-700"
         >
-          <div class="bg-muted/30 p-8 rounded-full mb-6">
+          <div class="mb-6">
             <ImageMinus :size="48" class="text-muted-foreground/40" />
           </div>
-          <p class="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground/60 mb-2">
+          <p class="text-[11px] font-medium text-muted-foreground/60 mb-2">
             {{ t('tools.bgRemove.empty.title') }}
           </p>
           <p class="text-[11px] font-medium text-muted-foreground/40 max-w-[280px]">
@@ -733,10 +731,10 @@ const handleResetParams = () => {
             <transition name="fade">
               <div
                 v-if="isProcessing || currentStatus === 'loading'"
-                class="flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 rounded-full border border-primary/20"
+                class="flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 rounded-[var(--radius-ctrl)] border border-primary/20"
               >
                 <Loader2 :size="10" class="animate-spin text-primary" />
-                <span class="text-[9px] font-bold text-primary uppercase tracking-wider">{{
+                <span class="text-[11px] font-medium text-primary">{{
                   t('common.processing')
                 }}</span>
               </div>
@@ -768,28 +766,31 @@ const handleResetParams = () => {
         <AppTip :icon="Info">
           <span v-if="engineMode === 'match'"
             >{{ t('tools.bgRemove.tipMatch1') }}
-            <span class="text-primary font-bold uppercase">{{ modelSize }}</span>
+            <span class="text-primary font-medium">{{ modelSize }}</span>
             {{ t('tools.bgRemove.tipMatch2') }}</span
           >
           <span v-else-if="engineMode === 'smart'"
             >{{ t('tools.bgRemove.tipSmart1') }}
-            <span class="text-primary font-bold uppercase">{{ modelSize }}</span>
+            <span class="text-primary font-medium">{{ modelSize }}</span>
             {{ t('tools.bgRemove.tipSmart2') }}</span
           >
           <span v-else
             >{{ t('tools.bgRemove.tipPro1') }}
-            <span class="text-primary font-black uppercase">{{ modelSize }}</span>
+            <span class="text-primary font-medium">{{ modelSize }}</span>
             {{ t('tools.bgRemove.tipPro2') }}</span
           >
         </AppTip>
       </section>
 
       <!-- 引擎看板：指向性状态反馈 -->
-      <section v-if="engineMode !== 'match'" class="space-y-3 pt-6 border-t border-border/40">
+      <section
+        v-if="engineMode !== 'match'"
+        class="space-y-3 pt-6 border-t border-[var(--hairline)]"
+      >
         <div class="flex items-center justify-between group">
           <div class="flex items-center gap-2">
             <Database :size="14" class="text-muted-foreground" />
-            <span class="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{{
+            <span class="text-[11px] font-medium text-muted-foreground">{{
               t('tools.bgRemove.engineDashboard')
             }}</span>
           </div>
@@ -802,7 +803,7 @@ const handleResetParams = () => {
           </button>
         </div>
 
-        <div class="p-3 bg-muted/5 rounded-xl border border-border/40 space-y-2">
+        <div class="p-3 bg-muted/5 rounded-xl border border-[var(--hairline)] space-y-2">
           <div class="flex items-center justify-between">
             <span class="text-[10px] text-muted-foreground/60 font-medium">{{
               t('tools.bgRemove.currentModel')
@@ -844,17 +845,20 @@ const handleResetParams = () => {
 
       <!-- 第二分区：细分参数 -->
       <transition name="fade" mode="out-in">
-        <section v-if="engineMode === 'match'" class="space-y-4 pt-6 border-t border-border/40">
+        <section
+          v-if="engineMode === 'match'"
+          class="space-y-4 pt-6 border-t border-[var(--hairline)]"
+        >
           <AppSectionHeader :title="t('tools.bgRemove.matchAdjust')" :icon="Palette" />
-          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-5">
+          <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-5">
             <div class="space-y-2">
               <div class="flex items-center gap-2 px-1 h-5">
-                <div class="bg-primary/5 p-1 rounded-full flex items-center justify-center">
+                <div class="p-1 rounded-[var(--radius-ctrl)] flex items-center justify-center">
                   <Palette :size="13" :stroke-width="2.5" class="text-primary" />
                 </div>
                 <span
                   id="bg-color-label"
-                  class="text-[11px] font-bold text-muted-foreground leading-none"
+                  class="text-[11px] font-medium text-muted-foreground leading-none"
                   >{{ t('tools.bgRemove.bgColorToRemove') }}</span
                 >
               </div>
@@ -886,21 +890,21 @@ const handleResetParams = () => {
           </div>
         </section>
 
-        <section v-else class="space-y-4 pt-6 border-t border-border/40">
+        <section v-else class="space-y-4 pt-6 border-t border-[var(--hairline)]">
           <div class="flex items-center justify-between">
             <AppSectionHeader :title="t('tools.bgRemove.refinerTitle')" :icon="SlidersHorizontal" />
             <div
               class="flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 rounded-md border border-primary/20 scale-90 origin-right"
             >
               <CheckCircle2 :size="10" class="text-primary" />
-              <span class="text-[9px] font-black text-primary uppercase">{{
+              <span class="text-[11px] font-medium text-primary">{{
                 engineMode === 'pro'
                   ? t('tools.bgRemove.corePremium')
                   : t('tools.bgRemove.coreLite')
               }}</span>
             </div>
           </div>
-          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4">
+          <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-4">
             <AppSlider
               v-model="aiStrictness"
               :min="0"
@@ -934,9 +938,12 @@ const handleResetParams = () => {
       </transition>
 
       <!-- 第三分区：处理选项 -->
-      <section v-if="engineMode !== 'match'" class="space-y-4 pt-6 border-t border-border/40">
+      <section
+        v-if="engineMode !== 'match'"
+        class="space-y-4 pt-6 border-t border-[var(--hairline)]"
+      >
         <AppSectionHeader :title="t('tools.bgRemove.processOptions')" :icon="Zap" />
-        <div class="bg-muted/10 rounded-2xl p-4 border border-border/60">
+        <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)]">
           <AppCheckbox
             v-model="useHighFidelity"
             :label="t('tools.bgRemove.disableScaling')"
@@ -946,7 +953,7 @@ const handleResetParams = () => {
       </section>
 
       <!-- 第四分区：导出设置 -->
-      <section class="pt-6 border-t border-border/40">
+      <section class="pt-6 border-t border-[var(--hairline)]">
         <AppExportSettings
           v-model:format="outputFormat"
           v-model:quality="outputQuality"

@@ -145,15 +145,13 @@ const handleGenerate = async () => {
             >
               <div class="flex items-center gap-2.5 text-muted-foreground/40 pl-1">
                 <Globe :size="14" />
-                <span class="text-[10px] font-black uppercase tracking-[0.3em]">{{
-                  t('tools.favicon.mockup')
-                }}</span>
+                <span class="text-[11px] font-medium">{{ t('tools.favicon.mockup') }}</span>
               </div>
               <div
-                class="bg-card border border-border/60 rounded-2xl overflow-hidden shadow-elevated w-full"
+                class="bg-card border border-[var(--hairline)] rounded-2xl overflow-hidden shadow-elevated w-full"
               >
                 <div
-                  class="bg-muted/30 px-5 py-2.5 flex items-center gap-2 border-b border-border/40 overflow-hidden"
+                  class="bg-muted/30 px-5 py-2.5 flex items-center gap-2 border-b border-[var(--hairline)] overflow-hidden"
                 >
                   <div class="hidden sm:flex gap-1.5 shrink-0 opacity-20">
                     <div class="w-2.5 h-2.5 rounded-full bg-foreground"></div>
@@ -161,7 +159,7 @@ const handleGenerate = async () => {
                     <div class="w-2.5 h-2.5 rounded-full bg-foreground"></div>
                   </div>
                   <div
-                    class="sm:ml-6 bg-background border border-border/40 px-3.5 py-1.5 rounded-lg flex items-center gap-2.5 min-w-0 flex-1 sm:flex-none sm:min-w-[180px] shadow-sm ring-1 ring-primary/5"
+                    class="sm:ml-6 bg-background border border-[var(--hairline)] px-3.5 py-1.5 rounded-lg flex items-center gap-2.5 min-w-0 flex-1 sm:flex-none sm:min-w-[180px]"
                   >
                     <div
                       class="w-4 h-4 shrink-0 relative"
@@ -180,10 +178,9 @@ const handleGenerate = async () => {
                         alt="favicon"
                       />
                     </div>
-                    <span
-                      class="text-[9px] font-black opacity-60 tracking-tight uppercase truncate"
-                      >{{ t('tools.favicon.newTab') }}</span
-                    >
+                    <span class="text-[11px] font-medium opacity-60 truncate">{{
+                      t('tools.favicon.newTab')
+                    }}</span>
                   </div>
                 </div>
                 <div
@@ -210,15 +207,15 @@ const handleGenerate = async () => {
               <section v-if="selectedIds.has('apple')" class="space-y-4">
                 <div class="flex items-center gap-2.5 text-muted-foreground/40 pl-1">
                   <Smartphone :size="14" />
-                  <span class="text-[10px] font-black uppercase tracking-[0.3em]">{{
+                  <span class="text-[11px] font-medium">{{
                     t('tools.favicon.appleIosNative')
                   }}</span>
                 </div>
                 <div
-                  class="bg-card border border-border/60 rounded-[2.5rem] p-8 flex flex-col items-center justify-center gap-8 shadow-elevated group hover:border-primary/20 transition-all min-h-[320px]"
+                  class="bg-card border border-[var(--hairline)] rounded-[2.5rem] p-8 flex flex-col items-center justify-center gap-8 shadow-elevated group hover:border-primary/20 transition-all min-h-[320px]"
                 >
                   <div
-                    class="aspect-square w-32 relative shadow-2xl transition-all duration-500 group-hover:scale-105 group-hover:-translate-y-1 shadow-primary/5 bg-background ring-1 ring-black/5 dark:ring-white/10 flex items-center justify-center"
+                    class="aspect-square w-32 relative bg-background ring-1 ring-black/5 dark:ring-white/10 flex items-center justify-center"
                     :style="{
                       borderRadius: '22.5%',
                       overflow: 'hidden',
@@ -234,9 +231,7 @@ const handleGenerate = async () => {
                     ></div>
                   </div>
                   <div class="text-center">
-                    <div
-                      class="text-[10px] font-black text-foreground/60 uppercase tracking-widest leading-none mb-1.5"
-                    >
+                    <div class="text-[11px] font-medium text-foreground/60 leading-none mb-1.5">
                       {{ t('tools.favicon.appleTouchTitle') }}
                     </div>
                     <div
@@ -253,14 +248,14 @@ const handleGenerate = async () => {
                 <div class="flex items-center justify-between pl-1 pr-4">
                   <div class="flex items-center gap-2.5 text-muted-foreground/40">
                     <ShieldCheck :size="14" />
-                    <span class="text-[10px] font-black uppercase tracking-[0.3em]">{{
+                    <span class="text-[11px] font-medium">{{
                       t('tools.favicon.adaptiveSimulator')
                     }}</span>
                   </div>
                   <div class="flex items-center gap-4">
                     <button
                       @click="rotateMaskShape"
-                      class="flex items-center gap-1.5 text-[9px] font-black text-primary uppercase hover:opacity-80 transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 rounded-sm outline-none"
+                      class="flex items-center gap-1.5 text-[11px] font-medium text-primary hover:opacity-80 transition-opacity focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 rounded-sm outline-none"
                       :aria-label="t('tools.favicon.rotateShape')"
                       :title="`${t('tools.favicon.currentShape')}: ${t('tools.favicon.shapes.' + activeMaskShape)}`"
                     >
@@ -271,12 +266,12 @@ const handleGenerate = async () => {
                   </div>
                 </div>
                 <div
-                  class="bg-card border border-border/60 rounded-[2.5rem] p-8 flex flex-col items-center justify-center gap-8 shadow-elevated group hover:border-primary/20 transition-all min-h-[320px] relative overflow-hidden"
+                  class="bg-card border border-[var(--hairline)] rounded-[2.5rem] p-8 flex flex-col items-center justify-center gap-8 shadow-elevated group hover:border-primary/20 transition-all min-h-[320px] relative overflow-hidden"
                 >
                   <div class="absolute top-6 right-8 z-30">
                     <button
                       @click="autoPadding = !autoPadding"
-                      class="flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all active:scale-95 shadow-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none"
+                      class="flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-ctrl)] border transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none"
                       :class="
                         autoPadding
                           ? 'bg-primary border-primary text-primary-foreground'
@@ -289,9 +284,7 @@ const handleGenerate = async () => {
                       "
                     >
                       <LayoutIcon :size="12" />
-                      <span class="text-[9px] font-black uppercase tracking-widest">{{
-                        t('tools.favicon.safeZone')
-                      }}</span>
+                      <span class="text-[11px] font-medium">{{ t('tools.favicon.safeZone') }}</span>
                     </button>
                   </div>
 
@@ -326,11 +319,11 @@ const handleGenerate = async () => {
                       :class="{
                         'w-full h-full rounded-2xl ring-1 ring-foreground/[0.03]':
                           activeMaskShape === 'full',
-                        'w-[80%] h-[80%] overflow-hidden rounded-full shadow-2xl ring-2 ring-primary/40 dark:ring-primary/60':
+                        'w-[80%] h-[80%] overflow-hidden rounded-full ring-2 ring-primary/40 dark:ring-primary/60':
                           activeMaskShape === 'circle',
-                        'w-[80%] h-[80%] overflow-hidden rounded-[38%] shadow-2xl ring-2 ring-primary/40 dark:ring-primary/60':
+                        'w-[80%] h-[80%] overflow-hidden rounded-[38%] ring-2 ring-primary/40 dark:ring-primary/60':
                           activeMaskShape === 'squircle',
-                        'w-[80%] h-[80%] overflow-hidden rounded-[15%] shadow-2xl ring-2 ring-primary/40 dark:ring-primary/60':
+                        'w-[80%] h-[80%] overflow-hidden rounded-[15%] ring-2 ring-primary/40 dark:ring-primary/60':
                           activeMaskShape === 'rounded'
                       }"
                       :style="{
@@ -380,9 +373,7 @@ const handleGenerate = async () => {
 
                   <div class="text-center space-y-2.5">
                     <div class="flex flex-col items-center gap-1">
-                      <span
-                        class="text-[10px] font-black text-foreground/60 uppercase tracking-widest leading-none"
-                      >
+                      <span class="text-[11px] font-medium text-foreground/60 leading-none">
                         {{
                           activeMaskShape === 'full'
                             ? t('tools.favicon.fullAssetPreview')
@@ -413,12 +404,10 @@ const handleGenerate = async () => {
             <section class="space-y-4">
               <div class="flex items-center gap-2.5 text-muted-foreground/40 pl-1">
                 <LayoutGrid :size="14" />
-                <span class="text-[10px] font-black uppercase tracking-[0.3em]">{{
-                  t('tools.favicon.matrixTitle')
-                }}</span>
+                <span class="text-[11px] font-medium">{{ t('tools.favicon.matrixTitle') }}</span>
               </div>
               <div
-                class="bg-card border border-border/60 rounded-[2.5rem] p-10 shadow-elevated w-full transition-all hover:border-primary/20"
+                class="bg-card border border-[var(--hairline)] rounded-[2.5rem] p-10 shadow-elevated w-full transition-all hover:border-primary/20"
               >
                 <div
                   class="flex flex-wrap items-end justify-center lg:justify-start gap-x-12 gap-y-12 px-2"
@@ -435,7 +424,7 @@ const handleGenerate = async () => {
                     :aria-pressed="selectedIds.has(spec.id)"
                   >
                     <div
-                      class="transition-[transform,shadow,background-color] duration-300 group-hover/item:scale-125 group-focus-visible/item:scale-125 group-focus-visible/item:ring-2 group-focus-visible/item:ring-primary group-focus-visible/item:ring-offset-4 flex items-center justify-center relative bg-background shadow-sm border border-border/20 overflow-hidden ring-1 ring-black/5"
+                      class="transition-[transform,shadow,background-color] duration-300 group-hover/item:scale-125 group-focus-visible/item:scale-125 group-focus-visible/item:ring-2 group-focus-visible/item:ring-primary group-focus-visible/item:ring-offset-4 flex items-center justify-center relative bg-background shadow-sm border border-[var(--hairline)] overflow-hidden ring-1 ring-black/5"
                       :style="{
                         width: getPreviewSize(spec.size!) + 'px',
                         height: getPreviewSize(spec.size!) + 'px',
@@ -476,24 +465,19 @@ const handleGenerate = async () => {
                       />
                       <div
                         v-if="spec.id === 'ico'"
-                        class="absolute top-0 right-0 text-[6px] font-black bg-primary text-primary-foreground px-1 py-0.5 rounded-bl-sm"
+                        class="absolute top-0 right-0 text-[6px] font-medium bg-primary text-primary-foreground px-1 py-0.5 rounded-bl-sm"
                       >
                         ICO
                       </div>
                     </div>
                     <div class="flex flex-col items-center gap-0.5">
                       <span
-                        class="text-[9px] font-mono font-black text-foreground/20 group-hover/item:text-primary transition-colors tracking-tighter"
+                        class="text-[9px] font-mono font-medium text-foreground/20 group-hover/item:text-primary transition-colors tabular-nums"
                         >{{ spec.size }}×{{ spec.size }}</span
                       >
-                      <span
-                        class="text-[7px] font-black text-muted-foreground/20 uppercase tracking-widest leading-none"
-                        >{{
-                          spec.id === 'maskable512'
-                            ? t('tools.favicon.maskableLabel')
-                            : spec.platform
-                        }}</span
-                      >
+                      <span class="text-[11px] font-medium text-muted-foreground/20 leading-none">{{
+                        spec.id === 'maskable512' ? t('tools.favicon.maskableLabel') : spec.platform
+                      }}</span>
                     </div>
                   </div>
                 </div>
@@ -512,12 +496,11 @@ const handleGenerate = async () => {
       <div class="space-y-8 py-2">
         <section class="space-y-4">
           <AppSectionHeader :title="t('tools.favicon.appearance')" :icon="Monitor" />
-          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4">
+          <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-4">
             <div class="flex flex-col gap-1 px-1">
-              <span
-                class="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
-                >{{ t('tools.favicon.bgFill') }}</span
-              >
+              <span class="text-[11px] font-medium text-muted-foreground">{{
+                t('tools.favicon.bgFill')
+              }}</span>
               <p class="text-[10px] text-muted-foreground/60 leading-relaxed">
                 {{ t('tools.favicon.bgFillDesc') }}
               </p>
@@ -526,10 +509,10 @@ const handleGenerate = async () => {
           </div>
         </section>
 
-        <section class="space-y-4 pt-6 border-t border-border/40 pb-4">
+        <section class="space-y-4 pt-6 border-t border-[var(--hairline)] pb-4">
           <AppSectionHeader :title="t('tools.favicon.exportControl')" :icon="Info" />
           <div class="space-y-4">
-            <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-6">
+            <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-6">
               <div v-for="(specs, groupName) in groupedSpecs" :key="groupName" class="space-y-3">
                 <div class="flex items-center gap-2 px-1 mb-1">
                   <component
@@ -547,10 +530,9 @@ const handleGenerate = async () => {
                     :size="12"
                     class="text-primary/60"
                   />
-                  <span
-                    class="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60"
-                    >{{ groupName }}</span
-                  >
+                  <span class="text-[11px] font-medium text-muted-foreground/60">{{
+                    groupName
+                  }}</span>
                 </div>
                 <div class="space-y-1.5">
                   <div
@@ -571,7 +553,7 @@ const handleGenerate = async () => {
                     :class="
                       selectedIds.has(spec.id)
                         ? 'bg-primary/[0.03] border-primary/30 shadow-sm'
-                        : 'bg-muted/5 border-border/40 hover:bg-muted/10'
+                        : 'bg-muted/5 border-[var(--hairline)] hover:bg-muted/10'
                     "
                   >
                     <div class="flex items-center gap-2.5 min-w-0">
@@ -616,7 +598,7 @@ const handleGenerate = async () => {
             >
               <div class="flex items-center gap-2 text-primary">
                 <ShieldCheck :size="14" />
-                <span class="text-[10px] font-black uppercase tracking-widest">{{
+                <span class="text-[11px] font-medium">{{
                   t('tools.favicon.maskableGuideTitle')
                 }}</span>
               </div>

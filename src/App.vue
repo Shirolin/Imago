@@ -251,7 +251,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
     ></div>
 
     <aside
-      class="imago-board border-r border-[color-mix(in_srgb,var(--ink)_8%,transparent)] flex flex-col z-[100] transition-all duration-200 ease-out md:static fixed inset-y-0 left-0 pt-[env(safe-area-inset-top,8px)] md:pt-0"
+      class="imago-board border-r border-[var(--hairline)] flex flex-col z-[100] transition-all duration-200 ease-out md:static fixed inset-y-0 left-0 pt-[env(safe-area-inset-top,8px)] md:pt-0"
       :class="[
         isMobileSidebarOpen ? 'translate-x-0 w-[240px]' : '-translate-x-full md:translate-x-0',
         layoutStore.isMenuCollapsed ? 'md:w-[64px]' : 'md:w-[220px]'
@@ -276,17 +276,14 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
             class="flex flex-col min-w-0"
             :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
           >
-            <span
-              class="imago-serif text-[22px] font-semibold leading-none tracking-tight text-[var(--ink)]"
-              >Imago</span
-            >
+            <span class="imago-serif text-[22px] leading-none text-[var(--ink)]">Imago</span>
             <span class="mt-1 text-[10px] font-medium tracking-[0.16em] text-[var(--muted)]">{{
               t('app.subtitle')
             }}</span>
           </div>
           <span
             v-else
-            class="imago-serif hidden md:inline text-[18px] font-semibold text-[var(--ink)]"
+            class="imago-serif hidden md:inline text-[18px] text-[var(--ink)]"
             aria-hidden="true"
             >I</span
           >
@@ -318,7 +315,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
           </div>
           <div
             v-else-if="!isMobileSidebarOpen"
-            class="h-px bg-[color-mix(in_srgb,var(--ink)_10%,transparent)] my-2 w-6 mx-auto"
+            class="h-px bg-[var(--hairline)] my-2 w-6 mx-auto"
           ></div>
 
           <router-link
@@ -350,7 +347,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
       </nav>
 
       <div
-        class="flex border-t border-[color-mix(in_srgb,var(--ink)_8%,transparent)] shrink-0 px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]"
+        class="flex border-t border-[var(--hairline)] shrink-0 px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]"
         :class="[
           layoutStore.isMenuCollapsed && !isMobileSidebarOpen
             ? 'flex-col items-center gap-2'
@@ -434,7 +431,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
           ></div>
 
           <div
-            class="flex items-center gap-2 text-[11px] font-medium text-[var(--muted)] hidden xl:flex shrink-0 tabular-nums"
+            class="flex items-center gap-2 text-[11px] font-medium text-[var(--muted)] hidden xl:flex shrink-0 tabular-spec"
           >
             <Loader2 v-if="store.processingCount > 0" class="animate-spin" :size="10" />
             <span v-if="store.processingCount === 0">{{ t('app.localProcessing') }}</span>
@@ -443,7 +440,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
 
           <div
             id="top-bar-right"
-            class="flex items-center gap-2 shrink-0 has-[:any-link]:border-l has-[:enabled]:border-l has-[button]:border-l border-[color-mix(in_srgb,var(--ink)_10%,transparent)] pl-2 md:pl-3"
+            class="flex items-center gap-2 shrink-0 has-[:any-link]:border-l has-[:enabled]:border-l has-[button]:border-l border-[var(--hairline)] pl-2 md:pl-3"
           ></div>
         </div>
       </header>

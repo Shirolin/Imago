@@ -220,7 +220,7 @@ watch(displayUrl, () => {
     >
       <!-- 背景预览 -->
       <div
-        class="absolute inset-0 overflow-hidden rounded-t-[var(--radius-ctrl)] bg-[color-mix(in_srgb,var(--board)_12%,transparent)]"
+        class="absolute inset-0 overflow-hidden rounded-t-[var(--radius-ctrl)] bg-[color-mix(in_srgb,var(--on-product)_12%,transparent)]"
         :class="{ 'app-transparency-grid-sm': showTransparency }"
       >
         <div class="absolute inset-0 z-10 pointer-events-none">
@@ -229,7 +229,7 @@ watch(displayUrl, () => {
         <!-- 骨架屏：预览未解码时显示 shimmer，解码完成后移除 -->
         <div
           v-if="!previewLoaded"
-          class="absolute inset-0 bg-[var(--ink)]"
+          class="absolute inset-0 bg-[var(--product)]"
           aria-hidden="true"
         ></div>
         <img
@@ -257,7 +257,7 @@ watch(displayUrl, () => {
         class="absolute inset-0 z-40 pointer-events-none"
       >
         <div
-          class="absolute w-40 h-40 md:w-48 md:h-48 -ml-20 -mt-20 md:-ml-24 md:-mt-24 rounded-full border-2 border-[var(--board)] overflow-hidden bg-[var(--ink)] flex items-center justify-center"
+          class="absolute w-40 h-40 md:w-48 md:h-48 -ml-20 -mt-20 md:-ml-24 md:-mt-24 rounded-full border-2 border-[var(--on-product)] overflow-hidden bg-[var(--product)] flex items-center justify-center"
           :class="{ 'app-transparency-grid-sm': showTransparency }"
           :style="{ left: `${mousePos.x}%`, top: `${mousePos.y}%` }"
         >
@@ -278,15 +278,16 @@ watch(displayUrl, () => {
             <img :src="localProcessedUrl!" class="w-full h-full object-contain" />
           </div>
           <!-- 动态分割线 -->
-          <div class="absolute inset-y-0 left-1/2 w-0.5 bg-[var(--board)] z-10"></div>
+          <div class="absolute inset-y-0 left-1/2 w-0.5 bg-[var(--on-product)] z-10"></div>
           <div
             class="absolute inset-0 flex items-center justify-between px-2 text-[10px] pointer-events-none z-20"
           >
-            <span class="bg-[var(--ink)] px-1.5 py-0.5 rounded text-[var(--board)] font-medium">{{
-              $t('common.image.card.before')
-            }}</span>
             <span
-              class="bg-[var(--accent)] px-1.5 py-0.5 rounded text-[var(--board)] font-medium"
+              class="bg-[var(--product)] px-1.5 py-0.5 rounded text-[var(--on-product)] font-medium"
+              >{{ $t('common.image.card.before') }}</span
+            >
+            <span
+              class="bg-[var(--accent)] px-1.5 py-0.5 rounded text-[var(--on-product)] font-medium"
               >{{ $t('common.image.card.after') }}</span
             >
           </div>
@@ -296,7 +297,7 @@ watch(displayUrl, () => {
       <!-- 【模式 B】：Hover HUD 托盘 (仅在小图模式 + 有可用操作时浮现) -->
       <div
         v-if="!isLargeMode && (image.status === 'done' || image.status === 'error')"
-        class="absolute bottom-3 left-3 right-3 z-30 bg-[var(--board)] border border-[color-mix(in_srgb,var(--ink)_12%,transparent)] rounded-[var(--radius-ctrl)] p-1.5 flex items-center justify-between gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto touch-reveal"
+        class="absolute bottom-3 left-3 right-3 z-30 bg-[var(--board)] border border-[var(--hairline)] rounded-[var(--radius-ctrl)] p-1.5 flex items-center justify-between gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto touch-reveal"
       >
         <div class="flex items-center gap-1">
           <button
@@ -329,7 +330,7 @@ watch(displayUrl, () => {
           <button
             v-if="image.status === 'done'"
             @click.stop="emit('download', image.id)"
-            class="p-1.5 bg-[var(--accent)] text-[var(--board)] rounded-[var(--radius-ctrl)] active:brightness-95 transition-colors"
+            class="p-1.5 bg-[var(--accent)] text-[var(--on-product)] rounded-[var(--radius-ctrl)] active:brightness-95 transition-colors"
             :aria-label="t('common.image.card.download')"
           >
             <Download :size="14" />
@@ -344,7 +345,7 @@ watch(displayUrl, () => {
           :class="
             isSelected
               ? 'text-primary scale-110'
-              : 'text-[var(--board)]/70 opacity-0 group-hover:opacity-100'
+              : 'text-[var(--on-product)]/70 opacity-0 group-hover:opacity-100'
           "
         >
           <CheckSquare v-if="isSelected" :size="20" />
@@ -355,7 +356,7 @@ watch(displayUrl, () => {
       <button
         v-if="!showMagnifier"
         @click.stop="store.removeImage(image.id)"
-        class="absolute top-3 right-3 z-30 bg-[var(--board)] hover:bg-[var(--danger)] text-[var(--muted)] hover:text-[var(--board)] p-1.5 rounded-[var(--radius-ctrl)] opacity-0 group-hover:opacity-100 transition-colors border border-[color-mix(in_srgb,var(--ink)_12%,transparent)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] touch-reveal"
+        class="absolute top-3 right-3 z-30 bg-[var(--board)] hover:bg-[var(--danger)] text-[var(--muted)] hover:text-[var(--on-product)] p-1.5 rounded-[var(--radius-ctrl)] opacity-0 group-hover:opacity-100 transition-colors border border-[var(--hairline)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] touch-reveal"
         :title="$t('common.image.card.remove')"
         :aria-label="$t('common.image.card.remove')"
       >
@@ -365,7 +366,7 @@ watch(displayUrl, () => {
       <!-- 处理中中心进度 -->
       <div
         v-if="image.status === 'processing'"
-        class="absolute inset-0 bg-[var(--ink)]/70 z-30 flex items-center justify-center"
+        class="absolute inset-0 bg-[var(--product)]/70 z-30 flex items-center justify-center"
       >
         <Loader2 :size="24" class="text-primary animate-spin" />
       </div>
@@ -386,7 +387,7 @@ watch(displayUrl, () => {
       </div>
 
       <div class="flex items-center justify-between gap-2">
-        <h4 class="font-medium text-[var(--board)] truncate text-sm flex-1">
+        <h4 class="font-medium text-[var(--on-product)] truncate text-sm flex-1">
           {{ image.file.name }}
         </h4>
         <div class="shrink-0 flex items-center gap-1.5">
@@ -418,11 +419,11 @@ watch(displayUrl, () => {
       <!-- 【大图模式专属】：Large Mode Action Bar -->
       <div
         v-if="isLargeMode"
-        class="flex items-center gap-2 mt-3 pt-3 border-t border-border/40 animate-in slide-in-from-bottom-2 duration-500"
+        class="flex items-center gap-2 mt-3 pt-3 border-t border-[var(--hairline)]"
       >
         <button
           v-if="image.status === 'done'"
-          class="flex-1 flex items-center justify-center gap-2 h-9 rounded-xl bg-muted/30 hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all text-[10px] font-black uppercase tracking-wider border border-transparent hover:border-primary/20 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          class="flex-1 flex items-center justify-center gap-2 h-9 rounded-[var(--radius-ctrl)] bg-[var(--on-product)]/10 hover:bg-[var(--on-product)]/16 text-[var(--on-product)]/70 hover:text-[var(--on-product)] transition-colors text-[12px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           @click.stop="emit('compare', image.id)"
           :aria-label="t('common.image.card.compare')"
         >
@@ -431,7 +432,7 @@ watch(displayUrl, () => {
         </button>
         <button
           v-if="image.status === 'done' || image.status === 'error'"
-          class="flex-1 flex items-center justify-center gap-2 h-9 rounded-xl bg-muted/30 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all text-[10px] font-black uppercase tracking-wider border border-transparent hover:border-primary/20 outline-none focus-visible:ring-2 focus-visible:ring-destructive"
+          class="flex-1 flex items-center justify-center gap-2 h-9 rounded-[var(--radius-ctrl)] bg-[var(--on-product)]/10 hover:bg-[var(--danger)]/15 text-[var(--on-product)]/70 hover:text-[var(--danger)] transition-colors text-[12px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger)]"
           @click.stop="handleReset"
           :aria-label="t('common.image.card.reset')"
         >
@@ -440,18 +441,18 @@ watch(displayUrl, () => {
         </button>
         <button
           v-if="image.status === 'done'"
-          class="flex-1 flex items-center justify-center gap-2 h-9 rounded-xl bg-muted/30 hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all text-[10px] font-black uppercase tracking-wider border border-transparent hover:border-primary/20 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          class="flex-1 flex items-center justify-center gap-2 h-9 rounded-[var(--radius-ctrl)] bg-[var(--on-product)]/10 hover:bg-[var(--on-product)]/16 text-[var(--on-product)]/70 hover:text-[var(--on-product)] transition-colors text-[12px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           @click.stop="emit('interactive', image.id)"
           :aria-label="t('common.image.card.sam2')"
         >
           <MousePointer2 :size="14" />
           <span>{{ t('common.image.card.sam2') }}</span>
         </button>
-        <div class="flex gap-2 ml-auto pl-2 border-l border-border/40">
+        <div class="flex gap-2 ml-auto pl-2 border-l border-[var(--hairline)]">
           <button
             v-if="image.status === 'done'"
             @click.stop="emit('download', image.id)"
-            class="p-2 bg-[var(--accent)] text-[var(--board)] rounded-[var(--radius-ctrl)] hover:brightness-95 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            class="p-2 bg-[var(--accent)] text-[var(--on-product)] rounded-[var(--radius-ctrl)] hover:brightness-95 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             :title="t('common.image.card.download')"
             :aria-label="t('common.image.card.download')"
           >
@@ -474,7 +475,7 @@ watch(displayUrl, () => {
             <AlertCircle :size="24" />
           </div>
           <div>
-            <h3 class="text-lg font-black text-foreground mb-1 tracking-tight">
+            <h3 class="text-lg font-medium text-foreground mb-1">
               {{ t('common.image.toolbar.confirmReset') }}
             </h3>
             <p class="text-muted-foreground text-sm leading-relaxed font-medium">
@@ -512,31 +513,24 @@ watch(displayUrl, () => {
   }
 }
 .animate-dirty-pulse {
-  animation: dirty-pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: dirty-pulse 2.5s ease-in-out infinite;
 }
 @keyframes dirty-pulse {
   0%,
   100% {
-    box-shadow:
-      inset 0 0 0 1px rgba(245, 158, 11, 0.15),
-      0 4px 15px -3px rgba(245, 158, 11, 0.05);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent);
   }
   50% {
-    box-shadow:
-      inset 0 0 0 1px rgba(245, 158, 11, 0.4),
-      0 4px 15px -3px rgba(245, 158, 11, 0.15);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
   }
-}
-.ease-apple {
-  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
 }
 .bg-stripe-pattern {
   background-image: repeating-linear-gradient(
     45deg,
     transparent,
     transparent 20px,
-    rgba(245, 158, 11, 0.08) 20px,
-    rgba(245, 158, 11, 0.08) 40px
+    color-mix(in srgb, var(--accent) 12%, transparent) 20px,
+    color-mix(in srgb, var(--accent) 12%, transparent) 40px
   );
 }
 @keyframes stripe-scroll {

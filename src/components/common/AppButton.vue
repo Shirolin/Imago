@@ -74,7 +74,7 @@ const extraClasses = computed(() => {
     props.variant === 'success'
   ) {
     classes +=
-      'bg-[var(--accent)] text-[var(--board)] hover:brightness-95 shadow-none border-none disabled:opacity-45 '
+      'bg-[var(--accent)] text-[var(--on-product)] hover:bg-[var(--accent-press)] shadow-none border-none disabled:opacity-45 '
   } else if (props.variant === 'tool') {
     classes += 'text-muted-foreground hover:bg-secondary hover:text-foreground '
   } else if (props.variant === 'secondary') {
@@ -84,7 +84,8 @@ const extraClasses = computed(() => {
     classes +=
       'bg-transparent hover:bg-secondary border border-transparent text-muted-foreground hover:text-foreground '
   } else if (props.variant === 'danger') {
-    classes += 'bg-[var(--danger)] text-[var(--board)] hover:brightness-95 border-none shadow-none '
+    classes +=
+      'bg-[var(--danger)] text-[var(--on-product)] hover:brightness-95 border-none shadow-none '
   }
   return classes
 })

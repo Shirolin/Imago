@@ -25,17 +25,17 @@ const variantClasses = computed(() => {
     case 'warning':
       return 'bg-warning/5 text-warning border-warning/20'
     case 'secondary':
-      return 'bg-secondary/10 text-secondary-foreground border-border/60'
+      return 'bg-secondary/10 text-secondary-foreground border-[var(--hairline)]'
     case 'muted':
     default:
-      return 'bg-muted/10 text-muted-foreground border-border/60'
+      return 'bg-muted/10 text-muted-foreground border-[var(--hairline)]'
   }
 })
 </script>
 
 <template>
   <div
-    class="flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest leading-none border transition-colors"
+    class="flex items-center gap-1.5 px-2 py-1 rounded-[var(--radius-ctrl)] text-[10px] font-medium leading-none border transition-colors"
     :class="variantClasses"
   >
     <component v-if="icon" :is="icon" :size="iconSize" />

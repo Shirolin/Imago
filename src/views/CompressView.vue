@@ -336,10 +336,9 @@ const handleCtaClick = async () => {
                   :class="[layoutStore.cardSizeMode === 'compact' ? 'gap-1.5' : 'gap-3']"
                 >
                   <div class="flex-1 flex flex-col gap-0.5">
-                    <span
-                      class="font-black uppercase text-muted-foreground tracking-widest text-[0.55rem] md:text-[0.6rem]"
-                      >{{ t('tools.compress.original') }}</span
-                    >
+                    <span class="font-medium text-muted-foreground text-[11px]">{{
+                      t('tools.compress.original')
+                    }}</span>
                     <span
                       class="font-bold text-foreground text-[0.65rem] md:text-[0.75rem] tabular-nums"
                       >{{ formatSize(image.originalSize) }}</span
@@ -347,9 +346,9 @@ const handleCtaClick = async () => {
                   </div>
                   <ArrowRight :size="12" class="text-muted-foreground shrink-0" />
                   <div class="flex-1 flex flex-col gap-0.5">
-                    <span
-                      class="font-black uppercase text-muted-foreground tracking-widest text-[0.55rem] md:text-[0.6rem]"
-                      >{{ t('tools.compress.compressed') }}</span
+                    <span class="font-medium text-muted-foreground text-[11px]">{{
+                      t('tools.compress.compressed')
+                    }}</span
                     ><span
                       class="font-bold text-[0.65rem] md:text-[0.75rem] tabular-nums"
                       :class="

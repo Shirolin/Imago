@@ -117,9 +117,7 @@ const isModified = computed(() => {
           :size="14"
           class="text-muted-foreground/60 group-hover/slider:text-primary transition-colors"
         />
-        <span class="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{{
-          label
-        }}</span>
+        <span class="text-[11px] font-medium text-muted-foreground">{{ label }}</span>
       </div>
 
       <div class="flex items-center gap-2">
@@ -207,18 +205,12 @@ input[type='range']::-webkit-slider-thumb {
   background: white;
   border: 2px solid theme('colors.primary.DEFAULT');
   border-radius: 50%;
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.1),
-    0 0 0 0 rgba(var(--primary-rgb), 0.2);
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  transition: transform 0.15s ease;
   cursor: grab;
 }
 
 input[type='range']:active::-webkit-slider-thumb {
-  transform: scale(1.2);
-  box-shadow:
-    0 4px 8px rgba(0, 0, 0, 0.15),
-    0 0 0 6px rgba(var(--primary-rgb), 0.15);
   cursor: grabbing;
 }
 

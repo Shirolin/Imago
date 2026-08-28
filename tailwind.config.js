@@ -29,30 +29,32 @@ export default {
         board: 'var(--board)',
         well: 'var(--well)',
         ink: 'var(--ink)',
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
+        hairline: 'var(--hairline)',
+        product: 'var(--product)',
+        border: 'var(--hairline)',
+        input: 'var(--hairline)',
+        ring: 'var(--accent)',
         background: 'var(--paper)',
         foreground: 'var(--ink)',
         primary: {
           DEFAULT: 'var(--accent)',
-          foreground: 'var(--board)'
+          foreground: 'var(--on-product)'
         },
         secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
+          DEFAULT: 'var(--well)',
           foreground: 'var(--ink)'
         },
         destructive: {
           DEFAULT: 'var(--danger)',
-          foreground: 'var(--board)'
+          foreground: 'var(--on-product)'
         },
         muted: {
-          DEFAULT: 'hsl(var(--muted-hsl))',
+          DEFAULT: 'var(--well)',
           foreground: 'var(--muted)'
         },
         accent: {
           DEFAULT: 'var(--accent)',
-          foreground: 'var(--board)'
+          foreground: 'var(--on-product)'
         },
         popover: {
           DEFAULT: 'var(--board)',
@@ -64,7 +66,7 @@ export default {
         },
         success: {
           DEFAULT: 'var(--accent)',
-          foreground: 'var(--board)'
+          foreground: 'var(--on-product)'
         },
         warning: {
           DEFAULT: 'var(--muted)',
@@ -72,7 +74,7 @@ export default {
         },
         info: {
           DEFAULT: 'var(--accent)',
-          foreground: 'var(--board)'
+          foreground: 'var(--on-product)'
         }
       },
       borderRadius: {
@@ -85,8 +87,8 @@ export default {
         DEFAULT: 'var(--radius-ctrl)'
       },
       boxShadow: {
-        soft: '0 1px 2px rgba(42, 38, 35, 0.06)',
-        elevated: '0 1px 2px rgba(42, 38, 35, 0.06)',
+        soft: 'none',
+        elevated: 'none',
         primary: 'none'
       },
       keyframes: {

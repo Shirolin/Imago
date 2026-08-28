@@ -82,15 +82,15 @@ const handleConfirm = () => {
 
 <template>
   <div class="flex items-center gap-2 md:gap-3 px-0.5 py-1">
-    <!-- 1. 视图与导入组 -->
-    <div class="flex items-center bg-muted/20 p-0.5 rounded-xl border border-border/20">
-      <!-- 布局切换（无卡片网格的视图通过 showLayoutToggle=false 隐藏） -->
+    <div
+      class="flex items-center bg-[var(--well)] p-0.5 rounded-[var(--radius-ctrl)] border border-[var(--hairline)]"
+    >
       <template v-if="props.showLayoutToggle">
         <button
           @click="
             layoutStore.cardSizeMode = layoutStore.cardSizeMode === 'compact' ? 'large' : 'compact'
           "
-          class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-background hover:shadow-sm text-muted-foreground hover:text-primary transition-all duration-200 active:scale-90 group shrink-0"
+          class="w-9 h-9 flex items-center justify-center rounded-[var(--radius-ctrl)] hover:bg-[var(--paper)] text-muted-foreground hover:text-foreground transition-colors shrink-0"
           :aria-label="
             layoutStore.cardSizeMode === 'compact'
               ? t('common.image.toolbar.layoutLarge')
@@ -105,78 +105,64 @@ const handleConfirm = () => {
           <component
             :is="layoutStore.cardSizeMode === 'compact' ? LayoutGrid : LayoutList"
             :size="16"
-            class="transition-colors"
           />
         </button>
 
-        <div class="w-px h-4 bg-border/40 mx-1"></div>
+        <div class="w-px h-4 bg-[var(--hairline)] mx-1"></div>
       </template>
 
-      <!-- 导入 -->
       <button
         @click="triggerFileInput"
-        class="flex items-center justify-center gap-2 px-3 h-9 rounded-xl hover:bg-background hover:shadow-sm text-muted-foreground hover:text-primary transition-all duration-200 active:scale-95 group whitespace-nowrap"
+        class="flex items-center justify-center gap-2 px-3 h-9 rounded-[var(--radius-ctrl)] hover:bg-[var(--paper)] text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
         :aria-label="t('common.image.toolbar.importAria')"
         :title="t('common.image.toolbar.import')"
       >
-        <Plus
-          :size="16"
-          class="text-muted-foreground/60 group-hover:text-primary transition-colors"
-        />
-        <span class="hidden md:inline text-[0.7rem] font-bold tracking-tight">{{
+        <Plus :size="16" class="text-muted-foreground" />
+        <span class="hidden md:inline text-[13px] font-medium">{{
           t('common.image.toolbar.import')
         }}</span>
       </button>
     </div>
 
-    <!-- 2. 全部导出 (核心动作) -->
     <button
       v-if="props.showDownloadAll && store.doneCount > 0"
       @click="downloadAllAsZip(viewId)"
-      class="flex items-center gap-2 px-4 md:px-5 h-10 rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:-translate-y-px hover:shadow-primary/40 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97] whitespace-nowrap"
-      :class="{ 'opacity-50 cursor-not-allowed grayscale-[0.3]': isBusy }"
+      class="flex items-center gap-2 px-3 md:px-4 h-9 rounded-[var(--radius-ctrl)] bg-[var(--accent)] text-[var(--on-product)] hover:bg-[var(--accent-press)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)] whitespace-nowrap"
+      :class="{ 'opacity-50 cursor-not-allowed': isBusy }"
       :disabled="isBusy"
       :aria-label="t('common.image.toolbar.exportAllAria', { count: store.doneCount })"
       :title="t('common.image.toolbar.exportAll')"
     >
-      <Download :size="16" class="animate-in zoom-in duration-300" />
-      <span class="text-[0.7rem] md:text-[0.75rem] font-black tracking-tight uppercase">{{
-        t('common.image.toolbar.exportAll')
-      }}</span>
+      <Download :size="16" />
+      <span class="text-[13px] font-medium">{{ t('common.image.toolbar.exportAll') }}</span>
       <span
-        class="ml-0.5 px-1.5 py-0.5 rounded-md bg-white/20 text-[0.65rem] font-black leading-none"
+        class="ml-0.5 px-1.5 py-0.5 rounded-[4px] bg-[var(--on-product)]/15 text-[11px] font-medium leading-none tabular-spec"
         >{{ store.doneCount }}</span
       >
     </button>
 
-    <!-- 3. 队列管理组 -->
     <div
       v-if="store.images.length > 0"
-      class="flex items-center bg-muted/40 p-1 rounded-2xl border border-border/40 shadow-inner-sm"
+      class="flex items-center bg-[var(--well)] p-0.5 rounded-[var(--radius-ctrl)] border border-[var(--hairline)]"
     >
-      <!-- 恢复原图 -->
       <button
         v-if="props.showResetAll"
         @click="openConfirm('reset')"
-        class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-background hover:shadow-sm text-muted-foreground hover:text-primary transition-all duration-200 active:scale-90 group shrink-0"
+        class="w-9 h-9 flex items-center justify-center rounded-[var(--radius-ctrl)] hover:bg-[var(--paper)] text-muted-foreground hover:text-foreground transition-colors shrink-0"
         :aria-label="t('common.image.toolbar.resetAllAria')"
         :title="t('common.image.toolbar.resetAll')"
         :disabled="isBusy"
       >
-        <RotateCcw
-          :size="16"
-          class="group-hover:text-primary group-hover:rotate-[-45deg] transition-all duration-300 disabled:opacity-30"
-        />
+        <RotateCcw :size="16" />
       </button>
 
-      <div v-if="props.showResetAll" class="w-px h-4 bg-border/40 mx-1"></div>
+      <div v-if="props.showResetAll" class="w-px h-4 bg-[var(--hairline)] mx-1"></div>
 
-      <!-- 删除/清空 -->
       <button
         v-if="props.showDeleteSelected || props.showClearAll"
         @click="handleRemoveAction"
-        class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-destructive/5 hover:shadow-sm transition-all duration-200 active:scale-90 shrink-0 group"
-        :class="store.selectedCount > 0 ? 'text-destructive' : 'text-muted-foreground'"
+        class="w-9 h-9 flex items-center justify-center rounded-[var(--radius-ctrl)] hover:bg-[var(--danger)]/10 transition-colors shrink-0"
+        :class="store.selectedCount > 0 ? 'text-[var(--danger)]' : 'text-muted-foreground'"
         :aria-label="
           store.selectedCount > 0
             ? t('common.image.toolbar.deleteSelectedAria', { count: store.selectedCount })
@@ -191,7 +177,6 @@ const handleConfirm = () => {
       >
         <Trash2
           :size="16"
-          class="transition-colors group-hover:text-destructive"
           :class="store.selectedCount > 0 ? '' : 'opacity-40 group-hover:opacity-100'"
         />
       </button>
@@ -213,7 +198,7 @@ const handleConfirm = () => {
             <AlertCircle :size="24" />
           </div>
           <div>
-            <h3 class="text-lg font-black text-foreground mb-1 tracking-tight">
+            <h3 class="text-lg font-medium text-foreground mb-1">
               {{
                 confirmMode === 'clear'
                   ? t('common.image.toolbar.confirmClear')
@@ -248,7 +233,7 @@ const handleConfirm = () => {
           </AppButton>
           <AppButton
             variant="danger"
-            class="flex-1 rounded-xl h-11 shadow-lg shadow-destructive/10"
+            class="flex-1 rounded-[var(--radius-ctrl)] h-11"
             @click="handleConfirm"
           >
             {{ t('common.image.toolbar.confirm') }}

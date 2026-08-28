@@ -576,7 +576,7 @@ useResizeObserver(containerRef, resetView)
           <Transition name="preview-layout">
             <div
               v-if="store.images.length > 0"
-              class="relative shadow-2xl transition-shadow will-change-transform isolate"
+              class="relative transition-shadow will-change-transform isolate"
             >
               <canvas
                 ref="canvasRef"
@@ -593,7 +593,7 @@ useResizeObserver(containerRef, resetView)
               <!-- P0-1：解码失败图片的可见错误态 -->
               <div
                 v-if="previewErrorText"
-                class="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none max-w-[92%] px-4 py-2 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-[11px] font-bold leading-normal text-center shadow-lg backdrop-blur-md animate-in fade-in"
+                class="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none max-w-[92%] px-4 py-2 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-[11px] font-medium leading-normal text-center animate-in fade-in"
                 role="alert"
               >
                 {{ previewErrorText }}
@@ -602,7 +602,7 @@ useResizeObserver(containerRef, resetView)
               <!-- P1-3：托盘排序被回锁为导入顺序的提示 -->
               <div
                 v-if="sortOrderNotice"
-                class="absolute top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none px-3 py-1.5 rounded-full bg-card/95 backdrop-blur border border-border/60 text-[11px] font-bold text-foreground shadow-lg animate-in fade-in"
+                class="absolute top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none px-3 py-1.5 rounded-[var(--radius-ctrl)] bg-[var(--board)] border border-[var(--hairline)] text-[11px] font-medium text-foreground animate-in fade-in"
                 role="status"
               >
                 {{ sortOrderNotice }}
@@ -617,7 +617,7 @@ useResizeObserver(containerRef, resetView)
                     :data-order-item="index"
                     tabindex="0"
                     role="listitem"
-                    class="focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 focus:bg-background/95 focus:backdrop-blur-md focus:p-3 focus:rounded-2xl focus:border-2 focus:border-primary focus:shadow-2xl focus:animate-in focus:fade-in focus:zoom-in-95 focus:duration-200"
+                    class="focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 focus:bg-[var(--board)] focus:p-3 focus:rounded-2xl focus:border-2 focus:border-primary focus:animate-in focus:fade-in focus:zoom-in-95 focus:duration-200"
                     :aria-label="
                       t('tools.combine.canvas.itemAria', { index: index + 1, name: img.file.name })
                     "
@@ -697,7 +697,7 @@ useResizeObserver(containerRef, resetView)
         </section>
 
         <section
-          class="space-y-4 pt-6 border-t border-border/40 animate-in fade-in slide-in-from-right-4 duration-500"
+          class="space-y-4 pt-6 border-t border-[var(--hairline)] animate-in fade-in slide-in-from-right-4 duration-500"
           style="--stagger: 2"
         >
           <AppSectionHeader
@@ -708,7 +708,7 @@ useResizeObserver(containerRef, resetView)
 
         <section
           v-if="layoutMode === 'original'"
-          class="space-y-4 pt-6 border-t border-border/40 animate-in fade-in slide-in-from-right-4 duration-500"
+          class="space-y-4 pt-6 border-t border-[var(--hairline)] animate-in fade-in slide-in-from-right-4 duration-500"
           style="--stagger: 3"
         >
           <AppSectionHeader
@@ -718,11 +718,11 @@ useResizeObserver(containerRef, resetView)
         </section>
 
         <section
-          class="space-y-4 pt-6 border-t border-border/40 animate-in fade-in slide-in-from-right-4 duration-500"
+          class="space-y-4 pt-6 border-t border-[var(--hairline)] animate-in fade-in slide-in-from-right-4 duration-500"
           style="--stagger: 4"
         >
           <AppSectionHeader :title="t('tools.combine.params')" :icon="Settings2" />
-          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-5">
+          <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-5">
             <div v-if="combineDirection === 'grid'" class="space-y-3">
               <AppSlider
                 v-model="columns"
@@ -774,12 +774,12 @@ useResizeObserver(containerRef, resetView)
         </section>
 
         <section
-          class="space-y-4 pt-6 border-t border-border/40 animate-in fade-in slide-in-from-right-4 duration-500"
+          class="space-y-4 pt-6 border-t border-[var(--hairline)] animate-in fade-in slide-in-from-right-4 duration-500"
           style="--stagger: 5"
         >
           <AppSectionHeader :title="t('tools.combine.canvasAppearance')" :icon="Settings2" />
           <div
-            class="bg-muted/10 rounded-2xl p-4 border border-border/60 hover:border-border transition-colors"
+            class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] hover:border-primary/20 transition-colors"
           >
             <AppColorPicker
               v-model:model-value="backgroundColor"
@@ -794,7 +794,7 @@ useResizeObserver(containerRef, resetView)
           v-model:format="outputFormat"
           v-model:quality="outputQuality"
           canvas-only
-          class="pt-6 border-t border-border/40"
+          class="pt-6 border-t border-[var(--hairline)]"
         />
         <!-- P2-7：「保持原始格式」在 canvas 引擎中恒输出 PNG，显示提示避免误导 -->
         <p

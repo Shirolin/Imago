@@ -646,21 +646,21 @@ const ratios = computed(() => [
           >
             <div
               v-if="isSnapping"
-              class="px-3 py-1 bg-primary text-primary-foreground rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-lg"
+              class="px-3 py-1 bg-primary text-primary-foreground rounded-lg text-[11px] font-medium"
             >
               {{ t('tools.crop.snapped') }}
             </div>
 
             <div class="flex flex-col items-center gap-1.5">
               <div
-                class="px-4 py-2 bg-card/90 text-foreground rounded-xl border border-border/40 text-xs font-mono font-bold shadow-xl backdrop-blur-md tabular-nums ring-1 ring-primary/5"
+                class="px-4 py-2 bg-[var(--board)] text-foreground rounded-xl border border-[var(--hairline)] text-xs font-mono font-medium tabular-nums"
               >
                 {{ pxCoords.w }} × {{ pxCoords.h }} PX
               </div>
 
               <!-- 下沉式功能提示：在这里显示双击重置，不遮挡拉手 -->
               <div
-                class="px-2.5 py-1 bg-muted/20 backdrop-blur-sm rounded-lg border border-border/40 text-[9px] text-muted-foreground/60 font-medium tracking-tight flex items-center gap-1.5 shadow-sm"
+                class="px-2.5 py-1 bg-[var(--board)] rounded-lg border border-[var(--hairline)] text-[11px] text-muted-foreground/60 font-medium flex items-center gap-1.5"
               >
                 <div class="w-1 h-1 rounded-full bg-primary/40"></div>
                 {{ t('tools.crop.doubleClickReset') }}
@@ -675,7 +675,7 @@ const ratios = computed(() => [
       <!-- 第一分区：基础变换 (地基校准) -->
       <section class="space-y-4">
         <AppSectionHeader :title="t('tools.crop.basicTransform')" :icon="RotateCw" />
-        <div class="bg-muted/10 rounded-2xl p-4 border border-border/60">
+        <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)]">
           <div class="grid grid-cols-3 gap-2">
             <button
               @click="handleRotate"
@@ -686,10 +686,9 @@ const ratios = computed(() => [
               <RotateCw
                 :size="18"
                 class="text-muted-foreground group-hover:text-primary transition-colors"
-              /><span
-                class="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter"
-                >{{ t('tools.crop.rotate') }}</span
-              >
+              /><span class="text-[11px] font-medium text-muted-foreground">{{
+                t('tools.crop.rotate')
+              }}</span>
             </button>
             <button
               @click="handleFlipH"
@@ -703,7 +702,7 @@ const ratios = computed(() => [
               :aria-label="t('tools.crop.flipH')"
             >
               <FlipHorizontal :size="18" class="group-hover:text-primary transition-colors" /><span
-                class="text-[9px] font-bold uppercase tracking-tighter"
+                class="text-[11px] font-medium"
                 >{{ t('tools.crop.flipH') }}</span
               >
             </button>
@@ -719,7 +718,7 @@ const ratios = computed(() => [
               :aria-label="t('tools.crop.flipV')"
             >
               <FlipVertical :size="18" class="group-hover:text-primary transition-colors" /><span
-                class="text-[9px] font-bold uppercase tracking-tighter"
+                class="text-[11px] font-medium"
                 >{{ t('tools.crop.flipV') }}</span
               >
             </button>
@@ -728,9 +727,9 @@ const ratios = computed(() => [
       </section>
 
       <!-- 第二分区：裁剪比例 (定形阶段) -->
-      <section class="space-y-4 pt-6 border-t border-border/40">
+      <section class="space-y-4 pt-6 border-t border-[var(--hairline)]">
         <AppSectionHeader :title="t('tools.crop.aspectRatio')" :icon="Scissors" />
-        <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4">
+        <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-4">
           <AppButton
             variant="secondary"
             class="w-full h-10 rounded-xl bg-background/50 border-dashed border-border hover:border-primary/50 hover:bg-primary/[0.02] group transition-all"
@@ -741,9 +740,7 @@ const ratios = computed(() => [
               :size="16"
               class="mr-2 text-muted-foreground group-hover:text-primary transition-colors"
             />
-            <span class="text-xs font-bold uppercase tracking-wider">{{
-              t('tools.crop.fillAll')
-            }}</span>
+            <span class="text-[11px] font-medium">{{ t('tools.crop.fillAll') }}</span>
           </AppButton>
 
           <AppSegmentedControl
@@ -753,10 +750,9 @@ const ratios = computed(() => [
           />
           <div class="space-y-3 pt-1">
             <div class="flex items-center justify-between ml-1">
-              <span
-                class="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
-                >{{ t('tools.crop.gridLines') }}</span
-              >
+              <span class="text-[11px] font-medium text-muted-foreground">{{
+                t('tools.crop.gridLines')
+              }}</span>
               <span class="text-[9px] text-muted-foreground/40 italic">{{
                 t('tools.crop.gridLinesTip')
               }}</span>
@@ -776,15 +772,14 @@ const ratios = computed(() => [
       </section>
 
       <!-- 第三分区：精确构图 (精度微调) -->
-      <section class="space-y-4 pt-6 border-t border-border/40">
+      <section class="space-y-4 pt-6 border-t border-[var(--hairline)]">
         <AppSectionHeader :title="t('tools.crop.precision')" :icon="LayoutGrid" />
-        <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4">
+        <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-4">
           <div class="grid grid-cols-2 gap-x-3 gap-y-4 relative">
             <div class="space-y-1.5">
-              <label
-                class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest"
-                >{{ t('tools.crop.posX') }}</label
-              >
+              <label class="text-[11px] font-medium text-muted-foreground ml-1">{{
+                t('tools.crop.posX')
+              }}</label>
               <AppInput
                 type="number"
                 :model-value="Math.round(pxCoords.x)"
@@ -800,10 +795,9 @@ const ratios = computed(() => [
               />
             </div>
             <div class="space-y-1.5">
-              <label
-                class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest"
-                >{{ t('tools.crop.posY') }}</label
-              >
+              <label class="text-[11px] font-medium text-muted-foreground ml-1">{{
+                t('tools.crop.posY')
+              }}</label>
               <AppInput
                 type="number"
                 :model-value="Math.round(pxCoords.y)"
@@ -822,7 +816,7 @@ const ratios = computed(() => [
             <div class="col-span-2 grid grid-cols-2 gap-x-3 relative mt-1">
               <div class="space-y-1.5">
                 <label
-                  class="text-[10px] font-black uppercase ml-1 tracking-widest transition-colors"
+                  class="text-[11px] font-medium ml-1 transition-colors"
                   :class="currentRatio > 0 ? 'text-primary' : 'text-muted-foreground'"
                   >{{ t('tools.crop.width') }}</label
                 >
@@ -851,8 +845,8 @@ const ratios = computed(() => [
                   class="bg-background border rounded-full p-1 shadow-sm transition-all duration-500"
                   :class="
                     currentRatio > 0
-                      ? 'border-primary/40 text-primary scale-110 shadow-primary/10 rotate-0'
-                      : 'border-border text-muted-foreground/40 scale-90 rotate-[-45deg]'
+                      ? 'border-primary/40 text-primary rotate-0'
+                      : 'border-border text-muted-foreground/40 rotate-[-45deg]'
                   "
                 >
                   <component :is="currentRatio > 0 ? LinkIcon : Unlink" :size="12" />
@@ -861,7 +855,7 @@ const ratios = computed(() => [
 
               <div class="space-y-1.5">
                 <label
-                  class="text-[10px] font-black uppercase ml-1 tracking-widest transition-colors"
+                  class="text-[11px] font-medium ml-1 transition-colors"
                   :class="currentRatio > 0 ? 'text-primary' : 'text-muted-foreground'"
                   >{{ t('tools.crop.height') }}</label
                 >
@@ -888,20 +882,18 @@ const ratios = computed(() => [
       </section>
 
       <!-- 第四分区：画布外观 (环境配置) -->
-      <section class="space-y-4 pt-6 border-t border-border/40">
+      <section class="space-y-4 pt-6 border-t border-[var(--hairline)]">
         <AppSectionHeader :title="t('tools.crop.canvasAppearance')" :icon="Settings2" />
-        <div class="bg-muted/10 rounded-2xl p-4 border border-border/60">
+        <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)]">
           <AppColorPicker v-model="fillColor" :label="t('tools.crop.bgFill')" />
         </div>
       </section>
 
       <!-- 第五分区：边缘精修 (TRIM) - 后处理阶段 -->
-      <section class="space-y-4 pt-6 border-t border-border/40">
+      <section class="space-y-4 pt-6 border-t border-[var(--hairline)]">
         <div class="flex items-center justify-between pr-1">
           <AppSectionHeader :title="t('tools.crop.edgeTrim')" :icon="Settings2" />
-          <div class="text-[9px] text-warning font-black uppercase tracking-widest italic">
-            Post-Process
-          </div>
+          <div class="text-[11px] text-warning font-medium italic">Post-Process</div>
         </div>
         <div class="bg-warning/5 rounded-2xl p-4 border border-warning/20 space-y-4">
           <div class="flex gap-3 bg-warning/10 p-3 rounded-xl border border-warning/20">
@@ -915,7 +907,7 @@ const ratios = computed(() => [
 
           <div class="grid grid-cols-2 gap-3">
             <div v-for="dir in ['top', 'bottom', 'left', 'right']" :key="dir" class="space-y-2">
-              <label class="text-[9px] font-black text-muted-foreground uppercase ml-1">{{
+              <label class="text-[11px] font-medium text-muted-foreground ml-1">{{
                 t('tools.crop.trim' + dir.charAt(0).toUpperCase() + dir.slice(1))
               }}</label>
               <AppInput
@@ -924,7 +916,7 @@ const ratios = computed(() => [
                 @update:model-value="handleTrimChange(dir as keyof typeof trimPx, $event)"
                 :min="0"
                 :max="100"
-                class="bg-background/50 border-border/60 focus:border-warning/50"
+                class="bg-background/50 border-[var(--hairline)] focus:border-warning/50"
               />
             </div>
           </div>
@@ -941,7 +933,7 @@ const ratios = computed(() => [
       </section>
 
       <!-- 第六分区：操作管理 (终结阶段) -->
-      <section class="space-y-4 pt-6 border-t border-border/40 pb-4">
+      <section class="space-y-4 pt-6 border-t border-[var(--hairline)] pb-4">
         <AppSectionHeader :title="t('tools.crop.history')" :icon="History" />
         <div class="flex items-center justify-between gap-3">
           <div class="flex-1 grid grid-cols-2 gap-2">
@@ -950,7 +942,7 @@ const ratios = computed(() => [
               size="sm"
               :disabled="!canUndo"
               @click="undo"
-              class="rounded-xl h-10 text-[10px] font-bold uppercase bg-background/50 border-border/60 hover:bg-primary/[0.02]"
+              class="rounded-xl h-10 text-[11px] font-medium bg-background/50 border-[var(--hairline)] hover:bg-primary/[0.02]"
               :aria-label="t('tools.crop.undo')"
               ><Undo2 :size="14" class="mr-1.5" /> {{ t('tools.crop.undo') }}</AppButton
             >
@@ -959,14 +951,14 @@ const ratios = computed(() => [
               size="sm"
               :disabled="!canRedo"
               @click="redo"
-              class="rounded-xl h-10 text-[10px] font-bold uppercase bg-background/50 border-border/60 hover:bg-primary/[0.02]"
+              class="rounded-xl h-10 text-[11px] font-medium bg-background/50 border-[var(--hairline)] hover:bg-primary/[0.02]"
               :aria-label="t('tools.crop.redo')"
               ><Redo2 :size="14" class="mr-1.5" /> {{ t('tools.crop.redo') }}</AppButton
             >
           </div>
           <button
             @click="handleReset"
-            class="w-10 h-10 flex items-center justify-center hover:bg-destructive/10 rounded-xl text-muted-foreground/40 hover:text-destructive transition-all active:scale-90 border border-transparent hover:border-destructive/20"
+            class="w-10 h-10 flex items-center justify-center hover:bg-destructive/10 rounded-xl text-muted-foreground/40 hover:text-destructive transition-colors border border-transparent hover:border-destructive/20"
             :title="t('tools.crop.resetAll')"
             :aria-label="t('tools.crop.resetAll')"
           >
@@ -982,7 +974,7 @@ const ratios = computed(() => [
         show-exif-option
         canvas-only
         :title="t('common.export.title')"
-        class="pt-2 pb-6 border-t border-border/40"
+        class="pt-2 pb-6 border-t border-[var(--hairline)]"
       />
     </template>
 
@@ -1001,7 +993,7 @@ const ratios = computed(() => [
           <template #icon>
             <component :is="ctaState.icon" v-if="!isProcessing" :size="18" class="mr-2" />
           </template>
-          <span class="font-bold text-sm uppercase tracking-tight">{{ ctaState.text }}</span>
+          <span class="font-medium text-sm">{{ ctaState.text }}</span>
         </AppButton>
       </InspectorFooter>
     </template>
@@ -1019,7 +1011,7 @@ const ratios = computed(() => [
             <AlertCircle :size="24" />
           </div>
           <div>
-            <h3 class="text-lg font-black text-foreground mb-1 tracking-tight">
+            <h3 class="text-lg font-medium text-foreground mb-1">
               {{ t('common.image.toolbar.confirmReset') }}
             </h3>
             <p class="text-muted-foreground text-sm leading-relaxed font-medium">
@@ -1038,11 +1030,7 @@ const ratios = computed(() => [
           >
             {{ t('common.image.toolbar.cancel') }}
           </AppButton>
-          <AppButton
-            variant="danger"
-            class="flex-1 rounded-xl h-11 shadow-lg shadow-destructive/10"
-            @click="confirmReset"
-          >
+          <AppButton variant="danger" class="flex-1 rounded-xl h-11" @click="confirmReset">
             {{ t('common.image.toolbar.confirm') }}
           </AppButton>
         </div>

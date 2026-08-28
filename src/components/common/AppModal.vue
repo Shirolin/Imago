@@ -76,13 +76,10 @@ onMounted(() => {
       <div v-if="variant === 'dialog'" class="w-full h-full flex items-center justify-center p-4">
         <div :class="containerClasses" style="transform: translateZ(0)">
           <header
-            class="h-14 flex items-center justify-between px-6 border-b border-border shrink-0 bg-card shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]"
+            class="h-14 flex items-center justify-between px-6 border-b border-border shrink-0 bg-card"
           >
             <slot name="header">
-              <h3
-                :id="modalTitleId"
-                class="font-bold text-foreground text-xs uppercase tracking-widest"
-              >
+              <h3 :id="modalTitleId" class="font-medium text-foreground text-sm">
                 {{ title }}
               </h3>
             </slot>
@@ -113,7 +110,7 @@ onMounted(() => {
         style="transform: translateZ(0); isolation: isolate"
       >
         <div
-          class="flex-1 flex flex-col bg-background shadow-2xl overflow-hidden relative min-h-0"
+          class="flex-1 flex flex-col bg-background overflow-hidden relative min-h-0"
           :class="[paneOnly ? '' : 'border border-border rounded-2xl']"
         >
           <header
@@ -122,10 +119,7 @@ onMounted(() => {
           >
             <div class="flex items-center gap-3">
               <slot name="header">
-                <h3
-                  :id="modalTitleId"
-                  class="font-bold text-foreground text-xs uppercase tracking-widest"
-                >
+                <h3 :id="modalTitleId" class="font-medium text-foreground text-sm">
                   {{ title }}
                 </h3>
               </slot>

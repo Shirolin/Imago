@@ -898,7 +898,7 @@ const handleCtaClick = async () => {
           <div id="canvas-instructions" class="sr-only">
             {{ t('tools.split.canvas.instructions') }}
           </div>
-          <div class="relative shadow-2xl">
+          <div class="relative">
             <canvas ref="canvasRef" class="block rounded-sm" />
 
             <!-- 【无障碍层】：物理焦点锚点 -->
@@ -938,7 +938,7 @@ const handleCtaClick = async () => {
           <Transition name="fade-fast">
             <div
               v-if="editMode === 'custom' && !draggingLine"
-              class="absolute left-1/2 -translate-x-1/2 bg-background/60 backdrop-blur-md px-4 py-2 rounded-2xl text-foreground text-[10px] font-bold border border-border/40 pointer-events-none shadow-lg z-50 whitespace-nowrap tracking-wider flex items-center gap-2 transition-all duration-500"
+              class="absolute left-1/2 -translate-x-1/2 bg-[var(--board)] px-4 py-2 rounded-2xl text-foreground text-[11px] font-medium border border-[var(--hairline)] pointer-events-none z-50 whitespace-nowrap flex items-center gap-2"
               :class="[isMobile ? 'bottom-[140px]' : 'bottom-24']"
             >
               <div
@@ -969,7 +969,7 @@ const handleCtaClick = async () => {
           />
           <div
             v-if="editMode === 'grid'"
-            class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4"
+            class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-4"
           >
             <div class="space-y-1">
               <AppSlider
@@ -1025,7 +1025,7 @@ const handleCtaClick = async () => {
                 @click="handleResetToGrid"
                 variant="secondary"
                 size="sm"
-                class="flex-1 rounded-xl h-10 text-[11px] font-black uppercase tracking-widest border-border/40 bg-muted/5"
+                class="flex-1 rounded-[var(--radius-ctrl)] h-10 text-[12px] font-medium border-[var(--hairline)] bg-transparent"
                 :icon="Grid3X3"
                 :title="t('tools.split.syncGridTip')"
               >
@@ -1035,7 +1035,7 @@ const handleCtaClick = async () => {
                 @click="clearLines"
                 variant="secondary"
                 size="sm"
-                class="flex-1 rounded-xl h-10 text-[11px] font-black uppercase tracking-widest border-border/40 bg-muted/5 hover:text-destructive hover:border-destructive hover:bg-destructive/5"
+                class="flex-1 rounded-[var(--radius-ctrl)] h-10 text-[12px] font-medium border-[var(--hairline)] bg-transparent hover:text-[var(--danger)] hover:border-[var(--danger)]"
                 :icon="Trash2"
               >
                 {{ t('tools.split.clearAll') }}
@@ -1045,7 +1045,7 @@ const handleCtaClick = async () => {
         </div>
       </section>
 
-      <section class="space-y-4 pt-6 border-t border-border/40">
+      <section class="space-y-4 pt-6 border-t border-[var(--hairline)]">
         <div class="flex items-center justify-between pr-1">
           <AppSectionHeader :title="t('tools.split.viewSettings')" :icon="Box" />
           <AppButton
@@ -1059,7 +1059,7 @@ const handleCtaClick = async () => {
           />
         </div>
         <div class="space-y-4 px-1">
-          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4">
+          <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-4">
             <div class="space-y-1">
               <AppSlider
                 v-model="viewSettings.lineWidth"
@@ -1076,7 +1076,7 @@ const handleCtaClick = async () => {
             <div class="space-y-3">
               <span
                 id="line-color-label"
-                class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block px-1"
+                class="text-[11px] font-medium text-muted-foreground block px-1"
                 >{{ t('tools.split.lineColor') }}</span
               >
               <div
@@ -1128,15 +1128,14 @@ const handleCtaClick = async () => {
         </div>
       </section>
 
-      <section class="space-y-4 pt-6 border-t border-border/40">
+      <section class="space-y-4 pt-6 border-t border-[var(--hairline)]">
         <AppSectionHeader :title="t('tools.split.enhanced')" :icon="Layers" />
         <div class="space-y-4 px-1">
           <div class="space-y-4">
             <div class="flex flex-col gap-1 px-1">
-              <span
-                class="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
-                >{{ t('tools.split.alignMode') }}</span
-              >
+              <span class="text-[11px] font-medium text-muted-foreground">{{
+                t('tools.split.alignMode')
+              }}</span>
               <p class="text-[10px] text-muted-foreground/60 leading-relaxed">
                 {{ t('tools.split.alignModeDesc') }}
               </p>
@@ -1151,7 +1150,7 @@ const handleCtaClick = async () => {
             />
           </div>
 
-          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4">
+          <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-4">
             <div class="space-y-1">
               <AppSlider
                 v-model="shave"
@@ -1172,7 +1171,7 @@ const handleCtaClick = async () => {
         v-model:format="outputFormat"
         v-model:quality="outputQuality"
         :title="t('tools.split.exportConfig')"
-        class="pt-6 border-t border-border/40 pb-4"
+        class="pt-6 border-t border-[var(--hairline)] pb-4"
       />
     </template>
 
@@ -1211,7 +1210,7 @@ const handleCtaClick = async () => {
             <AlertCircle :size="24" />
           </div>
           <div>
-            <h3 class="text-lg font-black text-foreground mb-1 tracking-tight">
+            <h3 class="text-lg font-medium text-foreground mb-1">
               {{ t('common.image.toolbar.confirmReset') }}
             </h3>
             <p class="text-muted-foreground text-sm leading-relaxed font-medium">
@@ -1230,11 +1229,7 @@ const handleCtaClick = async () => {
           >
             {{ t('common.image.toolbar.cancel') }}
           </AppButton>
-          <AppButton
-            variant="danger"
-            class="flex-1 rounded-xl h-11 shadow-lg shadow-destructive/10"
-            @click="confirmResetSplit"
-          >
+          <AppButton variant="danger" class="flex-1 rounded-xl h-11" @click="confirmResetSplit">
             {{ t('common.image.toolbar.confirm') }}
           </AppButton>
         </div>

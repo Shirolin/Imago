@@ -14,10 +14,10 @@ const emit = defineEmits(['update:modelValue'])
 <template>
   <label class="flex items-start gap-3 cursor-pointer group select-none">
     <div
-      class="relative w-5 h-5 rounded-md border-2 transition-all duration-200 flex items-center justify-center shadow-sm shrink-0"
+      class="relative w-5 h-5 rounded-md border-2 transition-colors duration-200 flex items-center justify-center shrink-0"
       :class="[
         modelValue
-          ? 'bg-primary border-primary scale-105 shadow-[0_2px_10px_hsla(var(--primary)/var(--button-shadow-opacity))]'
+          ? 'bg-primary border-primary'
           : 'bg-muted/30 border-border group-hover:border-primary/40 group-hover:bg-primary/5'
       ]"
     >
@@ -37,7 +37,7 @@ const emit = defineEmits(['update:modelValue'])
     <div class="flex flex-col gap-1">
       <span
         v-if="label"
-        class="text-xs font-bold text-muted-foreground group-hover:text-primary transition-colors leading-5"
+        class="text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors leading-5"
       >
         {{ label }}
       </span>

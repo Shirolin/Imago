@@ -69,7 +69,7 @@ const triggerSelect = () => {
     />
 
     <div class="flex flex-col items-center gap-2">
-      <p class="imago-serif text-[28px] md:text-[32px] font-medium leading-tight text-[var(--ink)]">
+      <p class="imago-serif text-[28px] md:text-[32px] leading-tight text-[var(--ink)]">
         {{ $t('common.image.upload.title') }}
       </p>
       <p class="text-[var(--muted)] text-sm leading-snug">

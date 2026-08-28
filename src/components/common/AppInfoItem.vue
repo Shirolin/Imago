@@ -17,9 +17,7 @@ withDefaults(defineProps<Props>(), {
 
 <template>
   <div class="flex flex-col gap-1.5">
-    <div
-      class="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest leading-none px-0.5"
-    >
+    <div class="text-[11px] font-medium text-muted-foreground leading-none px-0.5">
       {{ label }}
     </div>
     <div

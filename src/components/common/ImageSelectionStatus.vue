@@ -32,7 +32,7 @@ const selectionLabel = computed(() => {
     <!-- 交互式全选/取消全选按钮 -->
     <button
       @click="store.toggleAll()"
-      class="flex items-center gap-2 px-2.5 py-1 rounded-[var(--radius)] bg-muted/30 hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors border border-border/20"
+      class="flex items-center gap-2 px-2.5 py-1 rounded-[var(--radius)] bg-muted/30 hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors border border-[var(--hairline)]"
       :title="selectionLabel"
       :aria-label="selectionLabel"
     >
@@ -40,7 +40,7 @@ const selectionLabel = computed(() => {
         <component
           :is="selectionIcon"
           :size="14"
-          class="transition-transform duration-300 group-hover:scale-110"
+          class="transition-colors"
           :class="{ 'text-primary': store.selectedCount > 0 }"
         />
         <!-- 成功状态小圆点 -->
@@ -51,7 +51,7 @@ const selectionLabel = computed(() => {
       </div>
 
       <div class="flex items-center gap-1.5 pr-0.5 overflow-hidden">
-        <span class="text-[10px] font-black tracking-tight tabular-nums whitespace-nowrap">
+        <span class="text-[11px] font-medium tabular-nums whitespace-nowrap">
           <Transition name="slide-up" mode="out-in">
             <span
               :key="store.selectedCount"
@@ -68,7 +68,7 @@ const selectionLabel = computed(() => {
     <!-- 卡片大小切换 -->
     <div
       v-if="showCardSize"
-      class="hidden lg:flex items-center bg-muted/20 p-1 rounded-xl border border-border/40"
+      class="hidden lg:flex items-center bg-muted/20 p-1 rounded-xl border border-[var(--hairline)]"
     >
       <button
         @click="layoutStore.cardSizeMode = 'large'"

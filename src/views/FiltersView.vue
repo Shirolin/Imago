@@ -463,7 +463,7 @@ const handleCtaClick = async () => {
             <button
               v-if="canScrollLeft"
               @click="scrollPresets('left')"
-              class="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-[var(--chrome)] border border-border/40 rounded-[var(--radius)] flex items-center justify-center text-muted-foreground hover:text-primary transition-colors md:opacity-0 md:group-hover/presets:opacity-100 -ml-2"
+              class="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-[var(--chrome)] border border-[var(--hairline)] rounded-[var(--radius)] flex items-center justify-center text-muted-foreground hover:text-primary transition-colors md:opacity-0 md:group-hover/presets:opacity-100 -ml-2"
               :aria-label="t('tools.filters.scrollLeft')"
             >
               <ChevronLeft :size="16" />
@@ -473,7 +473,7 @@ const handleCtaClick = async () => {
             <button
               v-if="canScrollRight"
               @click="scrollPresets('right')"
-              class="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-[var(--chrome)] border border-border/40 rounded-[var(--radius)] flex items-center justify-center text-muted-foreground hover:text-primary transition-colors md:opacity-0 md:group-hover/presets:opacity-100 -mr-2"
+              class="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-[var(--chrome)] border border-[var(--hairline)] rounded-[var(--radius)] flex items-center justify-center text-muted-foreground hover:text-primary transition-colors md:opacity-0 md:group-hover/presets:opacity-100 -mr-2"
               :aria-label="t('tools.filters.scrollRight')"
             >
               <ChevronRight :size="16" />
@@ -494,12 +494,12 @@ const handleCtaClick = async () => {
                 :class="[
                   activePresetId === preset.id
                     ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20'
-                    : 'border-border/60 bg-muted/5 hover:bg-primary/5 hover:border-primary/30'
+                    : 'border-[var(--hairline)] bg-muted/5 hover:bg-primary/5 hover:border-primary/30'
                 ]"
                 :aria-pressed="activePresetId === preset.id"
               >
                 <div
-                  class="w-8 h-8 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform"
+                  class="w-8 h-8 rounded-lg flex items-center justify-center"
                   :class="[activePresetId === preset.id ? 'bg-primary/20' : 'bg-primary/10']"
                 >
                   <Palette
@@ -523,7 +523,7 @@ const handleCtaClick = async () => {
           </div>
         </section>
 
-        <section class="space-y-4 pt-6 border-t border-border/40">
+        <section class="space-y-4 pt-6 border-t border-[var(--hairline)]">
           <div class="flex items-center justify-between h-10 pr-1">
             <AppSectionHeader :title="t('tools.filters.fineAdjustment')" :icon="Settings2" />
 
@@ -540,7 +540,7 @@ const handleCtaClick = async () => {
                 <button
                   v-if="isFiltersDirty"
                   @click="resetFilters"
-                  class="p-1.5 hover:bg-muted rounded-lg transition-all text-muted-foreground hover:text-primary active:scale-90"
+                  class="p-1.5 hover:bg-muted rounded-lg transition-colors text-muted-foreground hover:text-primary"
                   :title="t('tools.filters.resetAll')"
                   :aria-label="t('tools.filters.resetAll')"
                 >
@@ -550,7 +550,7 @@ const handleCtaClick = async () => {
             </div>
           </div>
 
-          <div class="bg-muted/10 rounded-2xl p-4 border border-border/60 space-y-4">
+          <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-4">
             <!-- 亮度 -->
             <div class="space-y-3">
               <AppSlider
@@ -628,15 +628,15 @@ const handleCtaClick = async () => {
           </div>
         </section>
 
-        <section class="pt-6 border-t border-border/40">
+        <section class="pt-6 border-t border-[var(--hairline)]">
           <div
-            class="p-4 bg-muted/20 border border-border/40 rounded-2xl flex items-start gap-3 transition-all group hover:bg-muted/30"
+            class="p-4 bg-muted/20 border border-[var(--hairline)] rounded-2xl flex items-start gap-3 transition-colors group hover:bg-muted/30"
           >
-            <div class="bg-primary/10 p-2 rounded-xl group-hover:scale-110 transition-transform">
+            <div class="p-2 rounded-[var(--radius-ctrl)]">
               <Palette :size="16" class="text-primary" />
             </div>
             <div class="space-y-1">
-              <div class="text-[0.65rem] font-black text-primary uppercase tracking-widest">
+              <div class="text-[11px] font-medium text-primary">
                 {{ t('tools.filters.realtimeTitle') }}
               </div>
               <p class="text-[0.65rem] text-muted-foreground leading-relaxed font-medium">
@@ -650,7 +650,7 @@ const handleCtaClick = async () => {
           v-model:format="outputFormat"
           v-model:quality="outputQuality"
           canvas-only
-          class="pt-6 border-t border-border/40"
+          class="pt-6 border-t border-[var(--hairline)]"
         />
       </template>
 
@@ -686,7 +686,7 @@ const handleCtaClick = async () => {
             <AlertCircle :size="24" />
           </div>
           <div>
-            <h3 class="text-lg font-black text-foreground mb-1 tracking-tight">
+            <h3 class="text-lg font-medium text-foreground mb-1">
               {{ t('common.image.toolbar.confirmReset') }}
             </h3>
             <p class="text-muted-foreground text-sm leading-relaxed font-medium">
@@ -705,11 +705,7 @@ const handleCtaClick = async () => {
           >
             {{ t('common.image.toolbar.cancel') }}
           </AppButton>
-          <AppButton
-            variant="danger"
-            class="flex-1 rounded-xl h-11 shadow-lg shadow-destructive/10"
-            @click="confirmResetFilters"
-          >
+          <AppButton variant="danger" class="flex-1 rounded-xl h-11" @click="confirmResetFilters">
             {{ t('common.image.toolbar.confirm') }}
           </AppButton>
         </div>

@@ -144,7 +144,7 @@ defineExpose({
           <!-- 核心操作提示 -->
           <div class="flex items-center gap-1.5 md:gap-2">
             <div
-              class="px-1.5 py-0.5 bg-primary/10 rounded border border-primary/20 text-[9px] md:text-[10px] font-black text-primary uppercase tracking-tighter shadow-sm"
+              class="px-1.5 py-0.5 bg-primary/10 rounded border border-primary/20 text-[9px] md:text-[10px] font-medium text-primary"
             >
               Space
             </div>
@@ -152,7 +152,7 @@ defineExpose({
 
             <!-- 操作图标 -->
             <div
-              class="p-1 md:p-1.5 bg-muted rounded-lg md:rounded-xl border border-border/40 text-foreground/80"
+              class="p-1 md:p-1.5 bg-muted rounded-lg md:rounded-xl border border-[var(--hairline)] text-foreground/80"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -178,10 +178,9 @@ defineExpose({
           <!-- 辅助文案 (仅宽屏可见) -->
           <div v-if="!isCompact" class="flex items-center gap-2">
             <div class="w-px h-4 bg-border/40"></div>
-            <span
-              class="text-[10px] md:text-xs text-foreground/60 font-black tracking-widest uppercase"
-              >{{ t('common.canvas.dragHint') }}</span
-            >
+            <span class="text-[11px] md:text-xs text-foreground/60 font-medium">{{
+              t('common.canvas.dragHint')
+            }}</span>
           </div>
         </div>
       </div>

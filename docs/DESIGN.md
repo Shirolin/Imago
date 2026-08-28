@@ -66,15 +66,17 @@ Imago 的首要目标是提供一个**完全在用户本地运行**的图片处�
 
 视觉令牌、禁区、签名动效以仓库根目录 [`DESIGN.md`](../DESIGN.md)（Imago · 暖纸）为唯一真源。本节不定义色相、圆角、字体或按钮心理模型，也不得覆盖根文件中的 hex。
 
-旧描述（薄荷绿 primary、琥珀橙 CTA、灯箱观察室、IBM Plex、双品牌色、同色系彩色投影、悬停抬起）作废。实现时读根目录 `DESIGN.md`，不要读本节当色板。
+旧描述（薄荷绿 primary、琥珀橙 CTA、灯箱观察室、IBM Plex、双品牌色、同色系彩色投影、悬停抬起、28px 纸井、12px 控件）作废。
 
-- 房间 `--paper`，纸板 `--board`，纸井 `--well`，唯一强调 `--accent`（陶土）。删除用 `--danger`。没有第二品牌色。
-- 栏不透明。禁止玻璃、blur、glow orb、彩色投影。纸板可用浅接触影。
-- 纸井 `--radius-well: 28px`。密控件 `--radius-ctrl: 12px`。不要把检查器按钮做成 32px 药丸。
-- 字体：字标和空态用 Noto Serif SC；控件和规格用 Noto Sans SC。禁止 Inter / Geist / Roboto / Arial / IBM Plex。
-- 主操作：`--accent` 实底，字色 `--board`。次操作：描边。Hover / press / focus 可见，不要抬起、不要 bounce。
-- 图落到纸井上：translateY 8px → 0 + 透明度，280ms ease-out。不要灯箱闪光。
-- 规格数字（KB、尺寸、比例）用 `tabular-nums` 与 Noto Sans SC，不要再引一套英文等宽当品牌。
+实现与审查样式时只读根目录 [`DESIGN.md`](../DESIGN.md)。本节不重复 token 表，不定义 hex、圆角或字体。
+
+**语义摘要（细节以根文件为准）**
+
+- 画布 `--paper`，侧栏/检查器 `--board`，纸井 `--well`，图卡片 `--product`，分割线 `--hairline`。
+- 唯一强调 `--accent`（珊瑚）。删除 `--danger`。无第二品牌色。
+- 对比全屏、SAM 编辑器等沉浸式视图可用 `--product` 暗面，不走玻璃和 blur。
+- 主操作为实底 accent。次操作为描边或 well 底。禁止 hover 抬起、bounce、控件大写 tracking。
+- 规格数字用 tabular 与 Noto Sans SC。
 
 ---
 

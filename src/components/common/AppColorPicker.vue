@@ -43,10 +43,7 @@ const isColorLight = computed(() => getBrightness(props.modelValue) > 180)
 
 <template>
   <div class="space-y-3">
-    <div
-      v-if="label"
-      class="text-[10px] font-black text-muted-foreground uppercase ml-1 tracking-widest"
-    >
+    <div v-if="label" class="text-[11px] font-medium text-muted-foreground ml-1">
       {{ label }}
     </div>
     <div class="flex items-center gap-2">
@@ -54,7 +51,7 @@ const isColorLight = computed(() => getBrightness(props.modelValue) > 180)
       <button
         v-if="showTransparent"
         @click="setFillColor('transparent')"
-        class="relative w-10 h-10 rounded-xl border-2 transition-all overflow-hidden hover:scale-110 active:scale-95 group shrink-0"
+        class="relative w-10 h-10 rounded-[var(--radius-ctrl)] border transition-colors overflow-hidden group shrink-0"
         :class="
           isTransparent
             ? 'border-primary ring-2 ring-primary/10'
@@ -101,7 +98,7 @@ const isColorLight = computed(() => getBrightness(props.modelValue) > 180)
           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
         />
         <div
-          class="w-full h-full rounded-xl border-2 flex items-center justify-center transition-all group-hover:scale-110 active:scale-95 overflow-hidden"
+          class="w-full h-full rounded-xl border-2 flex items-center justify-center transition-colors overflow-hidden"
           :style="{
             background:
               !isTransparent &&
@@ -114,7 +111,7 @@ const isColorLight = computed(() => getBrightness(props.modelValue) > 180)
             !isTransparent &&
             modelValue.toLowerCase() !== '#ffffff' &&
             modelValue.toLowerCase() !== '#000000'
-              ? 'border-primary shadow-[0_0_15px_hsla(var(--primary)/0.4)]'
+              ? 'border-primary'
               : 'border-border opacity-80'
           "
         >
