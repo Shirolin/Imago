@@ -1,9 +1,9 @@
 {
   "app": {
-    "localProcessing": "ローカル処理",
-    "privacyFirst": "プライバシー第一",
+    "localProcessing": "ローカル · 非アップロード",
+    "privacyFirst": "ローカル · 非アップロード",
     "processing": "処理中...",
-    "subtitle": "ミニマリストな画像処理ツール",
+    "subtitle": "暖紙",
     "title": "Imago"
   },
   "common": {
@@ -43,10 +43,10 @@
       "title": "書き出し設定",
       "width": "幅"
     },
-    "go": "今すぐ開始",
-    "heroDesc": "すべての画像処理はブラウザ内でローカルに完了し、ファイルがサーバーにアップロードされることはありません。真のオフライン生産性ツール。",
-    "heroTitle1": "シンプル、高速",
-    "heroTitle2": "プライバシー安全",
+    "go": "開く",
+    "heroDesc": "ドロップ、貼り付け、またはクリックでファイルを選びます。",
+    "heroTitle1": "暖紙",
+    "heroTitle2": "ローカル画像ワークベンチ",
     "history": {
       "redo": "やり直し",
       "undo": "元に戻す"
@@ -124,12 +124,12 @@
       "upload": {
         "button": "ファイルを選択",
         "dropTip": "離して処理を開始",
-        "dropToImago": "Imago にドロップ",
+        "dropToImago": "この紙に置く",
         "errorSize": "画像 [{name}] のサイズが大きすぎます ({size} MB)。最大 50 MB まで推奨します。",
-        "pureOffline": "100% オフライン",
+        "pureOffline": "ローカル · 非アップロード",
         "quickPaste": "クイック貼り付け",
-        "subtitle": "画像をドラッグ、クリック、または貼り付け · 100% プライバシー安全",
-        "title": "画像処理を開始"
+        "subtitle": "ドロップ、貼り付け、またはクリックして選択",
+        "title": "この紙に画像を置く"
       }
     },
     "modal": {
@@ -150,7 +150,7 @@
         "confirm": "抽出完了",
         "confirmTitle": "モデル使用の确认",
         "connecting": "AI エンジンに接続中...",
-        "downloadDesc1": "この機能には高性能 SAM-2 モデル (约 12 MB) のダウンロードが必要です。",
+        "downloadDesc1": "この機能には SAM-2 モデル (约 12 MB) のダウンロードが必要です。",
         "downloadDesc2": "ダウンロード後は完全にローカルで実行され、プライバシーが保护されます。",
         "downloadTitle": "対話型 AI 背景削除を有効化",
         "downloadSize": "45MB",
@@ -161,7 +161,7 @@
         "guide": "クリックまたはドラッグしてオブジェクトを追加し、Alt を押しながら領域を除外します。",
         "later": "後で",
         "leftClick": "左クリック",
-        "privacy": "プライバシー安全",
+        "privacy": "ローカル実行",
         "privacyDesc": "モデルはローカルで実行され、画像が外部に出ることはありません。",
         "readyTip": "エンジン准备完了。被写体を選択してください",
         "redo": "やり直し",
@@ -191,10 +191,10 @@
         "title": "Imago を支援する"
       }
     },
-    "pageTitleHome": "プライバシー優先、オフライン対応のミニマリスト画像ツール",
+    "pageTitleHome": "ローカル画像ワークベンチ",
     "processing": "処理中...",
     "ready": "准备完了",
-    "start": "クイックスタート",
+    "start": "開始",
     "theme": {
       "dark": "ダークモード",
       "light": "ライトモード",
@@ -255,7 +255,8 @@
     },
     "inspector": {
       "drawer": "インスペクターパネル（ドロワー）",
-      "sidebar": "インスペクターサイドバー"
+      "sidebar": "インスペクターサイドバー",
+      "spec": "仕様"
     }
   },
   "nav": {
@@ -263,9 +264,9 @@
     "collapse": "メニューを折りたたむ",
     "expand": "メニューを展開する",
     "groups": {
-      "core": "コアツール",
-      "creative": "クリエイティブツール",
-      "edit": "編集ツール"
+      "core": "処理",
+      "creative": "その他",
+      "edit": "キャンバス"
     },
     "language": "言語",
     "sponsor": "サポートとコミュニティ",
@@ -440,7 +441,7 @@
       "magnetic": "マグネットスナップ",
       "edgeTrim": "エッジトリミング",
       "empty": {
-        "desc": "画像をインポートして精密切り抜きを開始",
+        "desc": "画像を入れてこの紙の上で切り抜く",
         "title": "画像がありません"
       },
       "fillAll": "全体を表示",

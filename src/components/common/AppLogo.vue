@@ -4,7 +4,7 @@
     :height="size"
     viewBox="0 0 997.41826 1009.812"
     xmlns="http://www.w3.org/2000/svg"
-    class="imago-logo shrink-0 text-primary"
+    class="imago-logo shrink-0 text-[var(--accent)]"
     :aria-label="logoLabel"
     role="img"
   >
@@ -28,19 +28,5 @@ defineProps({
 })
 
 const { t } = useI18n()
-// 修复：原 aria-label/title 为编码损坏的乱码（mojibake），改为 i18n 文案
-const logoLabel = computed(() => `Imago - ${t('app.subtitle')}`)
+const logoLabel = computed(() => `Imago · ${t('app.subtitle')}`)
 </script>
-
-<style scoped>
-.imago-logo {
-  filter: drop-shadow(0 4px 12px rgba(var(--primary-rgb), 0.3));
-  transition:
-    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
-    filter 0.35s ease;
-}
-.imago-logo:hover {
-  transform: scale(1.1) rotate(-4deg);
-  filter: drop-shadow(0 8px 20px rgba(var(--primary-rgb), 0.45));
-}
-</style>

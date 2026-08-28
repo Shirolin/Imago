@@ -1,9 +1,9 @@
 {
   "app": {
-    "localProcessing": "本地處理",
-    "privacyFirst": "隱私至上",
+    "localProcessing": "本地 · 不上傳",
+    "privacyFirst": "本地 · 不上傳",
     "processing": "正在處理...",
-    "subtitle": "極簡、隱私、跨平台的本地圖片處理助手",
+    "subtitle": "暖紙",
     "title": "Imago"
   },
   "common": {
@@ -43,10 +43,10 @@
       "title": "匯出參數配置",
       "width": "像素寬度"
     },
-    "go": "立即體驗",
-    "heroDesc": "所有圖片處理均在瀏覽器本地完成，檔案無需上傳。真正私密、離線、高效的生產力工具。",
-    "heroTitle1": "化繁為簡",
-    "heroTitle2": "隱私無界",
+    "go": "打開",
+    "heroDesc": "拖入、貼上，或點這裡選檔案。處理在瀏覽器裡完成。",
+    "heroTitle1": "暖紙",
+    "heroTitle2": "本地圖片工作台",
     "history": {
       "redo": "重做",
       "undo": "復原"
@@ -122,14 +122,14 @@
         "resetAllAria": "將所有圖片還原至初始狀態"
       },
       "upload": {
-        "button": "選擇本地圖片",
-        "dropTip": "鬆開滑鼠開始處理",
-        "dropToImago": "拖放到 Imago",
+        "button": "選檔案",
+        "dropTip": "放開即可",
+        "dropToImago": "放到這張紙上",
         "errorSize": "檔案 [{name}] 體積過大 ({size} MB)，為了保證性能，建議處理 50 MB 以內的圖片。",
-        "pureOffline": "100% 離線處理",
+        "pureOffline": "本地 · 不上傳",
         "quickPaste": "貼上快捷匯入",
-        "subtitle": "拖拽、點擊或貼上圖片 · 數據不離身",
-        "title": "開啟您的專業圖片處理之旅"
+        "subtitle": "拖入、貼上，或點這裡選檔案",
+        "title": "把圖放到這張紙上"
       }
     },
     "modal": {
@@ -150,7 +150,7 @@
         "confirm": "完成提取",
         "confirmTitle": "模型激活確認",
         "connecting": "正在連接 AI 引擎...",
-        "downloadDesc1": "此功能需加載高性能 SAM2 AI 模型 (約 12 MB)。",
+        "downloadDesc1": "此功能需加載 SAM2 模型 (約 12 MB)。",
         "downloadDesc2": "模型將完全在您的設備上運行，確保隱私安全。",
         "downloadTitle": "激活交互式智慧去背",
         "downloadSize": "45MB",
@@ -161,7 +161,7 @@
         "guide": "點擊或框選以添加對象，按住 Alt 排除區域。",
         "later": "暫不使用",
         "leftClick": "左鍵點擊",
-        "privacy": "隱私至上",
+        "privacy": "本地執行",
         "privacyDesc": "算法在本地執行，圖片絕不上傳。",
         "readyTip": "引擎已就緒，請點擊圖像選擇主體",
         "redo": "重做",
@@ -191,10 +191,10 @@
         "title": "贊助支援"
       }
     },
-    "pageTitleHome": "隱私、安全、高性能的本地圖片處理套件",
+    "pageTitleHome": "本地圖片工作台",
     "processing": "正在處理...",
     "ready": "已就緒",
-    "start": "即刻體驗",
+    "start": "開始",
     "theme": {
       "dark": "深色模式",
       "light": "淺色模式",
@@ -255,7 +255,8 @@
     },
     "inspector": {
       "drawer": "設置面板抽屜",
-      "sidebar": "設置側邊欄"
+      "sidebar": "設置側邊欄",
+      "spec": "規格"
     }
   },
   "nav": {
@@ -263,9 +264,9 @@
     "collapse": "折疊導覽",
     "expand": "展開導覽",
     "groups": {
-      "core": "核心能力",
-      "creative": "創意工坊",
-      "edit": "精修編輯"
+      "core": "處理",
+      "creative": "其他",
+      "edit": "畫布"
     },
     "language": "語言",
     "sponsor": "社群與支援",
@@ -323,7 +324,7 @@
       "modelLoading": "模型載入中...",
       "modelReady": "模型已就緒",
       "modelStatus": "演算法模型狀態",
-      "name": "智慧去背",
+      "name": "去底",
       "offset": "邊緣收縮",
       "offsetDesc": "微調去背邊緣的內外偏移。",
       "pro": "專業版",
@@ -380,7 +381,7 @@
       "dirVertical": "垂直分佈",
       "direction": "主軸方向",
       "empty": {
-        "desc": "匯入至少兩張圖片以開啟拼接魔法",
+        "desc": "匯入至少兩張圖片再拼接",
         "title": "列表空空如也"
       },
       "end": "末尾對齊",
@@ -392,7 +393,7 @@
         "moved": "已將圖片從位置 {from} 移動至 {to}",
         "removed": "已移除圖片 {name}"
       },
-      "name": "長圖拼接",
+      "name": "拼接",
       "order": "拼接排序",
       "originalFormatHint": "「保持原始格式」在拼接中將統一輸出 PNG（支援透明通道）",
       "originalSize": "保持原始比例",
@@ -418,9 +419,9 @@
       },
       "desc": "極致壓縮演算法，支援 WebP / AVIF 格式轉換",
       "gifHint": "GIF 圖片將取首幀轉為靜態圖",
-      "infoTip": "採用現代化 Web 圖像演算法，能在保證肉眼無法識別損失的前提下，極大程度壓縮體積。",
+      "infoTip": "採用 Web 圖像演算法，能在保證肉眼無法識別損失的前提下，極大程度壓縮體積。",
       "maxDimensionHint": "未設定解析度上限時，預設以 {limit}px 長邊為限",
-      "name": "壓縮轉換",
+      "name": "壓縮",
       "original": "原始圖像",
       "settingsTitle": "高級壓縮配置",
       "title": "圖像極致壓縮與格式轉換 - 100% 隱私安全"
@@ -440,7 +441,7 @@
       "magnetic": "磁性吸附",
       "edgeTrim": "邊緣精準修剪",
       "empty": {
-        "desc": "匯入圖片以開啟精準裁剪之旅",
+        "desc": "匯入圖片後在這張紙上裁剪",
         "title": "暫無待處理圖片"
       },
       "fillAll": "自適應填充",
@@ -455,7 +456,7 @@
       "height": "高度 (px)",
       "history": "操作記錄",
       "lockRatio": "鎖定當前比例",
-      "name": "圖像裁剪",
+      "name": "裁剪",
       "noGrid": "隱藏參考線",
       "posX": "水平偏移 (X)",
       "posY": "垂直偏移 (Y)",
@@ -501,7 +502,7 @@
         "software": "後期編輯軟體",
         "time": "拍攝與創作時間"
       },
-      "name": "隱私脫敏",
+      "name": "EXIF",
       "privacyList": "檢測到的隱私項",
       "riskCount": "發現 {count} 處潛在隱私風險",
       "riskDetail": "包含 {count} 項敏感標籤",
@@ -533,7 +534,7 @@
       "maskableLabel": "Maskable",
       "matrixTitle": "資源規格矩陣",
       "mockup": "真實環境模擬",
-      "name": "站標生成",
+      "name": "站標",
       "newTab": "瀏覽器標籤頁預覽",
       "outputSize": "輸出尺寸: {width} × {height} PX",
       "rotateShape": "切換預覽形狀",
@@ -584,7 +585,7 @@
       },
       "desc": "內建專業級電影感濾鏡與色彩微調工具",
       "fineAdjustment": "色彩精準微調",
-      "name": "色彩濾鏡",
+      "name": "濾鏡",
       "presets": {
         "aden": "淺夢",
         "clarendon": "經典冷調",
@@ -621,7 +622,7 @@
       "height": "圖像高度",
       "heightUnit": "高",
       "lockAspectRatio": "維持縱橫比",
-      "name": "尺寸調整",
+      "name": "尺寸",
       "resetDimensions": "還原原始尺寸",
       "resizeMode": "重調模式",
       "scaleRatio": "縮放百分比",
@@ -685,7 +686,7 @@
         "resetToGrid": "輔助線已基於網格參數重新計算",
         "switchedToFree": "現已切換至手動自由切分模式"
       },
-      "name": "網格切圖",
+      "name": "分割",
       "restoreDefaultView": "重置預覽視角",
       "shave": "邊緣微量收縮 (Shave)",
       "square": "正方形畫幅",

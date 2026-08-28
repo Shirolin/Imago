@@ -18,30 +18,30 @@ const handleZoom100 = () => emit('zoom100')
 
 <template>
   <div
-    class="flex items-center gap-1 p-1 bg-background/90 backdrop-blur border border-border/60 rounded-2xl shadow-lg"
+    class="flex items-center gap-1 p-1 bg-[var(--chrome)] border border-[color-mix(in_srgb,var(--ink)_12%,transparent)] rounded-[var(--radius)]"
   >
     <button
       @click="handleZoomOut"
       :aria-label="t('common.ui.zoomOut')"
-      class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted active:scale-90 transition-all"
+      class="w-8 h-8 flex items-center justify-center rounded-[var(--radius)] text-[var(--ink)] hover:bg-secondary outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
     >
       <ZoomOut :size="16" />
     </button>
-    <div class="px-2 min-w-[50px] text-center font-mono text-[10px] font-bold">
+    <div class="px-2 min-w-[50px] text-center text-[10px] tabular-nums text-[var(--ink)]">
       {{ Math.round(props.scale * 100) }}%
     </div>
     <button
       @click="handleZoomIn"
       :aria-label="t('common.ui.zoomIn')"
-      class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted active:scale-90 transition-all"
+      class="w-8 h-8 flex items-center justify-center rounded-[var(--radius)] text-[var(--ink)] hover:bg-secondary outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
     >
       <ZoomIn :size="16" />
     </button>
-    <div class="w-px h-4 bg-border/20 mx-1"></div>
+    <div class="w-px h-4 bg-[color-mix(in_srgb,var(--ink)_12%,transparent)] mx-1"></div>
     <button
       @click="handleZoom100"
       :aria-label="t('common.ui.oneToOne')"
-      class="h-9 px-3 rounded-xl hover:bg-muted text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all"
+      class="h-8 px-3 rounded-[var(--radius-ctrl)] hover:bg-secondary text-[10px] tabular-nums text-[var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
     >
       1:1
     </button>
@@ -49,7 +49,7 @@ const handleZoom100 = () => emit('zoom100')
       @click="handleReset"
       :aria-label="t('common.ui.fitScreen')"
       :title="t('common.ui.fitScreen')"
-      class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-primary/10 text-primary active:scale-90 transition-all"
+      class="w-8 h-8 flex items-center justify-center rounded-[var(--radius)] text-[var(--accent)] hover:bg-secondary outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
     >
       <Maximize :size="16" />
     </button>

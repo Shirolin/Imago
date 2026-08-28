@@ -6,7 +6,6 @@ import {
   Minimize2,
   Maximize2,
   Scissors,
-  Settings2,
   Trash2,
   Split,
   Layers,
@@ -19,13 +18,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Box,
-  Sparkles,
   Heart,
-  MousePointer2
+  Eraser
 } from 'lucide-vue-next'
 import { useImageStore } from './stores/imageStore'
 import { useLayoutStore } from './stores/layoutStore'
-import AppLogo from './components/common/AppLogo.vue'
 import SponsorModal from './components/SponsorModal.vue'
 import LanguageSwitcher from './components/common/LanguageSwitcher.vue'
 
@@ -35,7 +32,7 @@ const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 
-const theme = ref<'light' | 'dark' | 'system'>('system')
+const theme = ref<'light' | 'dark' | 'system'>('light')
 
 const isMobileSidebarOpen = ref(false)
 const showSponsorModal = ref(false)
@@ -102,8 +99,6 @@ const handleFiles = (files: FileList | File[]) => {
 
   if (validFiles.length > 0) {
     store.addImages(validFiles)
-    // 首页（工具导航页）无图片工作区：收到拖入/粘贴的图片后自动跳入核心工具，
-    // 避免图片被加入 store 却无任何可见入口（流程断裂）
     if (route.name === 'home') {
       router.push('/compress')
     }
@@ -181,31 +176,31 @@ const menuGroups = computed(() => [
     label: t('nav.groups.core'),
     items: [
       { name: t('tools.compress.name'), path: '/compress', icon: Minimize2 },
-      { name: t('tools.resize.name'), path: '/resize', icon: Maximize2 }
+      { name: t('tools.resize.name'), path: '/resize', icon: Maximize2 },
+      { name: t('tools.crop.name'), path: '/crop', icon: Scissors },
+      { name: t('tools.exif.name'), path: '/exif', icon: Trash2 }
     ]
   },
   {
     label: t('nav.groups.edit'),
     items: [
-      { name: t('tools.crop.name'), path: '/crop', icon: Scissors },
       { name: t('tools.split.name'), path: '/split', icon: Split },
-      { name: t('tools.exif.name'), path: '/exif', icon: Trash2 }
+      { name: t('tools.combine.name'), path: '/combine', icon: Layers }
     ]
   },
   {
     label: t('nav.groups.creative'),
     items: [
-      { name: t('tools.favicon.name'), path: '/favicon', icon: Box },
-      { name: t('tools.combine.name'), path: '/combine', icon: Layers },
-      { name: t('tools.bgRemove.name'), path: '/bg-remove', icon: Sparkles },
-      { name: t('tools.filters.name'), path: '/filters', icon: Palette }
+      { name: t('tools.bgRemove.name'), path: '/bg-remove', icon: Eraser },
+      { name: t('tools.filters.name'), path: '/filters', icon: Palette },
+      { name: t('tools.favicon.name'), path: '/favicon', icon: Box }
     ]
   }
 ])
 
 const currentRouteName = computed(() => {
   const routeName = route.name as string
-  if (routeName === 'home') return t('nav.allTools')
+  if (routeName === 'home') return t('app.subtitle')
   const toolKey = [
     'compress',
     'resize',
@@ -220,184 +215,134 @@ const currentRouteName = computed(() => {
   if (toolKey) return t(`tools.${toolKey}.name`)
   return routeName || t('nav.allTools')
 })
+
+const navItemClass = (active: boolean, collapsed: boolean) => {
+  const base =
+    'flex items-center text-sm transition-colors duration-150 group relative shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]'
+  const pad = collapsed
+    ? 'md:justify-center min-h-[40px] md:h-10 md:w-10 md:mx-auto px-3 py-2 gap-2 rounded-[var(--radius-ctrl)]'
+    : 'px-3 py-2 min-h-[40px] gap-2 rounded-[var(--radius-ctrl)]'
+  const state = active
+    ? 'bg-[var(--well)] text-[var(--ink)]'
+    : 'text-[var(--muted)] hover:bg-[var(--well)] hover:text-[var(--ink)]'
+  return `${base} ${pad} ${state}`
+}
 </script>
 
 <template>
   <div
-    class="flex h-[100dvh] w-full overflow-hidden relative bg-background text-foreground antialiased transition-colors duration-300"
+    class="flex h-[100dvh] w-full overflow-hidden relative bg-[var(--paper)] text-[var(--ink)] antialiased"
   >
-    <!-- 全局拖拽覆盖层 (Delight Overlay) -->
-    <Transition
-      enter-active-class="transition duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]"
-      enter-from-class="opacity-0 scale-95"
-      enter-to-class="opacity-100 scale-100"
-      leave-active-class="transition duration-200 ease-in"
-      leave-from-class="opacity-100 scale-100"
-      leave-to-class="opacity-0 scale-105"
+    <div
+      v-if="isGlobalDragging"
+      class="fixed inset-0 z-[9999] pointer-events-none flex items-center justify-center"
     >
-      <div
-        v-if="isGlobalDragging"
-        class="fixed inset-4 bg-primary/20 backdrop-blur-xl z-[9999] flex items-center justify-center border-2 border-dashed border-primary/40 rounded-[2.5rem] pointer-events-none shadow-[0_0_80px_-20px_rgba(var(--primary-rgb),0.3)]"
+      <p
+        class="text-[var(--ink)] text-sm font-medium bg-[var(--well)] px-4 py-2 rounded-[var(--radius-ctrl)]"
       >
-        <div
-          class="flex flex-col items-center gap-8 text-primary animate-in fade-in slide-in-from-bottom-4 duration-500"
-        >
-          <div class="relative">
-            <div class="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse"></div>
-            <MousePointer2 :size="64" class="relative z-10 animate-bounce" stroke-width="2.5" />
-          </div>
-          <div class="flex flex-col items-center gap-2">
-            <span class="font-black text-3xl md:text-4xl tracking-tighter uppercase">{{
-              t('common.image.upload.dropToImago')
-            }}</span>
-            <p class="text-primary/70 font-bold text-sm tracking-[0.2em] uppercase">
-              {{ t('common.image.upload.dropTip') }}
-            </p>
-          </div>
-        </div>
-      </div>
-    </Transition>
+        {{ t('common.image.upload.dropToImago') }}
+      </p>
+    </div>
 
     <div
       v-show="isMobileSidebarOpen"
       @click="closeMobileSidebar"
-      class="fixed inset-0 bg-background/20 backdrop-blur-md z-[90] md:hidden"
+      class="fixed inset-0 bg-[var(--paper)]/70 z-[90] md:hidden"
     ></div>
 
-    <!-- Sidebar (Menu) -->
     <aside
-      class="bg-card/95 backdrop-blur-2xl border-r border-border flex flex-col z-[100] transition-all duration-300 ease-in-out md:static fixed inset-y-0 left-0 pt-[env(safe-area-inset-top,8px)] md:pt-0"
+      class="imago-board border-r border-[color-mix(in_srgb,var(--ink)_8%,transparent)] flex flex-col z-[100] transition-all duration-200 ease-out md:static fixed inset-y-0 left-0 pt-[env(safe-area-inset-top,8px)] md:pt-0"
       :class="[
-        isMobileSidebarOpen
-          ? 'translate-x-0 shadow-2xl w-[280px]'
-          : '-translate-x-full md:translate-x-0',
-        layoutStore.isMenuCollapsed ? 'md:w-[72px]' : 'md:w-[280px]'
+        isMobileSidebarOpen ? 'translate-x-0 w-[240px]' : '-translate-x-full md:translate-x-0',
+        layoutStore.isMenuCollapsed ? 'md:w-[64px]' : 'md:w-[220px]'
       ]"
     >
       <div
-        class="transition-all duration-300 overflow-hidden flex-shrink-0 flex flex-col"
-        :style="!layoutStore.isMenuCollapsed ? 'scrollbar-gutter: stable' : ''"
+        class="overflow-hidden flex-shrink-0 flex flex-col"
         :class="[
           layoutStore.isMenuCollapsed
-            ? 'md:w-[72px] md:p-0 md:pt-5 md:pb-4 md:items-center p-6 pb-8 pl-3.5 pr-4'
-            : 'p-6 pb-8 pl-3.5 pr-4'
+            ? 'md:w-[64px] md:p-0 md:pt-4 md:pb-3 md:items-center p-4 pb-4'
+            : 'p-4 pb-3'
         ]"
       >
         <router-link
           to="/"
           @click="closeMobileSidebar"
-          class="flex items-center hover:opacity-90 transition-all active:scale-95 duration-200"
-          :class="
-            layoutStore.isMenuCollapsed ? 'md:justify-center w-full gap-4 md:gap-0' : 'gap-3.5'
-          "
+          class="flex items-center outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-[var(--radius-ctrl)]"
+          :class="layoutStore.isMenuCollapsed ? 'md:justify-center w-full gap-3 md:gap-0' : 'gap-2'"
         >
-          <AppLogo :size="layoutStore.isMenuCollapsed ? 36 : 42" />
-
-          <transition name="fade">
-            <div
-              v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-              class="flex flex-col justify-center translate-y-[1px]"
-              :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
+          <div
+            v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
+            class="flex flex-col min-w-0"
+            :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
+          >
+            <span
+              class="imago-serif text-[22px] font-semibold leading-none tracking-tight text-[var(--ink)]"
+              >Imago</span
             >
-              <h1
-                class="text-[28px] font-black tracking-tighter whitespace-nowrap leading-none pb-1"
-              >
-                <span class="text-primary">imago</span>
-              </h1>
-              <span
-                class="text-[11px] font-extrabold text-primary/60 tracking-widest leading-snug mt-1 ml-[2px] line-clamp-2"
-              >
-                {{ t('app.subtitle') }}
-              </span>
-            </div>
-          </transition>
+            <span class="mt-1 text-[10px] font-medium tracking-[0.16em] text-[var(--muted)]">{{
+              t('app.subtitle')
+            }}</span>
+          </div>
+          <span
+            v-else
+            class="imago-serif hidden md:inline text-[18px] font-semibold text-[var(--ink)]"
+            aria-hidden="true"
+            >I</span
+          >
         </router-link>
       </div>
 
       <nav
-        class="flex-1 min-h-0 overflow-y-auto flex flex-col custom-scrollbar overflow-x-hidden pb-10 transition-all duration-300 pt-3"
-        :style="!layoutStore.isMenuCollapsed ? 'scrollbar-gutter: stable' : ''"
-        :class="[
-          layoutStore.isMenuCollapsed
-            ? 'md:px-0 md:items-start gap-1 pl-3.5 pr-4'
-            : 'pl-3.5 pr-4 gap-1.5'
-        ]"
+        class="flex-1 min-h-0 overflow-y-auto flex flex-col custom-scrollbar overflow-x-hidden pb-6 pt-1"
+        :class="
+          layoutStore.isMenuCollapsed ? 'md:px-2 md:items-start gap-0.5 px-3' : 'px-3 gap-0.5'
+        "
       >
-        <router-link
-          to="/"
-          class="flex items-center font-bold text-sm transition-all duration-300 group relative overflow-hidden shrink-0"
-          :class="[
-            $route.path === '/'
-              ? 'bg-card text-primary shadow-sm ring-1 ring-primary/20 shadow-inner-glow'
-              : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
-            layoutStore.isMenuCollapsed && !isMobileSidebarOpen
-              ? 'md:justify-center min-h-[44px] md:h-11 md:w-11 md:mx-auto md:rounded-xl px-4 py-3 gap-2.5 rounded-xl'
-              : 'px-4 py-3 min-h-[44px] gap-2.5 rounded-xl active:bg-primary/5 active:scale-[0.98]'
-          ]"
-          :title="layoutStore.isMenuCollapsed ? t('nav.allTools') : ''"
-          @click="closeMobileSidebar"
-        >
-          <Settings2
-            :size="layoutStore.isMenuCollapsed ? 20 : 18"
-            :class="{ 'scale-110': $route.path === '/' }"
-            class="transition-transform duration-300 shrink-0 group-hover:translate-x-0.5"
-          />
-          <span
-            v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-            class="whitespace-nowrap transition-transform duration-300 group-hover:translate-x-0.5"
-            :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
-            >{{ t('nav.allTools') }}</span
-          >
-        </router-link>
-
         <div
           v-for="group in menuGroups"
           :key="group.label"
-          class="flex flex-col transition-all duration-300"
+          class="flex flex-col"
           :class="[
             layoutStore.isMenuCollapsed && !isMobileSidebarOpen
-              ? 'md:w-[72px] mt-1 gap-1 md:items-center w-full'
-              : 'w-full mt-9 gap-1'
+              ? 'md:w-[64px] mt-1 gap-0.5 md:items-center w-full'
+              : 'w-full mt-5 first:mt-1 gap-0.5'
           ]"
         >
           <div
             v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-            class="text-[11px] font-bold uppercase text-muted-foreground/40 tracking-[0.15em] mb-2 ml-3.5 whitespace-nowrap"
+            class="text-[11px] font-medium text-[var(--muted)] mb-1 ml-3 whitespace-nowrap"
             :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
           >
             {{ group.label }}
           </div>
           <div
             v-else-if="!isMobileSidebarOpen"
-            class="h-px bg-border/40 my-2 w-6 mx-auto rounded-full"
+            class="h-px bg-[color-mix(in_srgb,var(--ink)_10%,transparent)] my-2 w-6 mx-auto"
           ></div>
 
           <router-link
             v-for="item in group.items"
             :key="item.path"
             :to="item.path"
-            class="flex items-center font-bold text-sm transition-all duration-300 group relative overflow-hidden shrink-0"
-            :class="[
-              $route.path === item.path
-                ? 'bg-card text-primary shadow-sm ring-1 ring-primary/20 shadow-inner-glow'
-                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
-              layoutStore.isMenuCollapsed && !isMobileSidebarOpen
-                ? 'md:justify-center min-h-[44px] md:h-11 md:w-11 md:mx-auto md:rounded-xl px-4 py-3 gap-2.5 rounded-xl'
-                : 'px-4 py-3 min-h-[44px] gap-2.5 rounded-xl active:bg-primary/5 active:scale-[0.98]'
-            ]"
+            :class="
+              navItemClass(
+                $route.path === item.path,
+                layoutStore.isMenuCollapsed && !isMobileSidebarOpen
+              )
+            "
             :title="layoutStore.isMenuCollapsed ? item.name : ''"
             @click="closeMobileSidebar"
           >
             <component
               :is="item.icon"
-              :size="layoutStore.isMenuCollapsed && !isMobileSidebarOpen ? 20 : 18"
-              :class="{ 'scale-110': $route.path === item.path }"
-              class="transition-transform duration-300 shrink-0 group-hover:translate-x-0.5"
+              :size="layoutStore.isMenuCollapsed && !isMobileSidebarOpen ? 18 : 16"
+              class="shrink-0"
             />
             <span
               v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
               :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
-              class="whitespace-nowrap transition-transform duration-300 group-hover:translate-x-0.5"
+              class="whitespace-nowrap"
               >{{ item.name }}</span
             >
           </router-link>
@@ -405,45 +350,33 @@ const currentRouteName = computed(() => {
       </nav>
 
       <div
-        class="flex border-t border-border/40 shrink-0 bg-card/50 backdrop-blur-md transition-all duration-300 px-6 md:px-3.5 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]"
+        class="flex border-t border-[color-mix(in_srgb,var(--ink)_8%,transparent)] shrink-0 px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]"
         :class="[
           layoutStore.isMenuCollapsed && !isMobileSidebarOpen
-            ? 'flex-col items-center gap-5'
-            : 'flex-row items-center justify-center gap-8 md:justify-start md:gap-1.5'
+            ? 'flex-col items-center gap-2'
+            : 'flex-row items-center justify-center gap-1 md:justify-start'
         ]"
       >
         <LanguageSwitcher />
 
         <button
           @click="showSponsorModal = true"
-          class="flex items-center justify-center w-11 h-11 rounded-xl text-muted-foreground/60 hover:text-rose-500 hover:bg-rose-500/5 transition-all active:scale-[0.94] group shrink-0"
+          class="flex items-center justify-center w-9 h-9 rounded-[var(--radius)] text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] transition-colors shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           :title="t('nav.sponsor')"
           :aria-label="t('nav.sponsor')"
         >
-          <Heart :size="18" class="group-hover:scale-110 transition-transform" />
+          <Heart :size="16" />
         </button>
 
         <button
           @click="toggleTheme"
-          class="flex items-center justify-center w-11 h-11 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all active:scale-[0.94] group shrink-0"
+          class="flex items-center justify-center w-9 h-9 rounded-[var(--radius)] text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] transition-colors shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           :title="t('common.theme.' + theme)"
           :aria-label="t('common.theme.' + theme)"
         >
-          <transition name="theme-spin" mode="out-in">
-            <Sun
-              v-if="theme === 'light'"
-              :key="'sun'"
-              :size="18"
-              class="group-hover:rotate-45 transition-transform"
-            />
-            <Moon
-              v-else-if="theme === 'dark'"
-              :key="'moon'"
-              :size="18"
-              class="group-hover:-rotate-12 transition-transform"
-            />
-            <Monitor v-else :key="'monitor'" :size="18" />
-          </transition>
+          <Sun v-if="theme === 'light'" :size="16" />
+          <Moon v-else-if="theme === 'dark'" :size="16" />
+          <Monitor v-else :size="16" />
         </button>
 
         <div
@@ -453,87 +386,64 @@ const currentRouteName = computed(() => {
 
         <button
           @click="layoutStore.toggleMenu"
-          class="hidden md:flex items-center justify-center w-10 h-10 rounded-xl bg-muted/40 hover:bg-primary/10 hover:text-primary transition-all text-muted-foreground active:scale-[0.94] group shrink-0"
+          class="hidden md:flex items-center justify-center w-9 h-9 rounded-[var(--radius)] text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] transition-colors shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           :title="layoutStore.isMenuCollapsed ? t('nav.expand') : t('nav.collapse')"
           :aria-label="layoutStore.isMenuCollapsed ? t('nav.expand') : t('nav.collapse')"
         >
-          <ChevronRight
-            v-if="layoutStore.isMenuCollapsed"
-            :size="18"
-            class="group-hover:translate-x-0.5 transition-transform"
-          />
-          <ChevronLeft
-            v-else
-            :size="18"
-            class="group-hover:-translate-x-0.5 transition-transform"
-          />
+          <ChevronRight v-if="layoutStore.isMenuCollapsed" :size="16" />
+          <ChevronLeft v-else :size="16" />
         </button>
       </div>
     </aside>
 
     <div
-      class="absolute top-0 left-0 right-0 h-[3px] z-50 pointer-events-none"
+      class="absolute top-0 left-0 right-0 h-[2px] z-50 pointer-events-none"
       v-if="store.processingCount > 0"
     >
       <div
-        class="h-full bg-primary transition-transform duration-300 ease-out origin-left"
+        class="h-full bg-[var(--accent)] transition-transform duration-300 ease-out origin-left"
         :style="{ transform: `scaleX(${store.globalProgress / 100})` }"
       ></div>
     </div>
 
-    <main class="flex-1 min-h-0 flex flex-col relative z-20">
+    <main class="flex-1 min-h-0 flex flex-col relative z-20 bg-[var(--paper)]">
       <header
-        class="shrink-0 flex items-center justify-between px-4 md:px-6 bg-background/80 backdrop-blur-xl shadow-[0_1px_0_0_rgba(0,0,0,0.05)] shadow-inner-glow z-50 md:z-[110] sticky top-0 h-14 transition-all duration-300"
+        class="shrink-0 flex items-center justify-between px-3 md:px-4 bg-[var(--paper)] z-50 md:z-[110] h-11"
       >
-        <!-- Left: Identity & Context -->
-        <div class="flex items-center gap-3 flex-none min-w-0 z-20">
+        <div class="flex items-center gap-2 flex-none min-w-0 z-20">
           <button
-            class="md:hidden text-foreground hover:text-primary p-2 -ml-2 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg shrink-0"
+            class="md:hidden text-[var(--ink)] hover:text-[var(--accent)] p-2 -ml-1 transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-[var(--radius)] shrink-0"
             :aria-label="t('nav.toggleMobile')"
             @click="toggleMobileSidebar"
           >
-            <Menu :size="20" />
+            <Menu :size="18" />
           </button>
 
           <div class="flex items-center gap-3 min-w-0">
-            <div
-              class="relative h-8 flex items-center bg-primary/10 border border-primary/20 rounded-full text-[0.7rem] font-bold text-primary uppercase tracking-[0.1em] shadow-sm px-4 whitespace-nowrap shrink-0 transition-all overflow-hidden"
-            >
-              <div
-                class="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent -translate-x-full animate-[shimmer_3s_infinite]"
-              ></div>
-              <span class="relative z-10">{{ currentRouteName }}</span>
-            </div>
-            <!-- Teleport target for header-left (e.g. ImageSelectionStatus) -->
+            <span class="text-[13px] font-medium text-[var(--ink)] whitespace-nowrap">{{
+              currentRouteName
+            }}</span>
             <div id="top-bar-left" class="hidden sm:flex items-center min-w-0"></div>
           </div>
         </div>
 
-        <!-- Right Action Cluster (Center + Right Teleports) -->
-        <div class="flex-1 flex items-center justify-end gap-2 md:gap-4 min-w-0 z-20 pl-4">
-          <!-- Center Tools: Pushed to right for better accessibility -->
+        <div class="flex-1 flex items-center justify-end gap-2 min-w-0 z-20 pl-3">
           <div
             id="top-bar-center"
             class="flex items-center justify-end overflow-x-auto no-scrollbar min-w-0"
           ></div>
 
-          <!-- Status & Global Actions -->
           <div
-            class="flex items-center gap-2.5 text-[0.65rem] font-bold text-primary/70 bg-primary/5 border border-primary/10 px-3 py-1.5 rounded-full hidden xl:flex transition-all shrink-0"
+            class="flex items-center gap-2 text-[11px] font-medium text-[var(--muted)] hidden xl:flex shrink-0 tabular-nums"
           >
-            <span
-              v-if="store.processingCount === 0"
-              class="w-1.5 h-1.5 rounded-full bg-primary/70"
-            ></span>
-            <Loader2 v-else class="animate-spin" :size="10" />
+            <Loader2 v-if="store.processingCount > 0" class="animate-spin" :size="10" />
             <span v-if="store.processingCount === 0">{{ t('app.localProcessing') }}</span>
             <span v-else>{{ t('app.processing') }} ({{ store.globalProgress }}%)</span>
           </div>
 
-          <!-- Teleport target with dynamic divider -->
           <div
             id="top-bar-right"
-            class="flex items-center gap-2 shrink-0 has-[:any-link]:border-l has-[:enabled]:border-l has-[button]:border-l border-border/40 pl-2 md:pl-4 transition-all"
+            class="flex items-center gap-2 shrink-0 has-[:any-link]:border-l has-[:enabled]:border-l has-[button]:border-l border-[color-mix(in_srgb,var(--ink)_10%,transparent)] pl-2 md:pl-3"
           ></div>
         </div>
       </header>
@@ -547,8 +457,8 @@ const currentRouteName = computed(() => {
                   <component :is="Component" />
                 </template>
                 <template #fallback>
-                  <div class="h-full w-full flex items-center justify-center">
-                    <Loader2 class="animate-spin text-primary/10" :size="32" />
+                  <div class="h-full w-full flex items-center justify-center bg-[var(--paper)]">
+                    <Loader2 class="animate-spin text-[var(--accent)]" :size="24" />
                   </div>
                 </template>
               </suspense>
@@ -560,7 +470,6 @@ const currentRouteName = computed(() => {
 
     <SponsorModal :show="showSponsorModal" @close="showSponsorModal = false" />
 
-    <!-- 全局隐藏导入控件 -->
     <input
       id="global-file-input"
       type="file"
@@ -573,32 +482,9 @@ const currentRouteName = computed(() => {
 </template>
 
 <style>
-/* 主题切换旋转缩放动效 */
-.theme-spin-enter-active,
-.theme-spin-leave-active {
-  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.theme-spin-enter-from {
-  opacity: 0;
-  transform: rotate(-90deg) scale(0.5);
-}
-
-.theme-spin-leave-to {
-  opacity: 0;
-  transform: rotate(90deg) scale(0.5);
-}
-
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-/* 文字淡入淡出 */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity 0.15s ease-out;
 }
 
 .fade-enter-from,
@@ -606,24 +492,13 @@ const currentRouteName = computed(() => {
   opacity: 0;
 }
 
-/* 页面路由切换动画 */
 .page-fade-enter-active,
 .page-fade-leave-active {
-  transition:
-    opacity 0.4s cubic-bezier(0.32, 0.72, 0, 1),
-    transform 0.4s cubic-bezier(0.32, 0.72, 0, 1),
-    filter 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: opacity 0.15s ease-out;
 }
 
-.page-fade-enter-from {
-  opacity: 0;
-  transform: scale(0.98) translateY(10px);
-  filter: blur(4px);
-}
-
+.page-fade-enter-from,
 .page-fade-leave-to {
   opacity: 0;
-  transform: scale(1.02) translateY(-10px);
-  filter: blur(4px);
 }
 </style>

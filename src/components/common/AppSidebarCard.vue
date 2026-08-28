@@ -12,21 +12,18 @@ const props = withDefaults(defineProps<Props>(), {
 const variantClasses = computed(() => {
   switch (props.variant) {
     case 'primary':
-      return 'bg-primary/5 border-primary/20 shadow-sm shadow-primary/5 shadow-inner-glow'
+      return 'bg-[color-mix(in_srgb,var(--accent)_12%,var(--chrome))] border-[color-mix(in_srgb,var(--accent)_35%,transparent)]'
     case 'muted':
-      return 'bg-muted/5 border-border/40 shadow-inner-glow'
+      return 'bg-transparent border-[color-mix(in_srgb,var(--ink)_10%,transparent)]'
     case 'default':
     default:
-      return 'bg-card border-border/60 shadow-sm shadow-inner-glow hover:border-primary/20 hover:shadow-md transition-all duration-300'
+      return 'bg-transparent border-[color-mix(in_srgb,var(--ink)_10%,transparent)]'
   }
 })
 </script>
 
 <template>
-  <div
-    class="rounded-2xl p-4 md:p-5 border transition-all duration-300 overflow-hidden"
-    :class="variantClasses"
-  >
+  <div class="rounded-[var(--radius)] p-3 border overflow-hidden" :class="variantClasses">
     <slot></slot>
   </div>
 </template>

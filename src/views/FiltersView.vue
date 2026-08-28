@@ -16,7 +16,7 @@ import AppExportSettings from '../components/common/AppExportSettings.vue'
 import AppModal from '../components/common/AppModal.vue'
 import {
   Settings2,
-  Sparkles,
+  Palette,
   Sun,
   Contrast,
   Droplets,
@@ -333,11 +333,11 @@ watch(
 
 const ctaState = computed(() => {
   if (store.selectedCount === 0)
-    return { text: t('tools.filters.cta.select'), icon: Sparkles, action: 'none', disabled: true }
+    return { text: t('tools.filters.cta.select'), icon: Palette, action: 'none', disabled: true }
   if (isProcessing.value)
     return {
       text: `${t('tools.filters.cta.rendering')} ${t('tools.split.cta.clickToAbort')}`,
-      icon: Sparkles,
+      icon: Palette,
       action: 'abort',
       disabled: false
     }
@@ -367,7 +367,7 @@ const ctaState = computed(() => {
     text: anyDirty
       ? t('tools.filters.cta.update', { count: store.selectedCount })
       : t('tools.filters.cta.apply', { count: store.selectedCount }),
-    icon: Sparkles,
+    icon: Palette,
     action: 'process',
     disabled: false
   }
@@ -423,8 +423,8 @@ const handleCtaClick = async () => {
             class="grid transition-all duration-300"
             :class="[
               layoutStore.cardSizeMode === 'compact'
-                ? 'grid-cols-[repeat(auto-fill,minmax(130px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3 md:gap-8'
-                : 'grid-cols-[repeat(auto-fill,minmax(160px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 md:gap-10'
+                ? 'grid-cols-[repeat(auto-fill,minmax(130px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3 md:gap-4'
+                : 'grid-cols-[repeat(auto-fill,minmax(160px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3 md:gap-5'
             ]"
           >
             <ImageCard
@@ -457,13 +457,13 @@ const handleCtaClick = async () => {
 
       <template #sidebar>
         <section class="space-y-4">
-          <AppSectionHeader :title="t('tools.filters.quickPresets')" :icon="Sparkles" />
+          <AppSectionHeader :title="t('tools.filters.quickPresets')" :icon="Palette" />
           <div class="relative group/presets">
             <!-- 左导航箭头 -->
             <button
               v-if="canScrollLeft"
               @click="scrollPresets('left')"
-              class="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-background/80 border border-border/40 rounded-full shadow-lg flex items-center justify-center text-muted-foreground hover:text-primary transition-all md:opacity-0 md:group-hover/presets:opacity-100 backdrop-blur-sm -ml-2"
+              class="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-[var(--chrome)] border border-border/40 rounded-[var(--radius)] flex items-center justify-center text-muted-foreground hover:text-primary transition-colors md:opacity-0 md:group-hover/presets:opacity-100 -ml-2"
               :aria-label="t('tools.filters.scrollLeft')"
             >
               <ChevronLeft :size="16" />
@@ -473,7 +473,7 @@ const handleCtaClick = async () => {
             <button
               v-if="canScrollRight"
               @click="scrollPresets('right')"
-              class="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-background/80 border border-border/40 rounded-full shadow-lg flex items-center justify-center text-muted-foreground hover:text-primary transition-all md:opacity-0 md:group-hover/presets:opacity-100 backdrop-blur-sm -mr-2"
+              class="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-[var(--chrome)] border border-border/40 rounded-[var(--radius)] flex items-center justify-center text-muted-foreground hover:text-primary transition-colors md:opacity-0 md:group-hover/presets:opacity-100 -mr-2"
               :aria-label="t('tools.filters.scrollRight')"
             >
               <ChevronRight :size="16" />
@@ -502,7 +502,7 @@ const handleCtaClick = async () => {
                   class="w-8 h-8 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform"
                   :class="[activePresetId === preset.id ? 'bg-primary/20' : 'bg-primary/10']"
                 >
-                  <Sparkles
+                  <Palette
                     :size="14"
                     class="text-primary"
                     :fill="activePresetId === preset.id ? 'currentColor' : 'none'"
@@ -633,7 +633,7 @@ const handleCtaClick = async () => {
             class="p-4 bg-muted/20 border border-border/40 rounded-2xl flex items-start gap-3 transition-all group hover:bg-muted/30"
           >
             <div class="bg-primary/10 p-2 rounded-xl group-hover:scale-110 transition-transform">
-              <Sparkles :size="16" class="text-primary" />
+              <Palette :size="16" class="text-primary" />
             </div>
             <div class="space-y-1">
               <div class="text-[0.65rem] font-black text-primary uppercase tracking-widest">

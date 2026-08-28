@@ -1,9 +1,9 @@
 {
   "app": {
-    "localProcessing": "Offline Local Processing",
-    "privacyFirst": "Privacy First",
+    "localProcessing": "Local · no upload",
+    "privacyFirst": "Local · no upload",
     "processing": "Processing...",
-    "subtitle": "Minimalist, Private, Cross-Platform Image Processor",
+    "subtitle": "Warm paper",
     "title": "Imago"
   },
   "common": {
@@ -43,10 +43,10 @@
       "title": "Export Configuration",
       "width": "Width"
     },
-    "go": "Get Started",
-    "heroDesc": "All processing happens locally in your browser. Files are never uploaded. A truly private and efficient offline productivity tool.",
-    "heroTitle1": "Simplifying Complexity",
-    "heroTitle2": "Privacy Unbound",
+    "go": "Open",
+    "heroDesc": "Drop, paste, or click to pick files. Processing stays in the browser.",
+    "heroTitle1": "Warm paper",
+    "heroTitle2": "Local image workbench",
     "history": {
       "redo": "Redo",
       "undo": "Undo"
@@ -122,14 +122,14 @@
         "resetAllAria": "Reset all images to initial state"
       },
       "upload": {
-        "button": "Select Local Images",
-        "dropTip": "Release to start",
-        "dropToImago": "Drop to Imago",
+        "button": "Choose files",
+        "dropTip": "Release to add",
+        "dropToImago": "Drop onto this paper",
         "errorSize": "File [{name}] is too large ({size} MB). Recommended maximum is 50 MB.",
-        "pureOffline": "100% Offline",
+        "pureOffline": "Local · no upload",
         "quickPaste": "Quick Paste",
-        "subtitle": "Drag, Click or Paste Images • 100% Private",
-        "title": "Start Professional Image Processing"
+        "subtitle": "Drop, paste, or click to pick a file",
+        "title": "Put the image on this paper"
       }
     },
     "modal": {
@@ -161,7 +161,7 @@
         "guide": "Click or drag to add objects; hold Alt to exclude areas.",
         "later": "Later",
         "leftClick": "Left Click",
-        "privacy": "Privacy First",
+        "privacy": "Runs locally",
         "privacyDesc": "Algorithms run locally; images never leave your browser.",
         "readyTip": "Engine ready. Click to select subject",
         "redo": "Redo",
@@ -184,17 +184,17 @@
         "githubAria": "Visit GitHub Repository",
         "githubDesc": "Open source and transparent. Your Star is our greatest motivation.",
         "githubStar": "Star on GitHub",
-        "heroTitle": "Support Imago Evolution",
+        "heroTitle": "Support Imago",
         "kofi": "Ko-fi",
         "kofiAria": "Support Imago via Ko-fi (Global Payments)",
         "kofiTip": "Supports Credit Cards",
         "title": "Support Us"
       }
     },
-    "pageTitleHome": "Private, Secure, High-Performance Local Image Suite",
+    "pageTitleHome": "Local image workbench",
     "processing": "Processing...",
     "ready": "Ready",
-    "start": "Quick Start",
+    "start": "Start",
     "theme": {
       "dark": "Dark Mode",
       "light": "Light Mode",
@@ -242,7 +242,7 @@
       "prev": "Previous",
       "next": "Next",
       "selectImage": "Select image {name}",
-      "items": "Items",
+      "items": "Items",
       "srSelected": "Selected image {index} of {count}",
       "srNone": "No image selected"
     },
@@ -255,7 +255,8 @@
     },
     "inspector": {
       "drawer": "Inspector Panel Drawer",
-      "sidebar": "Inspector Sidebar"
+      "sidebar": "Inspector Sidebar",
+      "spec": "Spec"
     }
   },
   "nav": {
@@ -263,9 +264,9 @@
     "collapse": "Collapse Sidebar",
     "expand": "Expand Sidebar",
     "groups": {
-      "core": "Core Tools",
-      "creative": "Creative Workshop",
-      "edit": "Editing Suite"
+      "core": "Process",
+      "creative": "Other",
+      "edit": "Canvas"
     },
     "language": "Language",
     "sponsor": "Support & Community",
@@ -440,7 +441,7 @@
       "magnetic": "Magnetic snap",
       "edgeTrim": "Edge Trimming",
       "empty": {
-        "desc": "Import images to start precision cropping",
+        "desc": "Import images to crop on the paper",
         "title": "No Pending Images"
       },
       "fillAll": "Fill Entire Canvas",

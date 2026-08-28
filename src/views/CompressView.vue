@@ -166,7 +166,7 @@ const ctaState = computed(() => {
   // P2-13：区分「无图片」与「有图片但未选中」——无图提示导入，未选中提示选择
   if (store.images.length === 0)
     return {
-      text: t('tools.compress.cta.select'),
+      text: t('tools.compress.cta.startCompress'),
       progress: '',
       icon: Play,
       action: 'none',
@@ -307,13 +307,13 @@ const handleCtaClick = async () => {
       /></template>
 
       <template #content>
-        <div class="h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-8 pt-2 md:pt-3">
+        <div class="h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-5 pt-2 md:pt-3">
           <div
-            class="grid transition-all duration-300"
+            class="grid transition-colors"
             :class="[
               layoutStore.cardSizeMode === 'compact'
-                ? 'grid-cols-[repeat(auto-fill,minmax(130px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3 md:gap-8'
-                : 'grid-cols-[repeat(auto-fill,minmax(160px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 md:gap-10'
+                ? 'grid-cols-[repeat(auto-fill,minmax(130px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3 md:gap-4'
+                : 'grid-cols-[repeat(auto-fill,minmax(160px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3 md:gap-5'
             ]"
           >
             <ImageCard
@@ -367,7 +367,7 @@ const handleCtaClick = async () => {
                     >
                     <span
                       v-if="image.status === 'done' && results.get(image.id)?.skipped"
-                      class="text-[0.55rem] md:text-[0.6rem] font-black uppercase tracking-wider text-amber-500"
+                      class="text-[0.55rem] md:text-[0.6rem] font-medium tracking-wider text-[var(--muted)]"
                       >{{ t('common.export.skipIfLarger') }}</span
                     >
                   </div>
@@ -429,7 +429,7 @@ const handleCtaClick = async () => {
           <AppButton
             size="lg"
             :variant="ctaState.action === 'download' ? 'success' : 'cta'"
-            class="w-full h-12 rounded-xl transition-all duration-500 group overflow-hidden"
+            class="w-full h-12 rounded-[var(--radius-ctrl)] transition-colors group overflow-hidden"
             :disabled="ctaState.disabled"
             @click="handleCtaClick"
           >

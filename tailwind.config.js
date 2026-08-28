@@ -21,84 +21,73 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: [
-          'Inter',
-          'Noto Sans SC',
-          'ui-sans-serif',
-          'system-ui',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          '"Segoe UI"',
-          'Roboto',
-          '"Helvetica Neue"',
-          'Arial',
-          '"Noto Sans"',
-          'sans-serif',
-          '"Apple Color Emoji"',
-          '"Segoe UI Emoji"',
-          '"Segoe UI Symbol"',
-          '"Noto Color Emoji"'
-        ]
+        sans: ['Noto Sans SC', 'sans-serif'],
+        serif: ['Noto Serif SC', 'serif']
       },
       colors: {
+        paper: 'var(--paper)',
+        board: 'var(--board)',
+        well: 'var(--well)',
+        ink: 'var(--ink)',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
+        background: 'var(--paper)',
+        foreground: 'var(--ink)',
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))'
+          DEFAULT: 'var(--accent)',
+          foreground: 'var(--board)'
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))'
+          foreground: 'var(--ink)'
         },
         destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))'
+          DEFAULT: 'var(--danger)',
+          foreground: 'var(--board)'
         },
         muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))'
+          DEFAULT: 'hsl(var(--muted-hsl))',
+          foreground: 'var(--muted)'
         },
         accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))'
+          DEFAULT: 'var(--accent)',
+          foreground: 'var(--board)'
         },
         popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))'
+          DEFAULT: 'var(--board)',
+          foreground: 'var(--ink)'
         },
         card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))'
+          DEFAULT: 'var(--board)',
+          foreground: 'var(--ink)'
         },
         success: {
-          DEFAULT: 'hsl(var(--success))',
-          foreground: 'hsl(var(--success-foreground))'
+          DEFAULT: 'var(--accent)',
+          foreground: 'var(--board)'
         },
         warning: {
-          DEFAULT: 'hsl(var(--warning))',
-          foreground: 'hsl(var(--warning-foreground))'
+          DEFAULT: 'var(--muted)',
+          foreground: 'var(--ink)'
         },
         info: {
-          DEFAULT: 'hsl(var(--info))',
-          foreground: 'hsl(var(--info-foreground))'
+          DEFAULT: 'var(--accent)',
+          foreground: 'var(--board)'
         }
       },
       borderRadius: {
-        '2xl': '1.25rem',
-        xl: '1rem',
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)'
+        '3xl': 'var(--radius-well)',
+        '2xl': 'var(--radius-well)',
+        xl: 'var(--radius-ctrl)',
+        lg: 'var(--radius-ctrl)',
+        md: 'calc(var(--radius-ctrl) - 2px)',
+        sm: 'calc(var(--radius-ctrl) - 4px)',
+        DEFAULT: 'var(--radius-ctrl)'
       },
       boxShadow: {
-        soft: '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-        elevated: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-        primary:
-          '0 10px 15px -3px hsla(var(--primary) / 0.15), 0 4px 6px -2px hsla(var(--primary) / 0.1)'
+        soft: '0 1px 2px rgba(42, 38, 35, 0.06)',
+        elevated: '0 1px 2px rgba(42, 38, 35, 0.06)',
+        primary: 'none'
       },
       keyframes: {
         'accordion-down': {
@@ -108,14 +97,19 @@ export default {
         'accordion-up': {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: 0 }
+        },
+        'paper-settle': {
+          from: { opacity: '0', transform: 'translateY(8px)' },
+          to: { opacity: '1', transform: 'translateY(0)' }
         }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out'
+        'accordion-up': 'accordion-up 0.2s ease-out',
+        'paper-settle': 'paper-settle 280ms ease-out'
       },
       transitionTimingFunction: {
-        apple: 'cubic-bezier(0.32, 0.72, 0, 1)'
+        apple: 'ease-out'
       }
     }
   },

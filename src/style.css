@@ -3,104 +3,65 @@
 @tailwind utilities;
 
 @layer base {
+  /*
+    暖纸 tokens — DESIGN.md is the hex source of truth.
+    HSL bridges exist only so leftover hsl(var(--token)) calls resolve to those hexes.
+  */
   :root {
-    --background: 173 30% 99%;
-    --foreground: 173 10% 20%;
-    --card: 173 30% 99.5%;
-    --card-foreground: 173 10% 20%;
-    --popover: 173 30% 99.5%;
-    --popover-foreground: 173 10% 20%;
-    --primary: 173 80% 45%;
-    --primary-foreground: 173 10% 98%;
-    --secondary: 173 20% 95%;
-    --secondary-foreground: 173 10% 30%;
-    --muted: 173 20% 96%;
-    --muted-foreground: 173 10% 55%;
-    --accent: 173 80% 40%;
-    --accent-foreground: 173 5% 98%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 173 15% 88%;
-    --input: 173 15% 88%;
-    --ring: 173 80% 40%;
-    --radius: 0.75rem;
+    --paper: #f9f8f6;
+    --board: #fffcfa;
+    --well: #f3f1ec;
+    --ink: #2a2623;
+    --muted: #8b8680;
+    --accent: #c45c32;
+    --danger: #b54a4a;
+    --radius-well: 28px;
+    --radius-ctrl: 12px;
+    --radius: var(--radius-ctrl);
 
-    /* 颜色分量 (用于 rgba 投影) */
-    --primary-rgb: 26, 188, 156;
+    /* aliases so leftover chrome classes resolve to paper, not 灯箱 hex */
+    --room: var(--paper);
+    --chrome: var(--board);
+    --ink-well: var(--ink);
 
-    /* 语义化颜色 */
-    --success: 142 70% 45%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 38 92% 10%;
-    --info: 210 100% 50%;
-    --info-foreground: 0 0% 100%;
+    --background: 40 20% 97%;
+    --foreground: 26 9% 15%;
+    --card: 24 100% 99%;
+    --card-foreground: 26 9% 15%;
+    --popover: 24 100% 99%;
+    --popover-foreground: 26 9% 15%;
+    --primary: 17 59% 48%;
+    --primary-foreground: 24 100% 99%;
+    --secondary: 40 14% 94%;
+    --secondary-foreground: 26 9% 15%;
+    --muted-hsl: 43 14% 92%;
+    --muted-foreground: 33 4% 52%;
+    --accent-hsl: 17 59% 48%;
+    --accent-foreground: 24 100% 99%;
+    --destructive: 0 42% 50%;
+    --destructive-foreground: 24 100% 99%;
+    --border: 33 10% 88%;
+    --input: 33 10% 88%;
+    --ring: 17 59% 48%;
 
-    /* 视觉辅助设计令牌 */
-    --checkerboard: 0 0% 0%;
-    --checkerboard-opacity: 0.05;
+    --primary-rgb: 196, 92, 50;
+    --success: 17 59% 48%;
+    --success-foreground: 24 100% 99%;
+    --warning: 33 4% 52%;
+    --warning-foreground: 26 9% 15%;
+    --info: 17 59% 48%;
+    --info-foreground: 24 100% 99%;
 
-    /* 多语言优化的现代系统字体栈 */
-    --font-sans:
-      system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
-      'PingFang SC', 'Microsoft YaHei', 'Source Han Sans SC', 'Noto Sans CJK SC', 'PingFang TC',
-      'Microsoft JhengHei', 'Source Han Sans TC', 'Noto Sans CJK TC', 'Hiragino Sans', 'Yu Gothic',
-      'Meiryo', 'Noto Sans CJK JP', 'Apple SD Gothic Neo', 'Nanum Gothic', 'Malgun Gothic',
-      'Noto Sans CJK KR', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+    --checkerboard: 26 9% 15%;
+    --checkerboard-opacity: 0.08;
+
+    --font-sans: 'Noto Sans SC', sans-serif;
+    --font-serif: 'Noto Serif SC', serif;
   }
 
-  [data-theme='dark'] {
-    --background: 173 12% 6.5%;
-    --foreground: 173 5% 92%;
-    --card: 173 12% 9%;
-    --card-foreground: 173 5% 92%;
-    --popover: 173 12% 8%;
-    --popover-foreground: 173 5% 92%;
-    --primary: 173 85% 45%;
-    --primary-foreground: 173 5% 98%;
-    --secondary: 173 10% 14%;
-    --secondary-foreground: 173 5% 90%;
-    --muted: 173 8% 12%;
-    --muted-foreground: 173 5% 65%;
-    --accent: 173 85% 45%;
-    --accent-foreground: 173 5% 98%;
-    --border: 173 10% 14%;
-    --input: 173 10% 14%;
-    --ring: 173 85% 45%;
-
-    /* 颜色分量 (深色模式微调) */
-    --primary-rgb: 26, 188, 156;
-
-    /* 语义化颜色 (深色模式微调) */
-    --success: 142 75% 45%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 95% 50%;
-    --warning-foreground: 38 95% 10%;
-    --info: 210 100% 55%;
-    --info-foreground: 0 0% 100%;
-
-    /* 棋盘格 (深色模式亮度略微提升) */
-    --checkerboard-opacity: 0.1;
-  }
-
-  /* 核心按钮 system 变量 (Standardization) */
-  :root {
-    --cta: 28 90% 50%;
-    --cta-hover: 32 95% 58%;
-    /* 更加高级的琥珀橙 */
-    --button-shadow-opacity: 0.25;
-    --button-hover-offset: -1px;
-    --card-inner-glow: hsla(0, 0%, 100%, 0.05);
-    /* 深色模式下的微弱内边框 */
-    --shadow-color: 173 10% 10%;
-    --shadow-strength: 0.1;
-  }
-
-  [data-theme='dark'] {
-    --button-shadow-opacity: 0.4;
-    --card-inner-glow: hsla(0, 0%, 100%, 0.02);
-    --shadow-color: 0 0% 0%;
-    --shadow-strength: 0.4;
+  [data-theme='dark'],
+  [data-theme='light'] {
+    --checkerboard-opacity: 0.08;
   }
 }
 
@@ -111,50 +72,16 @@
 
   html,
   body {
-    @apply bg-background text-foreground antialiased;
+    background: var(--paper);
+    color: var(--ink);
     font-family: var(--font-sans);
+    @apply antialiased;
   }
 
-  /* 基础海拔系统 (Shadow System) */
-  .shadow-elevated {
-    box-shadow:
-      0 4px 6px -1px hsla(var(--shadow-color) / calc(var(--shadow-strength) * 0.5)),
-      0 10px 30px -5px hsla(var(--shadow-color) / var(--shadow-strength));
-  }
-
-  /* 按钮同色系投影（DESIGN 4.1）：Tailwind arbitrary shadow 无法解析嵌套 var，
-     故用 CSS 类实现，暗色模式 --button-shadow-opacity 自动适配。
-     注意：hsla() 必须用斜杠 alpha 语法（hsla(var(--cta) / 0.25)），
-     逗号语法在 var 展开后失效（var 替换发生在语法校验之后）。 */
-  .btn-shadow-cta {
-    box-shadow:
-      inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
-      0 10px 20px -5px hsla(var(--cta) / var(--button-shadow-opacity));
-  }
-  .btn-shadow-cta:hover {
-    box-shadow:
-      inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
-      0 15px 30px -5px hsla(var(--cta) / 0.4);
-  }
-  .btn-shadow-primary {
-    box-shadow: 0 10px 20px -5px hsla(var(--primary) / var(--button-shadow-opacity));
-  }
-  .btn-shadow-primary:hover {
-    box-shadow: 0 15px 30px -5px hsla(var(--primary) / 0.4);
-  }
-  .btn-shadow-success {
-    box-shadow: 0 10px 20px -5px hsla(var(--success) / var(--button-shadow-opacity));
-  }
-  .btn-shadow-success:hover {
-    box-shadow: 0 15px 30px -5px hsla(var(--success) / 0.4);
-  }
-
-  /* Custom Scrollbar Logic (Initial Fix Version: No Gutter) */
   .custom-scrollbar {
     overflow-y: auto;
   }
 
-  /* 仅在桌面端保持布局稳定，防止移动端画布偏移 */
   @media (min-width: 1024px) {
     .custom-scrollbar {
       scrollbar-gutter: stable;
@@ -171,32 +98,65 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/30 rounded-full transition-all;
+    background-color: color-mix(in srgb, var(--muted) 40%, transparent);
+    border-radius: var(--radius-ctrl);
     border: 2px solid transparent;
     background-clip: padding-box;
   }
 
-  [data-theme='dark'] .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/50;
-  }
-
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground/60;
+    background-color: color-mix(in srgb, var(--muted) 70%, transparent);
   }
 
-  /* Firefox */
   .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
+    scrollbar-color: color-mix(in srgb, var(--muted) 40%, transparent) transparent;
+  }
+}
+
+@layer components {
+  .imago-well {
+    background: var(--well);
+    color: var(--ink);
+    border-radius: var(--radius-well);
+  }
+
+  .imago-chrome,
+  .imago-board {
+    background: var(--board);
+    color: var(--ink);
+    box-shadow: 0 1px 2px rgba(42, 38, 35, 0.06);
+  }
+
+  .imago-sheet {
+    background: var(--ink);
+    color: var(--board);
+    border-radius: var(--radius-ctrl);
+    box-shadow: 0 1px 2px rgba(42, 38, 35, 0.06);
+    animation: paper-settle 280ms ease-out;
+  }
+
+  .tabular-spec {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .imago-serif {
+    font-family: var(--font-serif);
+  }
+}
+
+@keyframes paper-settle {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 @layer utilities {
-  /* 层级强化：内边框光晕效果 */
-  .shadow-inner-glow {
-    box-shadow: inset 0 1px 1px 0 var(--card-inner-glow);
-  }
-
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -206,7 +166,6 @@
     display: none;
   }
 
-  /* 通用棋盘格实用类 */
   .app-transparency-grid {
     background-image: conic-gradient(
       hsl(var(--checkerboard) / var(--checkerboard-opacity)) 0 25%,
@@ -224,64 +183,6 @@
       hsl(var(--checkerboard) / var(--checkerboard-opacity)) 0 75%,
       transparent 0
     );
-    background-size: 10px 10px;
+    background-size: 10px 20px;
   }
-
-  @keyframes bounce-subtle {
-    0%,
-    100% {
-      transform: translateY(0);
-      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
-    }
-    50% {
-      transform: translateY(-3px);
-      animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
-    }
-  }
-
-  .animate-bounce-subtle {
-    animation: bounce-subtle 2s infinite;
-  }
-
-  /* 骨架屏 shimmer：图片预览解码/加载中显示（复用 App.vue @keyframes shimmer 的平移思路） */
-  @keyframes imago-shimmer {
-    100% {
-      transform: translateX(100%);
-    }
-  }
-
-  .shimmer-skeleton {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    pointer-events: none;
-    background-color: hsl(var(--muted) / 0.7);
-  }
-
-  .shimmer-skeleton::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    transform: translateX(-100%);
-    background-image: linear-gradient(
-      90deg,
-      transparent,
-      hsl(var(--primary) / 0.12),
-      transparent
-    );
-    animation: imago-shimmer 1.5s ease-in-out infinite;
-  }
-}
-
-@keyframes pulse-subtle {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-.animate-pulse-subtle {
-  animation: pulse-subtle 0.6s ease-in-out infinite;
 }

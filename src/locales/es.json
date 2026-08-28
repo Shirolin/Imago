@@ -1,9 +1,9 @@
 {
   "app": {
-    "localProcessing": "Procesamiento Local Offline",
-    "privacyFirst": "Privacidad Prioritaria",
+    "localProcessing": "Local · sin subir",
+    "privacyFirst": "Local · sin subir",
     "processing": "Procesando...",
-    "subtitle": "Procesador de imágenes minimalista, privado y multiplataforma",
+    "subtitle": "Papel cálido",
     "title": "Imago"
   },
   "common": {
@@ -43,10 +43,10 @@
       "title": "Configuración de Exportación",
       "width": "Anchura (px)"
     },
-    "go": "Comenzar Ahora",
+    "go": "Abrir",
     "heroDesc": "Todo el procesamiento ocurre localmente en tu navegador. Los archivos nunca se suben. Una herramienta de productividad offline real y privada.",
-    "heroTitle1": "Simplificando la Complejidad",
-    "heroTitle2": "Privacidad Sin Límites",
+    "heroTitle1": "Papel cálido",
+    "heroTitle2": "Mesa de trabajo local",
     "history": {
       "redo": "Rehacer",
       "undo": "Deshacer"
@@ -124,12 +124,12 @@
       "upload": {
         "button": "Seleccionar Imágenes",
         "dropTip": "Suelta para comenzar",
-        "dropToImago": "Suelta en Imago",
+        "dropToImago": "Soltar en este papel",
         "errorSize": "El archivo [{name}] es demasiado grande ({size} MB). Máximo recomendado: 50 MB.",
         "pureOffline": "100% Offline",
         "quickPaste": "Pegado Rápido",
-        "subtitle": "Arrastra, Haz Clic o Pega Imágenes • 100% Privado",
-        "title": "Inicia tu Procesamiento Profesional"
+        "subtitle": "Arrastra, pega o pulsa para elegir",
+        "title": "Pon la imagen sobre este papel"
       }
     },
     "modal": {
@@ -161,7 +161,7 @@
         "guide": "Haz clic o arrastra para añadir objetos; mantén Alt para excluir áreas.",
         "later": "Más Tarde",
         "leftClick": "Clic Izquierdo",
-        "privacy": "Privacidad Primero",
+        "privacy": "Se ejecuta en local",
         "privacyDesc": "Algoritmos locales; las imágenes nunca salen de tu navegador.",
         "readyTip": "Motor listo. Haz clic para seleccionar sujeto",
         "redo": "Rehacer",
@@ -184,17 +184,17 @@
         "githubAria": "Visitar Repositorio GitHub",
         "githubDesc": "Código abierto y transparente. Tu Estrella es nuestra mayor motivación.",
         "githubStar": "Estrella en GitHub",
-        "heroTitle": "Apoya la Evolución de Imago",
+        "heroTitle": "Apoyar Imago",
         "kofi": "Ko-fi",
         "kofiAria": "Apoyar vía Ko-fi",
         "kofiTip": "Soporta Tarjetas de Crédito",
         "title": "Apóyanos"
       }
     },
-    "pageTitleHome": "Suite de Procesamiento de Imágenes Local de Alto Rendimiento",
+    "pageTitleHome": "Mesa de trabajo local",
     "processing": "Procesando...",
     "ready": "Listo",
-    "start": "Inicio Rápido",
+    "start": "Empezar",
     "theme": {
       "dark": "Modo Oscuro",
       "light": "Modo Claro",
@@ -255,7 +255,8 @@
     },
     "inspector": {
       "drawer": "Cajón del panel de inspección",
-      "sidebar": "Barra lateral del inspector"
+      "sidebar": "Barra lateral del inspector",
+      "spec": "Especificación"
     }
   },
   "nav": {
@@ -263,9 +264,9 @@
     "collapse": "Contraer Barra Lateral",
     "expand": "Expandir Barra Lateral",
     "groups": {
-      "core": "Herramientas Core",
-      "creative": "Taller Creativo",
-      "edit": "Suite de Edición"
+      "core": "Procesar",
+      "creative": "Otros",
+      "edit": "Lienzo"
     },
     "language": "Idioma",
     "sponsor": "Soporte y Comunidad",
@@ -440,7 +441,7 @@
       "magnetic": "Imán de ajuste",
       "edgeTrim": "Ajuste de Bordes",
       "empty": {
-        "desc": "Importa imágenes para iniciar recorte de precisión",
+        "desc": "Importa imágenes para recortar sobre el papel",
         "title": "Sin Imágenes Pendientes"
       },
       "fillAll": "Rellenar Todo el Lienzo",

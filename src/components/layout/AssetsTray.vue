@@ -196,7 +196,7 @@ const onDragEnd = () => {
 
 <template>
   <div
-    class="assets-tray bg-card/80 backdrop-blur-3xl border-t border-border/40 shrink-0 z-40 h-full flex flex-col overflow-hidden select-none w-full min-w-0"
+    class="assets-tray bg-[var(--chrome)] border-t border-[color-mix(in_srgb,var(--ink)_8%,transparent)] shrink-0 z-40 h-full flex flex-col overflow-hidden select-none w-full min-w-0"
   >
     <!-- 头部工具栏 -->
     <div
@@ -244,7 +244,9 @@ const onDragEnd = () => {
         <span class="text-[0.7rem] font-black text-muted-foreground/70 uppercase tracking-widest">{{
           t('common.tray.items')
         }}</span>
-        <span class="text-xs font-mono font-bold text-primary">{{ store.images.length }}</span>
+        <span class="text-xs font-semibold tabular-nums text-primary">{{
+          store.images.length
+        }}</span>
       </div>
     </div>
 

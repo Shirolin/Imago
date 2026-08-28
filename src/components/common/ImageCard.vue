@@ -10,7 +10,7 @@ import {
   RotateCcw,
   AlertCircle,
   Loader2,
-  Sparkles
+  MousePointer2
 } from 'lucide-vue-next'
 import { useFileHelpers } from '../../composables/useFileHelpers'
 import { useImageStore } from '../../stores/imageStore'
@@ -199,12 +199,10 @@ watch(displayUrl, () => {
 
 <template>
   <div
-    class="relative bg-card rounded-2xl overflow-hidden border border-border/60 transition-all duration-500 cursor-pointer flex flex-col group hover:-translate-y-0.5 hover:shadow-primary/10 hover:border-primary/30 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background shadow-inner-glow"
+    class="imago-sheet relative overflow-hidden cursor-pointer flex flex-col group outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--well)]"
     :class="[
-      isSelected
-        ? 'ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/[0.03]'
-        : '',
-      isDirtyDone ? 'animate-dirty-pulse border-amber-500/20' : ''
+      isSelected ? 'ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--well)]' : '',
+      isDirtyDone ? 'ring-1 ring-[var(--muted)]' : ''
     ]"
     tabindex="0"
     role="button"
@@ -222,7 +220,7 @@ watch(displayUrl, () => {
     >
       <!-- 背景预览 -->
       <div
-        class="absolute inset-0 overflow-hidden rounded-t-[calc(1rem-1px)] bg-muted/20"
+        class="absolute inset-0 overflow-hidden rounded-t-[var(--radius-ctrl)] bg-[color-mix(in_srgb,var(--board)_12%,transparent)]"
         :class="{ 'app-transparency-grid-sm': showTransparency }"
       >
         <div class="absolute inset-0 z-10 pointer-events-none">
@@ -231,18 +229,17 @@ watch(displayUrl, () => {
         <!-- 骨架屏：预览未解码时显示 shimmer，解码完成后移除 -->
         <div
           v-if="!previewLoaded"
-          class="shimmer-skeleton rounded-t-[calc(1rem-1px)]"
+          class="absolute inset-0 bg-[var(--ink)]"
           aria-hidden="true"
         ></div>
         <img
           :src="displayUrl"
           :alt="t('common.image.card.previewAlt', { name: image.file.name })"
-          class="w-full h-full object-contain transition-all duration-700"
+          class="w-full h-full object-contain"
           @load="previewLoaded = true"
           @error="previewLoaded = true"
           :class="{
-            'group-hover/canvas:scale-105': !showMagnifier && !isDirtyDone,
-            'opacity-40 grayscale-[0.5] blur-[1px] scale-95': image.status === 'processing'
+            'opacity-40 grayscale-[0.5]': image.status === 'processing'
           }"
           :style="imageStyle"
         />
@@ -260,7 +257,7 @@ watch(displayUrl, () => {
         class="absolute inset-0 z-40 pointer-events-none"
       >
         <div
-          class="absolute w-40 h-40 md:w-48 md:h-48 -ml-20 -mt-20 md:-ml-24 md:-mt-24 rounded-full border-2 border-primary shadow-[0_0_30px_rgba(var(--primary-rgb),0.5)] overflow-hidden bg-background flex items-center justify-center"
+          class="absolute w-40 h-40 md:w-48 md:h-48 -ml-20 -mt-20 md:-ml-24 md:-mt-24 rounded-full border-2 border-[var(--board)] overflow-hidden bg-[var(--ink)] flex items-center justify-center"
           :class="{ 'app-transparency-grid-sm': showTransparency }"
           :style="{ left: `${mousePos.x}%`, top: `${mousePos.y}%` }"
         >
@@ -281,18 +278,15 @@ watch(displayUrl, () => {
             <img :src="localProcessedUrl!" class="w-full h-full object-contain" />
           </div>
           <!-- 动态分割线 -->
-          <div
-            class="absolute inset-y-0 left-1/2 w-0.5 bg-primary/80 z-10 shadow-[0_0_8px_rgba(var(--primary-rgb),1)]"
-          ></div>
+          <div class="absolute inset-y-0 left-1/2 w-0.5 bg-[var(--board)] z-10"></div>
           <div
             class="absolute inset-0 flex items-center justify-between px-2 text-[10px] pointer-events-none z-20"
           >
+            <span class="bg-[var(--ink)] px-1.5 py-0.5 rounded text-[var(--board)] font-medium">{{
+              $t('common.image.card.before')
+            }}</span>
             <span
-              class="bg-muted/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-foreground font-black border border-border/20 shadow-sm filter drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]"
-              >{{ $t('common.image.card.before') }}</span
-            >
-            <span
-              class="bg-primary/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-primary-foreground font-black border border-white/20 shadow-sm filter drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]"
+              class="bg-[var(--accent)] px-1.5 py-0.5 rounded text-[var(--board)] font-medium"
               >{{ $t('common.image.card.after') }}</span
             >
           </div>
@@ -302,7 +296,7 @@ watch(displayUrl, () => {
       <!-- 【模式 B】：Hover HUD 托盘 (仅在小图模式 + 有可用操作时浮现) -->
       <div
         v-if="!isLargeMode && (image.status === 'done' || image.status === 'error')"
-        class="absolute bottom-3 left-3 right-3 z-30 bg-background/80 backdrop-blur-xl border border-white/20 rounded-xl p-1.5 shadow-2xl flex items-center justify-between gap-1.5 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 pointer-events-auto touch-reveal"
+        class="absolute bottom-3 left-3 right-3 z-30 bg-[var(--board)] border border-[color-mix(in_srgb,var(--ink)_12%,transparent)] rounded-[var(--radius-ctrl)] p-1.5 flex items-center justify-between gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto touch-reveal"
       >
         <div class="flex items-center gap-1">
           <button
@@ -326,16 +320,16 @@ watch(displayUrl, () => {
           <button
             v-if="image.status === 'done'"
             @click.stop="emit('interactive', image.id)"
-            class="p-1.5 hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-lg transition-all"
+            class="p-1.5 hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-[var(--radius)] transition-colors"
             :aria-label="t('common.image.card.sam2')"
             :title="t('common.image.card.sam2')"
           >
-            <Sparkles :size="14" />
+            <MousePointer2 :size="14" />
           </button>
           <button
             v-if="image.status === 'done'"
             @click.stop="emit('download', image.id)"
-            class="p-1.5 bg-primary text-primary-foreground rounded-lg shadow-lg active:scale-90 transition-all"
+            class="p-1.5 bg-[var(--accent)] text-[var(--board)] rounded-[var(--radius-ctrl)] active:brightness-95 transition-colors"
             :aria-label="t('common.image.card.download')"
           >
             <Download :size="14" />
@@ -350,7 +344,7 @@ watch(displayUrl, () => {
           :class="
             isSelected
               ? 'text-primary scale-110'
-              : 'text-foreground/60 opacity-0 group-hover:opacity-100'
+              : 'text-[var(--board)]/70 opacity-0 group-hover:opacity-100'
           "
         >
           <CheckSquare v-if="isSelected" :size="20" />
@@ -361,7 +355,7 @@ watch(displayUrl, () => {
       <button
         v-if="!showMagnifier"
         @click.stop="store.removeImage(image.id)"
-        class="absolute top-3 right-3 z-30 bg-background/40 hover:bg-destructive text-foreground/60 hover:text-destructive-foreground p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-md active:scale-90 border border-border/40 outline-none focus-visible:ring-2 focus-visible:ring-primary touch-reveal"
+        class="absolute top-3 right-3 z-30 bg-[var(--board)] hover:bg-[var(--danger)] text-[var(--muted)] hover:text-[var(--board)] p-1.5 rounded-[var(--radius-ctrl)] opacity-0 group-hover:opacity-100 transition-colors border border-[color-mix(in_srgb,var(--ink)_12%,transparent)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] touch-reveal"
         :title="$t('common.image.card.remove')"
         :aria-label="$t('common.image.card.remove')"
       >
@@ -371,7 +365,7 @@ watch(displayUrl, () => {
       <!-- 处理中中心进度 -->
       <div
         v-if="image.status === 'processing'"
-        class="absolute inset-0 bg-background/60 backdrop-blur-[2px] z-30 flex items-center justify-center"
+        class="absolute inset-0 bg-[var(--ink)]/70 z-30 flex items-center justify-center"
       >
         <Loader2 :size="24" class="text-primary animate-spin" />
       </div>
@@ -392,12 +386,14 @@ watch(displayUrl, () => {
       </div>
 
       <div class="flex items-center justify-between gap-2">
-        <h4 class="font-bold text-foreground truncate text-sm flex-1">{{ image.file.name }}</h4>
+        <h4 class="font-medium text-[var(--board)] truncate text-sm flex-1">
+          {{ image.file.name }}
+        </h4>
         <div class="shrink-0 flex items-center gap-1.5">
           <div
             v-if="image.status === 'done'"
             class="w-2 h-2 rounded-full bg-success"
-            :class="{ 'bg-amber-500 animate-pulse': isDirty }"
+            :class="{ 'bg-[var(--muted)]': isDirty }"
           ></div>
           <Loader2
             v-else-if="image.status === 'processing'"
@@ -410,7 +406,7 @@ watch(displayUrl, () => {
       <!-- 【大图专供】：详细技术参数 -->
       <div
         v-if="isLargeMode"
-        class="flex items-center gap-2 text-[10px] font-bold text-muted-foreground/60 tracking-tight uppercase tabular-nums animate-in fade-in duration-300"
+        class="flex items-center gap-2 text-[10px] font-medium text-[var(--muted)] tracking-tight tabular-nums"
       >
         <span class="px-1 py-0.5 rounded bg-muted/40 text-[9px]">{{ image.format }}</span>
         <span>{{ image.width }} × {{ image.height }}</span>
@@ -448,14 +444,14 @@ watch(displayUrl, () => {
           @click.stop="emit('interactive', image.id)"
           :aria-label="t('common.image.card.sam2')"
         >
-          <Sparkles :size="14" />
+          <MousePointer2 :size="14" />
           <span>{{ t('common.image.card.sam2') }}</span>
         </button>
         <div class="flex gap-2 ml-auto pl-2 border-l border-border/40">
           <button
             v-if="image.status === 'done'"
             @click.stop="emit('download', image.id)"
-            class="p-2 bg-primary text-primary-foreground rounded-xl shadow-lg shadow-primary/20 hover:scale-110 hover:shadow-primary/40 active:scale-95 transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            class="p-2 bg-[var(--accent)] text-[var(--board)] rounded-[var(--radius-ctrl)] hover:brightness-95 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             :title="t('common.image.card.download')"
             :aria-label="t('common.image.card.download')"
           >
@@ -489,14 +485,14 @@ watch(displayUrl, () => {
         <div class="flex gap-3">
           <AppButton
             variant="ghost"
-            class="flex-1 rounded-xl h-11"
+            class="flex-1 rounded-[var(--radius-ctrl)] h-11"
             @click="showResetConfirm = false"
           >
             {{ t('common.image.toolbar.cancel') }}
           </AppButton>
           <AppButton
             variant="danger"
-            class="flex-1 rounded-xl h-11 shadow-lg shadow-destructive/10"
+            class="flex-1 rounded-[var(--radius-ctrl)] h-11"
             @click="confirmReset"
           >
             {{ t('common.image.toolbar.confirm') }}

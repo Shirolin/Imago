@@ -987,7 +987,9 @@ const ratios = computed(() => [
     </template>
 
     <template #footer>
-      <InspectorFooter class="bg-background/95 backdrop-blur-md border-t border-border/60">
+      <InspectorFooter
+        class="bg-[var(--chrome)] border-t border-[color-mix(in_srgb,var(--ink)_8%,transparent)]"
+      >
         <AppButton
           size="lg"
           :variant="ctaState.action === 'download' ? 'success' : 'cta'"
