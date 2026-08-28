@@ -166,7 +166,7 @@ const ctaState = computed(() => {
   // P2-13：区分「无图片」与「有图片但未选中」——无图提示导入，未选中提示选择
   if (store.images.length === 0)
     return {
-      text: t('tools.compress.cta.select'),
+      text: t('tools.compress.cta.startCompress'),
       progress: '',
       icon: Play,
       action: 'none',
