@@ -3,7 +3,7 @@
     "localProcessing": "로컬 · 업로드 없음",
     "privacyFirst": "로컬 · 업로드 없음",
     "processing": "처리 중...",
-    "subtitle": "라이트 테이블",
+    "subtitle": "따뜻한 종이",
     "title": "Imago"
   },
   "common": {
@@ -45,7 +45,7 @@
     },
     "go": "열기",
     "heroDesc": "모든 이미지 처리는 브라우저 내에서 로컬로 완료되며, 파일이 서버에 업로드되지 않습니다. 진정한 오프라인 생산성 도구.",
-    "heroTitle1": "라이트 테이블",
+    "heroTitle1": "따뜻한 종이",
     "heroTitle2": "로컬 이미지 작업대",
     "history": {
       "redo": "다시 실행",
@@ -124,12 +124,12 @@
       "upload": {
         "button": "파일 선택",
         "dropTip": "놓아서 처리 시작",
-        "dropToImago": "라이트 테이블에 놓기",
+        "dropToImago": "이 종이에 놓기",
         "errorSize": "이미지 [{name}] 의 크기가 너무 큽니다 ({size} MB). 최대 50 MB 지원.",
         "pureOffline": "100% 오프라인",
         "quickPaste": "빠른 붙여넣기",
         "subtitle": "드래그, 붙여넣기, 또는 클릭해서 선택",
-        "title": "라이트 테이블에 이미지를 놓으세요"
+        "title": "이 종이에 이미지를 놓으세요"
       }
     },
     "modal": {
@@ -441,7 +441,7 @@
       "magnetic": "자석 스냅",
       "edgeTrim": "가장자리 다듬기",
       "empty": {
-        "desc": "정밀 자르기를 시작하려면 이미지를 가져오세요",
+        "desc": "이 종이 위에서 자르려면 이미지를 가져오세요",
         "title": "이미지 없음"
       },
       "fillAll": "전체 채우기",

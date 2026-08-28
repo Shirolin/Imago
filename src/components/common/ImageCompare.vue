@@ -463,7 +463,7 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
     0 10px,
     10px -10px,
     -10px 0px;
-  background-color: var(--room);
+  background-color: var(--paper);
 }
 
 /* 分割线高对比度阴影：确保在纯白背景下依然可见 */

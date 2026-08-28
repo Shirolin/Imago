@@ -682,7 +682,7 @@ const handleResetParams = () => {
           :class="[
             layoutStore.cardSizeMode === 'compact'
               ? 'grid-cols-[repeat(auto-fill,minmax(130px,1fr))] lg:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3 lg:gap-8'
-              : 'grid-cols-[repeat(auto-fill,minmax(160px,1fr))] lg:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 lg:gap-10'
+              : 'grid-cols-[repeat(auto-fill,minmax(160px,1fr))] lg:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3 lg:gap-5'
           ]"
         >
           <ImageCard

@@ -3,7 +3,7 @@
     "localProcessing": "ローカル · 非アップロード",
     "privacyFirst": "ローカル · 非アップロード",
     "processing": "処理中...",
-    "subtitle": "ライトテーブル",
+    "subtitle": "暖紙",
     "title": "Imago"
   },
   "common": {
@@ -45,7 +45,7 @@
     },
     "go": "開く",
     "heroDesc": "ドロップ、貼り付け、またはクリックでファイルを選びます。",
-    "heroTitle1": "ライトテーブル",
+    "heroTitle1": "暖紙",
     "heroTitle2": "ローカル画像ワークベンチ",
     "history": {
       "redo": "やり直し",
@@ -124,12 +124,12 @@
       "upload": {
         "button": "ファイルを選択",
         "dropTip": "離して処理を開始",
-        "dropToImago": "ライトテーブルに置く",
+        "dropToImago": "この紙に置く",
         "errorSize": "画像 [{name}] のサイズが大きすぎます ({size} MB)。最大 50 MB まで推奨します。",
         "pureOffline": "ローカル · 非アップロード",
         "quickPaste": "クイック貼り付け",
         "subtitle": "ドロップ、貼り付け、またはクリックして選択",
-        "title": "ライトテーブルに画像を置く"
+        "title": "この紙に画像を置く"
       }
     },
     "modal": {
@@ -441,7 +441,7 @@
       "magnetic": "マグネットスナップ",
       "edgeTrim": "エッジトリミング",
       "empty": {
-        "desc": "画像をインポートして精密切り抜きを開始",
+        "desc": "画像を入れてこの紙の上で切り抜く",
         "title": "画像がありません"
       },
       "fillAll": "全体を表示",

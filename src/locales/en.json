@@ -3,7 +3,7 @@
     "localProcessing": "Local · no upload",
     "privacyFirst": "Local · no upload",
     "processing": "Processing...",
-    "subtitle": "Light table",
+    "subtitle": "Warm paper",
     "title": "Imago"
   },
   "common": {
@@ -45,7 +45,7 @@
     },
     "go": "Open",
     "heroDesc": "Drop, paste, or click to pick files. Processing stays in the browser.",
-    "heroTitle1": "Light table",
+    "heroTitle1": "Warm paper",
     "heroTitle2": "Local image workbench",
     "history": {
       "redo": "Redo",
@@ -124,12 +124,12 @@
       "upload": {
         "button": "Choose files",
         "dropTip": "Release to add",
-        "dropToImago": "Drop onto the light table",
+        "dropToImago": "Drop onto this paper",
         "errorSize": "File [{name}] is too large ({size} MB). Recommended maximum is 50 MB.",
         "pureOffline": "Local · no upload",
         "quickPaste": "Quick Paste",
         "subtitle": "Drop, paste, or click to pick a file",
-        "title": "Put the image on the light table"
+        "title": "Put the image on this paper"
       }
     },
     "modal": {
@@ -441,7 +441,7 @@
       "magnetic": "Magnetic snap",
       "edgeTrim": "Edge Trimming",
       "empty": {
-        "desc": "Import images to start precision cropping",
+        "desc": "Import images to crop on the paper",
         "title": "No Pending Images"
       },
       "fillAll": "Fill Entire Canvas",

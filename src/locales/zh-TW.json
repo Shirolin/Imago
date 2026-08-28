@@ -3,7 +3,7 @@
     "localProcessing": "本地 · 不上傳",
     "privacyFirst": "本地 · 不上傳",
     "processing": "正在處理...",
-    "subtitle": "燈箱",
+    "subtitle": "暖紙",
     "title": "Imago"
   },
   "common": {
@@ -45,7 +45,7 @@
     },
     "go": "打開",
     "heroDesc": "拖入、貼上，或點這裡選檔案。處理在瀏覽器裡完成。",
-    "heroTitle1": "燈箱",
+    "heroTitle1": "暖紙",
     "heroTitle2": "本地圖片工作台",
     "history": {
       "redo": "重做",
@@ -124,12 +124,12 @@
       "upload": {
         "button": "選檔案",
         "dropTip": "放開即可",
-        "dropToImago": "放到燈箱上",
+        "dropToImago": "放到這張紙上",
         "errorSize": "檔案 [{name}] 體積過大 ({size} MB)，為了保證性能，建議處理 50 MB 以內的圖片。",
         "pureOffline": "本地 · 不上傳",
         "quickPaste": "貼上快捷匯入",
         "subtitle": "拖入、貼上，或點這裡選檔案",
-        "title": "把圖放到燈箱上"
+        "title": "把圖放到這張紙上"
       }
     },
     "modal": {
@@ -441,7 +441,7 @@
       "magnetic": "磁性吸附",
       "edgeTrim": "邊緣精準修剪",
       "empty": {
-        "desc": "匯入圖片後在燈箱上裁剪",
+        "desc": "匯入圖片後在這張紙上裁剪",
         "title": "暫無待處理圖片"
       },
       "fillAll": "自適應填充",

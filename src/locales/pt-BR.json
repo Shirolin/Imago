@@ -3,7 +3,7 @@
     "localProcessing": "Local · sem envio",
     "privacyFirst": "Local · sem envio",
     "processing": "Processando...",
-    "subtitle": "Mesa de luz",
+    "subtitle": "Papel quente",
     "title": "Imago"
   },
   "common": {
@@ -45,7 +45,7 @@
     },
     "go": "Abrir",
     "heroDesc": "Todo o processamento ocorre localmente no seu navegador. Os arquivos nunca são enviados. Uma ferramenta de produtividade offline real e privada.",
-    "heroTitle1": "Mesa de luz",
+    "heroTitle1": "Papel quente",
     "heroTitle2": "Bancada local de imagens",
     "history": {
       "redo": "Refazer",
@@ -124,12 +124,12 @@
       "upload": {
         "button": "Selecionar Imagens",
         "dropTip": "Solte para começar",
-        "dropToImago": "Soltar na mesa de luz",
+        "dropToImago": "Soltar neste papel",
         "errorSize": "O arquivo [{name}] é muito grande ({size} MB). Máximo recomendado: 50 MB.",
         "pureOffline": "100% Offline",
         "quickPaste": "Colar",
         "subtitle": "Arraste, cole ou clique para escolher",
-        "title": "Coloque a imagem na mesa de luz"
+        "title": "Coloque a imagem neste papel"
       }
     },
     "modal": {
@@ -441,7 +441,7 @@
       "magnetic": "Ajuste magnético",
       "edgeTrim": "Ajuste de Bordas",
       "empty": {
-        "desc": "Importe imagens para iniciar o recorte de precisão",
+        "desc": "Importe imagens para recortar neste papel",
         "title": "Sem Imagens Pendentes"
       },
       "fillAll": "Preencher Toda a Tela",

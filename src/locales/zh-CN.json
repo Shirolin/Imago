@@ -3,7 +3,7 @@
     "localProcessing": "本地 · 不上传",
     "privacyFirst": "本地 · 不上传",
     "processing": "正在处理...",
-    "subtitle": "灯箱",
+    "subtitle": "暖纸",
     "title": "Imago"
   },
   "common": {
@@ -45,7 +45,7 @@
     },
     "go": "打开",
     "heroDesc": "拖入、粘贴，或点这里选文件。处理在浏览器里完成。",
-    "heroTitle1": "灯箱",
+    "heroTitle1": "暖纸",
     "heroTitle2": "本地图片工作台",
     "history": {
       "redo": "重做",
@@ -124,12 +124,12 @@
       "upload": {
         "button": "选文件",
         "dropTip": "松开即可",
-        "dropToImago": "放到灯箱上",
+        "dropToImago": "放到这张纸上",
         "errorSize": "文件 [{name}] 体积过大 ({size} MB)，为了保证性能，建议处理 50 MB 以内的图片。",
         "pureOffline": "本地 · 不上传",
         "quickPaste": "粘贴快捷导入",
         "subtitle": "拖入、粘贴，或点这里选文件",
-        "title": "把图放到灯箱上"
+        "title": "把图放到这张纸上"
       }
     },
     "modal": {
@@ -441,7 +441,7 @@
       "magnetic": "磁性吸附",
       "edgeTrim": "边缘精准修剪",
       "empty": {
-        "desc": "导入图片后在灯箱上裁剪",
+        "desc": "导入图片后在这张纸上裁剪",
         "title": "暂无待处理图片"
       },
       "fillAll": "自适应填充",

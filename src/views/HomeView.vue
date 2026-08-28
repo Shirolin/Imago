@@ -15,7 +15,7 @@ const onUpload = (files: File[]) => {
 </script>
 
 <template>
-  <div class="h-full w-full flex flex-col min-h-0 bg-[var(--room)] p-3">
+  <div class="h-full w-full flex flex-col min-h-0 bg-[var(--paper)] p-3">
     <div class="imago-well flex-1 min-h-0 flex items-center justify-center">
       <ImageUpload @upload="onUpload" />
     </div>

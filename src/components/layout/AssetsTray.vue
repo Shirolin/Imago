@@ -244,7 +244,9 @@ const onDragEnd = () => {
         <span class="text-[0.7rem] font-black text-muted-foreground/70 uppercase tracking-widest">{{
           t('common.tray.items')
         }}</span>
-        <span class="text-xs font-mono font-bold text-primary">{{ store.images.length }}</span>
+        <span class="text-xs font-semibold tabular-nums text-primary">{{
+          store.images.length
+        }}</span>
       </div>
     </div>
 

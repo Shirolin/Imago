@@ -130,14 +130,14 @@ const isModified = computed(() => {
             ref="inputRef"
             v-model="editValue"
             type="text"
-            class="w-12 h-5 bg-background border border-primary/50 rounded text-[10px] font-mono font-bold text-center text-primary focus:outline-none shadow-inner"
+            class="w-12 h-5 bg-background border border-primary/50 rounded text-[10px] tabular-nums font-semibold text-center text-primary focus:outline-none"
             @blur="finishEdit"
             @keydown.enter="finishEdit"
           />
           <button
             v-else
             @click="startEdit"
-            class="px-1.5 h-5 min-w-[32px] rounded hover:bg-primary/10 text-[11px] font-mono font-bold text-primary transition-colors text-right"
+            class="px-1.5 h-5 min-w-[32px] rounded hover:bg-primary/10 text-[11px] tabular-nums font-semibold text-primary transition-colors text-right"
             :title="t('common.ui.clickToEdit')"
           >
             {{ formatValue(modelValue) }}{{ unit }}

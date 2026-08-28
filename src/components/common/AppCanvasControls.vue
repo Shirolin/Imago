@@ -27,7 +27,7 @@ const handleZoom100 = () => emit('zoom100')
     >
       <ZoomOut :size="16" />
     </button>
-    <div class="px-2 min-w-[50px] text-center font-mono text-[10px] tabular-nums text-[var(--ink)]">
+    <div class="px-2 min-w-[50px] text-center text-[10px] tabular-nums text-[var(--ink)]">
       {{ Math.round(props.scale * 100) }}%
     </div>
     <button
@@ -41,7 +41,7 @@ const handleZoom100 = () => emit('zoom100')
     <button
       @click="handleZoom100"
       :aria-label="t('common.ui.oneToOne')"
-      class="h-8 px-3 rounded-[var(--radius)] hover:bg-secondary text-[10px] font-mono text-[var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+      class="h-8 px-3 rounded-[var(--radius-ctrl)] hover:bg-secondary text-[10px] tabular-nums text-[var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
     >
       1:1
     </button>

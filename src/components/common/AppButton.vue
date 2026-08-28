@@ -59,7 +59,7 @@ const shadcnSize = computed(() => {
 
 const extraClasses = computed(() => {
   let classes =
-    'transition-colors duration-150 whitespace-nowrap shrink-0 flex items-center justify-center select-none rounded-[var(--radius)] '
+    'transition-colors duration-150 whitespace-nowrap shrink-0 flex items-center justify-center select-none rounded-[var(--radius-ctrl)] '
 
   if (props.icon || props.loading) {
     classes += 'gap-2 '
@@ -73,7 +73,8 @@ const extraClasses = computed(() => {
     props.variant === 'primary' ||
     props.variant === 'success'
   ) {
-    classes += 'bg-[var(--accent)] text-[var(--ink)] hover:brightness-110 shadow-none border-none '
+    classes +=
+      'bg-[var(--accent)] text-[var(--board)] hover:brightness-95 shadow-none border-none disabled:opacity-45 '
   } else if (props.variant === 'tool') {
     classes += 'text-muted-foreground hover:bg-secondary hover:text-foreground '
   } else if (props.variant === 'secondary') {
@@ -83,7 +84,7 @@ const extraClasses = computed(() => {
     classes +=
       'bg-transparent hover:bg-secondary border border-transparent text-muted-foreground hover:text-foreground '
   } else if (props.variant === 'danger') {
-    classes += 'bg-[var(--danger)] text-[var(--ink)] hover:brightness-110 border-none shadow-none '
+    classes += 'bg-[var(--danger)] text-[var(--board)] hover:brightness-95 border-none shadow-none '
   }
   return classes
 })

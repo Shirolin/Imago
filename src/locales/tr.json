@@ -3,7 +3,7 @@
     "localProcessing": "Yerel · yükleme yok",
     "privacyFirst": "Yerel · yükleme yok",
     "processing": "İşleniyor...",
-    "subtitle": "Işık masası",
+    "subtitle": "Sıcak kâğıt",
     "title": "Imago"
   },
   "common": {
@@ -45,7 +45,7 @@
     },
     "go": "Aç",
     "heroDesc": "Tüm işlemler tarayıcınızda yerel olarak gerçekleşir. Dosyalar asla yüklenmez. Gerçekten özel ve verimli bir çevrimdışı üretkenlik aracı.",
-    "heroTitle1": "Işık masası",
+    "heroTitle1": "Sıcak kâğıt",
     "heroTitle2": "Yerel görüntü tezgâhı",
     "history": {
       "redo": "Yinele",
@@ -124,12 +124,12 @@
       "upload": {
         "button": "Yerel Görüntüleri Seç",
         "dropTip": "Başlatmak için Bırakın",
-        "dropToImago": "Işık masasına bırak",
+        "dropToImago": "Bu kâğıda bırak",
         "errorSize": "[{name}] dosyası çok büyük ({size} MB). Önerilen maksimum boyut: 50 MB.",
         "pureOffline": "%100 Çevrimdışı",
         "quickPaste": "Hızlı Yapıştır",
         "subtitle": "Sürükle, yapıştır veya tıklayıp seç",
-        "title": "Görseli ışık masasına koy"
+        "title": "Görseli bu kâğıda koy"
       }
     },
     "modal": {
@@ -441,7 +441,7 @@
       "magnetic": "Manyetik yapışma",
       "edgeTrim": "Kenar Kırpma",
       "empty": {
-        "desc": "Hassas kırpmaya başlamak için görüntüleri içe aktarın",
+        "desc": "Kâğıt üzerinde kırpmak için görüntüleri içe aktarın",
         "title": "Bekleyen Görüntü Yok"
       },
       "fillAll": "Tüm Tuvali Doldur",

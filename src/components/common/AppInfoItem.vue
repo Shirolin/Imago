@@ -23,8 +23,8 @@ withDefaults(defineProps<Props>(), {
       {{ label }}
     </div>
     <div
-      class="flex items-center gap-2 text-sm font-semibold text-foreground"
-      :class="{ 'font-mono font-bold': mono }"
+      class="flex items-center gap-2 text-sm font-semibold text-[var(--accent)] tabular-spec"
+      :class="{ 'tabular-spec': mono }"
     >
       <component v-if="icon" :is="icon" :size="iconSize" class="text-primary shrink-0" />
       <slot>{{ value }}</slot>

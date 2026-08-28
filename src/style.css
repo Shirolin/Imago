@@ -4,54 +4,59 @@
 
 @layer base {
   /*
-    灯箱 tokens — DESIGN.md is the hex source of truth.
+    暖纸 tokens — DESIGN.md is the hex source of truth.
     HSL bridges exist only so leftover hsl(var(--token)) calls resolve to those hexes.
   */
   :root {
-    --room: #12151a;
-    --chrome: #1a1e25;
-    --well: #dce3eb;
-    --well-flash: color-mix(in srgb, var(--well) 92%, white 8%);
-    --ink: #e8eaee;
-    --ink-well: #1a1d22;
-    --muted: #8b93a0;
-    --accent: #1e7a8a;
+    --paper: #f9f8f6;
+    --board: #fffcfa;
+    --well: #f3f1ec;
+    --ink: #2a2623;
+    --muted: #8b8680;
+    --accent: #c45c32;
     --danger: #b54a4a;
-    --radius: 6px;
+    --radius-well: 28px;
+    --radius-ctrl: 12px;
+    --radius: var(--radius-ctrl);
 
-    --background: 218 18% 9%;
-    --foreground: 220 15% 92%;
-    --card: 216 18% 12%;
-    --card-foreground: 220 15% 92%;
-    --popover: 216 18% 12%;
-    --popover-foreground: 220 15% 92%;
-    --primary: 189 64% 33%;
-    --primary-foreground: 220 15% 92%;
-    --secondary: 216 12% 16%;
-    --secondary-foreground: 220 15% 92%;
-    --muted-hsl: 216 12% 16%;
-    --muted-foreground: 217 10% 59%;
-    --accent-hsl: 189 64% 33%;
-    --accent-foreground: 220 15% 92%;
+    /* aliases so leftover chrome classes resolve to paper, not 灯箱 hex */
+    --room: var(--paper);
+    --chrome: var(--board);
+    --ink-well: var(--ink);
+
+    --background: 40 20% 97%;
+    --foreground: 26 9% 15%;
+    --card: 24 100% 99%;
+    --card-foreground: 26 9% 15%;
+    --popover: 24 100% 99%;
+    --popover-foreground: 26 9% 15%;
+    --primary: 17 59% 48%;
+    --primary-foreground: 24 100% 99%;
+    --secondary: 40 14% 94%;
+    --secondary-foreground: 26 9% 15%;
+    --muted-hsl: 43 14% 92%;
+    --muted-foreground: 33 4% 52%;
+    --accent-hsl: 17 59% 48%;
+    --accent-foreground: 24 100% 99%;
     --destructive: 0 42% 50%;
-    --destructive-foreground: 220 15% 92%;
-    --border: 216 10% 20%;
-    --input: 216 10% 20%;
-    --ring: 189 64% 33%;
+    --destructive-foreground: 24 100% 99%;
+    --border: 33 10% 88%;
+    --input: 33 10% 88%;
+    --ring: 17 59% 48%;
 
-    --primary-rgb: 30, 122, 138;
-    --success: 189 64% 33%;
-    --success-foreground: 220 15% 92%;
-    --warning: 217 10% 59%;
-    --warning-foreground: 220 15% 92%;
-    --info: 189 64% 33%;
-    --info-foreground: 220 15% 92%;
+    --primary-rgb: 196, 92, 50;
+    --success: 17 59% 48%;
+    --success-foreground: 24 100% 99%;
+    --warning: 33 4% 52%;
+    --warning-foreground: 26 9% 15%;
+    --info: 17 59% 48%;
+    --info-foreground: 24 100% 99%;
 
-    --checkerboard: 0 0% 0%;
+    --checkerboard: 26 9% 15%;
     --checkerboard-opacity: 0.08;
 
-    --font-sans: 'IBM Plex Sans', 'Noto Sans SC', sans-serif;
-    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --font-sans: 'Noto Sans SC', sans-serif;
+    --font-serif: 'Noto Serif SC', serif;
   }
 
   [data-theme='dark'],
@@ -67,7 +72,7 @@
 
   html,
   body {
-    background: var(--room);
+    background: var(--paper);
     color: var(--ink);
     font-family: var(--font-sans);
     @apply antialiased;
@@ -94,7 +99,7 @@
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background-color: color-mix(in srgb, var(--muted) 40%, transparent);
-    border-radius: var(--radius);
+    border-radius: var(--radius-ctrl);
     border: 2px solid transparent;
     background-clip: padding-box;
   }
@@ -112,31 +117,42 @@
 @layer components {
   .imago-well {
     background: var(--well);
-    color: var(--ink-well);
-    border-radius: var(--radius);
-    transition: background-color 180ms ease-out;
-  }
-
-  html.well-flash .imago-well,
-  .imago-well.is-flashing {
-    background: var(--well-flash);
-  }
-
-  .imago-chrome {
-    background: var(--chrome);
     color: var(--ink);
+    border-radius: var(--radius-well);
+  }
+
+  .imago-chrome,
+  .imago-board {
+    background: var(--board);
+    color: var(--ink);
+    box-shadow: 0 1px 2px rgba(42, 38, 35, 0.06);
   }
 
   .imago-sheet {
-    background: var(--chrome);
-    color: var(--ink);
-    border-radius: var(--radius);
-    box-shadow: 0 1px 3px rgba(18, 21, 26, 0.22);
+    background: var(--ink);
+    color: var(--board);
+    border-radius: var(--radius-ctrl);
+    box-shadow: 0 1px 2px rgba(42, 38, 35, 0.06);
+    animation: paper-settle 280ms ease-out;
   }
 
   .tabular-spec {
-    font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
+  }
+
+  .imago-serif {
+    font-family: var(--font-serif);
+  }
+}
+
+@keyframes paper-settle {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -167,6 +183,6 @@
       hsl(var(--checkerboard) / var(--checkerboard-opacity)) 0 75%,
       transparent 0
     );
-    background-size: 10px 10px;
+    background-size: 10px 20px;
   }
 }

@@ -183,7 +183,7 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
                   t('common.export.targetSize')
                 }}</span>
               </div>
-              <span class="font-mono text-sm font-black text-primary"
+              <span class="tabular-nums text-sm font-semibold text-primary"
                 >{{ targetSizeKB }} <span class="text-[10px] opacity-60">KB</span></span
               >
             </div>

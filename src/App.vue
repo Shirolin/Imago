@@ -32,13 +32,12 @@ const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 
-const theme = ref<'light' | 'dark' | 'system'>('dark')
+const theme = ref<'light' | 'dark' | 'system'>('light')
 
 const isMobileSidebarOpen = ref(false)
 const showSponsorModal = ref(false)
 const isGlobalDragging = ref(false)
 let dragTarget: EventTarget | null = null
-let flashTimer: number | null = null
 
 const toggleMobileSidebar = () => {
   isMobileSidebarOpen.value = !isMobileSidebarOpen.value
@@ -71,15 +70,6 @@ const applyTheme = () => {
   localStorage.setItem('imago-theme', theme.value)
 }
 
-const flashWell = () => {
-  document.documentElement.classList.add('well-flash')
-  if (flashTimer) window.clearTimeout(flashTimer)
-  flashTimer = window.setTimeout(() => {
-    document.documentElement.classList.remove('well-flash')
-    flashTimer = null
-  }, 180)
-}
-
 const handleFiles = (files: FileList | File[]) => {
   const MAX_SIZE = 50 * 1024 * 1024 // 50MB
   const validTypes = [
@@ -109,7 +99,6 @@ const handleFiles = (files: FileList | File[]) => {
 
   if (validFiles.length > 0) {
     store.addImages(validFiles)
-    flashWell()
     if (route.name === 'home') {
       router.push('/compress')
     }
@@ -120,7 +109,6 @@ const onGlobalDragEnter = (e: DragEvent) => {
   e.preventDefault()
   dragTarget = e.target
   isGlobalDragging.value = true
-  document.documentElement.classList.add('well-flash')
 }
 
 const onGlobalDragOver = (e: DragEvent) => {
@@ -130,7 +118,6 @@ const onGlobalDragOver = (e: DragEvent) => {
 const onGlobalDragLeave = (e: DragEvent) => {
   if (e.target === dragTarget || e.target === document) {
     isGlobalDragging.value = false
-    document.documentElement.classList.remove('well-flash')
   }
 }
 
@@ -139,8 +126,6 @@ const onGlobalDrop = (e: DragEvent) => {
   isGlobalDragging.value = false
   if (e.dataTransfer?.files) {
     handleFiles(e.dataTransfer.files)
-  } else {
-    document.documentElement.classList.remove('well-flash')
   }
 }
 
@@ -183,8 +168,6 @@ onMounted(() => {
     document.removeEventListener('dragover', onGlobalDragOver)
     document.removeEventListener('dragleave', onGlobalDragLeave)
     document.removeEventListener('drop', onGlobalDrop)
-    if (flashTimer) window.clearTimeout(flashTimer)
-    document.documentElement.classList.remove('well-flash')
   })
 })
 
@@ -237,25 +220,25 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
   const base =
     'flex items-center text-sm transition-colors duration-150 group relative shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]'
   const pad = collapsed
-    ? 'md:justify-center min-h-[40px] md:h-10 md:w-10 md:mx-auto px-3 py-2 gap-2 rounded-[var(--radius)]'
-    : 'px-3 py-2 min-h-[40px] gap-2 rounded-[var(--radius)]'
+    ? 'md:justify-center min-h-[40px] md:h-10 md:w-10 md:mx-auto px-3 py-2 gap-2 rounded-[var(--radius-ctrl)]'
+    : 'px-3 py-2 min-h-[40px] gap-2 rounded-[var(--radius-ctrl)]'
   const state = active
-    ? 'bg-[color-mix(in_srgb,var(--accent)_18%,var(--chrome))] text-[var(--ink)]'
-    : 'text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,var(--chrome))] hover:text-[var(--ink)]'
+    ? 'bg-[var(--well)] text-[var(--ink)]'
+    : 'text-[var(--muted)] hover:bg-[var(--well)] hover:text-[var(--ink)]'
   return `${base} ${pad} ${state}`
 }
 </script>
 
 <template>
   <div
-    class="flex h-[100dvh] w-full overflow-hidden relative bg-[var(--room)] text-[var(--ink)] antialiased"
+    class="flex h-[100dvh] w-full overflow-hidden relative bg-[var(--paper)] text-[var(--ink)] antialiased"
   >
     <div
       v-if="isGlobalDragging"
       class="fixed inset-0 z-[9999] pointer-events-none flex items-center justify-center"
     >
       <p
-        class="text-[var(--ink-well)] text-sm font-medium bg-[var(--well)] px-4 py-2 rounded-[var(--radius)]"
+        class="text-[var(--ink)] text-sm font-medium bg-[var(--well)] px-4 py-2 rounded-[var(--radius-ctrl)]"
       >
         {{ t('common.image.upload.dropToImago') }}
       </p>
@@ -264,11 +247,11 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
     <div
       v-show="isMobileSidebarOpen"
       @click="closeMobileSidebar"
-      class="fixed inset-0 bg-[var(--room)]/70 z-[90] md:hidden"
+      class="fixed inset-0 bg-[var(--paper)]/70 z-[90] md:hidden"
     ></div>
 
     <aside
-      class="imago-chrome border-r border-[color-mix(in_srgb,var(--ink)_8%,transparent)] flex flex-col z-[100] transition-all duration-200 ease-out md:static fixed inset-y-0 left-0 pt-[env(safe-area-inset-top,8px)] md:pt-0"
+      class="imago-board border-r border-[color-mix(in_srgb,var(--ink)_8%,transparent)] flex flex-col z-[100] transition-all duration-200 ease-out md:static fixed inset-y-0 left-0 pt-[env(safe-area-inset-top,8px)] md:pt-0"
       :class="[
         isMobileSidebarOpen ? 'translate-x-0 w-[240px]' : '-translate-x-full md:translate-x-0',
         layoutStore.isMenuCollapsed ? 'md:w-[64px]' : 'md:w-[220px]'
@@ -285,22 +268,25 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
         <router-link
           to="/"
           @click="closeMobileSidebar"
-          class="flex items-center outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-[var(--radius)]"
+          class="flex items-center outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-[var(--radius-ctrl)]"
           :class="layoutStore.isMenuCollapsed ? 'md:justify-center w-full gap-3 md:gap-0' : 'gap-2'"
         >
           <div
             v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-            class="flex items-baseline gap-1.5 min-w-0"
+            class="flex flex-col min-w-0"
             :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
           >
-            <span class="text-[17px] font-semibold tracking-tight text-[var(--ink)]">Imago</span>
-            <span class="text-[13px] font-normal text-[var(--muted)]"
-              >· {{ t('app.subtitle') }}</span
+            <span
+              class="imago-serif text-[22px] font-semibold leading-none tracking-tight text-[var(--ink)]"
+              >Imago</span
             >
+            <span class="mt-1 text-[10px] font-medium tracking-[0.16em] text-[var(--muted)]">{{
+              t('app.subtitle')
+            }}</span>
           </div>
           <span
             v-else
-            class="hidden md:inline text-[15px] font-semibold text-[var(--ink)]"
+            class="imago-serif hidden md:inline text-[18px] font-semibold text-[var(--ink)]"
             aria-hidden="true"
             >I</span
           >
@@ -348,12 +334,6 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
             :title="layoutStore.isMenuCollapsed ? item.name : ''"
             @click="closeMobileSidebar"
           >
-            <span
-              v-if="
-                $route.path === item.path && !(layoutStore.isMenuCollapsed && !isMobileSidebarOpen)
-              "
-              class="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-[2px] bg-[var(--accent)]"
-            ></span>
             <component
               :is="item.icon"
               :size="layoutStore.isMenuCollapsed && !isMobileSidebarOpen ? 18 : 16"
@@ -426,9 +406,9 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
       ></div>
     </div>
 
-    <main class="flex-1 min-h-0 flex flex-col relative z-20 bg-[var(--room)]">
+    <main class="flex-1 min-h-0 flex flex-col relative z-20 bg-[var(--paper)]">
       <header
-        class="shrink-0 flex items-center justify-between px-3 md:px-4 bg-[var(--room)] z-50 md:z-[110] h-11"
+        class="shrink-0 flex items-center justify-between px-3 md:px-4 bg-[var(--paper)] z-50 md:z-[110] h-11"
       >
         <div class="flex items-center gap-2 flex-none min-w-0 z-20">
           <button
@@ -454,7 +434,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
           ></div>
 
           <div
-            class="flex items-center gap-2 text-[11px] font-medium text-[var(--muted)] hidden xl:flex shrink-0 font-mono tabular-nums"
+            class="flex items-center gap-2 text-[11px] font-medium text-[var(--muted)] hidden xl:flex shrink-0 tabular-nums"
           >
             <Loader2 v-if="store.processingCount > 0" class="animate-spin" :size="10" />
             <span v-if="store.processingCount === 0">{{ t('app.localProcessing') }}</span>
@@ -477,7 +457,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
                   <component :is="Component" />
                 </template>
                 <template #fallback>
-                  <div class="h-full w-full flex items-center justify-center bg-[var(--room)]">
+                  <div class="h-full w-full flex items-center justify-center bg-[var(--paper)]">
                     <Loader2 class="animate-spin text-[var(--accent)]" :size="24" />
                   </div>
                 </template>

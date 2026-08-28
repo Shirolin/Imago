@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useImageStore } from '../../stores/imageStore'
 import { useLayoutStore } from '../../stores/layoutStore'
 import { useI18n } from 'vue-i18n'
@@ -25,20 +25,10 @@ const isMounted = ref(false)
 onMounted(() => {
   isMounted.value = true
 })
-
-watch(
-  () => store.images.length,
-  (n, prev) => {
-    if (n > (prev ?? 0)) {
-      document.documentElement.classList.add('well-flash')
-      window.setTimeout(() => document.documentElement.classList.remove('well-flash'), 180)
-    }
-  }
-)
 </script>
 
 <template>
-  <div class="h-full flex flex-col relative bg-[var(--room)] overflow-hidden">
+  <div class="h-full flex flex-col relative bg-[var(--paper)] overflow-hidden">
     <div
       class="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden relative w-full max-w-full"
     >
@@ -74,7 +64,7 @@ watch(
       </Teleport>
 
       <main
-        class="flex-1 flex flex-col min-w-0 min-h-0 relative z-10 bg-[var(--room)] overflow-hidden p-3"
+        class="flex-1 flex flex-col min-w-0 min-h-0 relative z-10 bg-[var(--paper)] overflow-hidden p-3"
         role="main"
         :inert="(isCompact || isMedium) && !layoutStore.isInspectorCollapsed ? true : undefined"
         :aria-hidden="(isCompact || isMedium) && !layoutStore.isInspectorCollapsed"
@@ -121,7 +111,7 @@ watch(
 
           <nav
             v-if="showAssetsTray && store.images.length > 1"
-            class="shrink-0 w-0 min-w-full z-20 bg-[var(--chrome)] overflow-hidden"
+            class="shrink-0 w-0 min-w-full z-20 bg-[var(--board)] overflow-hidden"
             :aria-label="t('common.assets.trayAria')"
             :class="[
               (layoutStore.isAssetsTrayCollapsed && isDesktop) ||
@@ -150,7 +140,7 @@ watch(
               layoutStore.isAssetsTrayCollapsed
             "
             @click="layoutStore.toggleAssetsTray"
-            class="h-8 bg-[var(--chrome)] cursor-pointer transition-colors border-t border-[color-mix(in_srgb,var(--ink)_8%,transparent)] shrink-0 group flex items-center justify-between px-4"
+            class="h-8 bg-[var(--board)] cursor-pointer transition-colors border-t border-[color-mix(in_srgb,var(--ink)_8%,transparent)] shrink-0 group flex items-center justify-between px-4"
             :title="t('common.assets.expandTray')"
             role="button"
             tabindex="0"
@@ -165,7 +155,7 @@ watch(
               >
             </div>
             <div class="flex-1 flex justify-end">
-              <div class="px-1.5 py-0.5 text-[11px] font-mono tabular-nums text-[var(--muted)]">
+              <div class="px-1.5 py-0.5 text-[11px] tabular-nums text-[var(--muted)]">
                 {{ store.images.length }}
               </div>
             </div>
@@ -176,7 +166,7 @@ watch(
       <aside
         v-if="showSidebar"
         id="inspector-panel"
-        class="imago-chrome border-[color-mix(in_srgb,var(--ink)_8%,transparent)] transition-all duration-200 z-[200] lg:static"
+        class="imago-board border-[color-mix(in_srgb,var(--ink)_8%,transparent)] transition-all duration-200 z-[200] lg:static"
         role="complementary"
         :aria-label="isCompact ? t('common.inspector.drawer') : t('common.inspector.sidebar')"
         :class="[
@@ -202,7 +192,7 @@ watch(
           <div
             v-if="isCompact"
             @click="layoutStore.toggleInspector"
-            class="flex flex-col items-center justify-center h-10 shrink-0 cursor-pointer touch-none group bg-[var(--chrome)] border-b border-[color-mix(in_srgb,var(--ink)_8%,transparent)]"
+            class="flex flex-col items-center justify-center h-10 shrink-0 cursor-pointer touch-none group bg-[var(--board)] border-b border-[color-mix(in_srgb,var(--ink)_8%,transparent)]"
             role="button"
             :aria-label="
               layoutStore.isInspectorCollapsed
@@ -251,7 +241,7 @@ watch(
 
           <div
             v-if="!layoutStore.isInspectorCollapsed && $slots.toolbar"
-            class="shrink-0 px-3 py-2 border-t border-[color-mix(in_srgb,var(--ink)_8%,transparent)] bg-[var(--chrome)]"
+            class="shrink-0 px-3 py-2 border-t border-[color-mix(in_srgb,var(--ink)_8%,transparent)] bg-[var(--board)]"
           >
             <slot name="toolbar"></slot>
           </div>
@@ -265,7 +255,7 @@ watch(
       <div
         v-if="isMedium && showSidebar && !layoutStore.isInspectorCollapsed"
         @click="layoutStore.toggleInspector"
-        class="fixed inset-0 bg-[var(--room)]/50 z-50"
+        class="fixed inset-0 bg-[var(--paper)]/50 z-50"
       ></div>
     </div>
   </div>

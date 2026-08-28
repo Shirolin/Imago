@@ -3,7 +3,7 @@
     "localProcessing": "Local · pas d’envoi",
     "privacyFirst": "Local · pas d’envoi",
     "processing": "Traitement en cours...",
-    "subtitle": "Table lumineuse",
+    "subtitle": "Papier chaud",
     "title": "Imago"
   },
   "common": {
@@ -45,7 +45,7 @@
     },
     "go": "Ouvrir",
     "heroDesc": "Tout le traitement se fait localement dans votre navigateur. Les fichiers ne sont jamais téléchargés. Un véritable outil de productivité hors ligne et privé.",
-    "heroTitle1": "Table lumineuse",
+    "heroTitle1": "Papier chaud",
     "heroTitle2": "Atelier image local",
     "history": {
       "redo": "Refaire",
@@ -124,12 +124,12 @@
       "upload": {
         "button": "Sélectionner des Images",
         "dropTip": "Relâcher pour commencer",
-        "dropToImago": "Déposer sur la table lumineuse",
+        "dropToImago": "Déposer sur ce papier",
         "errorSize": "Le fichier [{name}] est trop volumineux ({size} Mo). Maximum recommandé : 50 Mo.",
         "pureOffline": "100% Hors Ligne",
         "quickPaste": "Coller",
         "subtitle": "Glisser, coller, ou cliquer pour choisir",
-        "title": "Posez l’image sur la table lumineuse"
+        "title": "Posez l’image sur ce papier"
       }
     },
     "modal": {
@@ -441,7 +441,7 @@
       "magnetic": "Aimantation",
       "edgeTrim": "Ajustement des Bords",
       "empty": {
-        "desc": "Importer des images pour un recadrage de précision",
+        "desc": "Importer des images pour recadrer sur le papier",
         "title": "Aucune Image en Attente"
       },
       "fillAll": "Remplir Tout le Canevas",

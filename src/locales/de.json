@@ -3,7 +3,7 @@
     "localProcessing": "Lokal · kein Upload",
     "privacyFirst": "Lokal · kein Upload",
     "processing": "Verarbeitung läuft...",
-    "subtitle": "Leuchttisch",
+    "subtitle": "Warmes Papier",
     "title": "Imago"
   },
   "common": {
@@ -45,7 +45,7 @@
     },
     "go": "Öffnen",
     "heroDesc": "Die Bildverarbeitung erfolgt lokal in Ihrem Browser. Dateien werden niemals hochgeladen. Ein privates und effizientes Offline-Produktivitätstool.",
-    "heroTitle1": "Leuchttisch",
+    "heroTitle1": "Warmes Papier",
     "heroTitle2": "Lokale Bildwerkbank",
     "history": {
       "redo": "Wiederholen",
@@ -124,12 +124,12 @@
       "upload": {
         "button": "Lokale Bilder wählen",
         "dropTip": "Loslassen zum Starten",
-        "dropToImago": "Auf den Leuchttisch legen",
+        "dropToImago": "Auf dieses Papier legen",
         "errorSize": "Datei [{name}] ist zu groß ({size} MB). Empfohlenes Maximum: 50 MB.",
         "pureOffline": "100% Offline",
         "quickPaste": "Einfügen",
         "subtitle": "Ziehen, einfügen oder hier klicken",
-        "title": "Bild auf den Leuchttisch legen"
+        "title": "Bild auf dieses Papier legen"
       }
     },
     "modal": {
@@ -441,7 +441,7 @@
       "magnetic": "Magnetisches Einrasten",
       "edgeTrim": "Kanten-Trimming",
       "empty": {
-        "desc": "Bilder für Präzisions-Crop importieren",
+        "desc": "Bilder importieren, um auf dem Papier zuzuschneiden",
         "title": "Keine ausstehenden Bilder"
       },
       "fillAll": "Ganze Leinwand füllen",

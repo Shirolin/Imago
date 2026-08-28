@@ -220,7 +220,7 @@ watch(displayUrl, () => {
     >
       <!-- 背景预览 -->
       <div
-        class="absolute inset-0 overflow-hidden rounded-t-[calc(1rem-1px)] bg-muted/20"
+        class="absolute inset-0 overflow-hidden rounded-t-[var(--radius-ctrl)] bg-[color-mix(in_srgb,var(--board)_12%,transparent)]"
         :class="{ 'app-transparency-grid-sm': showTransparency }"
       >
         <div class="absolute inset-0 z-10 pointer-events-none">
@@ -229,18 +229,17 @@ watch(displayUrl, () => {
         <!-- 骨架屏：预览未解码时显示 shimmer，解码完成后移除 -->
         <div
           v-if="!previewLoaded"
-          class="absolute inset-0 bg-[var(--chrome)]"
+          class="absolute inset-0 bg-[var(--ink)]"
           aria-hidden="true"
         ></div>
         <img
           :src="displayUrl"
           :alt="t('common.image.card.previewAlt', { name: image.file.name })"
-          class="w-full h-full object-contain transition-all duration-700"
+          class="w-full h-full object-contain"
           @load="previewLoaded = true"
           @error="previewLoaded = true"
           :class="{
-            'group-hover/canvas:scale-105': !showMagnifier && !isDirtyDone,
-            'opacity-40 grayscale-[0.5] blur-[1px] scale-95': image.status === 'processing'
+            'opacity-40 grayscale-[0.5]': image.status === 'processing'
           }"
           :style="imageStyle"
         />
@@ -258,7 +257,7 @@ watch(displayUrl, () => {
         class="absolute inset-0 z-40 pointer-events-none"
       >
         <div
-          class="absolute w-40 h-40 md:w-48 md:h-48 -ml-20 -mt-20 md:-ml-24 md:-mt-24 rounded-full border-2 border-primary shadow-[0_0_30px_rgba(var(--primary-rgb),0.5)] overflow-hidden bg-background flex items-center justify-center"
+          class="absolute w-40 h-40 md:w-48 md:h-48 -ml-20 -mt-20 md:-ml-24 md:-mt-24 rounded-full border-2 border-[var(--board)] overflow-hidden bg-[var(--ink)] flex items-center justify-center"
           :class="{ 'app-transparency-grid-sm': showTransparency }"
           :style="{ left: `${mousePos.x}%`, top: `${mousePos.y}%` }"
         >
@@ -279,18 +278,15 @@ watch(displayUrl, () => {
             <img :src="localProcessedUrl!" class="w-full h-full object-contain" />
           </div>
           <!-- 动态分割线 -->
-          <div
-            class="absolute inset-y-0 left-1/2 w-0.5 bg-primary/80 z-10 shadow-[0_0_8px_rgba(var(--primary-rgb),1)]"
-          ></div>
+          <div class="absolute inset-y-0 left-1/2 w-0.5 bg-[var(--board)] z-10"></div>
           <div
             class="absolute inset-0 flex items-center justify-between px-2 text-[10px] pointer-events-none z-20"
           >
+            <span class="bg-[var(--ink)] px-1.5 py-0.5 rounded text-[var(--board)] font-medium">{{
+              $t('common.image.card.before')
+            }}</span>
             <span
-              class="bg-muted/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-foreground font-black border border-border/20 shadow-sm filter drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]"
-              >{{ $t('common.image.card.before') }}</span
-            >
-            <span
-              class="bg-primary/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-primary-foreground font-black border border-white/20 shadow-sm filter drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]"
+              class="bg-[var(--accent)] px-1.5 py-0.5 rounded text-[var(--board)] font-medium"
               >{{ $t('common.image.card.after') }}</span
             >
           </div>
@@ -300,7 +296,7 @@ watch(displayUrl, () => {
       <!-- 【模式 B】：Hover HUD 托盘 (仅在小图模式 + 有可用操作时浮现) -->
       <div
         v-if="!isLargeMode && (image.status === 'done' || image.status === 'error')"
-        class="absolute bottom-3 left-3 right-3 z-30 bg-[var(--chrome)] border border-[color-mix(in_srgb,var(--ink)_12%,transparent)] rounded-[var(--radius)] p-1.5 flex items-center justify-between gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto touch-reveal"
+        class="absolute bottom-3 left-3 right-3 z-30 bg-[var(--board)] border border-[color-mix(in_srgb,var(--ink)_12%,transparent)] rounded-[var(--radius-ctrl)] p-1.5 flex items-center justify-between gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto touch-reveal"
       >
         <div class="flex items-center gap-1">
           <button
@@ -333,7 +329,7 @@ watch(displayUrl, () => {
           <button
             v-if="image.status === 'done'"
             @click.stop="emit('download', image.id)"
-            class="p-1.5 bg-primary text-primary-foreground rounded-lg shadow-lg active:scale-90 transition-all"
+            class="p-1.5 bg-[var(--accent)] text-[var(--board)] rounded-[var(--radius-ctrl)] active:brightness-95 transition-colors"
             :aria-label="t('common.image.card.download')"
           >
             <Download :size="14" />
@@ -348,7 +344,7 @@ watch(displayUrl, () => {
           :class="
             isSelected
               ? 'text-primary scale-110'
-              : 'text-foreground/60 opacity-0 group-hover:opacity-100'
+              : 'text-[var(--board)]/70 opacity-0 group-hover:opacity-100'
           "
         >
           <CheckSquare v-if="isSelected" :size="20" />
@@ -359,7 +355,7 @@ watch(displayUrl, () => {
       <button
         v-if="!showMagnifier"
         @click.stop="store.removeImage(image.id)"
-        class="absolute top-3 right-3 z-30 bg-[var(--chrome)] hover:bg-[var(--danger)] text-[var(--muted)] hover:text-[var(--ink)] p-1.5 rounded-[var(--radius)] opacity-0 group-hover:opacity-100 transition-colors border border-[color-mix(in_srgb,var(--ink)_12%,transparent)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] touch-reveal"
+        class="absolute top-3 right-3 z-30 bg-[var(--board)] hover:bg-[var(--danger)] text-[var(--muted)] hover:text-[var(--board)] p-1.5 rounded-[var(--radius-ctrl)] opacity-0 group-hover:opacity-100 transition-colors border border-[color-mix(in_srgb,var(--ink)_12%,transparent)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] touch-reveal"
         :title="$t('common.image.card.remove')"
         :aria-label="$t('common.image.card.remove')"
       >
@@ -369,7 +365,7 @@ watch(displayUrl, () => {
       <!-- 处理中中心进度 -->
       <div
         v-if="image.status === 'processing'"
-        class="absolute inset-0 bg-[var(--chrome)]/70 z-30 flex items-center justify-center"
+        class="absolute inset-0 bg-[var(--ink)]/70 z-30 flex items-center justify-center"
       >
         <Loader2 :size="24" class="text-primary animate-spin" />
       </div>
@@ -390,7 +386,9 @@ watch(displayUrl, () => {
       </div>
 
       <div class="flex items-center justify-between gap-2">
-        <h4 class="font-bold text-foreground truncate text-sm flex-1">{{ image.file.name }}</h4>
+        <h4 class="font-medium text-[var(--board)] truncate text-sm flex-1">
+          {{ image.file.name }}
+        </h4>
         <div class="shrink-0 flex items-center gap-1.5">
           <div
             v-if="image.status === 'done'"
@@ -408,7 +406,7 @@ watch(displayUrl, () => {
       <!-- 【大图专供】：详细技术参数 -->
       <div
         v-if="isLargeMode"
-        class="flex items-center gap-2 text-[10px] font-bold text-muted-foreground/60 tracking-tight uppercase tabular-nums animate-in fade-in duration-300"
+        class="flex items-center gap-2 text-[10px] font-medium text-[var(--muted)] tracking-tight tabular-nums"
       >
         <span class="px-1 py-0.5 rounded bg-muted/40 text-[9px]">{{ image.format }}</span>
         <span>{{ image.width }} × {{ image.height }}</span>
@@ -453,7 +451,7 @@ watch(displayUrl, () => {
           <button
             v-if="image.status === 'done'"
             @click.stop="emit('download', image.id)"
-            class="p-2 bg-[var(--accent)] text-[var(--ink)] rounded-[var(--radius)] hover:brightness-110 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            class="p-2 bg-[var(--accent)] text-[var(--board)] rounded-[var(--radius-ctrl)] hover:brightness-95 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             :title="t('common.image.card.download')"
             :aria-label="t('common.image.card.download')"
           >
@@ -487,14 +485,14 @@ watch(displayUrl, () => {
         <div class="flex gap-3">
           <AppButton
             variant="ghost"
-            class="flex-1 rounded-xl h-11"
+            class="flex-1 rounded-[var(--radius-ctrl)] h-11"
             @click="showResetConfirm = false"
           >
             {{ t('common.image.toolbar.cancel') }}
           </AppButton>
           <AppButton
             variant="danger"
-            class="flex-1 rounded-xl h-11 shadow-lg shadow-destructive/10"
+            class="flex-1 rounded-[var(--radius-ctrl)] h-11"
             @click="confirmReset"
           >
             {{ t('common.image.toolbar.confirm') }}

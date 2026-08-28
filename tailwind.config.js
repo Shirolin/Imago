@@ -21,23 +21,22 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['IBM Plex Sans', 'Noto Sans SC', 'sans-serif'],
-        mono: ['IBM Plex Mono', 'ui-monospace', 'monospace']
+        sans: ['Noto Sans SC', 'sans-serif'],
+        serif: ['Noto Serif SC', 'serif']
       },
       colors: {
-        room: 'var(--room)',
-        chrome: 'var(--chrome)',
+        paper: 'var(--paper)',
+        board: 'var(--board)',
         well: 'var(--well)',
         ink: 'var(--ink)',
-        'ink-well': 'var(--ink-well)',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        background: 'var(--room)',
+        background: 'var(--paper)',
         foreground: 'var(--ink)',
         primary: {
           DEFAULT: 'var(--accent)',
-          foreground: 'var(--ink)'
+          foreground: 'var(--board)'
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
@@ -45,7 +44,7 @@ export default {
         },
         destructive: {
           DEFAULT: 'var(--danger)',
-          foreground: 'var(--ink)'
+          foreground: 'var(--board)'
         },
         muted: {
           DEFAULT: 'hsl(var(--muted-hsl))',
@@ -53,19 +52,19 @@ export default {
         },
         accent: {
           DEFAULT: 'var(--accent)',
-          foreground: 'var(--ink)'
+          foreground: 'var(--board)'
         },
         popover: {
-          DEFAULT: 'var(--chrome)',
+          DEFAULT: 'var(--board)',
           foreground: 'var(--ink)'
         },
         card: {
-          DEFAULT: 'var(--chrome)',
+          DEFAULT: 'var(--board)',
           foreground: 'var(--ink)'
         },
         success: {
           DEFAULT: 'var(--accent)',
-          foreground: 'var(--ink)'
+          foreground: 'var(--board)'
         },
         warning: {
           DEFAULT: 'var(--muted)',
@@ -73,21 +72,21 @@ export default {
         },
         info: {
           DEFAULT: 'var(--accent)',
-          foreground: 'var(--ink)'
+          foreground: 'var(--board)'
         }
       },
       borderRadius: {
-        '3xl': 'var(--radius)',
-        '2xl': 'var(--radius)',
-        xl: 'var(--radius)',
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
-        DEFAULT: 'var(--radius)'
+        '3xl': 'var(--radius-well)',
+        '2xl': 'var(--radius-well)',
+        xl: 'var(--radius-ctrl)',
+        lg: 'var(--radius-ctrl)',
+        md: 'calc(var(--radius-ctrl) - 2px)',
+        sm: 'calc(var(--radius-ctrl) - 4px)',
+        DEFAULT: 'var(--radius-ctrl)'
       },
       boxShadow: {
-        soft: '0 1px 3px rgba(18, 21, 26, 0.22)',
-        elevated: '0 1px 3px rgba(18, 21, 26, 0.22)',
+        soft: '0 1px 2px rgba(42, 38, 35, 0.06)',
+        elevated: '0 1px 2px rgba(42, 38, 35, 0.06)',
         primary: 'none'
       },
       keyframes: {
@@ -98,11 +97,16 @@ export default {
         'accordion-up': {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: 0 }
+        },
+        'paper-settle': {
+          from: { opacity: '0', transform: 'translateY(8px)' },
+          to: { opacity: '1', transform: 'translateY(0)' }
         }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out'
+        'accordion-up': 'accordion-up 0.2s ease-out',
+        'paper-settle': 'paper-settle 280ms ease-out'
       },
       transitionTimingFunction: {
         apple: 'ease-out'
