@@ -217,7 +217,7 @@ const menuGroups = computed(() => [
 
 const currentRouteName = computed(() => {
   const routeName = route.name as string
-  if (routeName === 'home') return t('nav.allTools')
+  if (routeName === 'home') return t('app.subtitle')
   const toolKey = [
     'compress',
     'resize',
