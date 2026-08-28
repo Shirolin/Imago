@@ -64,17 +64,17 @@ Imago 的首要目标是提供一个**完全在用户本地运行**的图片处�
 
 ## 4. 视觉语言与组件语义 (Visual Language & Component Semantics)
 
-视觉令牌、禁区、签名动效以仓库根目录 [`DESIGN.md`](../DESIGN.md)（Imago · 灯箱）为唯一真源。本节不定义色相、圆角、字体或按钮心理模型，也不得覆盖根文件中的 hex。
+视觉令牌、禁区、签名动效以仓库根目录 [`DESIGN.md`](../DESIGN.md)（Imago · 暖纸）为唯一真源。本节不定义色相、圆角、字体或按钮心理模型，也不得覆盖根文件中的 hex。
 
-旧描述（薄荷绿 primary、琥珀橙 CTA、双品牌色、同色系彩色投影、悬停抬起）作废。实现时读根目录 `DESIGN.md`，不要读本节当色板。
+旧描述（薄荷绿 primary、琥珀橙 CTA、灯箱观察室、IBM Plex、双品牌色、同色系彩色投影、悬停抬起）作废。实现时读根目录 `DESIGN.md`，不要读本节当色板。
 
-- 观察室 `--room`，不透明栏 `--chrome`，亚克力灯箱 `--well`，唯一强调 `--accent`。删除用 `--danger`。没有第二品牌色。
-- 栏不透明。禁止玻璃、blur、glow orb、彩色投影。
-- 圆角上限 `--radius: 6px`。禁止 pill / rounded-2xl 当默认。
-- 字体：IBM Plex Sans + Noto Sans SC；规格数字 IBM Plex Mono。
-- 主操作：`--accent` 实底。次操作：描边。Hover / press / focus 可见，不要抬起、不要 bounce。
-- 图落到灯箱上：`--well` 向白偏 8%，180ms ease-out，然后稳住。
-- 规格数字（KB、尺寸、比例）用 `tabular-nums` 与 IBM Plex Mono。
+- 房间 `--paper`，纸板 `--board`，纸井 `--well`，唯一强调 `--accent`（陶土）。删除用 `--danger`。没有第二品牌色。
+- 栏不透明。禁止玻璃、blur、glow orb、彩色投影。纸板可用浅接触影。
+- 纸井 `--radius-well: 28px`。密控件 `--radius-ctrl: 12px`。不要把检查器按钮做成 32px 药丸。
+- 字体：字标和空态用 Noto Serif SC；控件和规格用 Noto Sans SC。禁止 Inter / Geist / Roboto / Arial / IBM Plex。
+- 主操作：`--accent` 实底，字色 `--board`。次操作：描边。Hover / press / focus 可见，不要抬起、不要 bounce。
+- 图落到纸井上：translateY 8px → 0 + 透明度，280ms ease-out。不要灯箱闪光。
+- 规格数字（KB、尺寸、比例）用 `tabular-nums` 与 Noto Sans SC，不要再引一套英文等宽当品牌。
 
 ---
 
