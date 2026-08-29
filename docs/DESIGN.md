@@ -71,10 +71,11 @@ Imago 的首要目标是提供一个**完全在用户本地运行**的图片处�
 - 房间 `--paper`，纸板 `--board`，纸井 `--well`，唯一强调 `--accent`（陶土）。删除用 `--danger`。没有第二品牌色。
 - 栏不透明。禁止玻璃、blur、glow orb、彩色投影。纸板可用浅接触影。
 - 纸井 `--radius-well: 28px`。密控件 `--radius-ctrl: 12px`。不要把检查器按钮做成 32px 药丸。
-- 字体：字标和空态用 Noto Serif SC；控件和规格用 Noto Sans SC。禁止 Inter / Geist / Roboto / Arial / IBM Plex。
+- 字体：字标、封面工单、空态用 Noto Serif SC；控件和规格用 Noto Sans SC。禁止 Inter / Geist / Roboto / Arial / IBM Plex。
 - 主操作：`--accent` 实底，字色 `--board`。次操作：描边。Hover / press / focus 可见，不要抬起、不要 bounce。
-- 图落到纸井上：translateY 8px → 0 + 透明度，280ms ease-out。不要灯箱闪光。
-- 规格数字（KB、尺寸、比例）用 `tabular-nums` 与 Noto Sans SC，不要再引一套英文等宽当品牌。
+- 打开是封面（印样 + 工单 + 「开始处理」），不是空井。空井是工作台第二拍。
+- 图落到纸井上：translateY 8px → 0 + 透明度，280ms ease-out。封面工单滚动用 mask 渐隐。不要灯箱闪光。
+- 规格数字（KB、尺寸、比例）用 `tabular-nums` 与 Noto Sans SC，不要再引一套英文等宽当品牌。列表卡只留文件名，规格在检查器。
 
 ---
 
