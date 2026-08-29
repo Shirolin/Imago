@@ -44,7 +44,7 @@ onMounted(() => {
         <button
           v-if="showSidebar"
           @click="layoutStore.toggleInspector"
-          class="hidden lg:flex p-2 hover:bg-secondary rounded-[var(--radius)] transition-colors text-muted-foreground hover:text-foreground outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] min-h-[36px] min-w-[36px] items-center justify-center"
+          class="hidden lg:flex h-9 w-9 items-center justify-center rounded-[var(--radius-ctrl)] text-[var(--muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] hover:text-[var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           :aria-label="t('common.layout.toggleInspector')"
           :aria-expanded="!layoutStore.isInspectorCollapsed"
         >
@@ -54,7 +54,7 @@ onMounted(() => {
         <button
           v-if="showSidebar && !isDesktop"
           @click="layoutStore.toggleInspector"
-          class="flex lg:hidden p-2 hover:bg-secondary rounded-[var(--radius)] transition-colors text-muted-foreground hover:text-foreground min-h-[36px] min-w-[36px] items-center justify-center outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          class="flex lg:hidden h-9 w-9 items-center justify-center rounded-[var(--radius-ctrl)] text-[var(--muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] hover:text-[var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           :aria-label="t('common.layout.toggleInspector')"
           :aria-expanded="!layoutStore.isInspectorCollapsed"
         >
@@ -215,7 +215,7 @@ onMounted(() => {
 
           <div
             v-if="isMedium || isDesktop"
-            class="h-10 flex items-center justify-between px-4 border-b border-[var(--hairline)] shrink-0"
+            class="h-11 flex items-center justify-between px-4 border-b border-[var(--hairline)] shrink-0"
           >
             <span class="text-[13px] font-medium text-[var(--ink)]">{{
               t('common.inspector.spec')

@@ -81,7 +81,7 @@ const handleConfirm = () => {
 </script>
 
 <template>
-  <div class="flex items-center gap-2 md:gap-3 px-0.5 py-1">
+  <div class="flex h-9 items-center gap-2 md:gap-3">
     <div
       class="flex items-center bg-[var(--well)] p-0.5 rounded-[var(--radius-ctrl)] border border-[var(--hairline)]"
     >
