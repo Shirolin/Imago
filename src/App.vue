@@ -10,9 +10,6 @@ import {
   Split,
   Layers,
   Palette,
-  Sun,
-  Moon,
-  Monitor,
   Menu,
   Loader2,
   ChevronLeft,
@@ -32,42 +29,18 @@ const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 
-const theme = ref<'light' | 'dark' | 'system'>('light')
-
 const isMobileSidebarOpen = ref(false)
 const showSponsorModal = ref(false)
 const isGlobalDragging = ref(false)
 let dragTarget: EventTarget | null = null
+
+const isCover = computed(() => route.name === 'home')
 
 const toggleMobileSidebar = () => {
   isMobileSidebarOpen.value = !isMobileSidebarOpen.value
 }
 const closeMobileSidebar = () => {
   isMobileSidebarOpen.value = false
-}
-
-const setTheme = (mode: 'light' | 'dark' | 'system') => {
-  theme.value = mode
-  applyTheme()
-}
-
-const toggleTheme = () => {
-  const modes: ('light' | 'dark' | 'system')[] = ['light', 'dark', 'system']
-  const currentIndex = modes.indexOf(theme.value)
-  const nextIndex = (currentIndex + 1) % modes.length
-  setTheme(modes[nextIndex] as 'light' | 'dark' | 'system')
-}
-
-const applyTheme = () => {
-  const root = document.documentElement
-  let effectiveTheme = theme.value
-
-  if (theme.value === 'system') {
-    effectiveTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-  }
-
-  root.setAttribute('data-theme', effectiveTheme)
-  localStorage.setItem('imago-theme', theme.value)
 }
 
 const handleFiles = (files: FileList | File[]) => {
@@ -144,16 +117,7 @@ const onGlobalFileSelect = (e: Event) => {
 }
 
 onMounted(() => {
-  const saved = localStorage.getItem('imago-theme') as 'light' | 'dark' | 'system' | null
-  if (saved) theme.value = saved
-  applyTheme()
-
-  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-  const handleThemeChange = () => {
-    if (theme.value === 'system') applyTheme()
-  }
-
-  mediaQuery.addEventListener('change', handleThemeChange)
+  document.documentElement.setAttribute('data-theme', 'light')
 
   window.addEventListener('paste', onPaste)
   document.addEventListener('dragenter', onGlobalDragEnter)
@@ -162,7 +126,6 @@ onMounted(() => {
   document.addEventListener('drop', onGlobalDrop)
 
   onBeforeUnmount(() => {
-    mediaQuery.removeEventListener('change', handleThemeChange)
     window.removeEventListener('paste', onPaste)
     document.removeEventListener('dragenter', onGlobalDragEnter)
     document.removeEventListener('dragover', onGlobalDragOver)
@@ -200,7 +163,7 @@ const menuGroups = computed(() => [
 
 const currentRouteName = computed(() => {
   const routeName = route.name as string
-  if (routeName === 'home') return t('app.subtitle')
+  if (routeName === 'home') return t('app.title')
   const toolKey = [
     'compress',
     'resize',
@@ -234,7 +197,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
     class="flex h-[100dvh] w-full overflow-hidden relative bg-[var(--paper)] text-[var(--ink)] antialiased"
   >
     <div
-      v-if="isGlobalDragging"
+      v-if="isGlobalDragging && !isCover"
       class="fixed inset-0 z-[9999] pointer-events-none flex items-center justify-center"
     >
       <p
@@ -245,12 +208,13 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
     </div>
 
     <div
-      v-show="isMobileSidebarOpen"
+      v-show="isMobileSidebarOpen && !isCover"
       @click="closeMobileSidebar"
       class="fixed inset-0 bg-[var(--paper)]/70 z-[90] md:hidden"
     ></div>
 
     <aside
+      v-if="!isCover"
       class="imago-board border-r border-[var(--hairline)] flex flex-col z-[100] transition-all duration-200 ease-out md:static fixed inset-y-0 left-0 pt-[env(safe-area-inset-top,8px)] md:pt-0"
       :class="[
         isMobileSidebarOpen ? 'translate-x-0 w-[240px]' : '-translate-x-full md:translate-x-0',
@@ -277,9 +241,6 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
             :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
           >
             <span class="imago-serif text-[22px] leading-none text-[var(--ink)]">Imago</span>
-            <span class="mt-1 text-[10px] font-medium tracking-[0.16em] text-[var(--muted)]">{{
-              t('app.subtitle')
-            }}</span>
           </div>
           <span
             v-else
@@ -365,17 +326,6 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
           <Heart :size="16" />
         </button>
 
-        <button
-          @click="toggleTheme"
-          class="flex items-center justify-center w-9 h-9 rounded-[var(--radius)] text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] transition-colors shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-          :title="t('common.theme.' + theme)"
-          :aria-label="t('common.theme.' + theme)"
-        >
-          <Sun v-if="theme === 'light'" :size="16" />
-          <Moon v-else-if="theme === 'dark'" :size="16" />
-          <Monitor v-else :size="16" />
-        </button>
-
         <div
           v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
           class="hidden md:block flex-1"
@@ -405,6 +355,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
 
     <main class="flex-1 min-h-0 flex flex-col relative z-20 bg-[var(--paper)]">
       <header
+        v-if="!isCover"
         class="shrink-0 flex items-center justify-between px-3 md:px-4 bg-[var(--paper)] z-50 md:z-[110] h-11"
       >
         <div class="flex items-center gap-2 flex-none min-w-0 z-20">

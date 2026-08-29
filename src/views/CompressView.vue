@@ -14,7 +14,7 @@ import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppExportSettings from '../components/common/AppExportSettings.vue'
 import AppTip from '../components/common/AppTip.vue'
-import { Play, ArrowRight, Download, Loader2 } from 'lucide-vue-next'
+import { Play, Download, Loader2 } from 'lucide-vue-next'
 import { dualEngine } from '../lib/engines/index'
 import type { CompressionOptions } from '../lib/engines/compressEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
@@ -330,50 +330,7 @@ const handleCtaClick = async () => {
               @download="handleDownload"
               @compare="handleCompare"
               @reset="handleReset"
-            >
-              <template #meta="{ image }">
-                <div
-                  class="flex items-center bg-muted/30 border border-border transition-all duration-300 group-hover:border-primary/20 p-2 md:p-3 rounded-xl md:rounded-2xl mt-1.5"
-                  :class="[layoutStore.cardSizeMode === 'compact' ? 'gap-1.5' : 'gap-3']"
-                >
-                  <div class="flex-1 flex flex-col gap-0.5">
-                    <span class="font-medium text-muted-foreground text-[11px]">{{
-                      t('tools.compress.original')
-                    }}</span>
-                    <span
-                      class="font-bold text-foreground text-[0.65rem] md:text-[0.75rem] tabular-nums"
-                      >{{ formatSize(image.originalSize) }}</span
-                    >
-                  </div>
-                  <ArrowRight :size="12" class="text-muted-foreground shrink-0" />
-                  <div class="flex-1 flex flex-col gap-0.5">
-                    <span class="font-medium text-muted-foreground text-[11px]">{{
-                      t('tools.compress.compressed')
-                    }}</span
-                    ><span
-                      class="font-bold text-[0.65rem] md:text-[0.75rem] tabular-nums"
-                      :class="
-                        image.status === 'done' && results.get(image.id)?.skipped
-                          ? 'text-muted-foreground'
-                          : image.status === 'done'
-                            ? 'text-primary'
-                            : 'text-foreground'
-                      "
-                      >{{
-                        image.status === 'done' && results.has(image.id)
-                          ? formatSize(results.get(image.id)!.size)
-                          : '--'
-                      }}</span
-                    >
-                    <span
-                      v-if="image.status === 'done' && results.get(image.id)?.skipped"
-                      class="text-[0.55rem] md:text-[0.6rem] font-medium tracking-wider text-[var(--muted)]"
-                      >{{ t('common.export.skipIfLarger') }}</span
-                    >
-                  </div>
-                </div>
-              </template>
-            </ImageCard>
+            />
           </div>
         </div>
       </template>

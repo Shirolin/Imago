@@ -77,7 +77,7 @@ const updateTitle = () => {
   if (titleKey) {
     document.title = `Imago | ${i18n.global.t(titleKey)}`
   } else {
-    document.title = `Imago | ${i18n.global.t('app.subtitle')}`
+    document.title = 'Imago'
   }
 }
 

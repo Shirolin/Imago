@@ -325,7 +325,7 @@
       "modelLoading": "模型載入中...",
       "modelReady": "模型已就緒",
       "modelStatus": "演算法模型狀態",
-      "name": "去底",
+      "name": "去背景",
       "offset": "邊緣收縮",
       "offsetDesc": "微調去背邊緣的內外偏移。",
       "pro": "專業版",
@@ -457,7 +457,7 @@
       "height": "高度 (px)",
       "history": "操作記錄",
       "lockRatio": "鎖定當前比例",
-      "name": "裁剪",
+      "name": "裁切",
       "noGrid": "隱藏參考線",
       "posX": "水平偏移 (X)",
       "posY": "垂直偏移 (Y)",
@@ -504,7 +504,7 @@
         "software": "後期編輯軟體",
         "time": "拍攝與創作時間"
       },
-      "name": "EXIF",
+      "name": "去拍攝資訊",
       "privacyList": "檢測到的隱私項",
       "riskCount": "發現 {count} 處潛在隱私風險",
       "riskDetail": "包含 {count} 項敏感標籤",
@@ -536,7 +536,7 @@
       "maskableLabel": "Maskable",
       "matrixTitle": "資源規格矩陣",
       "mockup": "真實環境模擬",
-      "name": "站標",
+      "name": "做圖示",
       "newTab": "瀏覽器標籤頁預覽",
       "outputSize": "輸出尺寸: {width} × {height} PX",
       "rotateShape": "切換預覽形狀",
@@ -688,7 +688,7 @@
         "resetToGrid": "輔助線已基於網格參數重新計算",
         "switchedToFree": "現已切換至手動自由切分模式"
       },
-      "name": "分割",
+      "name": "拆分",
       "restoreDefaultView": "重置預覽視角",
       "shave": "邊緣微量收縮 (Shave)",
       "square": "正方形畫幅",
@@ -702,6 +702,22 @@
       "verticalLine": "垂直輔助線",
       "verticalRows": "垂直切分行數",
       "viewSettings": "編輯器視圖偏好"
+    }
+  },
+  "cover": {
+    "start": "開始處理",
+    "ticket": "工單",
+    "ticketNo": "№ 1042",
+    "printAlt": "直式快照",
+    "steps": {
+      "compress": "壓縮",
+      "crop": "裁切",
+      "exif": "去拍攝資訊",
+      "split": "拆分",
+      "combine": "拼接",
+      "bgRemove": "去背景",
+      "filters": "濾鏡",
+      "favicon": "做圖示"
     }
   }
 }

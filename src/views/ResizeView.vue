@@ -12,7 +12,6 @@ import AppCheckbox from '../components/common/AppCheckbox.vue'
 import AppSlider from '../components/common/AppSlider.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import AppSectionHeader from '../components/common/AppSectionHeader.vue'
-import AppComparisonBadge from '../components/common/AppComparisonBadge.vue'
 import AppSidebarCard from '../components/common/AppSidebarCard.vue'
 import AppEmptyState from '../components/common/AppEmptyState.vue'
 import AppModal from '../components/common/AppModal.vue'
@@ -357,22 +356,7 @@ const handleCtaClick = async () => {
               @download="handleDownload"
               @compare="handleCompare"
               @reset="handleReset"
-            >
-              <template #meta="{ image }">
-                <AppComparisonBadge
-                  :before-label="t('tools.resize.status.original')"
-                  :before-value="`${image.width}x${image.height}`"
-                  :after-label="t('tools.resize.status.target')"
-                  :after-value="
-                    results.has(image.id)
-                      ? `${results.get(image.id)!.width}x${results.get(image.id)!.height}`
-                      : '--'
-                  "
-                  :status="image.status === 'processing' ? 'pending' : (image.status as any)"
-                  :compact="layoutStore.cardSizeMode === 'compact'"
-                />
-              </template>
-            </ImageCard>
+            />
           </div>
         </div>
       </template>
