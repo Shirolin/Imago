@@ -706,7 +706,7 @@
   },
   "cover": {
     "start": "Start processing",
-    "ticket": "Job ticket",
+    "ticket": "Image processing",
     "ticketNo": "№ 1042",
     "printAlt": "Vertical snapshot",
     "steps": {

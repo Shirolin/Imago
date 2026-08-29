@@ -706,7 +706,7 @@
   },
   "cover": {
     "start": "Empezar a procesar",
-    "ticket": "Orden de trabajo",
+    "ticket": "Procesado de imagen",
     "ticketNo": "№ 1042",
     "printAlt": "Instantánea vertical",
     "steps": {

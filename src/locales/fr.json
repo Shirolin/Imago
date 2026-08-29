@@ -706,7 +706,7 @@
   },
   "cover": {
     "start": "Commencer le traitement",
-    "ticket": "Bon de travail",
+    "ticket": "Traitement d'image",
     "ticketNo": "№ 1042",
     "printAlt": "Instantané vertical",
     "steps": {

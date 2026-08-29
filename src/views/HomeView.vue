@@ -11,15 +11,19 @@ const fadeTop = ref(false)
 const fadeBottom = ref(true)
 
 const steps = computed(() => [
-  { n: '01', label: t('cover.steps.compress') },
-  { n: '02', label: t('cover.steps.crop') },
-  { n: '03', label: t('cover.steps.exif') },
-  { n: '04', label: t('cover.steps.split') },
-  { n: '05', label: t('cover.steps.combine') },
-  { n: '06', label: t('cover.steps.bgRemove') },
-  { n: '07', label: t('cover.steps.filters') },
-  { n: '08', label: t('cover.steps.favicon') }
+  { n: '01', label: t('cover.steps.compress'), to: '/compress' },
+  { n: '02', label: t('cover.steps.crop'), to: '/crop' },
+  { n: '03', label: t('cover.steps.exif'), to: '/exif' },
+  { n: '04', label: t('cover.steps.split'), to: '/split' },
+  { n: '05', label: t('cover.steps.combine'), to: '/combine' },
+  { n: '06', label: t('cover.steps.bgRemove'), to: '/bg-remove' },
+  { n: '07', label: t('cover.steps.filters'), to: '/filters' },
+  { n: '08', label: t('cover.steps.favicon'), to: '/favicon' }
 ])
+
+const goToStep = (to: string) => {
+  router.push(to)
+}
 
 const syncTicketFade = () => {
   const el = listRef.value
@@ -74,11 +78,13 @@ onMounted(() => {
           :class="{ 'is-fade-top': fadeTop, 'is-fade-bottom': fadeBottom }"
           @scroll.passive="syncTicketFade"
         >
-          <li v-for="step in steps" :key="step.n" class="imago-ticket-row">
-            <span class="w-6 shrink-0 tabular-nums text-[13px] text-[var(--muted)]">{{
-              step.n
-            }}</span>
-            <span class="text-[15px] leading-none text-[var(--ink)]">{{ step.label }}</span>
+          <li v-for="step in steps" :key="step.n">
+            <button type="button" class="imago-ticket-row" @click="goToStep(step.to)">
+              <span class="imago-ticket-no w-6 shrink-0 tabular-nums text-[13px]">{{
+                step.n
+              }}</span>
+              <span class="imago-ticket-label text-[15px] leading-none">{{ step.label }}</span>
+            </button>
           </li>
         </ol>
       </aside>
