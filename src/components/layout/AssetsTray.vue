@@ -299,11 +299,11 @@ const onDragEnd = () => {
             @click="store.activeId = img.id"
             @keydown="handleCardKeyDown($event, img.id)"
             tabindex="0"
-            class="image-card-trigger w-14 h-14 md:w-16 md:h-16 rounded-xl border-2 transition-all cursor-pointer overflow-hidden relative group/item shadow-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+            class="image-card-trigger w-14 h-14 md:w-16 md:h-16 rounded-[var(--radius-ctrl)] border-2 transition-colors cursor-pointer overflow-hidden relative group/item focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:outline-none"
             :class="[
               store.activeId === img.id
-                ? 'border-primary shadow-lg ring-2 ring-primary/20 scale-105 z-10'
-                : 'border-[var(--hairline)] hover:border-primary/40 opacity-70 hover:opacity-100'
+                ? 'border-[var(--accent)] ring-1 ring-[var(--accent)]/20 z-10'
+                : 'border-[var(--hairline)] hover:border-[var(--accent)]/40 opacity-70 hover:opacity-100'
             ]"
           >
             <img :src="img.preview" class="w-full h-full object-cover" alt="" />
@@ -355,8 +355,8 @@ const onDragEnd = () => {
                 :size="10"
                 :is="getStatusIcon(img.status)"
                 :class="{
-                  'text-green-400': img.status === 'done',
-                  'text-red-400': img.status === 'error'
+                  'text-[var(--accent)]': img.status === 'done',
+                  'text-[var(--danger)]': img.status === 'error'
                 }"
               />
             </div>

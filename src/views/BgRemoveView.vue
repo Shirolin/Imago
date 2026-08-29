@@ -19,7 +19,6 @@ import {
   Eraser,
   Download,
   ImageMinus,
-  Info,
   Zap,
   Loader2,
   AlertCircle,
@@ -586,35 +585,28 @@ const handleResetParams = () => {
           "
           @close="showInitModal = false"
         >
-          <div class="p-8 text-center">
+          <div class="p-6 text-center">
             <div
-              class="w-20 h-20 rounded-[var(--radius-ctrl)] flex items-center justify-center mx-auto mb-6"
+              class="w-14 h-14 rounded-[var(--radius-ctrl)] flex items-center justify-center mx-auto mb-4"
             >
-              <Zap v-if="currentStatus !== 'loading'" :size="40" class="text-primary" />
-              <Loader2 v-else :size="40" class="text-primary animate-spin" />
+              <Zap v-if="currentStatus !== 'loading'" :size="28" class="text-primary" />
+              <Loader2 v-else :size="28" class="text-primary animate-spin" />
             </div>
-            <h2 class="text-2xl font-medium mb-3 text-foreground">
-              {{
-                engineMode === 'pro'
-                  ? t('tools.bgRemove.initTitlePro')
-                  : t('tools.bgRemove.initTitleSmart')
-              }}
-            </h2>
-            <p class="text-sm text-muted-foreground font-medium leading-relaxed mb-8">
+            <p class="text-sm text-muted-foreground font-medium leading-relaxed mb-6">
               <template v-if="engineMode === 'pro'"
                 >{{ t('tools.bgRemove.initDescPro1') }}
-                <span class="text-primary font-bold">{{ modelSize }}</span>
+                <span class="text-primary font-medium">{{ modelSize }}</span>
                 {{ t('tools.bgRemove.initDescPro2') }}</template
               >
               <template v-else
                 >{{ t('tools.bgRemove.initDescSmart1') }}
-                <span class="text-primary font-bold">{{ modelSize }}</span>
+                <span class="text-primary font-medium">{{ modelSize }}</span>
                 {{ t('tools.bgRemove.initDescSmart2') }}</template
               >
             </p>
             <div
               v-if="currentStatus === 'loading'"
-              class="mb-8 space-y-3 text-left"
+              class="mb-6 space-y-3 text-left"
               role="progressbar"
               :aria-valuenow="initProgress"
               aria-valuemin="0"
@@ -638,16 +630,16 @@ const handleResetParams = () => {
             </div>
             <div
               v-if="currentStatus === 'error'"
-              class="mb-8 p-4 bg-destructive/5 border border-destructive/20 rounded-2xl flex items-start gap-3 text-left"
+              class="mb-6 p-3 bg-destructive/5 border border-destructive/20 rounded-[var(--radius-ctrl)] flex items-start gap-3 text-left"
               role="alert"
             >
               <AlertCircle :size="18" class="text-destructive shrink-0 mt-0.5" />
-              <div class="text-xs font-bold text-destructive leading-normal">{{ initError }}</div>
+              <div class="text-xs font-medium text-destructive leading-normal">{{ initError }}</div>
             </div>
             <AppButton
               size="lg"
               variant="cta"
-              class="w-full h-14 rounded-2xl text-lg"
+              class="w-full h-11 rounded-[var(--radius-ctrl)] text-sm"
               :loading="currentStatus === 'loading'"
               @click="handleInitialize"
             >
@@ -662,10 +654,10 @@ const handleResetParams = () => {
 
         <div
           v-if="store.images.length === 0"
-          class="flex flex-col items-center justify-center py-24 md:py-32 animate-in fade-in duration-700"
+          class="flex flex-col items-center justify-center py-16 md:py-20 animate-in fade-in duration-300"
         >
-          <div class="mb-6">
-            <ImageMinus :size="48" class="text-muted-foreground/40" />
+          <div class="mb-4">
+            <ImageMinus :size="32" class="text-muted-foreground/40" />
           </div>
           <p class="text-[11px] font-medium text-muted-foreground/60 mb-2">
             {{ t('tools.bgRemove.empty.title') }}
@@ -763,7 +755,7 @@ const handleResetParams = () => {
             :aria-label="t('tools.bgRemove.engineAria')"
           />
         </fieldset>
-        <AppTip :icon="Info">
+        <AppTip>
           <span v-if="engineMode === 'match'"
             >{{ t('tools.bgRemove.tipMatch1') }}
             <span class="text-primary font-medium">{{ modelSize }}</span>
@@ -809,7 +801,7 @@ const handleResetParams = () => {
               t('tools.bgRemove.currentModel')
             }}</span>
             <span
-              class="text-[10px] font-bold"
+              class="text-[10px] font-medium"
               :class="engineMode === 'pro' ? 'text-primary' : 'text-foreground'"
             >
               {{
@@ -829,7 +821,7 @@ const handleResetParams = () => {
                 :class="currentStatus === 'ready' ? 'bg-success' : 'bg-warning animate-pulse'"
               ></span>
               <span
-                class="text-[10px] font-bold"
+                class="text-[10px] font-medium"
                 :class="currentStatus === 'ready' ? 'text-success' : 'text-warning'"
               >
                 {{
@@ -850,7 +842,7 @@ const handleResetParams = () => {
           class="space-y-4 pt-6 border-t border-[var(--hairline)]"
         >
           <AppSectionHeader :title="t('tools.bgRemove.matchAdjust')" :icon="Palette" />
-          <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-5">
+          <div class="space-y-5">
             <div class="space-y-2">
               <div class="flex items-center gap-2 px-1 h-5">
                 <div class="p-1 rounded-[var(--radius-ctrl)] flex items-center justify-center">
@@ -904,7 +896,7 @@ const handleResetParams = () => {
               }}</span>
             </div>
           </div>
-          <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-4">
+          <div class="space-y-4">
             <AppSlider
               v-model="aiStrictness"
               :min="0"
@@ -943,13 +935,11 @@ const handleResetParams = () => {
         class="space-y-4 pt-6 border-t border-[var(--hairline)]"
       >
         <AppSectionHeader :title="t('tools.bgRemove.processOptions')" :icon="Zap" />
-        <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)]">
-          <AppCheckbox
-            v-model="useHighFidelity"
-            :label="t('tools.bgRemove.disableScaling')"
-            :description="t('tools.bgRemove.disableScalingDesc')"
-          />
-        </div>
+        <AppCheckbox
+          v-model="useHighFidelity"
+          :label="t('tools.bgRemove.disableScaling')"
+          :description="t('tools.bgRemove.disableScalingDesc')"
+        />
       </section>
 
       <!-- 第四分区：导出设置 -->
@@ -967,7 +957,7 @@ const handleResetParams = () => {
         <AppButton
           size="lg"
           :variant="ctaState.variant"
-          class="w-full h-12 rounded-xl transition-all group overflow-hidden"
+          class="w-full h-12 rounded-xl transition-colors"
           :loading="currentStatus === 'loading'"
           :disabled="ctaState.disabled"
           @click="handleCtaClick"
@@ -981,7 +971,7 @@ const handleResetParams = () => {
               class="mr-2"
             />
           </template>
-          <span class="font-bold text-sm tracking-tight">{{ ctaState.text }}</span>
+          <span class="font-medium text-sm">{{ ctaState.text }}</span>
         </AppButton>
       </InspectorFooter>
     </template>

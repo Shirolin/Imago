@@ -135,9 +135,7 @@ const handleGenerate = async () => {
           :key="activeImage.id"
           class="min-h-full w-full flex flex-col items-center py-10 px-6 md:px-12"
         >
-          <div
-            class="w-full max-w-6xl space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700"
-          >
+          <div class="w-full max-w-6xl space-y-10">
             <!-- 1. 顶部：环境模拟 -->
             <section
               v-if="selectedIds.has('png16') || selectedIds.has('png32') || selectedIds.has('ico')"
@@ -212,7 +210,7 @@ const handleGenerate = async () => {
                   }}</span>
                 </div>
                 <div
-                  class="bg-card border border-[var(--hairline)] rounded-[2.5rem] p-8 flex flex-col items-center justify-center gap-8 shadow-elevated group hover:border-primary/20 transition-all min-h-[320px]"
+                  class="bg-card border border-[var(--hairline)] rounded-[var(--radius-well)] p-8 flex flex-col items-center justify-center gap-8 shadow-elevated group hover:border-primary/20 transition-all min-h-[320px]"
                 >
                   <div
                     class="aspect-square w-32 relative bg-background ring-1 ring-black/5 dark:ring-white/10 flex items-center justify-center"
@@ -224,7 +222,7 @@ const handleGenerate = async () => {
                   >
                     <img
                       :src="activeImage.preview"
-                      class="w-full h-full object-cover transition-transform duration-500"
+                      class="w-full h-full object-cover transition-transform duration-300"
                     />
                     <div
                       class="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-[inherit]"
@@ -266,7 +264,7 @@ const handleGenerate = async () => {
                   </div>
                 </div>
                 <div
-                  class="bg-card border border-[var(--hairline)] rounded-[2.5rem] p-8 flex flex-col items-center justify-center gap-8 shadow-elevated group hover:border-primary/20 transition-all min-h-[320px] relative overflow-hidden"
+                  class="bg-card border border-[var(--hairline)] rounded-[var(--radius-well)] p-8 flex flex-col items-center justify-center gap-8 shadow-elevated group hover:border-primary/20 transition-all min-h-[320px] relative overflow-hidden"
                 >
                   <div class="absolute top-6 right-8 z-30">
                     <button
@@ -290,11 +288,11 @@ const handleGenerate = async () => {
 
                   <!-- 物理容器 ( w-40 = 160px = 100% 物理文件 ) -->
                   <div
-                    class="relative w-40 h-40 flex items-center justify-center bg-muted/20 rounded-[2.5rem] shadow-inner ring-1 ring-black/5 dark:ring-white/5 overflow-hidden"
+                    class="relative w-40 h-40 flex items-center justify-center bg-muted/20 rounded-[var(--radius-well)] shadow-inner ring-1 ring-black/5 dark:ring-white/5 overflow-hidden"
                   >
                     <!-- 【底层】：透明参照层 ( X-Ray View / Canvas Boundary ) -->
                     <div
-                      class="absolute inset-0 flex items-center justify-center grayscale mix-blend-multiply dark:mix-blend-screen pointer-events-none transition-all duration-500"
+                      class="absolute inset-0 flex items-center justify-center grayscale mix-blend-multiply dark:mix-blend-screen pointer-events-none transition-all duration-300"
                       :class="activeMaskShape === 'full' ? 'opacity-[0.05]' : 'opacity-[0.25]'"
                     >
                       <div
@@ -315,7 +313,7 @@ const handleGenerate = async () => {
 
                     <!-- 【顶层】：裁切实测层 -->
                     <div
-                      class="relative flex items-center justify-center transition-[width,height,border-radius,ring,background-color,shadow] duration-500"
+                      class="relative flex items-center justify-center transition-[width,height,border-radius,ring,background-color,shadow] duration-300"
                       :class="{
                         'w-full h-full rounded-2xl ring-1 ring-foreground/[0.03]':
                           activeMaskShape === 'full',
@@ -341,7 +339,7 @@ const handleGenerate = async () => {
                         ></div>
                         <img
                           :src="activeImage.preview"
-                          class="absolute transition-all duration-500 object-contain"
+                          class="absolute transition-all duration-300 object-contain"
                           :style="{
                             width:
                               activeMaskShape === 'full'
@@ -407,7 +405,7 @@ const handleGenerate = async () => {
                 <span class="text-[11px] font-medium">{{ t('tools.favicon.matrixTitle') }}</span>
               </div>
               <div
-                class="bg-card border border-[var(--hairline)] rounded-[2.5rem] p-10 shadow-elevated w-full transition-all hover:border-primary/20"
+                class="bg-card border border-[var(--hairline)] rounded-[var(--radius-well)] p-10 shadow-elevated w-full transition-all hover:border-primary/20"
               >
                 <div
                   class="flex flex-wrap items-end justify-center lg:justify-start gap-x-12 gap-y-12 px-2"
@@ -424,7 +422,7 @@ const handleGenerate = async () => {
                     :aria-pressed="selectedIds.has(spec.id)"
                   >
                     <div
-                      class="transition-[transform,shadow,background-color] duration-300 group-hover/item:scale-125 group-focus-visible/item:scale-125 group-focus-visible/item:ring-2 group-focus-visible/item:ring-primary group-focus-visible/item:ring-offset-4 flex items-center justify-center relative bg-background shadow-sm border border-[var(--hairline)] overflow-hidden ring-1 ring-black/5"
+                      class="transition-[transform,shadow,background-color] duration-300 group-focus-visible/item:ring-2 group-focus-visible/item:ring-primary group-focus-visible/item:ring-offset-4 flex items-center justify-center relative bg-background shadow-sm border border-[var(--hairline)] overflow-hidden ring-1 ring-black/5"
                       :style="{
                         width: getPreviewSize(spec.size!) + 'px',
                         height: getPreviewSize(spec.size!) + 'px',
@@ -472,10 +470,10 @@ const handleGenerate = async () => {
                     </div>
                     <div class="flex flex-col items-center gap-0.5">
                       <span
-                        class="text-[9px] font-mono font-medium text-foreground/20 group-hover/item:text-primary transition-colors tabular-nums"
+                        class="text-[9px] font-mono font-medium text-muted-foreground/60 group-hover/item:text-primary transition-colors tabular-nums"
                         >{{ spec.size }}×{{ spec.size }}</span
                       >
-                      <span class="text-[11px] font-medium text-muted-foreground/20 leading-none">{{
+                      <span class="text-[11px] font-medium text-muted-foreground/60 leading-none">{{
                         spec.id === 'maskable512' ? t('tools.favicon.maskableLabel') : spec.platform
                       }}</span>
                     </div>
@@ -496,7 +494,7 @@ const handleGenerate = async () => {
       <div class="space-y-8 py-2">
         <section class="space-y-4">
           <AppSectionHeader :title="t('tools.favicon.appearance')" :icon="Monitor" />
-          <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-4">
+          <div class="space-y-4">
             <div class="flex flex-col gap-1 px-1">
               <span class="text-[11px] font-medium text-muted-foreground">{{
                 t('tools.favicon.bgFill')
@@ -512,7 +510,7 @@ const handleGenerate = async () => {
         <section class="space-y-4 pt-6 border-t border-[var(--hairline)] pb-4">
           <AppSectionHeader :title="t('tools.favicon.exportControl')" :icon="Info" />
           <div class="space-y-4">
-            <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-6">
+            <div class="space-y-6">
               <div v-for="(specs, groupName) in groupedSpecs" :key="groupName" class="space-y-3">
                 <div class="flex items-center gap-2 px-1 mb-1">
                   <component
@@ -549,7 +547,7 @@ const handleGenerate = async () => {
                     tabindex="0"
                     @keydown.enter.prevent="toggleSpec(spec.id)"
                     @keydown.space.prevent="toggleSpec(spec.id)"
-                    class="flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer group select-none hover:translate-x-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    class="flex items-center justify-between p-2 rounded-xl border transition-colors cursor-pointer group select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     :class="
                       selectedIds.has(spec.id)
                         ? 'bg-primary/[0.03] border-primary/30 shadow-sm'
@@ -592,20 +590,12 @@ const handleGenerate = async () => {
               </div>
             </div>
 
-            <div
-              v-if="selectedIds.has('maskable512')"
-              class="bg-primary/5 border border-primary/20 rounded-2xl p-4 space-y-3 animate-in slide-in-from-right-4"
-            >
-              <div class="flex items-center gap-2 text-primary">
-                <ShieldCheck :size="14" />
-                <span class="text-[11px] font-medium">{{
-                  t('tools.favicon.maskableGuideTitle')
-                }}</span>
-              </div>
-              <p class="text-[9px] text-primary/70 leading-relaxed font-medium">
-                {{ t('tools.favicon.safeZoneGuide') }}
-              </p>
-            </div>
+            <AppTip v-if="selectedIds.has('maskable512')" class="mt-2">
+              <span class="block font-medium text-[var(--ink)]">{{
+                t('tools.favicon.maskableGuideTitle')
+              }}</span>
+              <span class="block">{{ t('tools.favicon.safeZoneGuide') }}</span>
+            </AppTip>
 
             <AppTip class="mt-2">{{ t('tools.favicon.zipTip') }}</AppTip>
           </div>
@@ -618,7 +608,7 @@ const handleGenerate = async () => {
         <AppButton
           size="lg"
           variant="cta"
-          class="w-full h-12 rounded-xl transition-all duration-500 group overflow-hidden"
+          class="w-full h-12 rounded-xl transition-colors"
           :loading="isProcessing"
           :disabled="!activeImage || selectedIds.size === 0"
           @click="handleGenerate"

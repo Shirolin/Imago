@@ -11,13 +11,13 @@
       "advanced": "고급 설정",
       "effort": "인코딩 효율",
       "format": "형식",
-      "formatAvif": "AVIF (최신 형식)",
-      "formatJpeg": "JPEG (호환성 최적)",
-      "formatJxl": "JPEG XL (차세대)",
+      "formatAvif": "AVIF",
+      "formatJpeg": "JPEG",
+      "formatJxl": "JPEG XL",
       "formatOriginal": "원본 형식 유지",
-      "formatPng": "PNG (무손실 / 투명)",
-      "formatWebp": "WebP (권장)",
-      "formatWebp2": "WebP2 (실험적)",
+      "formatPng": "PNG",
+      "formatWebp": "WebP",
+      "formatWebp2": "WebP2",
       "height": "높이 (px)",
       "maxColors": "최대 색상 수",
       "outputQuality": "출력 화질",
@@ -348,7 +348,7 @@
       "tipPro2": "복잡한 인물 및 제품 촬영에 탁월합니다.",
       "tipSmart1": "스마트 모드: 범용 AI 식별이며,",
       "tipSmart2": "일상적인 간단한 장면을 빠르게 처리합니다.",
-      "title": "로컬 AI 배경 제거 - 업로드 불필요",
+      "title": "스마트 배경 제거",
       "tolerance": "색상 허용 오차",
       "toleranceDesc": "허용 오차를 늘려 더 비슷한 색상을 포함합니다."
     },
@@ -403,7 +403,7 @@
       "smartScale": "스마트 스케일",
       "spacing": "이미지 간격",
       "start": "시작",
-      "title": "여러 이미지를 세로 또는 가로로 매끄럽게 결합",
+      "title": "긴 이미지 결합",
       "unitCol": " 열"
     },
     "compress": {
@@ -425,7 +425,7 @@
       "name": "압축 및 변환",
       "original": "원본 이미지",
       "settingsTitle": "압축 설정",
-      "title": "이미지 압축 및 형식 변환 (WebP / AVIF) - 100% 로컬 처리"
+      "title": "압축 및 변환"
     },
     "crop": {
       "aspectRatio": "사전 설정 비율",
@@ -469,7 +469,8 @@
       "rotateTip": "오른쪽으로 90° 회전",
       "snapped": "가이드에 스냅됨",
       "thirds": "삼등분 법칙",
-      "title": "이미지 자르기 및 고정 비율 변환",
+      "title": "이미지 자르기",
+      "postProcess": "가장자리 다듬기",
       "trimBottom": "아래쪽",
       "trimLeft": "왼쪽",
       "trimLimitHint": "트림 값이 0–{limit}px로 제한되었습니다",
@@ -512,7 +513,7 @@
       "selectAll": "전체 선택",
       "selectToView": "세부 정보를 보려면 왼쪽에서 이미지를 선택하세요",
       "supportedFormats": "JPG, PNG, WebP, HEIC 등 일반적인 형식을 지원합니다.",
-      "title": "이미지 메타데이터 (EXIF) 제거 - 개인정보 보호",
+      "title": "개인정보 탈감작",
       "unsupported": "지원되지 않는 형식",
       "unsupportedTip": "이 형식은 지원되지 않거나 읽을 수 있는 메타데이터가 없습니다."
     },
@@ -569,7 +570,7 @@
         "png32": "표준 32x32 PNG",
         "readme": "사용 가이드 (README)"
       },
-      "title": "전문적인 파비콘 빌더",
+      "title": "파비콘 생성",
       "toggleSpec": "{name} 출력 전환",
       "zipTip": "ZIP 에는 각 플랫폼의 심사 요건을 충족하는 전체 리소스가 포함됩니다."
     },
@@ -607,7 +608,7 @@
       "scrollLeft": "왼쪽 스크롤",
       "scrollRight": "오른쪽 스크롤",
       "sepia": "세피아",
-      "title": "전문 이미지 필터 및 색상 조정"
+      "title": "색상 필터"
     },
     "resize": {
       "byDimensions": "사용자 정의 크기",
@@ -633,7 +634,7 @@
         "original": "원본",
         "target": "대상"
       },
-      "title": "고품질 이미지 리사이징 및 일괄 처리",
+      "title": "크기 조정",
       "width": "너비",
       "widthUnit": "가로"
     },
@@ -694,7 +695,7 @@
       "standard": "표준",
       "syncGrid": "그리드 동기화",
       "syncGridTip": "현재 그리드 설정에 강제 정렬합니다",
-      "title": "그리드 분할 및 파노라마 자동 자르기 - SNS 도구",
+      "title": "그리드 이미지 자르기",
       "uniformGrid": "균등 그리드",
       "unitCol": " 열",
       "unitRow": " 행",

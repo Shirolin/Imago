@@ -18,55 +18,55 @@ const router = createRouter({
       path: '/compress',
       name: 'compress',
       component: () => import('./views/CompressView.vue'),
-      meta: { title: 'tools.compress.title' }
+      meta: { title: 'tools.compress.name' }
     },
     {
       path: '/resize',
       name: 'resize',
       component: () => import('./views/ResizeView.vue'),
-      meta: { title: 'tools.resize.title' }
+      meta: { title: 'tools.resize.name' }
     },
     {
       path: '/crop',
       name: 'crop',
       component: () => import('./views/CropView.vue'),
-      meta: { title: 'tools.crop.title' }
+      meta: { title: 'tools.crop.name' }
     },
     {
       path: '/filters',
       name: 'filters',
       component: () => import('./views/FiltersView.vue'),
-      meta: { title: 'tools.filters.title' }
+      meta: { title: 'tools.filters.name' }
     },
     {
       path: '/split',
       name: 'split',
       component: () => import('./views/SplitView.vue'),
-      meta: { title: 'tools.split.title' }
+      meta: { title: 'tools.split.name' }
     },
     {
       path: '/combine',
       name: 'combine',
       component: () => import('./views/CombineView.vue'),
-      meta: { title: 'tools.combine.title' }
+      meta: { title: 'tools.combine.name' }
     },
     {
       path: '/exif',
       name: 'exif',
       component: () => import('./views/ExifView.vue'),
-      meta: { title: 'tools.exif.title' }
+      meta: { title: 'tools.exif.name' }
     },
     {
       path: '/favicon',
       name: 'favicon',
       component: () => import('./views/FaviconView.vue'),
-      meta: { title: 'tools.favicon.title' }
+      meta: { title: 'tools.favicon.name' }
     },
     {
       path: '/bg-remove',
       name: 'bgRemove',
       component: () => import('./views/BgRemoveView.vue'),
-      meta: { title: 'tools.bgRemove.title' }
+      meta: { title: 'tools.bgRemove.name' }
     }
   ]
 })
@@ -95,4 +95,5 @@ const pinia = createPinia()
 app.use(i18n)
 app.use(pinia)
 app.use(router)
+router.isReady().then(updateTitle)
 app.mount('#app')

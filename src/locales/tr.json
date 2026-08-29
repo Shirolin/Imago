@@ -11,13 +11,13 @@
       "advanced": "Gelişmiş Ayarlar",
       "effort": "Kodlama Hassasiyeti",
       "format": "Çıktı Formatı",
-      "formatAvif": "AVIF (Yüksek Sıkıştırma)",
-      "formatJpeg": "JPEG (Evrensel)",
-      "formatJxl": "JPEG XL (Yeni Nesil)",
+      "formatAvif": "AVIF",
+      "formatJpeg": "JPEG",
+      "formatJxl": "JPEG XL",
       "formatOriginal": "Orijinal Formatı Koru",
-      "formatPng": "PNG (Kayıpsız ve Şeffaf)",
-      "formatWebp": "WebP (Önerilen)",
-      "formatWebp2": "WebP2 (Deneysel)",
+      "formatPng": "PNG",
+      "formatWebp": "WebP",
+      "formatWebp2": "WebP2",
       "height": "Yükseklik (px)",
       "maxColors": "Maksimum Renk",
       "outputQuality": "Çıktı Kalitesi",
@@ -348,7 +348,7 @@
       "tipPro2": "saç, ürünler ve karmaşık detaylar için özelleşmiştir.",
       "tipSmart1": "Akıllı Mod: Genel semantik tanıma, ",
       "tipSmart2": "günlük sahneler için idealdir.",
-      "title": "Yerel AI Arka Plan Kaldırma - Hızlı ve Özel",
+      "title": "Arka Plan Kaldırma",
       "tolerance": "Renk Toleransı",
       "toleranceDesc": "Daha benzer arka plan tonlarını kapsamak için artırın."
     },
@@ -403,7 +403,7 @@
       "smartScale": "Akıllı Ölçeklendirme",
       "spacing": "Görüntü Aralığı",
       "start": "Başlangıç",
-      "title": "Kesintisiz Görüntü Birleştirme - Hızlı Yerel Kombinasyon",
+      "title": "Görüntü Sentezi",
       "unitCol": " Sütun"
     },
     "compress": {
@@ -425,7 +425,7 @@
       "name": "Sıkıştırma",
       "original": "Orijinal",
       "settingsTitle": "Sıkıştırma Seçenekleri",
-      "title": "Yüksek Verimli Görüntü Sıkıştırma - %100 Yerel"
+      "title": "Sıkıştırma"
     },
     "crop": {
       "aspectRatio": "Oran Hazır Ayarları",
@@ -469,7 +469,8 @@
       "rotateTip": "Saat yönünde 90 derece döndür",
       "snapped": "Kılavuza Hizalandı",
       "thirds": "Üçler Kuralı",
-      "title": "Hassas Görüntü Dönüşümü - Yerel ve Hızlı",
+      "title": "Görüntü Kırpma",
+      "postProcess": "Kenarları kırp",
       "trimBottom": "Alt",
       "trimLeft": "Sol",
       "trimLimitHint": "Kırpma değeri 0–{limit}px ile sınırlandı",
@@ -512,7 +513,7 @@
       "selectAll": "Hepsini Seç",
       "selectToView": "Detaylar için soldan bir görüntü seçin",
       "supportedFormats": "JPG, PNG, WebP, HEIC vb. destekler.",
-      "title": "Görüntü Metadata Temizleyici - Dijital Gizliliğinizi Koruyun",
+      "title": "EXIF Temizleyici",
       "unsupported": "Desteklenmeyen Format",
       "unsupportedTip": "Format desteklenmiyor veya okunabilir metadata içermiyor."
     },
@@ -569,7 +570,7 @@
         "png32": "Standart 32x32 PNG",
         "readme": "Rehber (README)"
       },
-      "title": "Profesyonel Web Sitesi Favicon Oluşturucu",
+      "title": "Favicon Oluşturucu",
       "toggleSpec": "{name} çıktısını değiştir",
       "zipTip": "ZIP, tüm mağaza denetim gereksinimlerini karşılayan kaynakları içerecektir."
     },
@@ -607,7 +608,7 @@
       "scrollLeft": "Sola Kaydır",
       "scrollRight": "Sağa Kaydır",
       "sepia": "Sepya",
-      "title": "Görüntü Filtreleri ve Renk Derecelendirme - Yerel Hızlı Düzenleme"
+      "title": "Artistik Filtreler"
     },
     "resize": {
       "byDimensions": "Özel Boyut",
@@ -633,7 +634,7 @@
         "original": "Orijinal",
         "target": "Hedef"
       },
-      "title": "Yüksek Kaliteli Görüntü Boyutlandırma ve Toplu Ölçeklendirme",
+      "title": "Boyutlandırma",
       "width": "Genişlik",
       "widthUnit": "G"
     },
@@ -694,7 +695,7 @@
       "standard": "Standart",
       "syncGrid": "Izgarayı Eşitle",
       "syncGridTip": "Çizgileri ızgara yapılandırmasına göre sıfırla",
-      "title": "Görüntü Izgara Bölme ve Karo Dilimleme",
+      "title": "Izgara Bölme",
       "uniformGrid": "Düzgün Izgara",
       "unitCol": " Sütun",
       "unitRow": " Satır",

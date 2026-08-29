@@ -13,6 +13,7 @@ import ImageCompare from '../components/common/ImageCompare.vue'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppExportSettings from '../components/common/AppExportSettings.vue'
+import AppTip from '../components/common/AppTip.vue'
 import AppModal from '../components/common/AppModal.vue'
 import {
   Settings2,
@@ -550,7 +551,7 @@ const handleCtaClick = async () => {
             </div>
           </div>
 
-          <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-4">
+          <div class="space-y-4">
             <!-- 亮度 -->
             <div class="space-y-3">
               <AppSlider
@@ -628,22 +629,9 @@ const handleCtaClick = async () => {
           </div>
         </section>
 
-        <section class="pt-6 border-t border-[var(--hairline)]">
-          <div
-            class="p-4 bg-muted/20 border border-[var(--hairline)] rounded-2xl flex items-start gap-3 transition-colors group hover:bg-muted/30"
-          >
-            <div class="p-2 rounded-[var(--radius-ctrl)]">
-              <Palette :size="16" class="text-primary" />
-            </div>
-            <div class="space-y-1">
-              <div class="text-[11px] font-medium text-primary">
-                {{ t('tools.filters.realtimeTitle') }}
-              </div>
-              <p class="text-[0.65rem] text-muted-foreground leading-relaxed font-medium">
-                {{ t('tools.filters.realtimeDesc') }}
-              </p>
-            </div>
-          </div>
+        <section class="space-y-2 pt-6 border-t border-[var(--hairline)]">
+          <AppSectionHeader :title="t('tools.filters.realtimeTitle')" :icon="Palette" />
+          <AppTip>{{ t('tools.filters.realtimeDesc') }}</AppTip>
         </section>
 
         <AppExportSettings
@@ -659,7 +647,7 @@ const handleCtaClick = async () => {
           <AppButton
             size="lg"
             :variant="ctaState.action === 'download' ? 'success' : 'cta'"
-            class="w-full h-12 rounded-xl transition-all duration-500 group overflow-hidden"
+            class="w-full h-12 rounded-xl transition-colors"
             :disabled="ctaState.disabled"
             @click="handleCtaClick"
           >
@@ -667,7 +655,7 @@ const handleCtaClick = async () => {
               <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
               <component v-else :is="ctaState.icon" :size="18" class="mr-2" />
             </template>
-            <span class="font-bold text-sm tracking-tight">{{ ctaState.text }}</span>
+            <span class="font-medium text-sm">{{ ctaState.text }}</span>
           </AppButton>
         </InspectorFooter>
       </template>

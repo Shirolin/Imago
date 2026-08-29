@@ -33,6 +33,7 @@ import AppSectionHeader from '../components/common/AppSectionHeader.vue'
 import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import AppInput from '../components/common/AppInput.vue'
 import AppColorPicker from '../components/common/AppColorPicker.vue'
+import AppTip from '../components/common/AppTip.vue'
 import { cropEngine } from '../lib/engines/cropEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useResizeObserver, useDebounceFn } from '@vueuse/core'
@@ -330,7 +331,7 @@ const rotDims = computed(() => {
     : { w: img.width!, h: img.height! }
 })
 
-/** 裁剪矩形是否落在旋转画布内（越界时禁用 CTA 并点亮琥珀警告） */
+/** 裁剪矩形是否落在旋转画布内（越界时 --danger 描边并禁用 CTA） */
 const cropBoundsValid = computed(() => {
   const dims = rotDims.value
   if (!dims.w || !dims.h) return true
@@ -519,7 +520,7 @@ const ctaState = computed(() => {
 
   const result = results.value.get(img.id)
 
-  // 如果已经处理完成且没有新改动 -> 显示下载 (绿色)
+  // done 且无脏数据 → download CTA
   if (img.status === 'done' && result && !result.isDirty) {
     return {
       text: t('tools.crop.cta.export', { count: 1 }),
@@ -529,7 +530,7 @@ const ctaState = computed(() => {
     }
   }
 
-  // 默认 -> 应用裁剪 (蓝色)；X/Y/W/H 越界时禁用（输入框琥珀警告提示）
+  // 默认 apply；X/Y/W/H 越界时禁用 CTA
   if (!cropBoundsValid.value) {
     return {
       text: t('tools.crop.cta.apply', { count: 1 }),
@@ -675,61 +676,57 @@ const ratios = computed(() => [
       <!-- 第一分区：基础变换 (地基校准) -->
       <section class="space-y-4">
         <AppSectionHeader :title="t('tools.crop.basicTransform')" :icon="RotateCw" />
-        <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)]">
-          <div class="grid grid-cols-3 gap-2">
-            <button
-              @click="handleRotate"
-              class="flex flex-col items-center gap-2 p-3 rounded-xl border bg-background/50 hover:bg-primary/5 hover:border-primary/30 transition-all group"
-              :title="t('tools.crop.rotateTip')"
-              :aria-label="t('tools.crop.rotate')"
+        <div class="grid grid-cols-3 gap-2">
+          <button
+            @click="handleRotate"
+            class="flex flex-col items-center gap-2 p-3 rounded-xl border bg-background/50 hover:bg-primary/5 hover:border-primary/30 transition-all group"
+            :title="t('tools.crop.rotateTip')"
+            :aria-label="t('tools.crop.rotate')"
+          >
+            <RotateCw
+              :size="18"
+              class="text-muted-foreground group-hover:text-primary transition-colors"
+            /><span class="text-[11px] font-medium text-muted-foreground">{{
+              t('tools.crop.rotate')
+            }}</span>
+          </button>
+          <button
+            @click="handleFlipH"
+            class="flex flex-col items-center gap-2 p-3 rounded-xl border transition-all group"
+            :class="
+              flipH
+                ? 'bg-primary/10 border-primary text-primary'
+                : 'bg-background/50 border-border text-muted-foreground hover:bg-primary/5 hover:border-primary/30'
+            "
+            :title="t('tools.crop.flipHTip')"
+            :aria-label="t('tools.crop.flipH')"
+          >
+            <FlipHorizontal :size="18" class="group-hover:text-primary transition-colors" /><span
+              class="text-[11px] font-medium"
+              >{{ t('tools.crop.flipH') }}</span
             >
-              <RotateCw
-                :size="18"
-                class="text-muted-foreground group-hover:text-primary transition-colors"
-              /><span class="text-[11px] font-medium text-muted-foreground">{{
-                t('tools.crop.rotate')
-              }}</span>
-            </button>
-            <button
-              @click="handleFlipH"
-              class="flex flex-col items-center gap-2 p-3 rounded-xl border transition-all group"
-              :class="
-                flipH
-                  ? 'bg-primary/10 border-primary text-primary'
-                  : 'bg-background/50 border-border text-muted-foreground hover:bg-primary/5 hover:border-primary/30'
-              "
-              :title="t('tools.crop.flipHTip')"
-              :aria-label="t('tools.crop.flipH')"
+          </button>
+          <button
+            @click="handleFlipV"
+            class="flex flex-col items-center gap-2 p-3 rounded-xl border transition-all group"
+            :class="
+              flipV
+                ? 'bg-primary/10 border-primary text-primary'
+                : 'bg-background/50 border-border text-muted-foreground hover:bg-primary/5 hover:border-primary/30'
+            "
+            :title="t('tools.crop.flipVTip')"
+            :aria-label="t('tools.crop.flipV')"
+          >
+            <FlipVertical :size="18" class="group-hover:text-primary transition-colors" /><span
+              class="text-[11px] font-medium"
+              >{{ t('tools.crop.flipV') }}</span
             >
-              <FlipHorizontal :size="18" class="group-hover:text-primary transition-colors" /><span
-                class="text-[11px] font-medium"
-                >{{ t('tools.crop.flipH') }}</span
-              >
-            </button>
-            <button
-              @click="handleFlipV"
-              class="flex flex-col items-center gap-2 p-3 rounded-xl border transition-all group"
-              :class="
-                flipV
-                  ? 'bg-primary/10 border-primary text-primary'
-                  : 'bg-background/50 border-border text-muted-foreground hover:bg-primary/5 hover:border-primary/30'
-              "
-              :title="t('tools.crop.flipVTip')"
-              :aria-label="t('tools.crop.flipV')"
-            >
-              <FlipVertical :size="18" class="group-hover:text-primary transition-colors" /><span
-                class="text-[11px] font-medium"
-                >{{ t('tools.crop.flipV') }}</span
-              >
-            </button>
-          </div>
+          </button>
         </div>
       </section>
-
-      <!-- 第二分区：裁剪比例 (定形阶段) -->
       <section class="space-y-4 pt-6 border-t border-[var(--hairline)]">
         <AppSectionHeader :title="t('tools.crop.aspectRatio')" :icon="Scissors" />
-        <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-4">
+        <div class="space-y-4">
           <AppButton
             variant="secondary"
             class="w-full h-10 rounded-xl bg-background/50 border-dashed border-border hover:border-primary/50 hover:bg-primary/[0.02] group transition-all"
@@ -774,7 +771,7 @@ const ratios = computed(() => [
       <!-- 第三分区：精确构图 (精度微调) -->
       <section class="space-y-4 pt-6 border-t border-[var(--hairline)]">
         <AppSectionHeader :title="t('tools.crop.precision')" :icon="LayoutGrid" />
-        <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-4">
+        <div class="space-y-4">
           <div class="grid grid-cols-2 gap-x-3 gap-y-4 relative">
             <div class="space-y-1.5">
               <label class="text-[11px] font-medium text-muted-foreground ml-1">{{
@@ -789,7 +786,7 @@ const ratios = computed(() => [
                 class="h-10 text-xs font-mono transition-all"
                 :class="[
                   pxCoords.x < 0 || pxCoords.x + pxCoords.w > rotDims.w
-                    ? 'border-warning/40 bg-warning/[0.02] ring-1 ring-warning/10'
+                    ? 'border-[var(--danger)] ring-1 ring-[color-mix(in_srgb,var(--danger)_15%,transparent)]'
                     : 'bg-background/50'
                 ]"
               />
@@ -807,7 +804,7 @@ const ratios = computed(() => [
                 class="h-10 text-xs font-mono transition-all"
                 :class="[
                   pxCoords.y < 0 || pxCoords.y + pxCoords.h > rotDims.h
-                    ? 'border-warning/40 bg-warning/[0.02] ring-1 ring-warning/10'
+                    ? 'border-[var(--danger)] ring-1 ring-[color-mix(in_srgb,var(--danger)_15%,transparent)]'
                     : 'bg-background/50'
                 ]"
               />
@@ -832,7 +829,7 @@ const ratios = computed(() => [
                       ? 'border-primary/40 bg-primary/[0.03] ring-1 ring-primary/10'
                       : 'border-border bg-background/50',
                     pxCoords.w < 1 || pxCoords.x + pxCoords.w > rotDims.w
-                      ? 'border-warning/40 ring-1 ring-warning/10'
+                      ? 'border-[var(--danger)] ring-1 ring-[color-mix(in_srgb,var(--danger)_15%,transparent)]'
                       : ''
                   ]"
                 />
@@ -842,7 +839,7 @@ const ratios = computed(() => [
                 class="absolute left-1/2 top-[2.1rem] -translate-x-1/2 -translate-y-1/2 z-10 flex items-center justify-center"
               >
                 <div
-                  class="bg-background border rounded-full p-1 shadow-sm transition-all duration-500"
+                  class="bg-background border rounded-full p-1 shadow-sm transition-colors"
                   :class="
                     currentRatio > 0
                       ? 'border-primary/40 text-primary rotate-0'
@@ -871,7 +868,7 @@ const ratios = computed(() => [
                       ? 'border-primary/40 bg-primary/[0.03] ring-1 ring-primary/10'
                       : 'border-border bg-background/50',
                     pxCoords.h < 1 || pxCoords.y + pxCoords.h > rotDims.h
-                      ? 'border-warning/40 ring-1 ring-warning/10'
+                      ? 'border-[var(--danger)] ring-1 ring-[color-mix(in_srgb,var(--danger)_15%,transparent)]'
                       : ''
                   ]"
                 />
@@ -884,51 +881,39 @@ const ratios = computed(() => [
       <!-- 第四分区：画布外观 (环境配置) -->
       <section class="space-y-4 pt-6 border-t border-[var(--hairline)]">
         <AppSectionHeader :title="t('tools.crop.canvasAppearance')" :icon="Settings2" />
-        <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)]">
-          <AppColorPicker v-model="fillColor" :label="t('tools.crop.bgFill')" />
-        </div>
+        <AppColorPicker v-model="fillColor" :label="t('tools.crop.bgFill')" />
       </section>
 
       <!-- 第五分区：边缘精修 (TRIM) - 后处理阶段 -->
       <section class="space-y-4 pt-6 border-t border-[var(--hairline)]">
         <div class="flex items-center justify-between pr-1">
           <AppSectionHeader :title="t('tools.crop.edgeTrim')" :icon="Settings2" />
-          <div class="text-[11px] text-warning font-medium italic">Post-Process</div>
+          <div class="text-[11px] text-muted-foreground font-medium">
+            {{ t('tools.crop.postProcess') }}
+          </div>
         </div>
-        <div class="bg-warning/5 rounded-2xl p-4 border border-warning/20 space-y-4">
-          <div class="flex gap-3 bg-warning/10 p-3 rounded-xl border border-warning/20">
-            <div class="shrink-0 text-warning mt-0.5">
-              <Settings2 :size="14" />
-            </div>
-            <p class="text-[10px] text-warning/80 leading-relaxed font-medium">
-              {{ t('tools.crop.trimWarning') }}
-            </p>
+        <AppTip>{{ t('tools.crop.trimWarning') }}</AppTip>
+        <div class="grid grid-cols-2 gap-3">
+          <div v-for="dir in ['top', 'bottom', 'left', 'right']" :key="dir" class="space-y-2">
+            <label class="text-[11px] font-medium text-muted-foreground ml-1">{{
+              t('tools.crop.trim' + dir.charAt(0).toUpperCase() + dir.slice(1))
+            }}</label>
+            <AppInput
+              type="number"
+              :model-value="trimPx[dir as keyof typeof trimPx]"
+              @update:model-value="handleTrimChange(dir as keyof typeof trimPx, $event)"
+              :min="0"
+              :max="100"
+            />
           </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div v-for="dir in ['top', 'bottom', 'left', 'right']" :key="dir" class="space-y-2">
-              <label class="text-[11px] font-medium text-muted-foreground ml-1">{{
-                t('tools.crop.trim' + dir.charAt(0).toUpperCase() + dir.slice(1))
-              }}</label>
-              <AppInput
-                type="number"
-                :model-value="trimPx[dir as keyof typeof trimPx]"
-                @update:model-value="handleTrimChange(dir as keyof typeof trimPx, $event)"
-                :min="0"
-                :max="100"
-                class="bg-background/50 border-[var(--hairline)] focus:border-warning/50"
-              />
-            </div>
-          </div>
-          <!-- P2-6：trim 超界钳制提示 -->
-          <div
-            v-if="trimWarning"
-            class="flex items-start gap-2 text-[10px] font-bold text-warning animate-in fade-in"
-            role="status"
-          >
-            <AlertCircle :size="12" class="shrink-0 mt-0.5" />
-            <span>{{ trimWarning }}</span>
-          </div>
+        </div>
+        <div
+          v-if="trimWarning"
+          class="flex items-start gap-2 text-[10px] font-medium text-[var(--danger)]"
+          role="status"
+        >
+          <AlertCircle :size="12" class="shrink-0 mt-0.5" />
+          <span>{{ trimWarning }}</span>
         </div>
       </section>
 
@@ -985,7 +970,7 @@ const ratios = computed(() => [
         <AppButton
           size="lg"
           :variant="ctaState.action === 'download' ? 'success' : 'cta'"
-          class="w-full h-12 rounded-xl transition-all duration-500 group overflow-hidden"
+          class="w-full h-12 rounded-xl transition-colors"
           :loading="isProcessing"
           :disabled="ctaState.disabled"
           @click="handleCtaClick"

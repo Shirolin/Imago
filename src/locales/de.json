@@ -11,13 +11,13 @@
       "advanced": "Erweiterte Einstellungen",
       "effort": "Kodierungspräzision",
       "format": "Ausgabeformat",
-      "formatAvif": "AVIF (Hohe Kompression)",
-      "formatJpeg": "JPEG (Universell)",
-      "formatJxl": "JPEG XL (Next-Gen)",
+      "formatAvif": "AVIF",
+      "formatJpeg": "JPEG",
+      "formatJxl": "JPEG XL",
       "formatOriginal": "Originalformat beibehalten",
-      "formatPng": "PNG (Verlustfrei & Transparent)",
-      "formatWebp": "WebP (Empfohlen)",
-      "formatWebp2": "WebP2 (Experimentell)",
+      "formatPng": "PNG",
+      "formatWebp": "WebP",
+      "formatWebp2": "WebP2",
       "height": "Höhe (px)",
       "maxColors": "Maximale Farben",
       "outputQuality": "Ausgabequalität",
@@ -348,7 +348,7 @@
       "tipPro2": "spezialisiert auf Haare, Produkte und komplexe Details.",
       "tipSmart1": "Smart-Modus: Allgemeine semantische Erkennung, ",
       "tipSmart2": "ideal für Alltagsszenen.",
-      "title": "Lokale KI-Hintergrundentfernung - Schnell & Privat",
+      "title": "Hintergrundentfernung",
       "tolerance": "Farbtoleranz",
       "toleranceDesc": "Erhöhen, um mehr ähnliche Hintergrundtöne abzudecken."
     },
@@ -403,7 +403,7 @@
       "smartScale": "Intelligente Skalierung",
       "spacing": "Bildabstand",
       "start": "Start",
-      "title": "Nahtloses Bild-Stitching - Schnelle lokale Kombi",
+      "title": "Bildsynthese",
       "unitCol": " Spalte"
     },
     "compress": {
@@ -425,7 +425,7 @@
       "name": "Kompression",
       "original": "Original",
       "settingsTitle": "Kompressionsoptionen",
-      "title": "Hocheffiziente Bildkompression - 100% Lokal"
+      "title": "Kompression"
     },
     "crop": {
       "aspectRatio": "Verhältnis-Presets",
@@ -469,7 +469,8 @@
       "rotateTip": "90 Grad im Uhrzeigersinn drehen",
       "snapped": "An Hilfslinie ausgerichtet",
       "thirds": "Drittel-Regel",
-      "title": "Präzisions-Transformation - Lokal & Schnell",
+      "title": "Zuschneiden",
+      "postProcess": "Kanten trimmen",
       "trimBottom": "Unten",
       "trimLeft": "Links",
       "trimLimitHint": "Beschnittwert auf 0–{limit}px begrenzt",
@@ -512,7 +513,7 @@
       "selectAll": "Alles auswählen",
       "selectToView": "Bild links für Details wählen",
       "supportedFormats": "Unterstützt JPG, PNG, WebP, HEIC etc.",
-      "title": "Metadaten-Sanitizer - Schutz Ihrer digitalen Privatsphäre",
+      "title": "EXIF-Bereinigung",
       "unsupported": "Nicht unterstütztes Format",
       "unsupportedTip": "Format nicht unterstützt oder keine lesbaren Metadaten."
     },
@@ -569,7 +570,7 @@
         "png32": "Standard 32x32 PNG",
         "readme": "Guide (README)"
       },
-      "title": "Professioneller Favicon-Builder",
+      "title": "Favicon-Generator",
       "toggleSpec": "{name} Ausgabe umschalten",
       "zipTip": "ZIP enthält Ressourcen für alle Plattform-Anforderungen."
     },
@@ -607,7 +608,7 @@
       "scrollLeft": "Links scrollen",
       "scrollRight": "Rechts scrollen",
       "sepia": "Sepia",
-      "title": "Bildfilter & Color Grading - Lokale Schnellbearbeitung"
+      "title": "Art-Filter"
     },
     "resize": {
       "byDimensions": "Eigene Größe",
@@ -633,7 +634,7 @@
         "original": "Original",
         "target": "Ziel"
       },
-      "title": "Hochwertige Bildskalierung & Batch-Processing",
+      "title": "Skalierung",
       "width": "Breite",
       "widthUnit": "W"
     },
@@ -694,7 +695,7 @@
       "standard": "Standard",
       "syncGrid": "Gitter synchronisieren",
       "syncGridTip": "Linien nach Gitter-Konfig zurücksetzen",
-      "title": "Bild-Gitter & Kachel-Slicing",
+      "title": "Grid-Slicing",
       "uniformGrid": "Gleichmäßiges Gitter",
       "unitCol": " Spalte",
       "unitRow": " Zeile",

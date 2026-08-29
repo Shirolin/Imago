@@ -3,7 +3,7 @@ import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppModal from './common/AppModal.vue'
 import AppButton from './common/AppButton.vue'
-import { Download, Cpu, ShieldCheck } from 'lucide-vue-next'
+import { Download } from 'lucide-vue-next'
 
 const props = defineProps<{
   show: boolean
@@ -55,39 +55,6 @@ const handleConfirm = () => {
           </p>
         </div>
       </div>
-
-      <dl
-        class="grid grid-cols-1 md:grid-cols-2 gap-3"
-        role="region"
-        :aria-label="t('common.modal.interactive.featuresAria')"
-      >
-        <div
-          class="p-4 bg-muted/30 border border-[var(--hairline)] rounded-xl flex items-center gap-3"
-        >
-          <Cpu :size="18" class="text-muted-foreground/60" />
-          <div class="text-xs">
-            <dt class="text-foreground font-semibold">
-              {{ t('common.modal.interactive.gpuAccel') }}
-            </dt>
-            <dd class="text-muted-foreground mt-0.5">
-              {{ t('common.modal.interactive.gpuAccelDesc') }}
-            </dd>
-          </div>
-        </div>
-        <div
-          class="p-4 bg-muted/30 border border-[var(--hairline)] rounded-xl flex items-center gap-3"
-        >
-          <ShieldCheck :size="18" class="text-muted-foreground/60" />
-          <div class="text-xs">
-            <dt class="text-foreground font-semibold">
-              {{ t('common.modal.interactive.privacy') }}
-            </dt>
-            <dd class="text-muted-foreground mt-0.5">
-              {{ t('common.modal.interactive.privacyDesc') }}
-            </dd>
-          </div>
-        </div>
-      </dl>
 
       <div class="pt-2 flex gap-3">
         <AppButton variant="ghost" class="flex-1" @click="emit('cancel')">

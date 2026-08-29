@@ -13,7 +13,8 @@ import ImageCompare from '../components/common/ImageCompare.vue'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppExportSettings from '../components/common/AppExportSettings.vue'
-import { Play, Info, ArrowRight, Download, Loader2 } from 'lucide-vue-next'
+import AppTip from '../components/common/AppTip.vue'
+import { Play, ArrowRight, Download, Loader2 } from 'lucide-vue-next'
 import { dualEngine } from '../lib/engines/index'
 import type { CompressionOptions } from '../lib/engines/compressEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
@@ -395,25 +396,9 @@ const handleCtaClick = async () => {
           :title="t('tools.compress.settingsTitle')"
         />
 
-        <section class="pt-2">
-          <div
-            v-if="hasGifSelected"
-            class="p-4 bg-warning/5 border border-warning/20 rounded-2xl flex gap-3 mb-2"
-            role="status"
-          >
-            <Info :size="16" class="text-warning shrink-0 mt-0.5" />
-            <p class="text-[0.65rem] text-warning/80 leading-relaxed">
-              {{ t('tools.compress.gifHint') }}
-            </p>
-          </div>
-          <div
-            class="p-4 bg-muted/40 border border-dashed border-primary/30 rounded-2xl flex gap-3 transition-colors hover:bg-muted/60"
-          >
-            <Info :size="16" class="text-primary shrink-0 mt-0.5" />
-            <p class="text-[0.65rem] text-muted-foreground leading-relaxed">
-              {{ t('tools.compress.infoTip') }}
-            </p>
-          </div>
+        <section class="pt-2 space-y-2">
+          <AppTip v-if="hasGifSelected" status>{{ t('tools.compress.gifHint') }}</AppTip>
+          <AppTip>{{ t('tools.compress.infoTip') }}</AppTip>
           <p
             v-if="showDefaultLimitHint"
             class="text-[0.6rem] text-muted-foreground/70 mt-2 px-1 leading-relaxed tabular-nums"
@@ -428,7 +413,7 @@ const handleCtaClick = async () => {
           <AppButton
             size="lg"
             :variant="ctaState.action === 'download' ? 'success' : 'cta'"
-            class="w-full h-12 rounded-[var(--radius-ctrl)] transition-colors group overflow-hidden"
+            class="w-full h-12 rounded-[var(--radius-ctrl)] transition-colors"
             :disabled="ctaState.disabled"
             @click="handleCtaClick"
           >
@@ -436,7 +421,7 @@ const handleCtaClick = async () => {
               <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
               <component :is="ctaState.icon" v-else :size="18" class="mr-2" />
             </template>
-            <div class="flex items-center justify-center gap-1.5 font-bold text-sm tracking-tight">
+            <div class="flex items-center justify-center gap-1.5 font-medium text-sm">
               <span>{{ ctaState.text }}</span>
               <span v-if="ctaState.progress" class="tabular-nums opacity-70">{{
                 ctaState.progress

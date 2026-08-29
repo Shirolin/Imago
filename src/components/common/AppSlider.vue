@@ -115,27 +115,26 @@ const isModified = computed(() => {
           :is="icon"
           v-if="icon"
           :size="14"
-          class="text-muted-foreground/60 group-hover/slider:text-primary transition-colors"
+          class="text-muted-foreground/60 group-hover/slider:text-[var(--ink)] transition-colors"
         />
         <span class="text-[11px] font-medium text-muted-foreground">{{ label }}</span>
       </div>
 
       <div class="flex items-center gap-2">
-        <!-- 数值显示/编辑区 -->
         <div class="relative flex items-center">
           <input
             v-if="isEditing"
             ref="inputRef"
             v-model="editValue"
             type="text"
-            class="w-12 h-5 bg-background border border-primary/50 rounded text-[10px] tabular-nums font-semibold text-center text-primary focus:outline-none"
+            class="w-12 h-5 bg-[var(--paper)] border border-[var(--hairline)] rounded-[var(--radius-ctrl)] text-[10px] tabular-nums font-medium text-center text-[var(--ink)] focus:outline-none focus:border-[var(--accent)]"
             @blur="finishEdit"
             @keydown.enter="finishEdit"
           />
           <button
             v-else
             @click="startEdit"
-            class="px-1.5 h-5 min-w-[32px] rounded hover:bg-primary/10 text-[11px] tabular-nums font-semibold text-primary transition-colors text-right"
+            class="px-1.5 h-5 min-w-[32px] rounded-[var(--radius-ctrl)] hover:bg-[var(--well)] text-[11px] tabular-nums font-medium text-[var(--ink)] transition-colors text-right"
             :title="t('common.ui.clickToEdit')"
           >
             {{ formatValue(modelValue) }}{{ unit }}
@@ -167,9 +166,9 @@ const isModified = computed(() => {
 
     <div class="relative flex items-center h-6">
       <!-- 轨道 -->
-      <div class="absolute w-full h-1.5 bg-muted/40 rounded-full overflow-hidden">
+      <div class="absolute w-full h-1.5 bg-[var(--hairline)] rounded-full overflow-hidden">
         <div
-          class="h-full bg-primary/20 transition-all duration-300"
+          class="h-full bg-[var(--accent)] transition-colors"
           :style="{ width: ((modelValue - min) / (max - min)) * 100 + '%' }"
         ></div>
       </div>
@@ -189,7 +188,7 @@ const isModified = computed(() => {
     </div>
 
     <!-- 辅助说明层 -->
-    <p v-if="description" class="text-[10px] text-muted-foreground/50 leading-relaxed italic">
+    <p v-if="description" class="text-[10px] text-muted-foreground/60 leading-relaxed">
       {{ description }}
     </p>
   </div>
@@ -200,13 +199,12 @@ const isModified = computed(() => {
 input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
-  background: white;
-  border: 2px solid theme('colors.primary.DEFAULT');
+  width: 14px;
+  height: 14px;
+  background: var(--board);
+  border: 2px solid var(--ink);
   border-radius: 50%;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-  transition: transform 0.15s ease;
+  box-shadow: none;
   cursor: grab;
 }
 
@@ -214,19 +212,17 @@ input[type='range']:active::-webkit-slider-thumb {
   cursor: grabbing;
 }
 
-/* Firefox 适配 */
 input[type='range']::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  background: white;
-  border: 2px solid theme('colors.primary.DEFAULT');
+  width: 14px;
+  height: 14px;
+  background: var(--board);
+  border: 2px solid var(--ink);
   border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s;
+  box-shadow: none;
   cursor: grab;
 }
 
 input[type='range']:active::-moz-range-thumb {
-  transform: scale(1.2);
+  cursor: grabbing;
 }
 </style>

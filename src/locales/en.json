@@ -11,13 +11,13 @@
       "advanced": "Advanced Settings",
       "effort": "Encoding Precision",
       "format": "Output Format",
-      "formatAvif": "AVIF (High Compression)",
-      "formatJpeg": "JPEG (Universal)",
-      "formatJxl": "JPEG XL (Next-Gen)",
+      "formatAvif": "AVIF",
+      "formatJpeg": "JPEG",
+      "formatJxl": "JPEG XL",
       "formatOriginal": "Original Format",
-      "formatPng": "PNG (Lossless & Transparent)",
-      "formatWebp": "WebP (Recommended)",
-      "formatWebp2": "WebP2 (Experimental)",
+      "formatPng": "PNG",
+      "formatWebp": "WebP",
+      "formatWebp2": "WebP2",
       "height": "Height",
       "maxColors": "Max Colors",
       "outputQuality": "Output Quality",
@@ -348,7 +348,7 @@
       "tipPro2": "specialized for hair, products, and complex details.",
       "tipSmart1": "Smart Mode: General semantic recognition, ",
       "tipSmart2": "ideal for everyday scenes.",
-      "title": "Local AI Background Removal - Fast & Private",
+      "title": "Background Removal",
       "tolerance": "Color Tolerance",
       "toleranceDesc": "Increase to cover more similar background hues."
     },
@@ -403,7 +403,7 @@
       "smartScale": "Smart Scaling",
       "spacing": "Image Spacing",
       "start": "Start",
-      "title": "Seamless Image Stitching - Fast Local Combination",
+      "title": "Image Synthesis",
       "unitCol": " Col"
     },
     "compress": {
@@ -425,7 +425,7 @@
       "name": "Compression",
       "original": "Original",
       "settingsTitle": "Compression Options",
-      "title": "High-Efficiency Image Compression - 100% Local"
+      "title": "Compression"
     },
     "crop": {
       "aspectRatio": "Ratio Presets",
@@ -469,7 +469,8 @@
       "rotateTip": "Rotate 90 degrees clockwise",
       "snapped": "Snapped to Guide",
       "thirds": "Rule of Thirds",
-      "title": "Precision Image Transformation - Local & Fast",
+      "title": "Image Cropping",
+      "postProcess": "Trim edges",
       "trimBottom": "Bottom",
       "trimLeft": "Left",
       "trimLimitHint": "Trim value clamped to 0–{limit}px",
@@ -512,7 +513,7 @@
       "selectAll": "Select All",
       "selectToView": "Select an image on the left for details",
       "supportedFormats": "Supports JPG, PNG, WebP, HEIC, etc.",
-      "title": "Image Metadata Sanitizer - Guard Your Digital Privacy",
+      "title": "EXIF Sanitizer",
       "unsupported": "Unsupported Format",
       "unsupportedTip": "Format not supported or contains no readable metadata."
     },
@@ -569,7 +570,7 @@
         "png32": "Standard 32x32 PNG",
         "readme": "Guide (README)"
       },
-      "title": "Professional Website Favicon Generator",
+      "title": "Favicon Builder",
       "toggleSpec": "Toggle {name} output",
       "zipTip": "ZIP includes resources meeting all platform audit requirements."
     },
@@ -607,7 +608,7 @@
       "scrollLeft": "Scroll Left",
       "scrollRight": "Right",
       "sepia": "Sepia",
-      "title": "Image Filters & Color Grading - Local Fast Editing"
+      "title": "Art Filters"
     },
     "resize": {
       "byDimensions": "Custom Size",
@@ -633,7 +634,7 @@
         "original": "Original",
         "target": "Target"
       },
-      "title": "High-Quality Image Resizing & Batch Scaling",
+      "title": "Resizing",
       "width": "Width",
       "widthUnit": "W"
     },
@@ -694,7 +695,7 @@
       "standard": "Standard",
       "syncGrid": "Sync Grid",
       "syncGridTip": "Reset lines based on grid config",
-      "title": "Image Grid Splitting & Tile Slicing",
+      "title": "Grid Slicing",
       "uniformGrid": "Uniform Grid",
       "unitCol": " Col",
       "unitRow": " Row",

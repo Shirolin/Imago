@@ -583,10 +583,10 @@ useResizeObserver(containerRef, resetView)
                 class="block rounded-sm will-change-contents backface-hidden"
               />
 
-              <!-- 骨架屏：预览解码/首帧绘制完成前显示 shimmer -->
+              <!-- 首帧绘制前 well 脉冲占位 -->
               <div
                 v-if="isInitialLoad"
-                class="shimmer-skeleton rounded-sm animate-in fade-in duration-300"
+                class="absolute inset-0 rounded-sm bg-[var(--well)] animate-pulse"
                 aria-hidden="true"
               ></div>
 
@@ -666,9 +666,9 @@ useResizeObserver(containerRef, resetView)
               class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center pointer-events-none"
             >
               <div
-                class="w-24 h-28 bg-primary/10 rounded-[2.5rem] flex items-center justify-center mb-8 ring-[12px] ring-primary/5 shadow-inner-white animate-float"
+                class="w-14 h-14 rounded-[var(--radius-well)] bg-[var(--well)] border border-[var(--hairline)] flex items-center justify-center mb-6"
               >
-                <Layers :size="40" class="text-primary/80" />
+                <Layers :size="24" class="text-muted-foreground" />
               </div>
               <AppButton
                 variant="cta"
@@ -685,21 +685,15 @@ useResizeObserver(containerRef, resetView)
     </template>
 
     <template #sidebar>
-      <div class="stagger-list space-y-8 py-2">
-        <section
-          class="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500"
-          style="--stagger: 1"
-        >
+      <div class="space-y-8 py-2">
+        <section class="space-y-4">
           <AppSectionHeader
             :title="t('tools.combine.direction')"
             :icon="Settings2"
           /><AppSegmentedControl v-model="combineDirection" :options="combineDirections" />
         </section>
 
-        <section
-          class="space-y-4 pt-6 border-t border-[var(--hairline)] animate-in fade-in slide-in-from-right-4 duration-500"
-          style="--stagger: 2"
-        >
+        <section class="space-y-4 pt-6 border-t border-[var(--hairline)]">
           <AppSectionHeader
             :title="t('tools.combine.layoutMode')"
             :icon="Layers"
@@ -708,8 +702,7 @@ useResizeObserver(containerRef, resetView)
 
         <section
           v-if="layoutMode === 'original'"
-          class="space-y-4 pt-6 border-t border-[var(--hairline)] animate-in fade-in slide-in-from-right-4 duration-500"
-          style="--stagger: 3"
+          class="space-y-4 pt-6 border-t border-[var(--hairline)]"
         >
           <AppSectionHeader
             :title="t('tools.combine.alignment')"
@@ -717,12 +710,9 @@ useResizeObserver(containerRef, resetView)
           /><AppSegmentedControl v-model="alignment" :options="alignmentOptions" />
         </section>
 
-        <section
-          class="space-y-4 pt-6 border-t border-[var(--hairline)] animate-in fade-in slide-in-from-right-4 duration-500"
-          style="--stagger: 4"
-        >
+        <section class="space-y-4 pt-6 border-t border-[var(--hairline)]">
           <AppSectionHeader :title="t('tools.combine.params')" :icon="Settings2" />
-          <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-5">
+          <div class="space-y-5">
             <div v-if="combineDirection === 'grid'" class="space-y-3">
               <AppSlider
                 v-model="columns"
@@ -773,19 +763,12 @@ useResizeObserver(containerRef, resetView)
           </div>
         </section>
 
-        <section
-          class="space-y-4 pt-6 border-t border-[var(--hairline)] animate-in fade-in slide-in-from-right-4 duration-500"
-          style="--stagger: 5"
-        >
+        <section class="space-y-4 pt-6 border-t border-[var(--hairline)]">
           <AppSectionHeader :title="t('tools.combine.canvasAppearance')" :icon="Settings2" />
-          <div
-            class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] hover:border-primary/20 transition-colors"
-          >
-            <AppColorPicker
-              v-model:model-value="backgroundColor"
-              :label="t('tools.combine.bgFill')"
-            />
-          </div>
+          <AppColorPicker
+            v-model:model-value="backgroundColor"
+            :label="t('tools.combine.bgFill')"
+          />
         </section>
 
         <!-- P1-4：canvas 引擎只支持 toBlob 原生格式（original/webp/jpeg/png），
@@ -820,19 +803,19 @@ useResizeObserver(containerRef, resetView)
               {{ combineError }}
             </div>
           </div>
-          <!-- P1-2：图片不足（0/1 张）时仅保留空态覆盖层单个 CTA，避免双琥珀按钮 -->
+          <!-- P1-2：图片不足（0/1 张）时仅保留空态覆盖层单个 CTA，避免重复导入按钮 -->
           <AppButton
             v-if="hasEnoughImages"
             size="lg"
             variant="cta"
-            class="w-full h-12 rounded-xl transition-all duration-500 group overflow-hidden"
+            class="w-full h-12 rounded-xl transition-colors"
             @click="handleCombine"
           >
             <template #icon>
               <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
               <Layers v-else :size="19" class="mr-2 animate-in zoom-in duration-300" />
             </template>
-            <span class="font-bold text-sm tracking-tight">{{
+            <span class="font-medium text-sm">{{
               isProcessing
                 ? `${t('tools.combine.cta.processing')} ${t('tools.split.cta.clickToAbort')}`
                 : t('tools.combine.cta.export')
@@ -870,31 +853,12 @@ useResizeObserver(containerRef, resetView)
   transform: scale(0.9);
 }
 
-/* 3. 浮动动效 */
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-.animate-float {
-  animation: float 4s ease-in-out infinite;
-}
-
 /* 4. 列表排序移动动画 */
 .sort-list-move {
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* 5. 侧边栏 Stagger 延迟 */
-.animate-in {
-  animation-delay: calc(var(--stagger) * 0.1s);
-}
-
-/* 6. 无障碍项特殊处理 */
+/* 5. 无障碍项特殊处理 */
 .not-sr-only {
   position: absolute !important;
   width: auto !important;
@@ -912,9 +876,6 @@ useResizeObserver(containerRef, resetView)
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-  .animate-float {
-    animation: none;
   }
 }
 </style>

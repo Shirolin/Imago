@@ -11,13 +11,13 @@
       "advanced": "Paramètres Avancés",
       "effort": "Précision d'Encodage",
       "format": "Format de Sortie",
-      "formatAvif": "AVIF (Haute Compression)",
-      "formatJpeg": "JPEG (Universel)",
-      "formatJxl": "JPEG XL (Nouvelle Gen)",
+      "formatAvif": "AVIF",
+      "formatJpeg": "JPEG",
+      "formatJxl": "JPEG XL",
       "formatOriginal": "Conserver le Format Original",
-      "formatPng": "PNG (Sans Perte & Transparent)",
-      "formatWebp": "WebP (Recommandé)",
-      "formatWebp2": "WebP2 (Expérimental)",
+      "formatPng": "PNG",
+      "formatWebp": "WebP",
+      "formatWebp2": "WebP2",
       "height": "Hauteur (px)",
       "maxColors": "Maximum de Couleurs",
       "outputQuality": "Qualité de Sortie",
@@ -348,7 +348,7 @@
       "tipPro2": "spécialisé dans les cheveux, les produits et les détails complexes.",
       "tipSmart1": "Mode Smart : Reconnaissance sémantique générale, ",
       "tipSmart2": "idéal pour les scènes quotidiennes.",
-      "title": "Suppression de Fond Locale AI - Rapide & Privé",
+      "title": "Suppression de Fond",
       "tolerance": "Tolérance Couleur",
       "toleranceDesc": "Augmenter pour couvrir des teintes de fond plus similaires."
     },
@@ -403,7 +403,7 @@
       "smartScale": "Mise à l'Échelle Intelligente",
       "spacing": "Espacement d'Image",
       "start": "Aligner au Début",
-      "title": "Montage d'Images Sans Couture - Combinaison Locale Rapide",
+      "title": "Synthèse d'Image",
       "unitCol": " Col"
     },
     "compress": {
@@ -425,7 +425,7 @@
       "name": "Compression",
       "original": "Original",
       "settingsTitle": "Options de Compression",
-      "title": "Compression d'Image Haute Efficacité - 100% Local"
+      "title": "Compression"
     },
     "crop": {
       "aspectRatio": "Préréglages de Ratio",
@@ -469,7 +469,8 @@
       "rotateTip": "Rotation 90 degrés horaire",
       "snapped": "Aimanté au Guide",
       "thirds": "Règle des Tiers",
-      "title": "Transformation de Précision - Local & Rapide",
+      "title": "Recadrage d'Image",
+      "postProcess": "Rogner les bords",
       "trimBottom": "Bas",
       "trimLeft": "Gauche",
       "trimLimitHint": "Valeur de rognage limitée à 0–{limit}px",
@@ -512,7 +513,7 @@
       "selectAll": "Tout Sélectionner",
       "selectToView": "Sélectionner une image à gauche pour les détails",
       "supportedFormats": "Supporte JPG, PNG, WebP, HEIC, etc.",
-      "title": "Assainisseur de Métadonnées - Protégez Votre Vie Privée Numérique",
+      "title": "Assainisseur EXIF",
       "unsupported": "Format Non Supporté",
       "unsupportedTip": "Format non supporté ou sans métadonnées lisibles."
     },
@@ -569,7 +570,7 @@
         "png32": "PNG Standard 32x32",
         "readme": "Guide (README)"
       },
-      "title": "Générateur Professionnel de Favicons",
+      "title": "Générateur de Favicons",
       "toggleSpec": "Basculer la sortie {name}",
       "zipTip": "Le ZIP inclura des ressources répondant à toutes les exigences des boutiques."
     },
@@ -607,7 +608,7 @@
       "scrollLeft": "Scroll Gauche",
       "scrollRight": "Scroll Droite",
       "sepia": "Sépia",
-      "title": "Filtres d'Image et Étalonnage de Couleur - Édition Rapide Locale"
+      "title": "Filtres Artistiques"
     },
     "resize": {
       "byDimensions": "Taille Personnalisée",
@@ -633,7 +634,7 @@
         "original": "Original",
         "target": "Cible"
       },
-      "title": "Redimensionnement d'Image de Haute Qualité",
+      "title": "Redimensionnement",
       "width": "Largeur",
       "widthUnit": "L"
     },
@@ -694,7 +695,7 @@
       "standard": "Standard",
       "syncGrid": "Synchroniser la Grille",
       "syncGridTip": "Réinitialiser les lignes selon la grille",
-      "title": "Division d'Image et Fragmentation en Grille",
+      "title": "Division en Grille",
       "uniformGrid": "Grille Uniforme",
       "unitCol": " Col",
       "unitRow": " Ligne",

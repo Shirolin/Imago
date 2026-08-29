@@ -87,10 +87,12 @@ const handleDecrement = () => {
         :min="type === 'number' && min !== undefined ? min : undefined"
         :max="type === 'number' && max !== undefined ? max : undefined"
         :step="type === 'number' ? step : undefined"
-        class="w-full h-10 bg-muted/30 dark:bg-muted/50 border border-[var(--hairline)] rounded-lg text-xs font-bold text-muted-foreground focus:text-foreground focus:border-primary focus:bg-background/80 outline-none transition-all tabular-nums placeholder:text-muted-foreground/40 pl-3 focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 focus:ring-offset-background"
+        class="w-full h-10 bg-muted/30 dark:bg-muted/50 border border-[var(--hairline)] rounded-[var(--radius-ctrl)] text-xs font-medium text-muted-foreground focus:text-foreground focus:border-[var(--accent)] focus:bg-background/80 outline-none transition-colors tabular-nums placeholder:text-muted-foreground/40 pl-3 focus:ring-2 focus:ring-[var(--accent)]/20 focus:ring-offset-2 focus:ring-offset-[var(--paper)]"
         :class="[
           type === 'number' ? 'pr-14' : suffix ? 'pr-8' : 'pr-3',
-          { 'ring-2 ring-amber-500/30 border-amber-500/40': type === 'number' && isAtMax }
+          {
+            'ring-2 ring-[var(--accent)]/25 border-[var(--accent)]/40': type === 'number' && isAtMax
+          }
         ]"
         @blur="handleBlur"
       />

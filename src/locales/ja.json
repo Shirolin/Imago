@@ -11,13 +11,13 @@
       "advanced": "高度な設定",
       "effort": "圧縮効率",
       "format": "形式",
-      "formatAvif": "AVIF (最新形式)",
-      "formatJpeg": "JPEG (互換性重視)",
-      "formatJxl": "JPEG XL (次世代)",
+      "formatAvif": "AVIF",
+      "formatJpeg": "JPEG",
+      "formatJxl": "JPEG XL",
       "formatOriginal": "元の形式を維持",
-      "formatPng": "PNG (无損失 / 透過)",
-      "formatWebp": "WebP (推奨选用)",
-      "formatWebp2": "WebP2 (実験的)",
+      "formatPng": "PNG",
+      "formatWebp": "WebP",
+      "formatWebp2": "WebP2",
       "height": "高さ",
       "maxColors": "最大色数",
       "outputQuality": "出力画質",
@@ -348,7 +348,7 @@
       "tipPro2": "複雑な人物や製品撮影に最適です。",
       "tipSmart1": "スマートモード：汎用 AI 識別です。",
       "tipSmart2": "日常の簡単なシーンに最適です。",
-      "title": "ローカル AI 背景削除 - アップロード不要",
+      "title": "スマート背景削除",
       "tolerance": "色彩許容範囲",
       "toleranceDesc": "許容範囲を広げて、より似た色を含めます。"
     },
@@ -403,7 +403,7 @@
       "smartScale": "スマートスケール",
       "spacing": "画像の間隔",
       "start": "开始",
-      "title": "複数の画像を垂直または水平に無縫拼接",
+      "title": "長尺画像結合",
       "unitCol": " 列"
     },
     "compress": {
@@ -425,7 +425,7 @@
       "name": "圧縮・変換",
       "original": "オリジナル画像",
       "settingsTitle": "圧縮设定",
-      "title": "画像圧縮と形式変換 (WebP / AVIF) - 100% ローカル処理"
+      "title": "圧縮・変換"
     },
     "crop": {
       "aspectRatio": "プリセット比率",
@@ -469,7 +469,8 @@
       "rotateTip": "右に 90° 回転",
       "snapped": "ガイドにスナップしました",
       "thirds": "三分割法",
-      "title": "画像の切り抜きと固定比率変換",
+      "title": "画像切り抜き",
+      "postProcess": "エッジトリミング",
       "trimBottom": "下",
       "trimLeft": "左",
       "trimLimitHint": "トリム値は 0–{limit}px に制限されました",
@@ -512,7 +513,7 @@
       "selectAll": "すべて選択",
       "selectToView": "詳細を表示するには左側の画像を選択してください",
       "supportedFormats": "JPG、PNG、WebP、HEIC などの一般的な形式をサポートしています。",
-      "title": "画像メタデータ (EXIF) の削除 - プライバシー保护",
+      "title": "プライバシー脱感作",
       "unsupported": "未対応の形式",
       "unsupportedTip": "この形式は未対応か、読み取り可能なメタデータが含まれていません。"
     },
@@ -569,7 +570,7 @@
         "png32": "標準 32x32 PNG",
         "readme": "使用ガイド (README)"
       },
-      "title": "プロフェッショナルな Favicon ビルダー",
+      "title": "ファビコン生成",
       "toggleSpec": "{name} 出力を切り替え",
       "zipTip": "ZIP には各プラットフォームの審査要件を満たす全リソースが含まれます。"
     },
@@ -607,7 +608,7 @@
       "scrollLeft": "左にスクロール",
       "scrollRight": "右にスクロール",
       "sepia": "セピア",
-      "title": "プロフェッショナルな画像フィルターと色彩调整"
+      "title": "カラーフィルター"
     },
     "resize": {
       "byDimensions": "カスタムサイズ指定",
@@ -633,7 +634,7 @@
         "original": "オリジナル",
         "target": "ターゲット"
       },
-      "title": "高品質な画像リサイズと批量処理",
+      "title": "サイズ调整",
       "width": "幅",
       "widthUnit": "W"
     },
@@ -694,7 +695,7 @@
       "standard": "标准",
       "syncGrid": "グリッド同期",
       "syncGridTip": "現在のグリッド设定に强制整列します",
-      "title": "宫格切分とパノラマ自动カット - SNS ツール",
+      "title": "グリッド切图",
       "uniformGrid": "均等グリッド",
       "unitCol": " 列",
       "unitRow": " 行",

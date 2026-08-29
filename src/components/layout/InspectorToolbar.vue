@@ -20,7 +20,7 @@ const { t } = useI18n()
         :disabled="!canUndo"
         :title="`${t('common.history.undo')} (Ctrl+Z)`"
         :aria-label="t('common.history.undo')"
-        class="flex items-center justify-center w-8 h-8 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        class="flex items-center justify-center w-8 h-8 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 rounded-[var(--radius-ctrl)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
         :class="
           canUndo ? 'text-foreground hover:bg-muted' : 'text-muted-foreground/30 cursor-not-allowed'
         "
@@ -33,7 +33,7 @@ const { t } = useI18n()
         :disabled="!canRedo"
         :title="`${t('common.history.redo')} (Ctrl+Y)`"
         :aria-label="t('common.history.redo')"
-        class="flex items-center justify-center w-8 h-8 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        class="flex items-center justify-center w-8 h-8 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 rounded-[var(--radius-ctrl)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
         :class="
           canRedo ? 'text-foreground hover:bg-muted' : 'text-muted-foreground/30 cursor-not-allowed'
         "

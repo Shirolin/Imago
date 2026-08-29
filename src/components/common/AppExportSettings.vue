@@ -153,7 +153,7 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
 
         <div
           v-if="showQualitySlider || showTargetSizeInput || showPngOptions"
-          class="bg-muted/10 rounded-2xl p-5 border border-[var(--hairline)] mt-3 space-y-7"
+          class="space-y-7 pt-3 border-t border-[var(--hairline)]"
         >
           <!-- A. 输出质量 -->
           <div v-if="showQualitySlider" class="space-y-3">
@@ -173,18 +173,14 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
           <!-- B. 目标体积 -->
           <div v-if="showTargetSizeInput" class="space-y-3">
             <div class="flex items-center justify-between px-0.5 h-6">
-              <div class="flex items-center gap-2.5">
-                <div
-                  class="bg-primary/5 p-1 rounded-full flex items-center justify-center overflow-visible"
-                >
-                  <Target :size="15" :stroke-width="2.5" class="text-primary" />
-                </div>
-                <span class="text-xs font-medium text-muted-foreground/80 leading-none">{{
+              <div class="flex items-center gap-2">
+                <Target :size="14" class="text-[var(--muted)]" />
+                <span class="text-[11px] font-medium text-muted-foreground">{{
                   t('common.export.targetSize')
                 }}</span>
               </div>
-              <span class="tabular-nums text-sm font-semibold text-primary"
-                >{{ targetSizeKB }} <span class="text-[10px] opacity-60">KB</span></span
+              <span class="tabular-nums text-[11px] font-medium text-[var(--ink)]"
+                >{{ targetSizeKB }} <span class="text-[10px] text-[var(--muted)]">KB</span></span
               >
             </div>
             <AppInput
@@ -249,7 +245,7 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
           class="text-muted-foreground/40 group-hover:text-primary"
         />
       </button>
-      <div v-if="showAdvanced" class="space-y-6 px-1 animate-in fade-in slide-in-from-top-2">
+      <div v-if="showAdvanced" class="space-y-6 px-1">
         <div v-if="allowManualQuality" class="space-y-3">
           <label class="text-xs font-medium text-muted-foreground/80 px-1">{{
             t('common.export.resolutionLimit')

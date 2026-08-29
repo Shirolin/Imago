@@ -11,13 +11,13 @@
       "advanced": "高级设置",
       "effort": "编码精细度",
       "format": "输出格式",
-      "formatAvif": "AVIF (超高压缩比)",
-      "formatJpeg": "JPEG (广泛兼容)",
-      "formatJxl": "JPEG XL (未来格式)",
+      "formatAvif": "AVIF",
+      "formatJpeg": "JPEG",
+      "formatJxl": "JPEG XL",
       "formatOriginal": "保持原始格式",
-      "formatPng": "PNG (无损且支持透明)",
-      "formatWebp": "WebP (推荐选用)",
-      "formatWebp2": "WebP2 (实验性标准)",
+      "formatPng": "PNG",
+      "formatWebp": "WebP",
+      "formatWebp2": "WebP2",
       "height": "像素高度",
       "maxColors": "最大色彩数",
       "outputQuality": "输出画质",
@@ -348,7 +348,7 @@
       "tipPro2": "，专攻人像、复杂细节与产品图。",
       "tipSmart1": "轻量模式：通用语义识别，",
       "tipSmart2": "，能够快速处理日常场景。",
-      "title": "本地去底",
+      "title": "去底",
       "tolerance": "色彩容差",
       "toleranceDesc": "适当增加容差以涵盖更多相近的背景色。"
     },
@@ -403,7 +403,7 @@
       "smartScale": "等宽 / 等高缩放",
       "spacing": "图片间隙",
       "start": "起始对齐",
-      "title": "无缝长图合成 - 本地快速拼接",
+      "title": "拼接",
       "unitCol": " 列"
     },
     "compress": {
@@ -425,7 +425,7 @@
       "name": "压缩",
       "original": "原始图像",
       "settingsTitle": "规格",
-      "title": "压缩与格式转换"
+      "title": "压缩"
     },
     "crop": {
       "aspectRatio": "比例预设",
@@ -469,7 +469,8 @@
       "rotateTip": "顺时针旋转 90 度",
       "snapped": "已吸附至参考线",
       "thirds": "九宫格三分线",
-      "title": "图像精准裁剪与变换 - 本地极速处理",
+      "title": "裁剪",
+      "postProcess": "边缘修剪",
       "trimBottom": "下边缘",
       "trimLeft": "左边缘",
       "trimLimitHint": "修剪值已限制在 0–{limit}px",
@@ -512,7 +513,7 @@
       "selectAll": "全选所有项",
       "selectToView": "请点击左侧图片查看元数据详情",
       "supportedFormats": "支持 JPG、PNG、WebP、HEIC 等主流格式。",
-      "title": "图像元数据 (EXIF) 清理 - 捍卫您的数字隐私",
+      "title": "EXIF",
       "unsupported": "格式不兼容",
       "unsupportedTip": "此文件格式目前暂不支持深度元数据解析。"
     },
@@ -569,7 +570,7 @@
         "png32": "标准 32x32 PNG",
         "readme": "使用集成指南 (README)"
       },
-      "title": "专业全平台网站图标 (Favicon) 构建器",
+      "title": "站标",
       "toggleSpec": "开关 {name} 规格输出",
       "zipTip": "ZIP 包将包含符合各平台审核规范的全套图标资源。"
     },
@@ -607,7 +608,7 @@
       "scrollLeft": "左移",
       "scrollRight": "右移",
       "sepia": "复古褐色",
-      "title": "专业图像滤镜与后期色彩调节"
+      "title": "滤镜"
     },
     "resize": {
       "byDimensions": "自定义像素尺寸",
@@ -633,7 +634,7 @@
         "original": "源尺寸",
         "target": "默认输出"
       },
-      "title": "图像尺寸重采样与高质量缩放 - 批量处理",
+      "title": "尺寸",
       "width": "图像宽度",
       "widthUnit": "宽"
     },
@@ -694,7 +695,7 @@
       "standard": "标准比例",
       "syncGrid": "一键同步网格",
       "syncGridTip": "将切分线强制对齐到当前的网格设置数值",
-      "title": "大图宫格切分与全景图自动切割 - 社交媒体利器",
+      "title": "分割",
       "uniformGrid": "标准等分网格",
       "unitCol": " 列",
       "unitRow": " 行",

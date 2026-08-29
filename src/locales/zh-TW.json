@@ -11,13 +11,13 @@
       "advanced": "進階設定",
       "effort": "編碼精細度",
       "format": "輸出格式",
-      "formatAvif": "AVIF (超高壓縮比)",
-      "formatJpeg": "JPEG (廣泛相容)",
-      "formatJxl": "JPEG XL (次世代格式)",
+      "formatAvif": "AVIF",
+      "formatJpeg": "JPEG",
+      "formatJxl": "JPEG XL",
       "formatOriginal": "保留原始格式",
-      "formatPng": "PNG (無損且支援透明)",
-      "formatWebp": "WebP (推薦選用)",
-      "formatWebp2": "WebP2 (實驗性標準)",
+      "formatPng": "PNG",
+      "formatWebp": "WebP",
+      "formatWebp2": "WebP2",
       "height": "像素高度",
       "maxColors": "最大顏色數",
       "outputQuality": "輸出畫質",
@@ -348,7 +348,7 @@
       "tipPro2": "，專攻人像、複雜細節與產品圖。",
       "tipSmart1": "智慧模式：通用語義識別演算法，",
       "tipSmart2": "，能夠快速處理日常場景。",
-      "title": "本地 AI 智慧去背 - 自動移除圖像背景",
+      "title": "去底",
       "tolerance": "色彩容差",
       "toleranceDesc": "適當增加容差以涵蓋更多相近的背景色。"
     },
@@ -403,7 +403,7 @@
       "smartScale": "智慧等寬/等高縮放",
       "spacing": "圖片間隙",
       "start": "起始對齊",
-      "title": "無縫長圖合成 - 本地快速拼接",
+      "title": "拼接",
       "unitCol": " 列"
     },
     "compress": {
@@ -425,7 +425,7 @@
       "name": "壓縮",
       "original": "原始圖像",
       "settingsTitle": "高級壓縮配置",
-      "title": "圖像極致壓縮與格式轉換 - 100% 隱私安全"
+      "title": "壓縮"
     },
     "crop": {
       "aspectRatio": "比例預設",
@@ -469,7 +469,8 @@
       "rotateTip": "順時針旋轉 90 度",
       "snapped": "已吸附至參考線",
       "thirds": "九宮格三分線",
-      "title": "圖像精準裁剪與變換 - 本地極速處理",
+      "title": "裁剪",
+      "postProcess": "邊緣修剪",
       "trimBottom": "下邊緣",
       "trimLeft": "左邊緣",
       "trimLimitHint": "修剪值已限制在 0–{limit}px",
@@ -512,7 +513,7 @@
       "selectAll": "全選所有項",
       "selectToView": "請點擊左側圖片查看元數據詳情",
       "supportedFormats": "支援 JPG、PNG、WebP、HEIC 等主流格式。",
-      "title": "圖像元數據 (EXIF) 清理 - 捍衛您的數字隱私",
+      "title": "EXIF",
       "unsupported": "格式不相容",
       "unsupportedTip": "此檔案格式目前暫不支援深度元數據解析。"
     },
@@ -569,7 +570,7 @@
         "png32": "標準 32x32 PNG",
         "readme": "使用整合指南 (README)"
       },
-      "title": "專業全平台網站圖示 (Favicon) 構建器",
+      "title": "站標",
       "toggleSpec": "開關 {name} 規格輸出",
       "zipTip": "ZIP 包將包含符合各平台審核規範的全套圖示資源。"
     },
@@ -607,7 +608,7 @@
       "scrollLeft": "左移",
       "scrollRight": "右移",
       "sepia": "復古褐色",
-      "title": "專業圖像濾鏡與後期色彩調節"
+      "title": "濾鏡"
     },
     "resize": {
       "byDimensions": "自定義像素尺寸",
@@ -633,7 +634,7 @@
         "original": "源尺寸",
         "target": "預設輸出"
       },
-      "title": "圖像尺寸重採樣與高質量縮放 - 批量處理",
+      "title": "尺寸",
       "width": "圖像寬度",
       "widthUnit": "寬"
     },
@@ -694,7 +695,7 @@
       "standard": "標準比例",
       "syncGrid": "一鍵同步網格",
       "syncGridTip": "將切分線強制對齊到當前的網格設定數值",
-      "title": "大圖宮格切分與全景圖自動切割 - 社群媒體利器",
+      "title": "分割",
       "uniformGrid": "標準等分網格",
       "unitCol": " 列",
       "unitRow": " 行",

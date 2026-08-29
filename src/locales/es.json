@@ -11,13 +11,13 @@
       "advanced": "Ajustes Avanzados",
       "effort": "Precisión de Codificación",
       "format": "Formato de Salida",
-      "formatAvif": "AVIF (Alta Compresión)",
-      "formatJpeg": "JPEG (Universal)",
-      "formatJxl": "JPEG XL (Nueva Gen)",
+      "formatAvif": "AVIF",
+      "formatJpeg": "JPEG",
+      "formatJxl": "JPEG XL",
       "formatOriginal": "Mantener Formato Original",
-      "formatPng": "PNG (Sin Pérdida y Transparente)",
-      "formatWebp": "WebP (Recomendado)",
-      "formatWebp2": "WebP2 (Experimental)",
+      "formatPng": "PNG",
+      "formatWebp": "WebP",
+      "formatWebp2": "WebP2",
       "height": "Altura (px)",
       "maxColors": "Máximo de Colores",
       "outputQuality": "Calidad de Salida",
@@ -348,7 +348,7 @@
       "tipPro2": "especializado en cabello, productos y detalles complejos.",
       "tipSmart1": "Modo Smart: Reconocimiento semántico general, ",
       "tipSmart2": "ideal para escenas cotidianas.",
-      "title": "Eliminación de Fondo Local AI - Rápido y Privado",
+      "title": "Eliminación de Fondo",
       "tolerance": "Tolerancia de Color",
       "toleranceDesc": "Aumentar para cubrir tonos de fondo más similares."
     },
@@ -403,7 +403,7 @@
       "smartScale": "Escalado Inteligente",
       "spacing": "Espaciado de Imagen",
       "start": "Alinear al Inicio",
-      "title": "Montaje de Imágenes Sin Fisuras - Combinación Local Rápida",
+      "title": "Síntesis de Imagen",
       "unitCol": " Col"
     },
     "compress": {
@@ -425,7 +425,7 @@
       "name": "Compresión",
       "original": "Original",
       "settingsTitle": "Opciones de Compresión",
-      "title": "Compresión de Imagen de Alta Eficiencia - 100% Local"
+      "title": "Compresión"
     },
     "crop": {
       "aspectRatio": "Preajustes de Proporción",
@@ -469,7 +469,8 @@
       "rotateTip": "Rotar 90 grados en sentido horario",
       "snapped": "Ajustado a la Guía",
       "thirds": "Regla de los Tercios",
-      "title": "Transformación de Precisión - Local y Rápida",
+      "title": "Recorte de Imagen",
+      "postProcess": "Recortar bordes",
       "trimBottom": "Abajo",
       "trimLeft": "Izquierda",
       "trimLimitHint": "Valor de recorte limitado a 0–{limit}px",
@@ -512,7 +513,7 @@
       "selectAll": "Seleccionar Todo",
       "selectToView": "Selecciona una imagen a la izquierda",
       "supportedFormats": "Soporta JPG, PNG, WebP, HEIC, etc.",
-      "title": "Sanitizador de Metadatos - Protege tu Privacidad Digital",
+      "title": "Sanitizador EXIF",
       "unsupported": "Formato no Soportado",
       "unsupportedTip": "Formato no soportado o sin metadatos legibles."
     },
@@ -569,7 +570,7 @@
         "png32": "PNG Estándar 32x32",
         "readme": "Guía (README)"
       },
-      "title": "Generador Profesional de Favicons",
+      "title": "Generador de Favicons",
       "toggleSpec": "Alternar salida {name}",
       "zipTip": "El ZIP incluirá recursos que cumplen con todos los requisitos de las tiendas."
     },
@@ -607,7 +608,7 @@
       "scrollLeft": "Scroll Izquierda",
       "scrollRight": "Scroll Derecha",
       "sepia": "Sepia",
-      "title": "Filtros de Imagen y Gradación de Color - Edición Rápida Local"
+      "title": "Filtros Artísticos"
     },
     "resize": {
       "byDimensions": "Tamaño Personalizado",
@@ -633,7 +634,7 @@
         "original": "Original",
         "target": "Objetivo"
       },
-      "title": "Redimensionamiento de Imagen de Alta Calidad",
+      "title": "Redimensionar",
       "width": "Anchura",
       "widthUnit": "W"
     },
@@ -694,7 +695,7 @@
       "standard": "Estándar",
       "syncGrid": "Sincronizar Rejilla",
       "syncGridTip": "Restablecer líneas según rejilla",
-      "title": "División de Imagen y Fragmentación en Rejilla",
+      "title": "División en Rejilla",
       "uniformGrid": "Rejilla Uniforme",
       "unitCol": " Col",
       "unitRow": " Fila",

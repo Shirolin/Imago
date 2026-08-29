@@ -604,7 +604,7 @@ const handleCtaClick = async () => {
         <AppButton
           size="lg"
           :variant="ctaState.action === 'download' ? 'success' : 'cta'"
-          class="w-full h-12 rounded-xl transition-all duration-500 group overflow-hidden"
+          class="w-full h-12 rounded-xl transition-colors"
           :loading="isProcessing || isReadingExif"
           :disabled="ctaState.disabled"
           @click="handleCtaClick"
@@ -612,7 +612,7 @@ const handleCtaClick = async () => {
           <template #icon>
             <component :is="ctaState.icon" v-if="!isProcessing" :size="18" class="mr-2" />
           </template>
-          <span class="font-bold text-sm tracking-tight">{{ ctaState.text }}</span>
+          <span class="font-medium text-sm">{{ ctaState.text }}</span>
         </AppButton>
       </InspectorFooter>
     </template>

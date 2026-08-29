@@ -789,7 +789,7 @@ const handleApplyProcess = async () => {
     return
   }
 
-  // 处理失败（引擎错误/中止）：不写入结果 → CTA 不会显示绿色导出；播报可显示的引擎错误
+  // 处理失败（引擎错误/中止）：不写入结果 → 无结果则不进入 download CTA；播报可显示的引擎错误
   const img = store.images.find((i) => i.id === id)
   if (img && img.status === 'error' && img.error) {
     srMessage.value = img.error
@@ -967,10 +967,7 @@ const handleCtaClick = async () => {
               { label: t('tools.split.freeEdit'), value: 'custom', icon: Scissors }
             ]"
           />
-          <div
-            v-if="editMode === 'grid'"
-            class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-4"
-          >
+          <div v-if="editMode === 'grid'" class="space-y-4">
             <div class="space-y-1">
               <AppSlider
                 v-model="rows"
@@ -996,10 +993,7 @@ const handleCtaClick = async () => {
               />
             </div>
           </div>
-          <div
-            v-else
-            class="bg-primary/5 rounded-2xl p-4 border border-primary/20 flex flex-col gap-4"
-          >
+          <div v-else class="flex flex-col gap-4 space-y-4">
             <div class="grid grid-cols-2 gap-3">
               <AppButton
                 @click="activeAxis = 'x'"
@@ -1059,7 +1053,7 @@ const handleCtaClick = async () => {
           />
         </div>
         <div class="space-y-4 px-1">
-          <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-4">
+          <div class="space-y-4">
             <div class="space-y-1">
               <AppSlider
                 v-model="viewSettings.lineWidth"
@@ -1150,7 +1144,7 @@ const handleCtaClick = async () => {
             />
           </div>
 
-          <div class="bg-muted/10 rounded-2xl p-4 border border-[var(--hairline)] space-y-4">
+          <div class="space-y-4">
             <div class="space-y-1">
               <AppSlider
                 v-model="shave"
@@ -1180,7 +1174,7 @@ const handleCtaClick = async () => {
         <AppButton
           size="lg"
           :variant="ctaState.action === 'download' ? 'success' : 'cta'"
-          class="w-full h-12 rounded-xl transition-all duration-500 group overflow-hidden"
+          class="w-full h-12 rounded-xl transition-colors"
           :disabled="ctaState.disabled"
           @click="handleCtaClick"
         >
@@ -1188,11 +1182,9 @@ const handleCtaClick = async () => {
             <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
             <component :is="ctaState.icon" v-else :size="18" class="mr-2" />
           </template>
-          <span
-            class="font-bold text-sm tracking-tight"
-            :class="{ 'tabular-nums': isProcessing }"
-            >{{ ctaState.text }}</span
-          >
+          <span class="font-medium text-sm" :class="{ 'tabular-nums': isProcessing }">{{
+            ctaState.text
+          }}</span>
         </AppButton>
       </InspectorFooter>
     </template>

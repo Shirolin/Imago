@@ -386,7 +386,7 @@ watch(
             class="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20"
           >
             <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-            <span class="text-[10px] font-bold text-primary uppercase">{{ statusMessage }}</span>
+            <span class="text-[10px] font-medium text-primary">{{ statusMessage }}</span>
           </div>
           <button
             v-if="points.length > 0"
@@ -488,7 +488,7 @@ watch(
       <!-- 图片核心展示区：强制缩放约束 -->
       <div
         ref="viewportRef"
-        class="flex-1 relative min-h-0 bg-[#0a0a0a] group overflow-hidden"
+        class="flex-1 relative min-h-0 bg-[var(--product)] group overflow-hidden"
         @contextmenu.prevent
       >
         <div

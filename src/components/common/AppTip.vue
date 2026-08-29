@@ -1,25 +1,21 @@
 <script setup lang="ts">
-import type { Component } from 'vue'
-import { Info } from 'lucide-vue-next'
-
-interface Props {
-  icon?: Component
-}
-
-defineProps<Props>()
+withDefaults(
+  defineProps<{
+    /** 为 true 时作为 live region，供读屏在内容出现时播报（如 GIF 提示） */
+    status?: boolean
+  }>(),
+  {
+    status: false
+  }
+)
 </script>
 
 <template>
-  <div
-    class="bg-primary/5 p-4 rounded-2xl border border-primary/10 flex items-center gap-3 text-foreground/80 text-xs leading-relaxed transition-all hover:bg-primary/[0.08]"
+  <p
+    class="text-[11px] text-[var(--muted)] leading-relaxed"
+    :role="status ? 'status' : undefined"
+    :aria-live="status ? 'polite' : undefined"
   >
-    <div
-      class="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary shrink-0"
-    >
-      <component :is="icon || Info" :size="16" />
-    </div>
-    <div class="flex-1 font-medium">
-      <slot></slot>
-    </div>
-  </div>
+    <slot></slot>
+  </p>
 </template>
