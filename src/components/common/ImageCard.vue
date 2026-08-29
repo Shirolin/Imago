@@ -406,30 +406,36 @@ watch(displayUrl, () => {
       >
         <button
           v-if="image.status === 'done'"
-          class="flex-1 flex items-center justify-center gap-2 h-9 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] text-[var(--muted)] hover:text-[var(--ink)] transition-colors text-[12px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          class="flex-1 min-w-0 flex items-center justify-center gap-2 min-h-9 h-auto py-1.5 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] text-[var(--muted)] hover:text-[var(--ink)] transition-colors text-[12px] font-medium leading-tight outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           @click.stop="emit('compare', image.id)"
           :aria-label="t('common.image.card.compare')"
         >
           <Columns2 :size="14" />
-          <span>{{ t('common.image.card.compare') }}</span>
+          <span class="min-w-0 text-center [overflow-wrap:break-word] line-clamp-2">{{
+            t('common.image.card.compare')
+          }}</span>
         </button>
         <button
           v-if="image.status === 'done' || image.status === 'error'"
-          class="flex-1 flex items-center justify-center gap-2 h-9 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[var(--danger)]/10 text-[var(--muted)] hover:text-[var(--danger)] transition-colors text-[12px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger)]"
+          class="flex-1 min-w-0 flex items-center justify-center gap-2 min-h-9 h-auto py-1.5 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[var(--danger)]/10 text-[var(--muted)] hover:text-[var(--danger)] transition-colors text-[12px] font-medium leading-tight outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger)]"
           @click.stop="handleReset"
           :aria-label="t('common.image.card.reset')"
         >
           <RotateCcw :size="14" />
-          <span>{{ t('common.image.card.reset') }}</span>
+          <span class="min-w-0 text-center [overflow-wrap:break-word] line-clamp-2">{{
+            t('common.image.card.reset')
+          }}</span>
         </button>
         <button
           v-if="image.status === 'done'"
-          class="flex-1 flex items-center justify-center gap-2 h-9 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] text-[var(--muted)] hover:text-[var(--ink)] transition-colors text-[12px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          class="flex-1 min-w-0 flex items-center justify-center gap-2 min-h-9 h-auto py-1.5 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] text-[var(--muted)] hover:text-[var(--ink)] transition-colors text-[12px] font-medium leading-tight outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           @click.stop="emit('interactive', image.id)"
           :aria-label="t('common.image.card.sam2')"
         >
           <MousePointer2 :size="14" />
-          <span>{{ t('common.image.card.sam2') }}</span>
+          <span class="min-w-0 text-center [overflow-wrap:break-word] line-clamp-2">{{
+            t('common.image.card.sam2')
+          }}</span>
         </button>
         <div class="flex gap-2 ml-auto pl-2 border-l border-[var(--hairline)]">
           <button

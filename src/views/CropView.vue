@@ -729,14 +729,17 @@ const ratios = computed(() => [
         <div class="space-y-4">
           <AppButton
             variant="secondary"
+            fill
             class="w-full h-10 rounded-xl bg-background/50 border-dashed border-border hover:border-primary/50 hover:bg-primary/[0.02] group transition-all"
             @click="handleFillImage"
             :aria-label="t('tools.crop.fillAll')"
           >
-            <Maximize2
-              :size="16"
-              class="mr-2 text-muted-foreground group-hover:text-primary transition-colors"
-            />
+            <template #icon>
+              <Maximize2
+                :size="16"
+                class="mr-2 text-muted-foreground group-hover:text-primary transition-colors"
+              />
+            </template>
             <span class="text-[11px] font-medium">{{ t('tools.crop.fillAll') }}</span>
           </AppButton>
 
@@ -925,21 +928,27 @@ const ratios = computed(() => [
             <AppButton
               variant="secondary"
               size="sm"
+              fill
               :disabled="!canUndo"
               @click="undo"
-              class="rounded-xl h-10 text-[11px] font-medium bg-background/50 border-[var(--hairline)] hover:bg-primary/[0.02]"
+              class="w-full rounded-xl h-10 text-[11px] font-medium bg-background/50 border-[var(--hairline)] hover:bg-primary/[0.02]"
               :aria-label="t('tools.crop.undo')"
-              ><Undo2 :size="14" class="mr-1.5" /> {{ t('tools.crop.undo') }}</AppButton
             >
+              <template #icon><Undo2 :size="14" class="mr-1.5" /></template>
+              {{ t('tools.crop.undo') }}
+            </AppButton>
             <AppButton
               variant="secondary"
               size="sm"
+              fill
               :disabled="!canRedo"
               @click="redo"
-              class="rounded-xl h-10 text-[11px] font-medium bg-background/50 border-[var(--hairline)] hover:bg-primary/[0.02]"
+              class="w-full rounded-xl h-10 text-[11px] font-medium bg-background/50 border-[var(--hairline)] hover:bg-primary/[0.02]"
               :aria-label="t('tools.crop.redo')"
-              ><Redo2 :size="14" class="mr-1.5" /> {{ t('tools.crop.redo') }}</AppButton
             >
+              <template #icon><Redo2 :size="14" class="mr-1.5" /></template>
+              {{ t('tools.crop.redo') }}
+            </AppButton>
           </div>
           <button
             @click="handleReset"
@@ -969,8 +978,9 @@ const ratios = computed(() => [
       >
         <AppButton
           size="lg"
+          fill
           :variant="ctaState.action === 'download' ? 'success' : 'cta'"
-          class="w-full h-12 rounded-xl transition-colors"
+          class="w-full rounded-xl transition-colors"
           :loading="isProcessing"
           :disabled="ctaState.disabled"
           @click="handleCtaClick"

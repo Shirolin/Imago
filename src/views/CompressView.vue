@@ -190,7 +190,7 @@ const ctaState = computed(() => {
       (img) => store.selectedIds.has(img.id) && img.status === 'done'
     ).length
     return {
-      text: `${t('tools.compress.cta.rendering')} ${t('tools.compress.cta.clickToAbort')}`,
+      text: t('tools.compress.cta.rendering'),
       progress: `(${processed}/${total})`,
       icon: Loader2,
       action: 'abort',
@@ -369,21 +369,23 @@ const handleCtaClick = async () => {
         <InspectorFooter>
           <AppButton
             size="lg"
+            fill
             :variant="ctaState.action === 'download' ? 'success' : 'cta'"
-            class="w-full h-12 rounded-[var(--radius-ctrl)] transition-colors"
+            class="w-full rounded-[var(--radius-ctrl)] transition-colors"
             :disabled="ctaState.disabled"
+            :hint="ctaState.action === 'abort' ? t('tools.compress.cta.clickToAbort') : undefined"
             @click="handleCtaClick"
           >
             <template #icon>
               <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
               <component :is="ctaState.icon" v-else :size="18" class="mr-2" />
             </template>
-            <div class="flex items-center justify-center gap-1.5 font-medium text-sm">
-              <span>{{ ctaState.text }}</span>
+            <span class="font-medium text-sm">
+              {{ ctaState.text }}
               <span v-if="ctaState.progress" class="tabular-nums opacity-70">{{
                 ctaState.progress
               }}</span>
-            </div>
+            </span>
           </AppButton>
         </InspectorFooter>
       </template>

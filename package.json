@@ -19,6 +19,7 @@
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
+    "check:button-labels": "vitest run src/components/common/buttonLabelFit.test.ts",
     "preview": "vite preview",
     "prepare": "husky"
   },

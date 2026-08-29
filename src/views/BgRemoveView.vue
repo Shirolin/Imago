@@ -353,8 +353,7 @@ const handleInitialize = async () => {
   initError.value = ''
 
   const targetModel = (engineMode.value === 'pro' ? 'isnet' : 'isnet_quint8') as
-    | 'isnet'
-    | 'isnet_quint8'
+    'isnet' | 'isnet_quint8'
   const statusRef = engineMode.value === 'pro' ? proStatus : smartStatus
   const storageKey =
     engineMode.value === 'pro' ? 'imago-bg-v2-pro-ready' : 'imago-bg-v2-smart-ready'
@@ -419,9 +418,7 @@ const ctaState = computed(() => {
     // 队列聚合进度为 0-100、单任务进度为 0-1，统一归一化为整数百分比
     const pct = Math.round(p <= 1 ? p * 100 : p)
     return {
-      text: `${t('tools.bgRemove.cta.processing', { progress: pct })} ${t(
-        'tools.split.cta.clickToAbort'
-      )}`,
+      text: t('tools.bgRemove.cta.processing', { progress: pct }),
       icon: Eraser,
       action: 'abort',
       disabled: false,
@@ -638,8 +635,9 @@ const handleResetParams = () => {
             </div>
             <AppButton
               size="lg"
+              fill
               variant="cta"
-              class="w-full h-11 rounded-[var(--radius-ctrl)] text-sm"
+              class="w-full rounded-[var(--radius-ctrl)] text-sm"
               :loading="currentStatus === 'loading'"
               @click="handleInitialize"
             >
@@ -956,10 +954,12 @@ const handleResetParams = () => {
       <InspectorFooter>
         <AppButton
           size="lg"
+          fill
           :variant="ctaState.variant"
-          class="w-full h-12 rounded-xl transition-colors"
+          class="w-full rounded-xl transition-colors"
           :loading="currentStatus === 'loading'"
           :disabled="ctaState.disabled"
+          :hint="ctaState.action === 'abort' ? t('tools.split.cta.clickToAbort') : undefined"
           @click="handleCtaClick"
         >
           <template #icon>

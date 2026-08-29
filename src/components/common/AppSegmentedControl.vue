@@ -61,7 +61,7 @@ const select = (value: T) => {
         type="button"
         role="radio"
         :aria-checked="modelValue === option.value"
-        class="relative z-10 flex flex-col items-center justify-center py-2.5 px-1 rounded-[var(--radius-ctrl)] transition-colors duration-150 outline-none min-w-0"
+        class="relative z-10 flex flex-col items-center justify-center py-2.5 px-1 rounded-[var(--radius-ctrl)] transition-colors duration-150 outline-none min-w-0 min-h-[2.75rem]"
         :class="
           modelValue === option.value
             ? 'text-primary'
@@ -78,7 +78,11 @@ const select = (value: T) => {
             :stroke-width="2"
           />
         </div>
-        <span class="text-[11px] font-medium truncate w-full text-center">{{ option.label }}</span>
+        <span
+          class="w-full text-center text-[11px] font-medium leading-tight line-clamp-2 [overflow-wrap:break-word]"
+          :title="option.label"
+          >{{ option.label }}</span
+        >
       </button>
     </div>
   </div>

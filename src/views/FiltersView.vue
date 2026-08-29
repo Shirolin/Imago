@@ -337,7 +337,7 @@ const ctaState = computed(() => {
     return { text: t('tools.filters.cta.select'), icon: Palette, action: 'none', disabled: true }
   if (isProcessing.value)
     return {
-      text: `${t('tools.filters.cta.rendering')} ${t('tools.split.cta.clickToAbort')}`,
+      text: t('tools.filters.cta.rendering'),
       icon: Palette,
       action: 'abort',
       disabled: false
@@ -646,9 +646,11 @@ const handleCtaClick = async () => {
         <InspectorFooter>
           <AppButton
             size="lg"
+            fill
             :variant="ctaState.action === 'download' ? 'success' : 'cta'"
-            class="w-full h-12 rounded-xl transition-colors"
+            class="w-full rounded-xl transition-colors"
             :disabled="ctaState.disabled"
+            :hint="ctaState.action === 'abort' ? t('tools.split.cta.clickToAbort') : undefined"
             @click="handleCtaClick"
           >
             <template #icon>

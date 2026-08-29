@@ -181,10 +181,10 @@ const currentRouteName = computed(() => {
 
 const navItemClass = (active: boolean, collapsed: boolean) => {
   const base =
-    'flex items-center text-sm transition-colors duration-150 group relative shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]'
+    'flex items-center text-sm transition-colors duration-150 group relative outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]'
   const pad = collapsed
-    ? 'md:justify-center min-h-[40px] md:h-10 md:w-10 md:mx-auto px-3 py-2 gap-2 rounded-[var(--radius-ctrl)]'
-    : 'px-3 py-2 min-h-[40px] gap-2 rounded-[var(--radius-ctrl)]'
+    ? 'shrink-0 md:justify-center min-h-[40px] md:h-10 md:w-10 md:mx-auto px-3 py-2 gap-2 rounded-[var(--radius-ctrl)]'
+    : 'min-w-0 px-3 py-2 min-h-[40px] gap-2 rounded-[var(--radius-ctrl)]'
   const state = active
     ? 'bg-[var(--well)] text-[var(--ink)]'
     : 'text-[var(--muted)] hover:bg-[var(--well)] hover:text-[var(--ink)]'
@@ -269,7 +269,8 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
         >
           <div
             v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-            class="text-[11px] font-medium text-[var(--muted)] mb-1 ml-3 whitespace-nowrap"
+            class="min-w-0 truncate text-[11px] font-medium text-[var(--muted)] mb-1 ml-3"
+            :title="group.label"
             :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
           >
             {{ group.label }}
@@ -289,7 +290,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
                 layoutStore.isMenuCollapsed && !isMobileSidebarOpen
               )
             "
-            :title="layoutStore.isMenuCollapsed ? item.name : ''"
+            :title="item.name"
             @click="closeMobileSidebar"
           >
             <component
@@ -300,7 +301,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
             <span
               v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
               :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
-              class="whitespace-nowrap"
+              class="min-w-0 leading-tight line-clamp-2"
               >{{ item.name }}</span
             >
           </router-link>
@@ -356,7 +357,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
     <main class="flex-1 min-h-0 flex flex-col relative z-20 bg-[var(--paper)]">
       <header
         v-if="!isCover"
-        class="shrink-0 flex items-center justify-between px-3 md:px-4 bg-[var(--paper)] z-50 md:z-[110] h-11"
+        class="shrink-0 flex items-center justify-between px-3 md:px-4 bg-[var(--paper)] border-b border-[var(--hairline)] z-50 md:z-[110] h-11"
       >
         <div class="flex items-center gap-2 flex-none min-w-0 z-20">
           <button
@@ -378,7 +379,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
         <div class="flex-1 flex items-center justify-end gap-2 min-w-0 z-20 pl-3">
           <div
             id="top-bar-center"
-            class="flex items-center justify-end overflow-x-auto no-scrollbar min-w-0"
+            class="flex h-full items-center justify-end overflow-x-auto no-scrollbar min-w-0"
           ></div>
 
           <div
@@ -391,7 +392,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
 
           <div
             id="top-bar-right"
-            class="flex items-center gap-2 shrink-0 has-[:any-link]:border-l has-[:enabled]:border-l has-[button]:border-l border-[var(--hairline)] pl-2 md:pl-3"
+            class="flex h-full items-center gap-2 shrink-0 has-[:any-link]:border-l has-[:enabled]:border-l has-[button]:border-l border-[var(--hairline)] pl-2 md:pl-3"
           ></div>
         </div>
       </header>

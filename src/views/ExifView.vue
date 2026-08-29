@@ -598,8 +598,9 @@ const handleCtaClick = async () => {
       <InspectorFooter>
         <AppButton
           size="lg"
+          fill
           :variant="ctaState.action === 'download' ? 'success' : 'cta'"
-          class="w-full h-12 rounded-xl transition-colors"
+          class="w-full rounded-xl transition-colors"
           :loading="isProcessing || isReadingExif"
           :disabled="ctaState.disabled"
           @click="handleCtaClick"

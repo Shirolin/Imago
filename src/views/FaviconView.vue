@@ -607,8 +607,9 @@ const handleGenerate = async () => {
       <InspectorFooter>
         <AppButton
           size="lg"
+          fill
           variant="cta"
-          class="w-full h-12 rounded-xl transition-colors"
+          class="w-full rounded-xl transition-colors"
           :loading="isProcessing"
           :disabled="!activeImage || selectedIds.size === 0"
           @click="handleGenerate"

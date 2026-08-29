@@ -813,7 +813,7 @@ const ctaState = computed(() => {
         ? t('tools.split.cta.rendering', { progress: Math.round(progress.value * 100) })
         : t('tools.split.cta.renderingNoProgress')
     return {
-      text: `${progressText} ${t('tools.split.cta.clickToAbort')}`,
+      text: `${progressText}`,
       icon: Trash2,
       action: 'abort',
       disabled: false
@@ -997,18 +997,20 @@ const handleCtaClick = async () => {
             <div class="grid grid-cols-2 gap-3">
               <AppButton
                 @click="activeAxis = 'x'"
+                fill
                 :variant="activeAxis === 'x' ? 'primary' : 'secondary'"
                 size="md"
-                class="rounded-xl h-11 border-2 text-xs"
+                class="w-full rounded-xl h-11 border-2 text-xs"
                 :class="{ 'border-primary shadow-md': activeAxis === 'x' }"
               >
                 {{ t('tools.split.verticalLine') }}
               </AppButton>
               <AppButton
                 @click="activeAxis = 'y'"
+                fill
                 :variant="activeAxis === 'y' ? 'primary' : 'secondary'"
                 size="md"
-                class="rounded-xl h-11 border-2 text-xs"
+                class="w-full rounded-xl h-11 border-2 text-xs"
                 :class="{ 'border-primary shadow-md': activeAxis === 'y' }"
               >
                 {{ t('tools.split.horizontalLine') }}
@@ -1173,18 +1175,20 @@ const handleCtaClick = async () => {
       <InspectorFooter>
         <AppButton
           size="lg"
+          fill
           :variant="ctaState.action === 'download' ? 'success' : 'cta'"
-          class="w-full h-12 rounded-xl transition-colors"
+          class="w-full rounded-xl transition-colors"
           :disabled="ctaState.disabled"
+          :hint="ctaState.action === 'abort' ? t('tools.split.cta.clickToAbort') : undefined"
           @click="handleCtaClick"
         >
           <template #icon>
             <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
             <component :is="ctaState.icon" v-else :size="18" class="mr-2" />
           </template>
-          <span class="font-medium text-sm" :class="{ 'tabular-nums': isProcessing }">{{
-            ctaState.text
-          }}</span>
+          <span class="font-medium text-sm" :class="{ 'tabular-nums': isProcessing }">
+            {{ ctaState.text }}
+          </span>
         </AppButton>
       </InspectorFooter>
     </template>

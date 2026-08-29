@@ -807,19 +807,19 @@ useResizeObserver(containerRef, resetView)
           <AppButton
             v-if="hasEnoughImages"
             size="lg"
+            fill
             variant="cta"
-            class="w-full h-12 rounded-xl transition-colors"
+            class="w-full rounded-xl transition-colors"
+            :hint="isProcessing ? t('tools.split.cta.clickToAbort') : undefined"
             @click="handleCombine"
           >
             <template #icon>
               <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
               <Layers v-else :size="19" class="mr-2 animate-in zoom-in duration-300" />
             </template>
-            <span class="font-medium text-sm">{{
-              isProcessing
-                ? `${t('tools.combine.cta.processing')} ${t('tools.split.cta.clickToAbort')}`
-                : t('tools.combine.cta.export')
-            }}</span>
+            <span class="font-medium text-sm">
+              {{ isProcessing ? t('tools.combine.cta.processing') : t('tools.combine.cta.export') }}
+            </span>
           </AppButton>
         </div>
       </InspectorFooter>

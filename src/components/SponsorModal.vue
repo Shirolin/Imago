@@ -54,10 +54,6 @@ const { t } = useI18n()
               {{ t('common.modal.sponsor.githubDesc') }}
             </div>
           </div>
-          <Github
-            aria-hidden="true"
-            class="absolute -right-4 -bottom-4 text-foreground/[0.03] rotate-12 scale-[2.5] pointer-events-none"
-          />
         </a>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 shrink-0">
@@ -132,8 +128,9 @@ const { t } = useI18n()
 
     <template #footer>
       <AppButton
+        fill
         variant="secondary"
-        class="w-full h-11 rounded-[var(--radius-ctrl)]"
+        class="w-full rounded-[var(--radius-ctrl)]"
         @click="emit('close')"
       >
         {{ t('common.image.toolbar.cancel') }}

@@ -62,8 +62,8 @@
         "previewAlt": "{name} 미리보기",
         "ready": "준비 완료",
         "remove": "이미지 제거",
-        "reset": "원본으로 복구",
-        "sam2": "고급 대화형 세그먼테이션 (SAM2)",
+        "reset": "복원",
+        "sam2": "SAM2",
         "select": "이미지 선택",
         "wait": "대기"
       },
