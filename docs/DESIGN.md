@@ -76,7 +76,8 @@ Imago 的首要目标是提供一个**完全在用户本地运行**的图片处�
 - 唯一强调 `--accent`（珊瑚）。删除 `--danger`。无第二品牌色。
 - 对比全屏、SAM 编辑器等沉浸式视图可用 `--product` 暗面，不走玻璃和 blur。
 - 主操作为实底 accent。次操作为描边或 well 底。禁止 hover 抬起、bounce、控件大写 tracking。
-- 规格数字用 tabular 与 Noto Sans SC。
+- 规格数字用 tabular 与 Noto Sans SC。列表卡只留文件名，规格在检查器。
+- 打开是封面（印样 + 工单 + 「开始处理」），不是空井。空井是工作台第二拍。封面工单滚动用 mask 渐隐。产品 chrome 不写暖纸。
 
 ---
 
