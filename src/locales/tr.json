@@ -703,5 +703,21 @@
       "verticalRows": "Dikey Satırlar",
       "viewSettings": "Görünüm Ayarları"
     }
+  },
+  "cover": {
+    "start": "İşleme başla",
+    "ticket": "İş emri",
+    "ticketNo": "№ 1042",
+    "printAlt": "Dikey anlık görüntü",
+    "steps": {
+      "compress": "Sıkıştır",
+      "crop": "Kırp",
+      "exif": "Çekim bilgisini sil",
+      "split": "Böl",
+      "combine": "Birleştir",
+      "bgRemove": "Arka planı kaldır",
+      "filters": "Filtre",
+      "favicon": "Simge yap"
+    }
   }
 }

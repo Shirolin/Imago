@@ -703,5 +703,21 @@
       "verticalRows": "수직 행 수",
       "viewSettings": "보기 설정"
     }
+  },
+  "cover": {
+    "start": "처리 시작",
+    "ticket": "작업 전표",
+    "ticketNo": "№ 1042",
+    "printAlt": "세로 스냅샷",
+    "steps": {
+      "compress": "압축",
+      "crop": "자르기",
+      "exif": "촬영 정보 제거",
+      "split": "분할",
+      "combine": "이어붙이기",
+      "bgRemove": "배경 제거",
+      "filters": "필터",
+      "favicon": "아이콘 만들기"
+    }
   }
 }

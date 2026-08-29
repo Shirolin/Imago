@@ -703,5 +703,21 @@
       "verticalRows": "Filas Verticales",
       "viewSettings": "Ajustes de Vista"
     }
+  },
+  "cover": {
+    "start": "Empezar a procesar",
+    "ticket": "Orden de trabajo",
+    "ticketNo": "№ 1042",
+    "printAlt": "Instantánea vertical",
+    "steps": {
+      "compress": "Comprimir",
+      "crop": "Recortar",
+      "exif": "Quitar info de disparo",
+      "split": "Dividir",
+      "combine": "Unir",
+      "bgRemove": "Quitar fondo",
+      "filters": "Filtro",
+      "favicon": "Hacer icono"
+    }
   }
 }

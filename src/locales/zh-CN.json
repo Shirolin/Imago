@@ -703,5 +703,21 @@
       "verticalRows": "垂直切分行数",
       "viewSettings": "编辑器视图偏好"
     }
+  },
+  "cover": {
+    "start": "开始处理",
+    "ticket": "工单",
+    "ticketNo": "№ 1042",
+    "printAlt": "竖版快照",
+    "steps": {
+      "compress": "压缩",
+      "crop": "裁切",
+      "exif": "去拍摄信息",
+      "split": "拆分",
+      "combine": "拼接",
+      "bgRemove": "去背景",
+      "filters": "滤镜",
+      "favicon": "做图标"
+    }
   }
 }

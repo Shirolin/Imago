@@ -12,15 +12,12 @@ import {
   Loader2,
   MousePointer2
 } from 'lucide-vue-next'
-import { useFileHelpers } from '../../composables/useFileHelpers'
-import { useImageStore } from '../../stores/imageStore'
+import { useImageStore, type ImageItem } from '../../stores/imageStore'
 import { useLayoutStore } from '../../stores/layoutStore'
 import { useI18n } from 'vue-i18n'
-import type { ImageItem } from '../../stores/imageStore'
 import AppModal from './AppModal.vue'
 import AppButton from './AppButton.vue'
 
-const { formatSize } = useFileHelpers()
 const store = useImageStore()
 const layoutStore = useLayoutStore()
 const { t } = useI18n()
@@ -199,7 +196,7 @@ watch(displayUrl, () => {
 
 <template>
   <div
-    class="imago-sheet relative overflow-hidden cursor-pointer flex flex-col group outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--well)]"
+    class="imago-sheet relative cursor-pointer flex flex-col group outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--well)] p-3.5"
     :class="[
       isSelected ? 'ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--well)]' : '',
       isDirtyDone ? 'ring-1 ring-[var(--muted)]' : ''
@@ -220,7 +217,7 @@ watch(displayUrl, () => {
     >
       <!-- 背景预览 -->
       <div
-        class="absolute inset-0 overflow-hidden rounded-t-[var(--radius-ctrl)] bg-[color-mix(in_srgb,var(--on-product)_12%,transparent)]"
+        class="absolute inset-0 overflow-hidden bg-[var(--well)]"
         :class="{ 'app-transparency-grid-sm': showTransparency }"
       >
         <div class="absolute inset-0 z-10 pointer-events-none">
@@ -229,7 +226,7 @@ watch(displayUrl, () => {
         <!-- 骨架屏：预览未解码时显示 shimmer，解码完成后移除 -->
         <div
           v-if="!previewLoaded"
-          class="absolute inset-0 bg-[var(--product)]"
+          class="absolute inset-0 bg-[var(--well)]"
           aria-hidden="true"
         ></div>
         <img
@@ -345,7 +342,7 @@ watch(displayUrl, () => {
           :class="
             isSelected
               ? 'text-primary scale-110'
-              : 'text-[var(--on-product)]/70 opacity-0 group-hover:opacity-100'
+              : 'text-[var(--ink)]/40 opacity-0 group-hover:opacity-100'
           "
         >
           <CheckSquare v-if="isSelected" :size="20" />
@@ -366,14 +363,14 @@ watch(displayUrl, () => {
       <!-- 处理中中心进度 -->
       <div
         v-if="image.status === 'processing'"
-        class="absolute inset-0 bg-[var(--product)]/70 z-30 flex items-center justify-center"
+        class="absolute inset-0 bg-[var(--board)]/70 z-30 flex items-center justify-center"
       >
         <Loader2 :size="24" class="text-primary animate-spin" />
       </div>
     </div>
 
     <!-- Layer 2: Info Area -->
-    <div class="p-3.5 flex flex-col gap-1.5 min-w-0">
+    <div class="pt-2.5 flex flex-col gap-1.5 min-w-0">
       <!-- 处理失败提示 -->
       <div
         v-if="image.status === 'error'"
@@ -387,7 +384,7 @@ watch(displayUrl, () => {
       </div>
 
       <div class="flex items-center justify-between gap-2">
-        <h4 class="font-medium text-[var(--on-product)] truncate text-sm flex-1">
+        <h4 class="font-medium text-[var(--ink)] truncate text-sm flex-1">
           {{ image.file.name }}
         </h4>
         <div class="shrink-0 flex items-center gap-1.5">
@@ -402,17 +399,6 @@ watch(displayUrl, () => {
             class="text-primary animate-spin"
           />
         </div>
-      </div>
-
-      <!-- 【大图专供】：详细技术参数 -->
-      <div
-        v-if="isLargeMode"
-        class="flex items-center gap-2 text-[10px] font-medium text-[var(--muted)] tracking-tight tabular-nums"
-      >
-        <span class="px-1 py-0.5 rounded bg-muted/40 text-[9px]">{{ image.format }}</span>
-        <span>{{ image.width }} × {{ image.height }}</span>
-        <span class="opacity-30">|</span>
-        <span>{{ formatSize(image.originalSize) }}</span>
       </div>
       <slot name="meta" :image="image"></slot>
 

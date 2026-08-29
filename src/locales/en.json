@@ -703,5 +703,21 @@
       "verticalRows": "Vertical Rows",
       "viewSettings": "View Settings"
     }
+  },
+  "cover": {
+    "start": "Start processing",
+    "ticket": "Job ticket",
+    "ticketNo": "№ 1042",
+    "printAlt": "Vertical snapshot",
+    "steps": {
+      "compress": "Compress",
+      "crop": "Crop",
+      "exif": "Strip shot info",
+      "split": "Split",
+      "combine": "Combine",
+      "bgRemove": "Remove background",
+      "filters": "Filter",
+      "favicon": "Make icon"
+    }
   }
 }

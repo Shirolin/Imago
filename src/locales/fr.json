@@ -703,5 +703,21 @@
       "verticalRows": "Lignes Verticales",
       "viewSettings": "Paramètres de Vue"
     }
+  },
+  "cover": {
+    "start": "Commencer le traitement",
+    "ticket": "Bon de travail",
+    "ticketNo": "№ 1042",
+    "printAlt": "Instantané vertical",
+    "steps": {
+      "compress": "Compresser",
+      "crop": "Recadrer",
+      "exif": "Retirer les infos de prise de vue",
+      "split": "Découper",
+      "combine": "Assembler",
+      "bgRemove": "Retirer le fond",
+      "filters": "Filtre",
+      "favicon": "Faire l’icône"
+    }
   }
 }

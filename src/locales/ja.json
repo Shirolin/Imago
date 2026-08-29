@@ -703,5 +703,21 @@
       "verticalRows": "垂直方向の行数",
       "viewSettings": "表示设定"
     }
+  },
+  "cover": {
+    "start": "処理を始める",
+    "ticket": "工单",
+    "ticketNo": "№ 1042",
+    "printAlt": "縦位置のスナップ",
+    "steps": {
+      "compress": "圧縮",
+      "crop": "裁切",
+      "exif": "撮影情報を除く",
+      "split": "分割",
+      "combine": "結合",
+      "bgRemove": "背景を除く",
+      "filters": "フィルタ",
+      "favicon": "アイコンを作る"
+    }
   }
 }
