@@ -608,7 +608,7 @@ const handleCtaClick = async () => {
           <template #icon>
             <component :is="ctaState.icon" v-if="!isProcessing" :size="18" class="mr-2" />
           </template>
-          <span class="font-medium text-sm">{{ ctaState.text }}</span>
+          {{ ctaState.text }}
         </AppButton>
       </InspectorFooter>
     </template>

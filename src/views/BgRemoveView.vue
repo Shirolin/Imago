@@ -777,30 +777,33 @@ const handleResetParams = () => {
         v-if="engineMode !== 'match'"
         class="space-y-3 pt-6 border-t border-[var(--hairline)]"
       >
-        <div class="flex items-center justify-between group">
-          <div class="flex items-center gap-2">
-            <Database :size="14" class="text-muted-foreground" />
-            <span class="text-[11px] font-medium text-muted-foreground">{{
-              t('tools.bgRemove.engineDashboard')
-            }}</span>
-          </div>
-          <button
-            @click="handleResetEngine"
-            class="text-[10px] text-muted-foreground/40 hover:text-destructive flex items-center gap-1 transition-colors"
-            :title="t('tools.bgRemove.forceInit')"
-          >
-            <Trash2 :size="10" /> <span>{{ t('tools.bgRemove.deleteModel') }}</span>
-          </button>
-        </div>
+        <AppSectionHeader :title="t('tools.bgRemove.engineDashboard')" :icon="Database">
+          <template #actions>
+            <button
+              type="button"
+              @click="handleResetEngine"
+              class="p-1 rounded-md text-muted-foreground/50 hover:text-destructive transition-colors"
+              :title="t('tools.bgRemove.forceInit')"
+              :aria-label="t('tools.bgRemove.deleteModel')"
+            >
+              <Trash2 :size="14" />
+            </button>
+          </template>
+        </AppSectionHeader>
 
-        <div class="p-3 bg-muted/5 rounded-xl border border-[var(--hairline)] space-y-2">
-          <div class="flex items-center justify-between">
+        <div class="p-3 bg-muted/5 rounded-xl border border-[var(--hairline)] space-y-3">
+          <div class="space-y-0.5 min-w-0">
             <span class="text-[10px] text-muted-foreground/60 font-medium">{{
               t('tools.bgRemove.currentModel')
             }}</span>
             <span
-              class="text-[10px] font-medium"
+              class="text-[10px] font-medium block truncate"
               :class="engineMode === 'pro' ? 'text-primary' : 'text-foreground'"
+              :title="
+                engineMode === 'pro'
+                  ? t('tools.bgRemove.modelFull')
+                  : t('tools.bgRemove.modelQuant')
+              "
             >
               {{
                 engineMode === 'pro'
@@ -809,17 +812,17 @@ const handleResetParams = () => {
               }}
             </span>
           </div>
-          <div class="flex items-center justify-between">
+          <div class="space-y-0.5 min-w-0">
             <span class="text-[10px] text-muted-foreground/60 font-medium">{{
               t('tools.bgRemove.connectionStatus')
             }}</span>
-            <div class="flex items-center gap-1.5">
+            <div class="flex items-center gap-1.5 min-w-0">
               <span
-                class="h-1.5 w-1.5 rounded-full"
+                class="h-1.5 w-1.5 rounded-full shrink-0"
                 :class="currentStatus === 'ready' ? 'bg-success' : 'bg-warning animate-pulse'"
               ></span>
               <span
-                class="text-[10px] font-medium"
+                class="text-[10px] font-medium truncate"
                 :class="currentStatus === 'ready' ? 'text-success' : 'text-warning'"
               >
                 {{
@@ -881,19 +884,20 @@ const handleResetParams = () => {
         </section>
 
         <section v-else class="space-y-4 pt-6 border-t border-[var(--hairline)]">
-          <div class="flex items-center justify-between">
-            <AppSectionHeader :title="t('tools.bgRemove.refinerTitle')" :icon="SlidersHorizontal" />
-            <div
-              class="flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 rounded-md border border-primary/20 scale-90 origin-right"
-            >
-              <CheckCircle2 :size="10" class="text-primary" />
-              <span class="text-[11px] font-medium text-primary">{{
-                engineMode === 'pro'
-                  ? t('tools.bgRemove.corePremium')
-                  : t('tools.bgRemove.coreLite')
-              }}</span>
-            </div>
-          </div>
+          <AppSectionHeader :title="t('tools.bgRemove.refinerTitle')" :icon="SlidersHorizontal">
+            <template #actions>
+              <div
+                class="flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 rounded-md border border-primary/20"
+              >
+                <CheckCircle2 :size="10" class="text-primary shrink-0" />
+                <span class="text-[11px] font-medium text-primary whitespace-nowrap">{{
+                  engineMode === 'pro'
+                    ? t('tools.bgRemove.corePremium')
+                    : t('tools.bgRemove.coreLite')
+                }}</span>
+              </div>
+            </template>
+          </AppSectionHeader>
           <div class="space-y-4">
             <AppSlider
               v-model="aiStrictness"
@@ -971,7 +975,7 @@ const handleResetParams = () => {
               class="mr-2"
             />
           </template>
-          <span class="font-medium text-sm">{{ ctaState.text }}</span>
+          {{ ctaState.text }}
         </AppButton>
       </InspectorFooter>
     </template>

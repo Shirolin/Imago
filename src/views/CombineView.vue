@@ -817,9 +817,7 @@ useResizeObserver(containerRef, resetView)
               <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
               <Layers v-else :size="19" class="mr-2 animate-in zoom-in duration-300" />
             </template>
-            <span class="font-medium text-sm">
-              {{ isProcessing ? t('tools.combine.cta.processing') : t('tools.combine.cta.export') }}
-            </span>
+            {{ isProcessing ? t('tools.combine.cta.processing') : t('tools.combine.cta.export') }}
           </AppButton>
         </div>
       </InspectorFooter>

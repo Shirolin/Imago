@@ -730,7 +730,7 @@ const ratios = computed(() => [
           <AppButton
             variant="secondary"
             fill
-            class="w-full h-10 rounded-xl bg-background/50 border-dashed border-border hover:border-primary/50 hover:bg-primary/[0.02] group transition-all"
+            class="w-full min-h-10 h-auto rounded-xl bg-background/50 border-dashed border-border hover:border-primary/50 hover:bg-primary/[0.02] group transition-all"
             @click="handleFillImage"
             :aria-label="t('tools.crop.fillAll')"
           >
@@ -740,7 +740,7 @@ const ratios = computed(() => [
                 class="mr-2 text-muted-foreground group-hover:text-primary transition-colors"
               />
             </template>
-            <span class="text-[11px] font-medium">{{ t('tools.crop.fillAll') }}</span>
+            {{ t('tools.crop.fillAll') }}
           </AppButton>
 
           <AppSegmentedControl
@@ -759,8 +759,6 @@ const ratios = computed(() => [
             </div>
             <AppSegmentedControl
               v-model="gridMode"
-              size="sm"
-              grid-cols="2"
               :options="[
                 { label: t('tools.crop.noGrid'), value: 'none', icon: Maximize2 },
                 { label: t('tools.crop.thirds'), value: 'thirds', icon: Grid3X3 },
@@ -889,12 +887,7 @@ const ratios = computed(() => [
 
       <!-- 第五分区：边缘精修 (TRIM) - 后处理阶段 -->
       <section class="space-y-4 pt-6 border-t border-[var(--hairline)]">
-        <div class="flex items-center justify-between pr-1">
-          <AppSectionHeader :title="t('tools.crop.edgeTrim')" :icon="Settings2" />
-          <div class="text-[11px] text-muted-foreground font-medium">
-            {{ t('tools.crop.postProcess') }}
-          </div>
-        </div>
+        <AppSectionHeader :title="t('tools.crop.edgeTrim')" :icon="Settings2" />
         <AppTip>{{ t('tools.crop.trimWarning') }}</AppTip>
         <div class="grid grid-cols-2 gap-3">
           <div v-for="dir in ['top', 'bottom', 'left', 'right']" :key="dir" class="space-y-2">
@@ -931,7 +924,7 @@ const ratios = computed(() => [
               fill
               :disabled="!canUndo"
               @click="undo"
-              class="w-full rounded-xl h-10 text-[11px] font-medium bg-background/50 border-[var(--hairline)] hover:bg-primary/[0.02]"
+              class="w-full rounded-xl min-h-10 h-auto text-[11px] font-medium bg-background/50 border-[var(--hairline)] hover:bg-primary/[0.02]"
               :aria-label="t('tools.crop.undo')"
             >
               <template #icon><Undo2 :size="14" class="mr-1.5" /></template>
@@ -943,7 +936,7 @@ const ratios = computed(() => [
               fill
               :disabled="!canRedo"
               @click="redo"
-              class="w-full rounded-xl h-10 text-[11px] font-medium bg-background/50 border-[var(--hairline)] hover:bg-primary/[0.02]"
+              class="w-full rounded-xl min-h-10 h-auto text-[11px] font-medium bg-background/50 border-[var(--hairline)] hover:bg-primary/[0.02]"
               :aria-label="t('tools.crop.redo')"
             >
               <template #icon><Redo2 :size="14" class="mr-1.5" /></template>
@@ -988,7 +981,7 @@ const ratios = computed(() => [
           <template #icon>
             <component :is="ctaState.icon" v-if="!isProcessing" :size="18" class="mr-2" />
           </template>
-          <span class="font-medium text-sm">{{ ctaState.text }}</span>
+          {{ ctaState.text }}
         </AppButton>
       </InspectorFooter>
     </template>

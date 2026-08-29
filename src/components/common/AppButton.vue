@@ -101,7 +101,7 @@ const extraClasses = computed(() =>
     (props.icon || props.loading) && hasLabel.value ? 'gap-2' : '',
     toneClasses.value,
     props.fill
-      ? 'min-w-0 shrink h-auto min-h-11 whitespace-normal text-center leading-snug py-2 [overflow-wrap:break-word]'
+      ? 'min-w-0 shrink h-auto min-h-11 whitespace-normal text-center leading-snug py-2'
       : 'whitespace-nowrap shrink-0'
   )
 )
@@ -156,11 +156,15 @@ const iconClass = computed(() => {
     </slot>
     <span
       v-if="hasLabel || hint"
-      class="min-w-0"
-      :class="fill ? 'max-w-full [overflow-wrap:break-word]' : ''"
+      class="min-w-0 flex flex-col items-center"
+      :class="fill ? 'max-w-full' : ''"
     >
-      <slot></slot>
-      <span v-if="hint" class="mt-0.5 block text-[11px] font-normal opacity-70">{{ hint }}</span>
+      <span v-if="hasLabel" :class="fill ? 'ui-label w-full' : ''"><slot></slot></span>
+      <span
+        v-if="hint"
+        class="mt-0.5 block max-w-full truncate text-[11px] font-normal opacity-70"
+        >{{ hint }}</span
+      >
     </span>
     <component
       v-if="!loading && icon && iconPosition === 'right' && !$slots.icon"

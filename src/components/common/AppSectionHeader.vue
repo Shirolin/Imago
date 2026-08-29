@@ -10,8 +10,8 @@ defineProps<Props>()
 </script>
 
 <template>
-  <div class="flex items-center justify-between gap-4">
-    <div class="flex items-center gap-2">
+  <div class="flex items-center justify-between gap-4 min-w-0">
+    <div class="flex items-center gap-2 min-w-0">
       <component
         v-if="icon"
         :is="icon"
@@ -19,9 +19,9 @@ defineProps<Props>()
         stroke-width="2"
         class="text-[var(--muted)] shrink-0"
       />
-      <span class="font-medium text-sm text-[var(--ink)]">{{ title }}</span>
+      <span class="font-medium text-sm text-[var(--ink)] truncate" :title="title">{{ title }}</span>
     </div>
-    <div v-if="$slots.actions" class="flex items-center gap-2">
+    <div v-if="$slots.actions" class="flex items-center gap-2 shrink-0">
       <slot name="actions"></slot>
     </div>
   </div>

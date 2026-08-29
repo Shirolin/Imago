@@ -163,6 +163,40 @@
 }
 
 @layer components {
+  /* Fill CTA / nav: up to 2 lines, balanced. */
+  .ui-label {
+    @apply text-center leading-tight line-clamp-2 min-w-0 text-sm font-medium;
+    text-wrap: balance;
+  }
+
+  html[lang^='ko'] .ui-label {
+    word-break: keep-all;
+  }
+
+  html:not([lang^='zh']):not([lang^='ja']):not([lang^='ko']) .ui-label {
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  /* Filter preset chips (~80px wide, up to 2 lines). */
+  .preset-label {
+    @apply text-center leading-tight line-clamp-2 min-w-0 w-full px-0.5;
+    text-wrap: balance;
+  }
+
+  html[lang^='ko'] .preset-label {
+    word-break: keep-all;
+  }
+
+  /* Segmented control: single line, truncate overflow (HIG pattern). */
+  .segment-label {
+    @apply flex w-full min-w-0 max-w-full justify-center;
+  }
+
+  .segment-label-inner {
+    @apply block min-w-0 max-w-full truncate whitespace-nowrap text-left;
+  }
+
   .imago-well {
     background: var(--well);
     color: var(--ink);

@@ -411,9 +411,7 @@ watch(displayUrl, () => {
           :aria-label="t('common.image.card.compare')"
         >
           <Columns2 :size="14" />
-          <span class="min-w-0 text-center [overflow-wrap:break-word] line-clamp-2">{{
-            t('common.image.card.compare')
-          }}</span>
+          <span class="ui-label min-w-0 flex-1">{{ t('common.image.card.compare') }}</span>
         </button>
         <button
           v-if="image.status === 'done' || image.status === 'error'"
@@ -422,9 +420,7 @@ watch(displayUrl, () => {
           :aria-label="t('common.image.card.reset')"
         >
           <RotateCcw :size="14" />
-          <span class="min-w-0 text-center [overflow-wrap:break-word] line-clamp-2">{{
-            t('common.image.card.reset')
-          }}</span>
+          <span class="ui-label min-w-0 flex-1">{{ t('common.image.card.reset') }}</span>
         </button>
         <button
           v-if="image.status === 'done'"
@@ -433,9 +429,7 @@ watch(displayUrl, () => {
           :aria-label="t('common.image.card.sam2')"
         >
           <MousePointer2 :size="14" />
-          <span class="min-w-0 text-center [overflow-wrap:break-word] line-clamp-2">{{
-            t('common.image.card.sam2')
-          }}</span>
+          <span class="ui-label min-w-0 flex-1">{{ t('common.image.card.sam2') }}</span>
         </button>
         <div class="flex gap-2 ml-auto pl-2 border-l border-[var(--hairline)]">
           <button

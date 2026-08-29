@@ -1000,7 +1000,7 @@ const handleCtaClick = async () => {
                 fill
                 :variant="activeAxis === 'x' ? 'primary' : 'secondary'"
                 size="md"
-                class="w-full rounded-xl h-11 border-2 text-xs"
+                class="w-full rounded-xl min-h-11 h-auto border-2 text-xs"
                 :class="{ 'border-primary shadow-md': activeAxis === 'x' }"
               >
                 {{ t('tools.split.verticalLine') }}
@@ -1010,7 +1010,7 @@ const handleCtaClick = async () => {
                 fill
                 :variant="activeAxis === 'y' ? 'primary' : 'secondary'"
                 size="md"
-                class="w-full rounded-xl h-11 border-2 text-xs"
+                class="w-full rounded-xl min-h-11 h-auto border-2 text-xs"
                 :class="{ 'border-primary shadow-md': activeAxis === 'y' }"
               >
                 {{ t('tools.split.horizontalLine') }}
@@ -1019,9 +1019,10 @@ const handleCtaClick = async () => {
             <div class="flex gap-2.5">
               <AppButton
                 @click="handleResetToGrid"
+                fill
                 variant="secondary"
                 size="sm"
-                class="flex-1 rounded-[var(--radius-ctrl)] h-10 text-[12px] font-medium border-[var(--hairline)] bg-transparent"
+                class="flex-1 rounded-[var(--radius-ctrl)] min-h-10 h-auto text-[12px] font-medium border-[var(--hairline)] bg-transparent"
                 :icon="Grid3X3"
                 :title="t('tools.split.syncGridTip')"
               >
@@ -1029,9 +1030,10 @@ const handleCtaClick = async () => {
               </AppButton>
               <AppButton
                 @click="clearLines"
+                fill
                 variant="secondary"
                 size="sm"
-                class="flex-1 rounded-[var(--radius-ctrl)] h-10 text-[12px] font-medium border-[var(--hairline)] bg-transparent hover:text-[var(--danger)] hover:border-[var(--danger)]"
+                class="flex-1 rounded-[var(--radius-ctrl)] min-h-10 h-auto text-[12px] font-medium border-[var(--hairline)] bg-transparent hover:text-[var(--danger)] hover:border-[var(--danger)]"
                 :icon="Trash2"
               >
                 {{ t('tools.split.clearAll') }}
@@ -1186,9 +1188,7 @@ const handleCtaClick = async () => {
             <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
             <component :is="ctaState.icon" v-else :size="18" class="mr-2" />
           </template>
-          <span class="font-medium text-sm" :class="{ 'tabular-nums': isProcessing }">
-            {{ ctaState.text }}
-          </span>
+          <span :class="{ 'tabular-nums': isProcessing }">{{ ctaState.text }}</span>
         </AppButton>
       </InspectorFooter>
     </template>

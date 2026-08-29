@@ -491,13 +491,15 @@ const handleCtaClick = async () => {
                 v-for="preset in presets"
                 :key="preset.id"
                 @click="applyPreset(preset)"
-                class="flex-shrink-0 w-20 py-2.5 rounded-xl border transition-all active:scale-95 flex flex-col items-center gap-1.5 group"
+                class="flex-shrink-0 w-20 py-2.5 rounded-xl border transition-all active:scale-95 flex flex-col items-center gap-1.5 group min-w-0"
                 :class="[
                   activePresetId === preset.id
                     ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20'
                     : 'border-[var(--hairline)] bg-muted/5 hover:bg-primary/5 hover:border-primary/30'
                 ]"
                 :aria-pressed="activePresetId === preset.id"
+                :aria-label="t(preset.key)"
+                :title="t(preset.key)"
               >
                 <div
                   class="w-8 h-8 rounded-lg flex items-center justify-center"
@@ -510,7 +512,7 @@ const handleCtaClick = async () => {
                   />
                 </div>
                 <span
-                  class="text-[11px] font-medium transition-colors"
+                  class="preset-label text-[11px] font-medium transition-colors"
                   :class="[
                     activePresetId === preset.id
                       ? 'text-primary'
@@ -657,7 +659,7 @@ const handleCtaClick = async () => {
               <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
               <component v-else :is="ctaState.icon" :size="18" class="mr-2" />
             </template>
-            <span class="font-medium text-sm">{{ ctaState.text }}</span>
+            {{ ctaState.text }}
           </AppButton>
         </InspectorFooter>
       </template>
