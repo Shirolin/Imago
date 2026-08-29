@@ -1,8 +1,19 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Languages, Check } from 'lucide-vue-next'
 import { useStorage } from '@vueuse/core'
+
+const props = withDefaults(
+  defineProps<{
+    placement?: 'top' | 'bottom'
+    align?: 'left' | 'right'
+  }>(),
+  {
+    placement: 'bottom',
+    align: 'left'
+  }
+)
 
 const { locale, t } = useI18n()
 const savedLocale = useStorage('imago-locale', 'zh-CN')
@@ -24,6 +35,24 @@ const languages = [
 
 const currentLanguageName = ref('')
 
+const menuPositionClass = computed(() => {
+  const horizontal = props.align === 'right' ? 'right-0' : 'left-0'
+  const vertical = props.placement === 'top' ? 'top-full mt-2' : 'bottom-full mb-2'
+  return `${horizontal} ${vertical}`
+})
+
+const enterFromClass = computed(() =>
+  props.placement === 'top'
+    ? 'transform scale-95 -translate-y-2 opacity-0'
+    : 'transform scale-95 translate-y-2 opacity-0'
+)
+
+const leaveToClass = computed(() =>
+  props.placement === 'top'
+    ? 'transform scale-95 -translate-y-2 opacity-0'
+    : 'transform scale-95 translate-y-2 opacity-0'
+)
+
 const updateCurrentName = () => {
   const lang = languages.find((l) => l.code === locale.value)
   currentLanguageName.value = lang ? lang.name : 'Language'
@@ -36,7 +65,6 @@ const setLanguage = (code: string) => {
   isOpen.value = false
 }
 
-// P2-20: 具名处理函数，保证 onUnmounted 能移除同一个监听器（此前匿名函数无法移除，造成泄漏）
 const handleWindowClick = (e: MouseEvent) => {
   const target = e.target as HTMLElement
   if (!target.closest('.language-switcher')) {
@@ -46,7 +74,6 @@ const handleWindowClick = (e: MouseEvent) => {
 
 onMounted(() => {
   updateCurrentName()
-  // 点击外部关闭
   window.addEventListener('click', handleWindowClick)
 })
 
@@ -69,15 +96,16 @@ onUnmounted(() => {
 
     <transition
       enter-active-class="transition duration-200 ease-out"
-      enter-from-class="transform scale-95 translate-y-2 opacity-0"
+      :enter-from-class="enterFromClass"
       enter-to-class="transform scale-100 translate-y-0 opacity-100"
       leave-active-class="transition duration-150 ease-in"
       leave-from-class="transform scale-100 translate-y-0 opacity-100"
-      leave-to-class="transform scale-95 translate-y-2 opacity-0"
+      :leave-to-class="leaveToClass"
     >
       <div
         v-if="isOpen"
-        class="absolute left-0 bottom-full mb-2 w-40 bg-[var(--chrome)] border border-[color-mix(in_srgb,var(--ink)_10%,transparent)] z-[100] py-1 rounded-[var(--radius)] overflow-hidden"
+        class="absolute w-40 bg-[var(--chrome)] border border-[color-mix(in_srgb,var(--ink)_10%,transparent)] z-[100] py-1 rounded-[var(--radius)] overflow-hidden"
+        :class="menuPositionClass"
       >
         <div class="max-h-[300px] overflow-y-auto custom-scrollbar">
           <button
