@@ -701,5 +701,21 @@
       "verticalRows": "Vertikale Zeilen",
       "viewSettings": "Ansichts-Einstellungen"
     }
+  },
+  "cover": {
+    "start": "Verarbeitung starten",
+    "ticket": "Auftrag",
+    "ticketNo": "№ 1042",
+    "printAlt": "Hochformat-Schnappschuss",
+    "steps": {
+      "compress": "Komprimieren",
+      "crop": "Zuschneiden",
+      "exif": "Aufnahmeinfos entfernen",
+      "split": "Teilen",
+      "combine": "Zusammenfügen",
+      "bgRemove": "Hintergrund entfernen",
+      "filters": "Filter",
+      "favicon": "Icon machen"
+    }
   }
 }

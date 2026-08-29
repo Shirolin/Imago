@@ -701,5 +701,21 @@
       "verticalRows": "Linhas Verticais",
       "viewSettings": "Configurações de Visualização"
     }
+  },
+  "cover": {
+    "start": "Começar o processamento",
+    "ticket": "Ordem de serviço",
+    "ticketNo": "№ 1042",
+    "printAlt": "Snapshot vertical",
+    "steps": {
+      "compress": "Comprimir",
+      "crop": "Recortar",
+      "exif": "Tirar info da foto",
+      "split": "Dividir",
+      "combine": "Juntar",
+      "bgRemove": "Remover fundo",
+      "filters": "Filtro",
+      "favicon": "Fazer ícone"
+    }
   }
 }
