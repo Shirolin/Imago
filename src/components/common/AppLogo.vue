@@ -17,9 +17,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-
 defineProps({
   size: {
     type: [Number, String],
@@ -27,6 +24,5 @@ defineProps({
   }
 })
 
-const { t } = useI18n()
-const logoLabel = computed(() => `Imago · ${t('app.subtitle')}`)
+const logoLabel = 'Imago'
 </script>

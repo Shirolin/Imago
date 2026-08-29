@@ -390,11 +390,6 @@ const handleCtaClick = async () => {
             @toggle="handleCardClick"
             @remove="store.removeImage"
             @reset="handleReset"
-            :class="[
-              activeImageId === img.id
-                ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
-                : ''
-            ]"
           >
             <template #overlay="{ image }"
               ><div

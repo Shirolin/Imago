@@ -196,11 +196,8 @@ watch(displayUrl, () => {
 
 <template>
   <div
-    class="imago-sheet relative cursor-pointer flex flex-col group outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--well)] p-3.5"
-    :class="[
-      isSelected ? 'ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--well)]' : '',
-      isDirtyDone ? 'ring-1 ring-[var(--muted)]' : ''
-    ]"
+    class="imago-sheet relative cursor-pointer flex flex-col group outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--well)] p-6 md:p-8"
+    :class="[isDirtyDone ? 'ring-1 ring-[var(--muted)]' : '']"
     tabindex="0"
     role="button"
     :aria-pressed="isSelected"
@@ -409,7 +406,7 @@ watch(displayUrl, () => {
       >
         <button
           v-if="image.status === 'done'"
-          class="flex-1 flex items-center justify-center gap-2 h-9 rounded-[var(--radius-ctrl)] bg-[var(--on-product)]/10 hover:bg-[var(--on-product)]/16 text-[var(--on-product)]/70 hover:text-[var(--on-product)] transition-colors text-[12px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          class="flex-1 flex items-center justify-center gap-2 h-9 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] text-[var(--muted)] hover:text-[var(--ink)] transition-colors text-[12px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           @click.stop="emit('compare', image.id)"
           :aria-label="t('common.image.card.compare')"
         >
@@ -418,7 +415,7 @@ watch(displayUrl, () => {
         </button>
         <button
           v-if="image.status === 'done' || image.status === 'error'"
-          class="flex-1 flex items-center justify-center gap-2 h-9 rounded-[var(--radius-ctrl)] bg-[var(--on-product)]/10 hover:bg-[var(--danger)]/15 text-[var(--on-product)]/70 hover:text-[var(--danger)] transition-colors text-[12px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger)]"
+          class="flex-1 flex items-center justify-center gap-2 h-9 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[var(--danger)]/10 text-[var(--muted)] hover:text-[var(--danger)] transition-colors text-[12px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger)]"
           @click.stop="handleReset"
           :aria-label="t('common.image.card.reset')"
         >
@@ -427,7 +424,7 @@ watch(displayUrl, () => {
         </button>
         <button
           v-if="image.status === 'done'"
-          class="flex-1 flex items-center justify-center gap-2 h-9 rounded-[var(--radius-ctrl)] bg-[var(--on-product)]/10 hover:bg-[var(--on-product)]/16 text-[var(--on-product)]/70 hover:text-[var(--on-product)] transition-colors text-[12px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          class="flex-1 flex items-center justify-center gap-2 h-9 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] text-[var(--muted)] hover:text-[var(--ink)] transition-colors text-[12px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           @click.stop="emit('interactive', image.id)"
           :aria-label="t('common.image.card.sam2')"
         >

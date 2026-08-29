@@ -163,7 +163,7 @@ const menuGroups = computed(() => [
 
 const currentRouteName = computed(() => {
   const routeName = route.name as string
-  if (routeName === 'home') return t('app.subtitle')
+  if (routeName === 'home') return t('app.title')
   const toolKey = [
     'compress',
     'resize',
@@ -241,9 +241,6 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
             :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
           >
             <span class="imago-serif text-[22px] leading-none text-[var(--ink)]">Imago</span>
-            <span class="mt-1 text-[10px] font-medium tracking-[0.16em] text-[var(--muted)]">{{
-              t('app.subtitle')
-            }}</span>
           </div>
           <span
             v-else
