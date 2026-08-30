@@ -339,7 +339,7 @@ watch(displayUrl, () => {
           :class="
             isSelected
               ? 'text-primary scale-110'
-              : 'text-[var(--ink)]/40 opacity-0 group-hover:opacity-100'
+              : 'text-[var(--ink)]/40 opacity-0 group-hover:opacity-100 touch-reveal'
           "
         >
           <CheckSquare v-if="isSelected" :size="20" />
@@ -488,13 +488,6 @@ watch(displayUrl, () => {
 </template>
 
 <style scoped>
-/* 触屏设备：hover 不可靠，HUD 与删除按钮常驻显示 */
-@media (hover: none) {
-  .touch-reveal {
-    opacity: 1 !important;
-    transform: none !important;
-  }
-}
 .animate-dirty-pulse {
   animation: dirty-pulse 2.5s ease-in-out infinite;
 }

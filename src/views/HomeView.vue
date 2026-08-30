@@ -70,20 +70,18 @@ onMounted(() => {
     </header>
 
     <div class="h-full w-full min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar">
-      <div
-        class="flex min-h-full w-full flex-col items-center justify-center gap-8 px-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-24 md:flex-row md:gap-16 md:px-16 md:pb-8 md:pt-20"
-      >
-        <figure class="imago-board shrink-0 rounded-[var(--radius-well)] p-6 md:p-14">
+      <div class="imago-cover-stage">
+        <figure class="imago-board imago-cover-print shrink-0 rounded-[var(--radius-well)]">
           <img
             src="/cover-print.jpg"
             :alt="t('cover.printAlt')"
-            class="block aspect-[3/4] w-[min(56vw,200px)] max-w-[280px] object-cover md:w-[min(42vw,280px)]"
+            class="imago-cover-print-img block aspect-[3/4] object-cover"
             width="1024"
             height="1536"
           />
         </figure>
 
-        <aside class="flex w-full max-w-[16rem] shrink-0 flex-col self-center md:w-[10.5rem]">
+        <aside class="imago-cover-ticket">
           <p class="imago-serif text-[22px] font-medium leading-none tracking-wide">
             {{ t('cover.ticket') }}
           </p>

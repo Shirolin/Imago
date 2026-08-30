@@ -86,7 +86,7 @@ onUnmounted(() => {
   <div class="relative language-switcher">
     <button
       @click="isOpen = !isOpen"
-      class="flex items-center justify-center w-9 h-9 rounded-[var(--radius)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] transition-colors text-[var(--muted)] hover:text-[var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+      class="flex items-center justify-center min-h-10 min-w-10 w-10 h-10 rounded-[var(--radius)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] transition-colors text-[var(--muted)] hover:text-[var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
       :title="currentLanguageName"
       :aria-label="t('nav.language')"
       :aria-expanded="isOpen"

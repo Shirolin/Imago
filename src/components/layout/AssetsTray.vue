@@ -319,7 +319,7 @@ const onDragEnd = () => {
               @click.stop="store.toggleSelection(img.id)"
               @keydown.stop="handleCheckboxKeyDown($event, img.id)"
               tabindex="0"
-              class="absolute top-0 left-0 w-7 h-7 flex items-center justify-center z-20 cursor-pointer group/check hover:bg-muted rounded-br-lg transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:z-30"
+              class="absolute top-0 left-0 min-h-10 min-w-10 w-10 h-10 flex items-center justify-center z-20 cursor-pointer group/check hover:bg-muted rounded-br-lg transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:z-30"
               role="checkbox"
               :aria-checked="store.selectedIds.has(img.id)"
               :aria-label="t('common.tray.selectImage', { name: img.file.name })"
@@ -329,7 +329,7 @@ const onDragEnd = () => {
                 :class="
                   store.selectedIds.has(img.id)
                     ? 'bg-primary border-primary text-primary-foreground scale-100'
-                    : 'bg-muted/80 border-[var(--hairline)] opacity-0 group-hover/item:opacity-100 group-hover/check:opacity-100 scale-90'
+                    : 'bg-muted/80 border-[var(--hairline)] opacity-0 group-hover/item:opacity-100 group-hover/check:opacity-100 scale-90 touch-reveal'
                 "
               >
                 <CheckCircle2 v-if="store.selectedIds.has(img.id)" :size="10" stroke-width="3" />

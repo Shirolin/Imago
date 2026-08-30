@@ -186,7 +186,7 @@ defineExpose({
       </div>
 
       <!-- 缩放控制栏 -->
-      <div v-if="showControls" class="absolute bottom-6 left-1/2 -translate-x-1/2 z-30">
+      <div v-if="showControls" class="absolute imago-canvas-dock left-1/2 -translate-x-1/2 z-30">
         <AppCanvasControls
           :scale="scale"
           @zoom-in="zoomIn"

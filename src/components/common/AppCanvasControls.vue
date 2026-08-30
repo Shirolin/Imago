@@ -23,7 +23,7 @@ const handleZoom100 = () => emit('zoom100')
     <button
       @click="handleZoomOut"
       :aria-label="t('common.ui.zoomOut')"
-      class="w-8 h-8 flex items-center justify-center rounded-[var(--radius)] text-[var(--ink)] hover:bg-secondary outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+      class="w-10 h-10 min-h-10 min-w-10 flex items-center justify-center rounded-[var(--radius)] text-[var(--ink)] hover:bg-secondary outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
     >
       <ZoomOut :size="16" />
     </button>
@@ -33,7 +33,7 @@ const handleZoom100 = () => emit('zoom100')
     <button
       @click="handleZoomIn"
       :aria-label="t('common.ui.zoomIn')"
-      class="w-8 h-8 flex items-center justify-center rounded-[var(--radius)] text-[var(--ink)] hover:bg-secondary outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+      class="w-10 h-10 min-h-10 min-w-10 flex items-center justify-center rounded-[var(--radius)] text-[var(--ink)] hover:bg-secondary outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
     >
       <ZoomIn :size="16" />
     </button>
@@ -41,7 +41,7 @@ const handleZoom100 = () => emit('zoom100')
     <button
       @click="handleZoom100"
       :aria-label="t('common.ui.oneToOne')"
-      class="h-8 px-3 rounded-[var(--radius-ctrl)] hover:bg-secondary text-[10px] tabular-nums text-[var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+      class="h-10 min-h-10 min-w-10 px-3 rounded-[var(--radius-ctrl)] hover:bg-secondary text-[10px] tabular-nums text-[var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
     >
       1:1
     </button>
@@ -49,7 +49,7 @@ const handleZoom100 = () => emit('zoom100')
       @click="handleReset"
       :aria-label="t('common.ui.fitScreen')"
       :title="t('common.ui.fitScreen')"
-      class="w-8 h-8 flex items-center justify-center rounded-[var(--radius)] text-[var(--accent)] hover:bg-secondary outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+      class="w-10 h-10 min-h-10 min-w-10 flex items-center justify-center rounded-[var(--radius)] text-[var(--accent)] hover:bg-secondary outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
     >
       <Maximize :size="16" />
     </button>

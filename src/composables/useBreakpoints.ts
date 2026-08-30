@@ -4,6 +4,10 @@ import {
   breakpointsTailwind,
   useMediaQuery
 } from '@vueuse/core'
+import {
+  inspectorChrome as resolveInspectorChrome,
+  isOverlayChrome as checkOverlayChrome
+} from './inspectorChrome'
 
 /**
  * Width bands follow Tailwind. Inspector chrome does not.
@@ -27,10 +31,19 @@ export const useBreakpoints = () => {
   const canStickySidebar = isDesktop
 
   const isShortViewport = useMediaQuery('(max-height: 540px)')
-  const isPhoneChrome = computed(
-    () => (isCompact.value || isShortViewport.value) && !isDesktop.value
+
+  const inspectorChromeMode = computed(() =>
+    resolveInspectorChrome({
+      compact: isCompact.value,
+      medium: isMedium.value,
+      desktop: isDesktop.value,
+      short: isShortViewport.value
+    })
   )
-  const isTabletChrome = computed(() => isMedium.value && !isShortViewport.value)
+
+  const isPhoneChrome = computed(() => inspectorChromeMode.value === 'phone')
+  const isTabletChrome = computed(() => inspectorChromeMode.value === 'tablet')
+  const isOverlayChrome = computed(() => checkOverlayChrome(inspectorChromeMode.value))
 
   const isMobile = isCompact
   const isTablet = isMedium
@@ -47,6 +60,8 @@ export const useBreakpoints = () => {
     isDesktop,
     canStickySidebar,
     isShortViewport,
+    inspectorChromeMode,
+    isOverlayChrome,
     isPhoneChrome,
     isTabletChrome,
     isMobile,

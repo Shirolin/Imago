@@ -642,7 +642,7 @@ const ratios = computed(() => [
 
         <template #floating>
           <div
-            class="absolute bottom-20 left-1/2 -translate-x-1/2 pointer-events-none flex flex-col items-center gap-3 z-40 transition-opacity duration-300"
+            class="absolute imago-canvas-hud left-1/2 -translate-x-1/2 pointer-events-none flex flex-col items-center gap-3 z-40 transition-opacity duration-300"
             :class="isDragging ? 'opacity-100' : 'opacity-0'"
           >
             <div

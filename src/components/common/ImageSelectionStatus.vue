@@ -28,7 +28,7 @@ const selectionLabel = computed(() => {
 </script>
 
 <template>
-  <div class="flex items-center gap-2 md:gap-4 overflow-hidden">
+  <div v-if="store.images.length > 0" class="flex items-center gap-2 md:gap-4 overflow-hidden">
     <!-- 交互式全选/取消全选按钮 -->
     <button
       @click="store.toggleAll()"

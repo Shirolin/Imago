@@ -29,14 +29,12 @@ import { splitEngine } from '../lib/engines/splitEngine'
 import type { ViewSettings, ProcessResult } from '../lib/engines/types'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useResizeObserver } from '@vueuse/core'
-import { useBreakpoints } from '../composables/useBreakpoints'
 
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
 const { t } = useI18n()
 const store = useImageStore()
 const { downloadImage } = useFileHelpers()
-const { isPhoneChrome } = useBreakpoints()
 
 // 本地结果存储
 interface LocalResult {
@@ -938,10 +936,7 @@ const handleCtaClick = async () => {
           <Transition name="fade-fast">
             <div
               v-if="editMode === 'custom' && !draggingLine"
-              class="absolute left-1/2 -translate-x-1/2 bg-[var(--board)] px-4 py-2 rounded-2xl text-foreground text-[11px] font-medium border border-[var(--hairline)] pointer-events-none z-50 whitespace-nowrap flex items-center gap-2"
-              :class="[
-                isPhoneChrome ? 'bottom-[calc(var(--inspector-peek-h)+0.75rem)]' : 'bottom-24'
-              ]"
+              class="absolute imago-canvas-hud left-1/2 -translate-x-1/2 bg-[var(--board)] px-4 py-2 rounded-2xl text-foreground text-[11px] font-medium border border-[var(--hairline)] pointer-events-none z-50 whitespace-nowrap flex items-center gap-2"
             >
               <div
                 class="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary"

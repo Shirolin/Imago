@@ -22,7 +22,6 @@
     --radius-well: 20px;
     --radius-ctrl: 8px;
     --radius: var(--radius-ctrl);
-    --inspector-drawer-h: min(70dvh, calc(100dvh - 5.5rem));
     --inspector-peek-h: calc(2.5rem + env(safe-area-inset-bottom, 0px));
 
     --room: var(--paper);
@@ -237,6 +236,96 @@
     mask-image: none;
   }
 
+  .imago-cover-stage {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 2rem;
+    padding: 6rem 1rem calc(6.5rem + env(safe-area-inset-bottom, 0px)) 1rem;
+  }
+
+  .imago-cover-print {
+    padding: 1.5rem;
+  }
+
+  .imago-cover-print-img {
+    width: min(56vw, 200px);
+    max-width: 280px;
+  }
+
+  .imago-cover-ticket {
+    display: flex;
+    width: 100%;
+    max-width: 16rem;
+    min-height: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    align-self: stretch;
+  }
+
+  /* Cover two-column layout: 768×560 — intentionally not lg (1024); inspector chrome uses Tailwind lg + short 540px */
+  @media (min-width: 768px) and (min-height: 560px) {
+    .imago-cover-stage {
+      height: auto;
+      min-height: 100%;
+      flex-direction: row;
+      justify-content: center;
+      gap: 4rem;
+      padding: 5rem 4rem 2rem;
+    }
+
+    .imago-cover-print {
+      padding: 3.5rem;
+    }
+
+    .imago-cover-print-img {
+      width: min(42vw, 280px);
+    }
+
+    .imago-cover-ticket {
+      width: 10.5rem;
+      max-width: 10.5rem;
+      flex: none;
+      align-self: center;
+    }
+
+    .imago-ticket-list {
+      height: calc(var(--ticket-row) * 4.35);
+      flex: none;
+      min-height: 0;
+      max-height: none;
+    }
+  }
+
+  @media (max-width: 767px), (max-height: 559px) {
+    .imago-ticket-list {
+      height: auto;
+      flex: 1 1 auto;
+      min-height: calc(var(--ticket-row) * 2);
+      max-height: calc(var(--ticket-row) * 4.35);
+    }
+  }
+
+  @media (max-height: 559px) {
+    .imago-cover-stage {
+      gap: 0.75rem;
+      padding-top: 4.5rem;
+      padding-bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    .imago-cover-print {
+      padding: 0.5rem;
+    }
+
+    .imago-cover-print-img {
+      width: min(18vh, 96px);
+    }
+  }
+
   .imago-ticket-list.is-fade-bottom {
     -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 72%, transparent 100%);
     mask-image: linear-gradient(to bottom, #000 0%, #000 72%, transparent 100%);
@@ -336,6 +425,27 @@
 }
 
 @layer utilities {
+  .imago-phone-drawer {
+    --inspector-drawer-h: min(52dvh, calc(100dvh - 11rem));
+  }
+
+  .imago-canvas-dock {
+    position: absolute;
+    bottom: 1.5rem;
+  }
+
+  .imago-canvas-hud {
+    position: absolute;
+    bottom: 6rem;
+  }
+
+  @media (hover: none) {
+    .touch-reveal {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;

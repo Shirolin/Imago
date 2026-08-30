@@ -113,7 +113,7 @@ const handleConfirm = () => {
 
       <button
         @click="triggerFileInput"
-        class="flex items-center justify-center gap-2 px-2.5 min-h-10 h-10 rounded-[var(--radius-ctrl)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+        class="flex items-center justify-center gap-2 px-2.5 min-h-10 min-w-10 h-10 rounded-[var(--radius-ctrl)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
         :aria-label="t('common.image.toolbar.importAria')"
         :title="t('common.image.toolbar.import')"
       >
@@ -134,7 +134,9 @@ const handleConfirm = () => {
       :title="t('common.image.toolbar.exportAll')"
     >
       <Download :size="16" />
-      <span class="text-[13px] font-medium">{{ t('common.image.toolbar.exportAll') }}</span>
+      <span class="hidden md:inline text-[13px] font-medium">{{
+        t('common.image.toolbar.exportAll')
+      }}</span>
       <span
         class="ml-0.5 px-1.5 py-0.5 rounded-[4px] bg-[var(--on-product)]/15 text-[11px] font-medium leading-none tabular-spec"
         >{{ store.doneCount }}</span
