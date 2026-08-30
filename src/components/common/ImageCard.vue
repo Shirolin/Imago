@@ -196,7 +196,7 @@ watch(displayUrl, () => {
 
 <template>
   <div
-    class="imago-sheet relative cursor-pointer flex flex-col group outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--well)] p-6 md:p-8"
+    class="imago-sheet relative cursor-pointer flex flex-col group outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--well)] p-3 md:p-8"
     :class="[isDirtyDone ? 'ring-1 ring-[var(--muted)]' : '']"
     tabindex="0"
     role="button"
@@ -291,7 +291,7 @@ watch(displayUrl, () => {
       <!-- 【模式 B】：Hover HUD 托盘 (仅在小图模式 + 有可用操作时浮现) -->
       <div
         v-if="!isLargeMode && (image.status === 'done' || image.status === 'error')"
-        class="absolute bottom-3 left-3 right-3 z-30 bg-[var(--board)] border border-[var(--hairline)] rounded-[var(--radius-ctrl)] p-1.5 flex items-center justify-between gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto touch-reveal"
+        class="absolute bottom-2 left-2 right-2 z-30 bg-[var(--board)] border border-[var(--hairline)] rounded-[var(--radius-ctrl)] p-1 flex items-center justify-between gap-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto touch-reveal md:bottom-3 md:left-3 md:right-3 md:p-1.5 md:gap-1.5"
       >
         <div class="flex items-center gap-1">
           <button
@@ -350,7 +350,7 @@ watch(displayUrl, () => {
       <button
         v-if="!showMagnifier"
         @click.stop="store.removeImage(image.id)"
-        class="absolute top-3 right-3 z-30 bg-[var(--board)] hover:bg-[var(--danger)] text-[var(--muted)] hover:text-[var(--on-product)] p-1.5 rounded-[var(--radius-ctrl)] opacity-0 group-hover:opacity-100 transition-colors border border-[var(--hairline)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] touch-reveal"
+        class="absolute top-2 right-2 z-30 bg-[var(--board)] hover:bg-[var(--danger)] text-[var(--muted)] hover:text-[var(--on-product)] p-2 min-h-10 min-w-10 flex items-center justify-center rounded-[var(--radius-ctrl)] opacity-0 group-hover:opacity-100 transition-colors border border-[var(--hairline)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] touch-reveal md:top-3 md:right-3"
         :title="$t('common.image.card.remove')"
         :aria-label="$t('common.image.card.remove')"
       >

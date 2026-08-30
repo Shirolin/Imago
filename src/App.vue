@@ -186,7 +186,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
   const base =
     'flex items-center text-sm transition-colors duration-150 group relative outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]'
   const pad = collapsed
-    ? 'shrink-0 md:justify-center min-h-[40px] md:h-10 md:w-10 md:mx-auto px-3 py-2 gap-2 rounded-[var(--radius-ctrl)]'
+    ? 'shrink-0 lg:justify-center min-h-[40px] lg:h-10 lg:w-10 lg:mx-auto px-3 py-2 gap-2 rounded-[var(--radius-ctrl)]'
     : 'min-w-0 px-3 py-2 min-h-[40px] gap-2 rounded-[var(--radius-ctrl)]'
   const state = active
     ? 'bg-[var(--well)] text-[var(--ink)]'
@@ -213,22 +213,22 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
     <div
       v-show="isMobileSidebarOpen && !isCover"
       @click="closeMobileSidebar"
-      class="fixed inset-0 bg-[var(--paper)]/70 z-[90] md:hidden"
+      class="fixed inset-0 bg-[var(--paper)]/70 z-[90] lg:hidden"
     ></div>
 
     <aside
       v-if="!isCover"
-      class="imago-board border-r border-[var(--hairline)] flex flex-col z-[100] transition-all duration-200 ease-out md:static fixed inset-y-0 left-0 pt-[env(safe-area-inset-top,8px)] md:pt-0"
+      class="imago-board border-r border-[var(--hairline)] flex flex-col z-[100] transition-all duration-200 ease-out lg:static fixed inset-y-0 left-0 pt-[env(safe-area-inset-top,8px)] lg:pt-0"
       :class="[
-        isMobileSidebarOpen ? 'translate-x-0 w-[240px]' : '-translate-x-full md:translate-x-0',
-        layoutStore.isMenuCollapsed ? 'md:w-[64px]' : 'md:w-[220px]'
+        isMobileSidebarOpen ? 'translate-x-0 w-[240px]' : '-translate-x-full lg:translate-x-0',
+        layoutStore.isMenuCollapsed ? 'lg:w-[64px]' : 'lg:w-[220px]'
       ]"
     >
       <div
         class="overflow-hidden flex-shrink-0 flex flex-col"
         :class="[
           layoutStore.isMenuCollapsed
-            ? 'md:w-[64px] md:p-0 md:pt-4 md:pb-3 md:items-center p-4 pb-4'
+            ? 'lg:w-[64px] lg:p-0 lg:pt-4 lg:pb-3 lg:items-center p-4 pb-4'
             : 'p-4 pb-3'
         ]"
       >
@@ -236,18 +236,18 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
           to="/"
           @click="closeMobileSidebar"
           class="flex items-center outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-[var(--radius-ctrl)]"
-          :class="layoutStore.isMenuCollapsed ? 'md:justify-center w-full gap-3 md:gap-0' : 'gap-2'"
+          :class="layoutStore.isMenuCollapsed ? 'lg:justify-center w-full gap-3 lg:gap-0' : 'gap-2'"
         >
           <div
             v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
             class="flex flex-col min-w-0"
-            :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
+            :class="{ 'lg:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
           >
             <span class="imago-serif text-[22px] leading-none text-[var(--ink)]">Imago</span>
           </div>
           <span
             v-else
-            class="imago-serif hidden md:inline text-[18px] text-[var(--ink)]"
+            class="imago-serif hidden lg:inline text-[18px] text-[var(--ink)]"
             aria-hidden="true"
             >I</span
           >
@@ -257,7 +257,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
       <nav
         class="flex-1 min-h-0 overflow-y-auto flex flex-col custom-scrollbar overflow-x-hidden pb-6 pt-1"
         :class="
-          layoutStore.isMenuCollapsed ? 'md:px-2 md:items-start gap-0.5 px-3' : 'px-3 gap-0.5'
+          layoutStore.isMenuCollapsed ? 'lg:px-2 lg:items-start gap-0.5 px-3' : 'px-3 gap-0.5'
         "
       >
         <div
@@ -266,7 +266,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
           class="flex flex-col"
           :class="[
             layoutStore.isMenuCollapsed && !isMobileSidebarOpen
-              ? 'md:w-[64px] mt-1 gap-0.5 md:items-center w-full'
+              ? 'lg:w-[64px] mt-1 gap-0.5 lg:items-center w-full'
               : 'w-full mt-5 first:mt-1 gap-0.5'
           ]"
         >
@@ -274,7 +274,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
             v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
             class="min-w-0 truncate text-[11px] font-medium text-[var(--muted)] mb-1 ml-3"
             :title="group.label"
-            :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
+            :class="{ 'lg:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
           >
             {{ group.label }}
           </div>
@@ -303,8 +303,8 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
             />
             <span
               v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-              :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
-              class="min-w-0 ui-label"
+              :class="{ 'lg:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
+              class="min-w-0 text-left leading-tight line-clamp-2 text-sm font-medium"
               >{{ item.name }}</span
             >
           </router-link>
@@ -316,7 +316,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
         :class="[
           layoutStore.isMenuCollapsed && !isMobileSidebarOpen
             ? 'flex-col items-center gap-2'
-            : 'flex-row items-center justify-center gap-1 md:justify-start'
+            : 'flex-row items-center justify-center gap-1 lg:justify-start'
         ]"
       >
         <LanguageSwitcher />
@@ -332,12 +332,12 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
 
         <div
           v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-          class="hidden md:block flex-1"
+          class="hidden lg:block flex-1"
         ></div>
 
         <button
           @click="layoutStore.toggleMenu"
-          class="hidden md:flex items-center justify-center w-9 h-9 rounded-[var(--radius)] text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] transition-colors shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          class="hidden lg:flex items-center justify-center w-9 h-9 rounded-[var(--radius)] text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] transition-colors shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           :title="layoutStore.isMenuCollapsed ? t('nav.expand') : t('nav.collapse')"
           :aria-label="layoutStore.isMenuCollapsed ? t('nav.expand') : t('nav.collapse')"
         >
@@ -360,11 +360,11 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
     <main class="flex-1 min-h-0 flex flex-col relative z-20 bg-[var(--paper)]">
       <header
         v-if="!isCover"
-        class="shrink-0 flex items-center justify-between px-3 md:px-4 bg-[var(--paper)] border-b border-[var(--hairline)] z-50 md:z-[110] h-11"
+        class="shrink-0 flex items-center justify-between px-3 md:px-4 bg-[var(--paper)] border-b border-[var(--hairline)] z-50 md:z-[110] h-[calc(2.75rem+env(safe-area-inset-top,0px))] pt-[env(safe-area-inset-top,0px)]"
       >
         <div class="flex items-center gap-2 flex-none min-w-0 z-20">
           <button
-            class="md:hidden text-[var(--ink)] hover:text-[var(--accent)] p-2 -ml-1 transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-[var(--radius)] shrink-0"
+            class="lg:hidden text-[var(--ink)] hover:text-[var(--accent)] p-2 -ml-1 transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-[var(--radius)] shrink-0"
             :aria-label="t('nav.toggleMobile')"
             @click="toggleMobileSidebar"
           >
@@ -372,10 +372,11 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
           </button>
 
           <div class="flex items-center gap-3 min-w-0">
-            <span class="text-[13px] font-medium text-[var(--ink)] whitespace-nowrap">{{
-              currentRouteName
-            }}</span>
-            <div id="top-bar-left" class="hidden sm:flex items-center min-w-0"></div>
+            <span
+              class="text-[13px] font-medium text-[var(--ink)] whitespace-nowrap truncate max-w-[6.5rem] sm:max-w-none"
+              >{{ currentRouteName }}</span
+            >
+            <div id="top-bar-left" class="flex items-center min-w-0"></div>
           </div>
         </div>
 

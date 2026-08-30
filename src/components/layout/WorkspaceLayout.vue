@@ -13,7 +13,7 @@ const store = useImageStore()
 const layoutStore = useLayoutStore()
 const { t } = useI18n()
 const { importImages } = useImageImport()
-const { isCompact, isMedium, isUltra, isDesktop } = useBreakpoints()
+const { isPhoneChrome, isTabletChrome, isUltra, isDesktop } = useBreakpoints()
 
 interface Props {
   showSidebar?: boolean
@@ -46,17 +46,7 @@ onMounted(() => {
         <button
           v-if="showSidebar"
           @click="layoutStore.toggleInspector"
-          class="hidden lg:flex h-9 w-9 items-center justify-center rounded-[var(--radius-ctrl)] text-[var(--muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] hover:text-[var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-          :aria-label="t('common.layout.toggleInspector')"
-          :aria-expanded="!layoutStore.isInspectorCollapsed"
-        >
-          <PanelRightOpen v-if="layoutStore.isInspectorCollapsed" :size="16" />
-          <PanelRightClose v-else :size="16" />
-        </button>
-        <button
-          v-if="showSidebar && !isDesktop"
-          @click="layoutStore.toggleInspector"
-          class="flex lg:hidden h-9 w-9 items-center justify-center rounded-[var(--radius-ctrl)] text-[var(--muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] hover:text-[var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          class="flex h-10 w-10 items-center justify-center rounded-[var(--radius-ctrl)] text-[var(--muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] hover:text-[var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           :aria-label="t('common.layout.toggleInspector')"
           :aria-expanded="!layoutStore.isInspectorCollapsed"
         >
@@ -68,12 +58,18 @@ onMounted(() => {
       <main
         class="flex-1 flex flex-col min-w-0 min-h-0 relative z-10 bg-[var(--paper)] overflow-hidden p-3"
         role="main"
-        :inert="(isCompact || isMedium) && !layoutStore.isInspectorCollapsed ? true : undefined"
-        :aria-hidden="(isCompact || isMedium) && !layoutStore.isInspectorCollapsed"
+        :inert="
+          (isPhoneChrome || isTabletChrome) && !layoutStore.isInspectorCollapsed ? true : undefined
+        "
+        :aria-hidden="(isPhoneChrome || isTabletChrome) && !layoutStore.isInspectorCollapsed"
         :class="[
-          isCompact && showSidebar && !layoutStore.isInspectorCollapsed ? 'pb-[45vh]' : '',
-          isCompact && showSidebar && layoutStore.isInspectorCollapsed ? 'pb-11' : '',
-          !isCompact ? 'pb-3' : ''
+          isPhoneChrome && showSidebar && !layoutStore.isInspectorCollapsed
+            ? 'pb-[var(--inspector-drawer-h)]'
+            : '',
+          isPhoneChrome && showSidebar && layoutStore.isInspectorCollapsed
+            ? 'pb-[var(--inspector-peek-h)]'
+            : '',
+          !isPhoneChrome ? 'pb-3' : ''
         ]"
       >
         <div
@@ -88,7 +84,7 @@ onMounted(() => {
             class="flex-1 relative min-h-0 w-full imago-well"
             :style="{
               overscrollBehavior:
-                isCompact && !layoutStore.isInspectorCollapsed ? 'contain' : 'auto'
+                isPhoneChrome && !layoutStore.isInspectorCollapsed ? 'contain' : 'auto'
             }"
             :class="[
               noScroll
@@ -117,7 +113,7 @@ onMounted(() => {
             :aria-label="t('common.assets.trayAria')"
             :class="[
               (layoutStore.isAssetsTrayCollapsed && isDesktop) ||
-              (isCompact && showSidebar && !layoutStore.isInspectorCollapsed)
+              (isPhoneChrome && showSidebar && !layoutStore.isInspectorCollapsed)
                 ? 'h-0 border-t-0'
                 : 'h-28 border-t border-[var(--hairline)]'
             ]"
@@ -168,21 +164,21 @@ onMounted(() => {
       <aside
         v-if="showSidebar"
         id="inspector-panel"
-        class="imago-board border-[var(--hairline)] transition-all duration-200 z-[200] lg:static"
+        class="imago-board border-[var(--hairline)] transition-all duration-200 lg:static"
         role="complementary"
-        :aria-label="isCompact ? t('common.inspector.drawer') : t('common.inspector.sidebar')"
+        :aria-label="isPhoneChrome ? t('common.inspector.drawer') : t('common.inspector.sidebar')"
         :class="[
-          isCompact
-            ? 'fixed bottom-0 left-0 right-0 h-[45vh] rounded-t-[var(--radius)] border-t z-[300]'
+          isPhoneChrome
+            ? 'fixed bottom-0 left-0 right-0 h-[var(--inspector-drawer-h)] rounded-t-[var(--radius)] border-t z-[80] pb-[env(safe-area-inset-bottom,0px)]'
             : '',
-          isCompact && layoutStore.isInspectorCollapsed ? 'translate-y-[calc(100%-44px)]' : '',
+          isPhoneChrome && layoutStore.isInspectorCollapsed
+            ? 'translate-y-[calc(100%-var(--inspector-peek-h))]'
+            : '',
 
-          isMedium
-            ? 'fixed top-3 right-3 bottom-3 w-[320px] rounded-[var(--radius)] border z-[60]'
+          isTabletChrome
+            ? 'fixed top-14 right-3 bottom-3 w-[min(320px,calc(100vw-1.5rem))] rounded-[var(--radius)] border z-[80]'
             : '',
-          isMedium && layoutStore.isInspectorCollapsed
-            ? 'translate-x-[calc(100%+1rem)]'
-            : 'translate-x-0',
+          isTabletChrome && layoutStore.isInspectorCollapsed ? 'translate-x-[calc(100%+1rem)]' : '',
 
           isDesktop ? 'lg:h-auto lg:z-[60] lg:rounded-none lg:border-l' : '',
           isDesktop && layoutStore.isInspectorCollapsed
@@ -192,9 +188,9 @@ onMounted(() => {
       >
         <div class="h-full flex flex-col w-full overflow-hidden relative">
           <div
-            v-if="isCompact"
+            v-if="isPhoneChrome"
             @click="layoutStore.toggleInspector"
-            class="flex flex-col items-center justify-center h-10 shrink-0 cursor-pointer touch-none group bg-[var(--board)] border-b border-[var(--hairline)]"
+            class="flex flex-col items-center justify-center h-10 min-h-10 shrink-0 cursor-pointer group bg-[var(--board)] border-b border-[var(--hairline)]"
             role="button"
             :aria-label="
               layoutStore.isInspectorCollapsed
@@ -216,14 +212,14 @@ onMounted(() => {
           </div>
 
           <div
-            v-if="isMedium || isDesktop"
+            v-if="isTabletChrome || isDesktop"
             class="h-11 flex items-center justify-between px-4 border-b border-[var(--hairline)] shrink-0"
           >
             <span class="text-[13px] font-medium text-[var(--ink)]">{{
               t('common.inspector.spec')
             }}</span>
             <button
-              v-if="isMedium"
+              v-if="isTabletChrome"
               @click="layoutStore.toggleInspector"
               class="p-1.5 hover:bg-secondary rounded-[var(--radius)] transition-colors text-[var(--muted)] hover:text-[var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               :aria-label="t('common.layout.closePanel')"
@@ -234,7 +230,7 @@ onMounted(() => {
 
           <div
             class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar w-full"
-            :class="{ 'opacity-0': layoutStore.isInspectorCollapsed && isCompact }"
+            :class="{ 'opacity-0': layoutStore.isInspectorCollapsed && isPhoneChrome }"
           >
             <div class="p-4 flex flex-col gap-6 pb-8">
               <slot name="sidebar"></slot>
@@ -255,9 +251,9 @@ onMounted(() => {
       </aside>
 
       <div
-        v-if="isMedium && showSidebar && !layoutStore.isInspectorCollapsed"
+        v-if="isTabletChrome && showSidebar && !layoutStore.isInspectorCollapsed"
         @click="layoutStore.toggleInspector"
-        class="fixed inset-0 bg-[var(--paper)]/50 z-50"
+        class="fixed inset-0 bg-[var(--paper)]/50 z-[70]"
       ></div>
     </div>
   </div>

@@ -81,16 +81,16 @@ const handleConfirm = () => {
 </script>
 
 <template>
-  <div class="flex h-9 items-center gap-2 md:gap-3">
+  <div class="flex min-h-10 items-center gap-2 md:gap-3">
     <div
-      class="flex items-center bg-[var(--well)] p-0.5 rounded-[var(--radius-ctrl)] border border-[var(--hairline)]"
+      class="flex items-center gap-0.5 bg-[var(--well)] p-0.5 rounded-[var(--radius-ctrl)] border border-[var(--hairline)]"
     >
       <template v-if="props.showLayoutToggle">
         <button
           @click="
             layoutStore.cardSizeMode = layoutStore.cardSizeMode === 'compact' ? 'large' : 'compact'
           "
-          class="w-9 h-9 flex items-center justify-center rounded-[var(--radius-ctrl)] hover:bg-[var(--paper)] text-muted-foreground hover:text-foreground transition-colors shrink-0"
+          class="min-h-10 min-w-10 w-10 h-10 flex items-center justify-center rounded-[var(--radius-ctrl)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] text-muted-foreground hover:text-foreground transition-colors shrink-0"
           :aria-label="
             layoutStore.cardSizeMode === 'compact'
               ? t('common.image.toolbar.layoutLarge')
@@ -108,12 +108,12 @@ const handleConfirm = () => {
           />
         </button>
 
-        <div class="w-px h-4 bg-[var(--hairline)] mx-1"></div>
+        <div class="w-px h-3.5 bg-[var(--hairline)] mx-0.5"></div>
       </template>
 
       <button
         @click="triggerFileInput"
-        class="flex items-center justify-center gap-2 px-3 h-9 rounded-[var(--radius-ctrl)] hover:bg-[var(--paper)] text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+        class="flex items-center justify-center gap-2 px-2.5 min-h-10 h-10 rounded-[var(--radius-ctrl)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
         :aria-label="t('common.image.toolbar.importAria')"
         :title="t('common.image.toolbar.import')"
       >
@@ -127,7 +127,7 @@ const handleConfirm = () => {
     <button
       v-if="props.showDownloadAll && store.doneCount > 0"
       @click="downloadAllAsZip(viewId)"
-      class="flex items-center gap-2 px-3 md:px-4 h-9 rounded-[var(--radius-ctrl)] bg-[var(--accent)] text-[var(--on-product)] hover:bg-[var(--accent-press)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)] whitespace-nowrap"
+      class="flex items-center gap-2 px-3 md:px-4 min-h-10 h-10 rounded-[var(--radius-ctrl)] bg-[var(--accent)] text-[var(--on-product)] hover:bg-[var(--accent-press)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)] whitespace-nowrap"
       :class="{ 'opacity-50 cursor-not-allowed': isBusy }"
       :disabled="isBusy"
       :aria-label="t('common.image.toolbar.exportAllAria', { count: store.doneCount })"
@@ -143,12 +143,12 @@ const handleConfirm = () => {
 
     <div
       v-if="store.images.length > 0"
-      class="flex items-center bg-[var(--well)] p-0.5 rounded-[var(--radius-ctrl)] border border-[var(--hairline)]"
+      class="flex items-center gap-0.5 bg-[var(--well)] p-0.5 rounded-[var(--radius-ctrl)] border border-[var(--hairline)]"
     >
       <button
         v-if="props.showResetAll"
         @click="openConfirm('reset')"
-        class="w-9 h-9 flex items-center justify-center rounded-[var(--radius-ctrl)] hover:bg-[var(--paper)] text-muted-foreground hover:text-foreground transition-colors shrink-0"
+        class="min-h-10 min-w-10 w-10 h-10 flex items-center justify-center rounded-[var(--radius-ctrl)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] text-muted-foreground hover:text-foreground transition-colors shrink-0"
         :aria-label="t('common.image.toolbar.resetAllAria')"
         :title="t('common.image.toolbar.resetAll')"
         :disabled="isBusy"
@@ -156,12 +156,12 @@ const handleConfirm = () => {
         <RotateCcw :size="16" />
       </button>
 
-      <div v-if="props.showResetAll" class="w-px h-4 bg-[var(--hairline)] mx-1"></div>
+      <div v-if="props.showResetAll" class="w-px h-3.5 bg-[var(--hairline)] mx-0.5"></div>
 
       <button
         v-if="props.showDeleteSelected || props.showClearAll"
         @click="handleRemoveAction"
-        class="w-9 h-9 flex items-center justify-center rounded-[var(--radius-ctrl)] hover:bg-[var(--danger)]/10 transition-colors shrink-0"
+        class="min-h-10 min-w-10 w-10 h-10 flex items-center justify-center rounded-[var(--radius-ctrl)] hover:bg-[var(--danger)]/10 transition-colors shrink-0"
         :class="store.selectedCount > 0 ? 'text-[var(--danger)]' : 'text-muted-foreground'"
         :aria-label="
           store.selectedCount > 0

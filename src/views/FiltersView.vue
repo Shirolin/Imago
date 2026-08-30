@@ -464,7 +464,7 @@ const handleCtaClick = async () => {
             <button
               v-if="canScrollLeft"
               @click="scrollPresets('left')"
-              class="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-[var(--chrome)] border border-[var(--hairline)] rounded-[var(--radius)] flex items-center justify-center text-muted-foreground hover:text-primary transition-colors md:opacity-0 md:group-hover/presets:opacity-100 -ml-2"
+              class="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-[var(--chrome)] border border-[var(--hairline)] rounded-[var(--radius)] flex items-center justify-center text-muted-foreground hover:text-primary transition-colors md:opacity-0 md:group-hover/presets:opacity-100 -ml-2"
               :aria-label="t('tools.filters.scrollLeft')"
             >
               <ChevronLeft :size="16" />
@@ -474,7 +474,7 @@ const handleCtaClick = async () => {
             <button
               v-if="canScrollRight"
               @click="scrollPresets('right')"
-              class="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-[var(--chrome)] border border-[var(--hairline)] rounded-[var(--radius)] flex items-center justify-center text-muted-foreground hover:text-primary transition-colors md:opacity-0 md:group-hover/presets:opacity-100 -mr-2"
+              class="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-[var(--chrome)] border border-[var(--hairline)] rounded-[var(--radius)] flex items-center justify-center text-muted-foreground hover:text-primary transition-colors md:opacity-0 md:group-hover/presets:opacity-100 -mr-2"
               :aria-label="t('tools.filters.scrollRight')"
             >
               <ChevronRight :size="16" />

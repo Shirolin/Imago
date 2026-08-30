@@ -48,7 +48,7 @@ onMounted(() => {
 <template>
   <div class="relative h-full w-full min-h-0 bg-[var(--paper)] text-[var(--ink)]">
     <header
-      class="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-8 pt-7 md:px-10"
+      class="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 pt-[calc(1.25rem+env(safe-area-inset-top,0px))] md:px-10 md:pt-7"
     >
       <span class="imago-serif text-[28px] font-semibold leading-none tracking-tight">Imago</span>
       <div class="flex items-center gap-1">
@@ -59,7 +59,7 @@ onMounted(() => {
         <LanguageSwitcher placement="top" align="right" />
         <button
           type="button"
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius)] text-[var(--muted)] outline-none transition-colors hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] hover:text-[var(--ink)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius)] text-[var(--muted)] outline-none transition-colors hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] hover:text-[var(--ink)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           :title="t('nav.sponsor')"
           :aria-label="t('nav.sponsor')"
           @click="showSponsorModal = true"
@@ -69,21 +69,21 @@ onMounted(() => {
       </div>
     </header>
 
-    <div class="h-full w-full min-h-0 overflow-hidden">
+    <div class="h-full w-full min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar">
       <div
-        class="flex h-full w-full items-center justify-center gap-10 px-8 pb-8 pt-20 md:gap-16 md:px-16"
+        class="flex min-h-full w-full flex-col items-center justify-center gap-8 px-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-24 md:flex-row md:gap-16 md:px-16 md:pb-8 md:pt-20"
       >
-        <figure class="imago-board shrink-0 rounded-[var(--radius-well)] p-12 md:p-14">
+        <figure class="imago-board shrink-0 rounded-[var(--radius-well)] p-6 md:p-14">
           <img
             src="/cover-print.jpg"
             :alt="t('cover.printAlt')"
-            class="block aspect-[3/4] w-[min(42vw,280px)] max-w-[280px] object-cover"
+            class="block aspect-[3/4] w-[min(56vw,200px)] max-w-[280px] object-cover md:w-[min(42vw,280px)]"
             width="1024"
             height="1536"
           />
         </figure>
 
-        <aside class="flex w-[9.5rem] shrink-0 flex-col self-center md:w-[10.5rem]">
+        <aside class="flex w-full max-w-[16rem] shrink-0 flex-col self-center md:w-[10.5rem]">
           <p class="imago-serif text-[22px] font-medium leading-none tracking-wide">
             {{ t('cover.ticket') }}
           </p>
@@ -97,7 +97,7 @@ onMounted(() => {
             @scroll.passive="syncTicketFade"
           >
             <li v-for="step in steps" :key="step.n">
-              <button type="button" class="imago-ticket-row" @click="goToStep(step.to)">
+              <button type="button" class="imago-ticket-row min-h-10" @click="goToStep(step.to)">
                 <span class="imago-ticket-no w-6 shrink-0 tabular-nums text-[13px]">{{
                   step.n
                 }}</span>
@@ -107,12 +107,19 @@ onMounted(() => {
           </ol>
         </aside>
       </div>
+    </div>
 
-      <div class="absolute bottom-8 right-8 z-10">
-        <AppButton variant="cta" size="lg" class="min-w-[7.5rem] px-6" @click="enterWorkbench">
-          {{ t('cover.start') }}
-        </AppButton>
-      </div>
+    <div
+      class="absolute bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))] right-4 z-10 md:bottom-8 md:right-8"
+    >
+      <AppButton
+        variant="cta"
+        size="lg"
+        class="min-w-[7.5rem] min-h-11 px-6"
+        @click="enterWorkbench"
+      >
+        {{ t('cover.start') }}
+      </AppButton>
     </div>
 
     <SponsorModal :show="showSponsorModal" @close="showSponsorModal = false" />

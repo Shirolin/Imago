@@ -32,7 +32,7 @@ const selectionLabel = computed(() => {
     <!-- 交互式全选/取消全选按钮 -->
     <button
       @click="store.toggleAll()"
-      class="flex items-center gap-2 px-2.5 py-1 rounded-[var(--radius)] bg-muted/30 hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors border border-[var(--hairline)]"
+      class="flex items-center gap-2 min-h-10 px-2.5 py-1 rounded-[var(--radius)] bg-muted/30 hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors border border-[var(--hairline)]"
       :title="selectionLabel"
       :aria-label="selectionLabel"
     >
