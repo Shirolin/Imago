@@ -40,3 +40,8 @@ dist-ssr
 
 # omp 截图输出
 .omp-screens/
+
+# locale audit / backup artifacts (local tooling)
+.audit/
+.locale-label-backup/
+.locale-limits-backup/
