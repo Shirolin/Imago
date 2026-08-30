@@ -143,6 +143,13 @@ describe('resizeEngine 尺寸钳制', () => {
     expect(result.height).toBe(16384)
   })
 
+  it('百分比模式：放大超大图后钳制到 16384 长边', async () => {
+    state.bitmapProps = { width: 12000, height: 8000 }
+    const result = await resizeEngine(makeFile(), { mode: 'percentage', percentage: 200 })
+    expect(result.width).toBe(16384)
+    expect(result.height).toBe(10923)
+  })
+
   it('maintainAspectRatio 双值输入不被改写（9999 保持 9999 而非 9998）', async () => {
     const result = await resizeEngine(makeFile(), {
       mode: 'pixels',

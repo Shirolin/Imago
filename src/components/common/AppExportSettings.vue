@@ -17,6 +17,7 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-vue-next'
+import { MAX_PROCESS_SIDE, MAX_TARGET_SIZE_KB } from '../../lib/limits'
 
 const { t } = useI18n()
 
@@ -82,8 +83,7 @@ const formatOptions = computed(() => {
     },
     { label: t('common.export.formatPng'), value: 'image/png' },
     { label: t('common.export.formatAvif'), value: 'image/avif' },
-    { label: t('common.export.formatJxl'), value: 'image/jxl' },
-    { label: t('common.export.formatWebp2'), value: 'image/webp2' }
+    { label: t('common.export.formatJxl'), value: 'image/jxl' }
   ]
   if (!props.canvasOnly) return all
   // canvas.toBlob 只保证 png/jpeg/webp；其余格式静默回退 PNG 且无提示，必须移除
@@ -98,8 +98,7 @@ const recommendedQualities: Record<string, number> = {
   'image/jpeg': 0.75,
   'image/png': 1.0,
   'image/avif': 0.55,
-  'image/jxl': 0.7,
-  'image/webp2': 0.65
+  'image/jxl': 0.7
 }
 
 watch(
@@ -126,6 +125,7 @@ const showTargetSizeInput = computed(
   () => props.allowManualQuality && props.mode === 'target' && props.format !== 'image/png'
 )
 const showPngOptions = computed(() => props.allowManualQuality && props.format === 'image/png')
+const showJxlEffort = computed(() => props.allowManualQuality && props.format === 'image/jxl')
 </script>
 
 <template>
@@ -152,7 +152,7 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
         />
 
         <div
-          v-if="showQualitySlider || showTargetSizeInput || showPngOptions"
+          v-if="showQualitySlider || showTargetSizeInput || showPngOptions || showJxlEffort"
           class="space-y-7 pt-3 border-t border-[var(--hairline)]"
         >
           <!-- A. 输出质量 -->
@@ -189,7 +189,7 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
               type="number"
               suffix="KB"
               :min="1"
-              :max="100000"
+              :max="MAX_TARGET_SIZE_KB"
               :aria-label="t('common.export.targetSize')"
             />
           </div>
@@ -207,20 +207,24 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
                 :max="256"
                 :default-value="256"
               />
-            </div>
-            <div class="space-y-3">
-              <AppSlider
-                :model-value="effort"
-                @update:model-value="emit('update:effort', $event)"
-                :label="t('common.export.effort')"
-                :icon="Activity"
-                unit=""
-                :min="1"
-                :max="9"
-                :default-value="7"
-              />
+              <p class="text-[10px] text-muted-foreground/70 px-1 leading-snug">
+                {{ t('common.export.pngColorsHint') }}
+              </p>
             </div>
           </template>
+
+          <div v-if="showJxlEffort" class="space-y-3">
+            <AppSlider
+              :model-value="effort"
+              @update:model-value="emit('update:effort', $event)"
+              :label="t('common.export.effort')"
+              :icon="Activity"
+              unit=""
+              :min="1"
+              :max="9"
+              :default-value="7"
+            />
+          </div>
         </div>
       </div>
     </section>
@@ -253,17 +257,25 @@ const showPngOptions = computed(() => props.allowManualQuality && props.format =
           <div class="grid grid-cols-1 @[280px]:grid-cols-2 gap-3">
             <AppInput
               :model-value="maxWidth"
-              @update:model-value="emit('update:maxWidth', $event)"
+              @update:model-value="emit('update:maxWidth', $event === '' ? undefined : $event)"
               type="number"
               :placeholder="t('common.export.width')"
               suffix="W"
+              :min="1"
+              :max="MAX_PROCESS_SIDE"
+              :step="1"
+              :aria-label="t('common.export.width')"
             />
             <AppInput
               :model-value="maxHeight"
-              @update:model-value="emit('update:maxHeight', $event)"
+              @update:model-value="emit('update:maxHeight', $event === '' ? undefined : $event)"
               type="number"
               :placeholder="t('common.export.height')"
               suffix="H"
+              :min="1"
+              :max="MAX_PROCESS_SIDE"
+              :step="1"
+              :aria-label="t('common.export.height')"
             />
           </div>
         </div>

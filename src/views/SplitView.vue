@@ -1169,6 +1169,7 @@ const handleCtaClick = async () => {
         v-model:format="outputFormat"
         v-model:quality="outputQuality"
         :title="t('tools.split.exportConfig')"
+        canvas-only
         class="pt-6 border-t border-[var(--hairline)] pb-4"
       />
     </template>

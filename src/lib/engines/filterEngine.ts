@@ -1,4 +1,5 @@
 import type { ImageProcessor } from './types'
+import { MAX_PROCESS_SIDE, fitWithinMaxSide } from '../limits'
 
 export interface FilterOptions {
   brightness: number
@@ -23,9 +24,10 @@ export const filterEngine: ImageProcessor<FilterOptions> = async (file, options)
 
     img.onload = () => {
       URL.revokeObjectURL(url)
+      const { width, height } = fitWithinMaxSide(img.width, img.height, MAX_PROCESS_SIDE)
       const canvas = document.createElement('canvas')
-      canvas.width = img.width
-      canvas.height = img.height
+      canvas.width = width
+      canvas.height = height
       const ctx = canvas.getContext('2d')
 
       if (!ctx) {
@@ -35,7 +37,7 @@ export const filterEngine: ImageProcessor<FilterOptions> = async (file, options)
 
       // 1. 应用 CSS 滤镜 (基础调整)
       ctx.filter = `brightness(${options.brightness}%) contrast(${options.contrast}%) saturate(${options.saturation}%) blur(${options.blur}px) grayscale(${options.grayscale}%) sepia(${options.sepia}%) hue-rotate(${options.hueRotate}deg) invert(${options.invert}%)`
-      ctx.drawImage(img, 0, 0)
+      ctx.drawImage(img, 0, 0, width, height)
 
       // 2. 锐化处理 (卷积矩阵)
       // 注意：必须在 drawImage 之后获取 ImageData，此时 filter 已经作用于像素

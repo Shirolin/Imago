@@ -1,5 +1,6 @@
 import exifr from 'exifr'
 import type { ImageProcessor } from './types'
+import { MAX_PROCESS_SIDE, fitWithinMaxSide } from '../limits'
 
 export interface ExifData {
   make?: string
@@ -102,9 +103,10 @@ export const clearExifEngine: ImageProcessor<ExifOptions> = async (file, options
 
     img.onload = () => {
       URL.revokeObjectURL(url)
+      const { width, height } = fitWithinMaxSide(img.width, img.height, MAX_PROCESS_SIDE)
       const canvas = document.createElement('canvas')
-      canvas.width = img.width
-      canvas.height = img.height
+      canvas.width = width
+      canvas.height = height
       const ctx = canvas.getContext('2d')
 
       if (!ctx) {
@@ -112,7 +114,7 @@ export const clearExifEngine: ImageProcessor<ExifOptions> = async (file, options
         return
       }
 
-      ctx.drawImage(img, 0, 0)
+      ctx.drawImage(img, 0, 0, width, height)
 
       // 'image/jpeg-li' 是部分视图导出面板的历史取值，canvas.toBlob 无法识别，
       // 直传会导致静默回退为 PNG；统一映射为标准 MIME。

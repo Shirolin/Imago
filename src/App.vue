@@ -19,6 +19,8 @@ import {
   Eraser
 } from 'lucide-vue-next'
 import { useImageStore } from './stores/imageStore'
+import { MAX_FILE_BYTES } from './lib/limits'
+import { useImageImport } from './composables/useImageImport'
 import { useLayoutStore } from './stores/layoutStore'
 import SponsorModal from './components/SponsorModal.vue'
 import LanguageSwitcher from './components/common/LanguageSwitcher.vue'
@@ -26,6 +28,7 @@ import LanguageSwitcher from './components/common/LanguageSwitcher.vue'
 const store = useImageStore()
 const layoutStore = useLayoutStore()
 const { t } = useI18n()
+const { importImages } = useImageImport()
 const router = useRouter()
 const route = useRoute()
 
@@ -43,8 +46,7 @@ const closeMobileSidebar = () => {
   isMobileSidebarOpen.value = false
 }
 
-const handleFiles = (files: FileList | File[]) => {
-  const MAX_SIZE = 50 * 1024 * 1024 // 50MB
+const handleFiles = async (files: FileList | File[]) => {
   const validTypes = [
     'image/jpeg',
     'image/png',
@@ -58,7 +60,7 @@ const handleFiles = (files: FileList | File[]) => {
     if (!file.type.startsWith('image/') && !validTypes.includes(file.type)) {
       return false
     }
-    if (file.size > MAX_SIZE) {
+    if (file.size > MAX_FILE_BYTES) {
       alert(
         t('common.image.upload.errorSize', {
           name: file.name,
@@ -71,8 +73,9 @@ const handleFiles = (files: FileList | File[]) => {
   })
 
   if (validFiles.length > 0) {
-    store.addImages(validFiles)
-    if (route.name === 'home') {
+    const before = store.images.length
+    await importImages(validFiles)
+    if (store.images.length > before && route.name === 'home') {
       router.push('/compress')
     }
   }
@@ -301,7 +304,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
             <span
               v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
               :class="{ 'md:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
-              class="min-w-0 leading-tight line-clamp-2"
+              class="min-w-0 ui-label"
               >{{ item.name }}</span
             >
           </router-link>

@@ -81,13 +81,26 @@ const updateTitle = () => {
   }
 }
 
+/** Map app locale codes to BCP 47 for typography (hyphens / keep-all). */
+const syncHtmlLang = (locale: string) => {
+  const lang = locale.startsWith('pt') ? 'pt' : locale.split('-')[0] || locale
+  document.documentElement.lang = lang
+}
+
+syncHtmlLang(i18n.global.locale.value)
+
 // --- SEO & GEO: 动态标题更新 ---
 router.afterEach(() => {
   updateTitle()
 })
 
-// 监听语言变化同步更新标题
-watch(() => i18n.global.locale.value, updateTitle)
+watch(
+  () => i18n.global.locale.value,
+  (locale) => {
+    syncHtmlLang(locale)
+    updateTitle()
+  }
+)
 
 const app = createApp(App)
 const pinia = createPinia()

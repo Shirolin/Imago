@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { MAX_FILE_BYTES } from '../../lib/limits'
 
 const { t } = useI18n()
 const emit = defineEmits(['upload'])
 const fileInput = ref<HTMLInputElement | null>(null)
 
-const handleFiles = (files: FileList | File[]) => {
-  const MAX_SIZE = 50 * 1024 * 1024 // 50MB
+const handleFiles = async (files: FileList | File[]) => {
   const validTypes = [
     'image/jpeg',
     'image/png',
@@ -21,7 +21,7 @@ const handleFiles = (files: FileList | File[]) => {
     if (!file.type.startsWith('image/') && !validTypes.includes(file.type)) {
       return false
     }
-    if (file.size > MAX_SIZE) {
+    if (file.size > MAX_FILE_BYTES) {
       alert(
         t('common.image.upload.errorSize', {
           name: file.name,

@@ -41,7 +41,8 @@
       "colorsUnit": "色数",
       "targetSizeMode": "指定体积",
       "title": "导出参数配置",
-      "width": "像素宽度"
+      "width": "像素宽度",
+      "pngColorsHint": "通过降低通道精度减小体积，并非索引色 PNG。"
     },
     "go": "打开",
     "heroDesc": "拖入、粘贴，或点这里选文件。处理在浏览器里完成。",
@@ -130,7 +131,10 @@
         "pureOffline": "本地 · 不上传",
         "quickPaste": "粘贴快捷导入",
         "subtitle": "拖入、粘贴，或点这里选文件",
-        "title": "把图放到这张纸上"
+        "title": "把图放到这张纸上",
+        "errorDimensions": "文件 [{name}] 分辨率过高（{width}×{height}），长边不得超过 16384 px，总像素不得超过 1 亿。",
+        "errorDecode": "无法读取文件 [{name}] 的图片尺寸，请确认文件未损坏。",
+        "errorType": "文件 [{name}] 不是支持的图片格式。"
       }
     },
     "modal": {

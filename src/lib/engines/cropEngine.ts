@@ -1,5 +1,6 @@
 import type { ImageProcessor } from './types'
 import { injectMetadata } from '../utils/metadata'
+import { MAX_PROCESS_SIDE, fitWithinMaxSide } from '../limits'
 
 export interface CropOptions {
   x?: number
@@ -83,7 +84,28 @@ export const cropEngine: ImageProcessor<CropOptions> = async (file, options) => 
       finalW = Math.max(1, finalW - tL - tR)
       finalH = Math.max(1, finalH - tT - tB)
 
-      // 创建最终画布
+      const outputSize = fitWithinMaxSide(finalW, finalH, MAX_PROCESS_SIDE)
+      const outW = outputSize.width
+      const outH = outputSize.height
+
+      const tempCanvas = document.createElement('canvas')
+      tempCanvas.width = finalW
+      tempCanvas.height = finalH
+      const tempCtx = tempCanvas.getContext('2d', { alpha: true })
+      if (!tempCtx) {
+        reject(new Error('Failed to get final canvas context'))
+        return
+      }
+
+      if (options.fillColor && options.fillColor !== 'transparent') {
+        tempCtx.fillStyle = options.fillColor
+        tempCtx.fillRect(0, 0, finalW, finalH)
+      }
+
+      tempCtx.imageSmoothingEnabled = true
+      tempCtx.imageSmoothingQuality = 'high'
+      tempCtx.drawImage(workCanvas, -finalX, -finalY)
+
       const finalCanvas = document.createElement('canvas')
       const finalCtx = finalCanvas.getContext('2d', { alpha: true, desynchronized: true })
       if (!finalCtx) {
@@ -91,19 +113,11 @@ export const cropEngine: ImageProcessor<CropOptions> = async (file, options) => 
         return
       }
 
-      finalCanvas.width = finalW
-      finalCanvas.height = finalH
-
-      // 如果设定了填充色且不是透明，则填充底层（用于扩图）
-      if (options.fillColor && options.fillColor !== 'transparent') {
-        finalCtx.fillStyle = options.fillColor
-        finalCtx.fillRect(0, 0, finalW, finalH)
-      }
-
-      // 将工作画布绘制到最终画布上，通过负向偏移量实现裁剪和扩图的自动适应
+      finalCanvas.width = outW
+      finalCanvas.height = outH
       finalCtx.imageSmoothingEnabled = true
       finalCtx.imageSmoothingQuality = 'high'
-      finalCtx.drawImage(workCanvas, -finalX, -finalY)
+      finalCtx.drawImage(tempCanvas, 0, 0, finalW, finalH, 0, 0, outW, outH)
 
       // 检测是否发生了外扩
       const isExpanding =
@@ -115,19 +129,19 @@ export const cropEngine: ImageProcessor<CropOptions> = async (file, options) => 
       // 仅在严格裁剪（未扩图）时，清理可能因为抗锯齿残留的细微背景像素
       if (!isExpanding) {
         try {
-          const edgeData = finalCtx.getImageData(0, 0, finalW, finalH)
+          const edgeData = finalCtx.getImageData(0, 0, outW, outH)
           const d = edgeData.data
           const scanDepth = 3
           for (let pass = 0; pass < scanDepth; pass++) {
-            for (const row of [pass, finalH - 1 - pass]) {
-              for (let x = 0; x < finalW; x++) {
-                const i = (row * finalW + x) * 4
+            for (const row of [pass, outH - 1 - pass]) {
+              for (let x = 0; x < outW; x++) {
+                const i = (row * outW + x) * 4
                 if ((d[i + 3] ?? 0) < 128) d[i + 3] = 0
               }
             }
-            for (const col of [pass, finalW - 1 - pass]) {
-              for (let y = 0; y < finalH; y++) {
-                const i = (y * finalW + col) * 4
+            for (const col of [pass, outW - 1 - pass]) {
+              for (let y = 0; y < outH; y++) {
+                const i = (y * outW + col) * 4
                 if ((d[i + 3] ?? 0) < 128) d[i + 3] = 0
               }
             }

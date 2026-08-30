@@ -1,18 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
 import { combineEngine } from './combineEngine'
+import { MAX_COMBINE_CANVAS_AREA, MAX_COMBINE_CANVAS_SIDE } from '../limits'
 
-/**
- * combineEngine 回归测试（P0-2 画布尺寸上限按比例缩小 / toBlob 前尺寸校验 / P2-2 中止）
- *
- * Mock 策略：global.Image 桩按 files 顺序从 imageDims 队列取尺寸，测试手动触发 onload；
- * document.createElement('canvas') spy 返回 MockCanvas（ctx 捕获 drawImage/scale/clip/
- * fillRect/clearRect/roundRect），toBlob 直接回调 Blob；URL.createObjectURL/revokeObjectURL
- * 全程 mock。
- */
-
+const MAX_CANVAS_SIDE = MAX_COMBINE_CANVAS_SIDE
+const MAX_CANVAS_AREA = MAX_COMBINE_CANVAS_AREA
 const DEFAULT_BLOB = Symbol('default')
-const MAX_CANVAS_SIDE = 32767
-const MAX_CANVAS_AREA = 268_435_456
 
 type MockFn = Mock
 

@@ -1,4 +1,5 @@
 import type { MultiImageProcessor } from './types'
+import { MAX_COMBINE_CANVAS_AREA, MAX_COMBINE_CANVAS_SIDE } from '../limits'
 
 export interface CombineOptions {
   direction: 'vertical' | 'horizontal' | 'grid'
@@ -147,8 +148,8 @@ export const combineEngine: MultiImageProcessor<CombineOptions> = async (files, 
     // 超限时按比例缩小输出，避免创建超大画布导致崩溃或静默失败（P0-2）
     const rawW = totalWidth + padding * 2
     const rawH = totalHeight + padding * 2
-    const MAX_CANVAS_SIDE = 32767
-    const MAX_CANVAS_AREA = 268_435_456
+    const MAX_CANVAS_SIDE = MAX_COMBINE_CANVAS_SIDE
+    const MAX_CANVAS_AREA = MAX_COMBINE_CANVAS_AREA
     const exceedsLimit =
       rawW > MAX_CANVAS_SIDE || rawH > MAX_CANVAS_SIDE || rawW * rawH > MAX_CANVAS_AREA
     const scale = exceedsLimit

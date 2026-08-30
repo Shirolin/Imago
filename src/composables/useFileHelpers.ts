@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../stores/imageStore'
+import { useImageImport } from './useImageImport'
 import JSZip from 'jszip'
 
 export interface ZipResultItem {
@@ -12,6 +13,7 @@ export interface ZipResultItem {
 
 export function useFileHelpers() {
   const store = useImageStore()
+  const { importImages } = useImageImport()
   const { t } = useI18n()
   const fileInput = ref<HTMLInputElement | null>(null)
   const isDownloadingAll = ref(false)
@@ -57,10 +59,10 @@ export function useFileHelpers() {
   /**
    * 处理文件选择变更并添加到 Store
    */
-  const handleFileChange = (e: Event) => {
+  const handleFileChange = async (e: Event) => {
     const files = (e.target as HTMLInputElement).files
     if (files) {
-      store.addImages(Array.from(files))
+      await importImages(Array.from(files))
     }
   }
 
@@ -74,7 +76,6 @@ export function useFileHelpers() {
       'image/webp': '.webp',
       'image/avif': '.avif',
       'image/jxl': '.jxl',
-      'image/webp2': '.wp2',
       'image/jpeg-li': '.jpg',
       'application/zip': '.zip'
     }

@@ -41,7 +41,8 @@
       "colorsUnit": "Renk Sayısı",
       "targetSizeMode": "Hedef",
       "title": "Dışa Aktarma Yapılandırması",
-      "width": "Genişlik (px)"
+      "width": "Genişlik (px)",
+      "pngColorsHint": "Dosya boyutunu küçültmek için kanal hassasiyetini azaltır; indeksli renkli PNG değildir."
     },
     "go": "Aç",
     "heroDesc": "Tüm işlemler tarayıcınızda yerel olarak gerçekleşir. Dosyalar asla yüklenmez. Gerçekten özel ve verimli bir çevrimdışı üretkenlik aracı.",
@@ -130,7 +131,10 @@
         "pureOffline": "%100 Çevrimdışı",
         "quickPaste": "Hızlı Yapıştır",
         "subtitle": "Sürükle, yapıştır veya tıklayıp seç",
-        "title": "Görseli bu kâğıda koy"
+        "title": "Görseli bu kâğıda koy",
+        "errorDimensions": "[{name}] dosyasının çözünürlüğü çok yüksek ({width}×{height}). Uzun kenar 16384 px ve toplam piksel 100 MP'i geçmemelidir.",
+        "errorDecode": "[{name}] için görüntü boyutları okunamadı. Dosya bozuk olabilir.",
+        "errorType": "[{name}] desteklenen bir görüntü formatı değil."
       }
     },
     "modal": {

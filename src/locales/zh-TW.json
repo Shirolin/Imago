@@ -41,7 +41,8 @@
       "colorsUnit": "色數",
       "targetSizeMode": "指定體積",
       "title": "匯出參數配置",
-      "width": "像素寬度"
+      "width": "像素寬度",
+      "pngColorsHint": "透過降低色版精度減小檔案大小，並非索引色 PNG。"
     },
     "go": "打開",
     "heroDesc": "拖入、貼上，或點這裡選檔案。處理在瀏覽器裡完成。",
@@ -130,7 +131,10 @@
         "pureOffline": "本地 · 不上傳",
         "quickPaste": "貼上快捷匯入",
         "subtitle": "拖入、貼上，或點這裡選檔案",
-        "title": "把圖放到這張紙上"
+        "title": "把圖放到這張紙上",
+        "errorDimensions": "檔案 [{name}] 解析度過高（{width}×{height}），長邊不得超過 16384 px，總像素不得超過 1 億。",
+        "errorDecode": "無法讀取檔案 [{name}] 的圖片尺寸，請確認檔案未損壞。",
+        "errorType": "檔案 [{name}] 不是支援的圖片格式。"
       }
     },
     "modal": {

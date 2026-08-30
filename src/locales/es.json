@@ -41,7 +41,8 @@
       "colorsUnit": "Colores",
       "targetSizeMode": "Tamaño",
       "title": "Configuración de Exportación",
-      "width": "Anchura (px)"
+      "width": "Anchura (px)",
+      "pngColorsHint": "Reduce la precisión del canal para disminuir el tamaño; no es un PNG de color indexado."
     },
     "go": "Abrir",
     "heroDesc": "Todo el procesamiento ocurre localmente en tu navegador. Los archivos nunca se suben. Una herramienta de productividad offline real y privada.",
@@ -130,7 +131,10 @@
         "pureOffline": "100% Offline",
         "quickPaste": "Pegado Rápido",
         "subtitle": "Arrastra, pega o pulsa para elegir",
-        "title": "Pon la imagen sobre este papel"
+        "title": "Pon la imagen sobre este papel",
+        "errorDimensions": "La resolución de [{name}] es demasiado alta ({width}×{height}). El lado mayor no debe superar 16384 px y el total 100 MP.",
+        "errorDecode": "No se pudieron leer las dimensiones de [{name}]. El archivo puede estar dañado.",
+        "errorType": "[{name}] no es un formato de imagen compatible."
       }
     },
     "modal": {

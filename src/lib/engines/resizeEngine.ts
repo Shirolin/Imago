@@ -1,5 +1,6 @@
 import type { ImageProcessor } from './types'
 import { injectMetadata } from '../utils/metadata'
+import { MAX_PROCESS_SIDE, fitWithinMaxSide } from '../limits'
 
 export interface ResizeOptions {
   mode: 'pixels' | 'percentage'
@@ -34,8 +35,14 @@ export const resizeEngine: ImageProcessor<ResizeOptions> = async (file, options)
           targetHeight = Math.max(1, bitmap.height * factor)
         } else {
           // 像素模式：钳制非法输入（0/负数/超界），防止 OffscreenCanvas 崩溃
-          targetWidth = Math.max(1, Math.min(16384, Math.round(options.width ?? bitmap.width)))
-          targetHeight = Math.max(1, Math.min(16384, Math.round(options.height ?? bitmap.height)))
+          targetWidth = Math.max(
+            1,
+            Math.min(MAX_PROCESS_SIDE, Math.round(options.width ?? bitmap.width))
+          )
+          targetHeight = Math.max(
+            1,
+            Math.min(MAX_PROCESS_SIDE, Math.round(options.height ?? bitmap.height))
+          )
 
           if (options.maintainAspectRatio) {
             const ratio = bitmap.width / bitmap.height
@@ -44,10 +51,12 @@ export const resizeEngine: ImageProcessor<ResizeOptions> = async (file, options)
             } else if (options.height && !options.width) {
               targetWidth = targetHeight * ratio
             }
-            // 宽高均已显式提供：直接使用用户输入值（视图联动已保证比例在取整误差内），
-            // 不再二次比例修正——此前 9999 会被引擎悄悄改写成 9998（少 1px）
           }
         }
+
+        const fitted = fitWithinMaxSide(targetWidth, targetHeight, MAX_PROCESS_SIDE)
+        targetWidth = fitted.width
+        targetHeight = fitted.height
 
         targetWidth = Math.round(targetWidth)
         targetHeight = Math.round(targetHeight)

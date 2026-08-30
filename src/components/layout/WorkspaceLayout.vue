@@ -7,10 +7,12 @@ import ImageUpload from '../common/ImageUpload.vue'
 import AssetsTray from './AssetsTray.vue'
 import { PanelRightClose, PanelRightOpen, ChevronUp, ChevronDown } from 'lucide-vue-next'
 import { useBreakpoints } from '../../composables/useBreakpoints'
+import { useImageImport } from '../../composables/useImageImport'
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
 const { t } = useI18n()
+const { importImages } = useImageImport()
 const { isCompact, isMedium, isUltra, isDesktop } = useBreakpoints()
 
 interface Props {
@@ -78,7 +80,7 @@ onMounted(() => {
           v-if="store.images.length === 0"
           class="flex-1 min-h-0 imago-well flex items-center justify-center"
         >
-          <ImageUpload @upload="store.addImages" />
+          <ImageUpload @upload="importImages" />
         </div>
 
         <template v-else>

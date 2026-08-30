@@ -2,6 +2,7 @@ import imageCompression from 'browser-image-compression'
 import type { ImageProcessor } from './types'
 import { isFormatSupported } from '../utils/formatSupport'
 import { injectMetadata } from '../utils/metadata'
+import { resolveCompressLongEdge, shouldKeepOriginalWhenLarger } from '../limits'
 
 export interface CompressionOptions {
   quality: number
@@ -15,7 +16,6 @@ export interface CompressionOptions {
     | 'image/webp'
     | 'image/avif'
     | 'image/jxl'
-    | 'image/webp2'
     | 'image/heif'
     | 'image/jpeg-li'
   colors?: number // 针对 PNG 的颜色数量量化
@@ -37,27 +37,22 @@ export const compressEngine: ImageProcessor<CompressionOptions> = async (file, o
     }
   }
 
-  // maxWidthOrHeight 计算：
-  // browser-image-compression 只接受单个「长边」约束。若同时给了宽高，
-  // 先按原图尺寸求同时满足两边约束的缩放因子，再换算成长边值，
-  // 修复此前 maxHeight < maxWidth 时高度约束被静默忽略的问题
-  let maxWidthOrHeight = options.maxWidth || options.maxHeight || 4096
-  if (options.maxWidth && options.maxHeight) {
-    const probe = await createImageBitmap(file)
-    const imgW = probe.width
-    const imgH = probe.height
-    probe.close()
-    const scale = Math.min(1, options.maxWidth / imgW, options.maxHeight / imgH)
-    maxWidthOrHeight = Math.max(1, Math.round(Math.max(imgW, imgH) * scale))
-  }
+  const probe = await createImageBitmap(file)
+  const imgW = probe.width
+  const imgH = probe.height
+  probe.close()
 
-  const compressionOptions = {
-    maxSizeMB: options.maxSizeMB || 10,
+  const maxWidthOrHeight = resolveCompressLongEdge(imgW, imgH, options.maxWidth, options.maxHeight)
+
+  const compressionOptions: Parameters<typeof imageCompression>[1] = {
     maxWidthOrHeight,
     useWebWorker: true,
     initialQuality: options.quality,
     fileType: options.format,
     signal: options.signal
+  }
+  if (options.maxSizeMB != null) {
+    compressionOptions.maxSizeMB = options.maxSizeMB
   }
 
   const compressedFile = await imageCompression(file, compressionOptions)
@@ -80,9 +75,16 @@ export const compressEngine: ImageProcessor<CompressionOptions> = async (file, o
     }
   }
 
-  // 决定是否保留原图
-  const shouldKeepOriginal = options.keepOriginalIfLarger !== false // 默认 true
-  if (shouldKeepOriginal && finalBlob.size >= file.size) {
+  const outputType = options.format || file.type
+  if (
+    shouldKeepOriginalWhenLarger(
+      options.keepOriginalIfLarger,
+      file.type,
+      outputType,
+      finalBlob.size,
+      file.size
+    )
+  ) {
     return {
       blob: file,
       size: file.size,

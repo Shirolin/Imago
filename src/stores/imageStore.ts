@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { MAX_FILE_BYTES, exceedsImportDimensions } from '../lib/limits'
 
 export interface ImageItem {
   id: string
@@ -16,6 +17,15 @@ export interface ImageItem {
   exifCount?: number
   isExifUnsupported?: boolean
   exifError?: string
+}
+
+export type ImageRejectReason = 'type' | 'size' | 'dimensions' | 'decode'
+
+export interface RejectedImage {
+  file: File
+  reason: ImageRejectReason
+  width?: number
+  height?: number
 }
 
 export const useImageStore = defineStore('image', () => {
@@ -80,7 +90,6 @@ export const useImageStore = defineStore('image', () => {
     )
   })
 
-  const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
   const VALID_IMAGE_TYPES = [
     'image/jpeg',
     'image/png',
@@ -92,20 +101,22 @@ export const useImageStore = defineStore('image', () => {
     'image/heif'
   ]
 
-  const addImages = async (files: File[]) => {
-    // 1. 基础验证与过滤
+  const addImages = async (files: File[]): Promise<RejectedImage[]> => {
+    const rejected: RejectedImage[] = []
+
     const validFiles = files.filter((file) => {
       if (!file.type.startsWith('image/') && !VALID_IMAGE_TYPES.includes(file.type)) {
+        rejected.push({ file, reason: 'type' })
         return false
       }
-      if (file.size > MAX_FILE_SIZE) {
-        // 具体的错误处理由调用方或全局提示处理，Store 这里只负责拦截
+      if (file.size > MAX_FILE_BYTES) {
+        rejected.push({ file, reason: 'size' })
         return false
       }
       return true
     })
 
-    if (validFiles.length === 0) return
+    if (validFiles.length === 0) return rejected
 
     const existingKeys = new Set(
       images.value.map((img) => `${img.file.name}-${img.file.size}-${img.file.lastModified}`)
@@ -130,6 +141,23 @@ export const useImageStore = defineStore('image', () => {
         img.src = preview
       })
 
+      if (dimensions.width <= 0 || dimensions.height <= 0) {
+        URL.revokeObjectURL(preview)
+        rejected.push({ file, reason: 'decode' })
+        return null
+      }
+
+      if (exceedsImportDimensions(dimensions.width, dimensions.height)) {
+        URL.revokeObjectURL(preview)
+        rejected.push({
+          file,
+          reason: 'dimensions',
+          width: dimensions.width,
+          height: dimensions.height
+        })
+        return null
+      }
+
       return {
         id: Math.random().toString(36).substring(7),
         file,
@@ -142,7 +170,9 @@ export const useImageStore = defineStore('image', () => {
       }
     })
 
-    const resolvedImages = await Promise.all(newImagePromises)
+    const resolvedImages = (await Promise.all(newImagePromises)).filter(
+      (img): img is NonNullable<typeof img> => img !== null
+    )
     images.value.push(...resolvedImages)
 
     // 自动激活最后一张新图片
@@ -150,6 +180,8 @@ export const useImageStore = defineStore('image', () => {
       const last = resolvedImages[resolvedImages.length - 1]
       if (last) activeId.value = last.id
     }
+
+    return rejected
   }
 
   const removeImage = (id: string) => {

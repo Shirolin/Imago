@@ -205,9 +205,10 @@ describe('输入与全局交互', () => {
   it('handleFileChange 转发文件到 store.addImages', async () => {
     const { useImageStore } = await import('../stores/imageStore')
     const store = useImageStore()
+    vi.mocked(store.addImages).mockResolvedValue([])
     const { handleFileChange } = useFileHelpers()
     const file = new File(['x'], 'a.png', { type: 'image/png' })
-    handleFileChange({ target: { files: [file] } } as unknown as Event)
+    await handleFileChange({ target: { files: [file] } } as unknown as Event)
     expect(store.addImages).toHaveBeenCalledWith([file])
   })
 

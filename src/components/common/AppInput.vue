@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { Plus, Minus } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 
@@ -28,13 +28,43 @@ const emit = defineEmits(['update:modelValue'])
 
 const inputId = props.id || `input-${Math.random().toString(36).slice(2, 9)}`
 
+const clampNumber = (raw: string | number | undefined): number | '' | undefined => {
+  if (raw === '' || raw == null) return raw === '' ? '' : undefined
+  const n = Number(raw)
+  if (!Number.isFinite(n)) return props.min ?? ''
+  let next = props.step === Math.floor(props.step) ? Math.round(n) : n
+  if (props.min !== undefined && next < props.min) next = props.min
+  if (props.max !== undefined && next > props.max) next = props.max
+  return next
+}
+
 const value = computed({
   get: () => props.modelValue,
   set: (val) => {
-    const nextVal = props.type === 'number' ? (val === '' ? '' : Number(val)) : val
-    emit('update:modelValue', nextVal)
+    if (props.type !== 'number') {
+      emit('update:modelValue', val)
+      return
+    }
+    if (val === '') {
+      emit('update:modelValue', '')
+      return
+    }
+    emit('update:modelValue', clampNumber(val))
   }
 })
+
+watch(
+  () => [props.modelValue, props.min, props.max, props.type] as const,
+  () => {
+    if (props.type !== 'number' || props.modelValue === '' || props.modelValue == null) return
+    if (props.min === undefined && props.max === undefined) return
+    const clamped = clampNumber(props.modelValue)
+    if (clamped !== '' && clamped !== props.modelValue) {
+      emit('update:modelValue', clamped)
+    }
+  },
+  { immediate: true }
+)
 
 /**
  * 数字输入在失焦时按 min/max 钳制，避免 0/负数/超大值透传到引擎
@@ -42,12 +72,10 @@ const value = computed({
  */
 const handleBlur = () => {
   if (props.type !== 'number' || props.modelValue === '' || props.modelValue == null) return
-  const current = Number(props.modelValue)
-  let next = current
-  if (props.min !== undefined && next < props.min) next = props.min
-  if (props.max !== undefined && next > props.max) next = props.max
-  if (Number.isNaN(next)) next = props.min ?? 0
-  if (next !== current) emit('update:modelValue', next)
+  const clamped = clampNumber(props.modelValue)
+  if (clamped === '' || clamped !== props.modelValue) {
+    emit('update:modelValue', clamped === '' ? '' : clamped)
+  }
 }
 
 const isAtMin = computed(() => {
@@ -61,17 +89,28 @@ const isAtMax = computed(() => {
 })
 
 const handleIncrement = () => {
-  const current = Number(props.modelValue) || 0
-  const next = current + props.step
-  if (props.max !== undefined && next > props.max) return
-  emit('update:modelValue', next)
+  const base =
+    props.modelValue === '' || props.modelValue == null
+      ? (props.min ?? 0)
+      : Number(props.modelValue)
+  if (!Number.isFinite(base)) return
+  const next = base + props.step
+  if (props.max !== undefined && next > props.max) {
+    emit('update:modelValue', clampNumber(props.max))
+    return
+  }
+  emit('update:modelValue', clampNumber(next))
 }
 
 const handleDecrement = () => {
-  const current = Number(props.modelValue) || 0
-  const next = current - props.step
+  const base =
+    props.modelValue === '' || props.modelValue == null
+      ? (props.min ?? 0)
+      : Number(props.modelValue)
+  if (!Number.isFinite(base)) return
+  const next = base - props.step
   if (props.min !== undefined && next < props.min) return
-  emit('update:modelValue', next)
+  emit('update:modelValue', clampNumber(next))
 }
 </script>
 

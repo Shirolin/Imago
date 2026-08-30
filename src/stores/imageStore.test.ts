@@ -84,4 +84,48 @@ describe('Image Store', () => {
     expect(store.images.length).toBe(0)
     expect(vi.mocked(URL.revokeObjectURL)).toHaveBeenCalledWith('mock-url')
   })
+
+  it('超长边图片应被拒绝导入', async () => {
+    // @ts-expect-error: Mocking Image for JSDOM
+    global.Image = class {
+      set src(_value: string) {
+        setTimeout(() => this.onload(), 0)
+      }
+      onload = () => {}
+      onerror = () => {}
+      naturalWidth = 20000
+      naturalHeight = 1000
+    }
+
+    const store = useImageStore()
+    const mockFile = new File(['test'], 'huge.png', { type: 'image/png' })
+    const rejected = await store.addImages([mockFile])
+
+    expect(rejected).toHaveLength(1)
+    expect(rejected[0]!.reason).toBe('dimensions')
+    expect(store.images.length).toBe(0)
+    expect(vi.mocked(URL.revokeObjectURL)).toHaveBeenCalledWith('mock-url')
+  })
+
+  it('无法解码的图片应被拒绝导入', async () => {
+    // @ts-expect-error: Mocking Image for JSDOM
+    global.Image = class {
+      set src(_value: string) {
+        setTimeout(() => this.onerror(), 0)
+      }
+      onload = () => {}
+      onerror = () => {}
+      naturalWidth = 0
+      naturalHeight = 0
+    }
+
+    const store = useImageStore()
+    const mockFile = new File(['test'], 'broken.png', { type: 'image/png' })
+    const rejected = await store.addImages([mockFile])
+
+    expect(rejected).toHaveLength(1)
+    expect(rejected[0]!.reason).toBe('decode')
+    expect(store.images.length).toBe(0)
+    expect(vi.mocked(URL.revokeObjectURL)).toHaveBeenCalledWith('mock-url')
+  })
 })

@@ -1,6 +1,13 @@
 import type { ImageProcessor } from './types'
 import type { CompressionOptions } from './compressEngine'
 import { injectMetadata } from '../utils/metadata'
+import {
+  DEFAULT_COMPRESS_LONG_EDGE,
+  MAX_PROCESS_SIDE,
+  MAX_WEBP_SIDE,
+  fitWithinMaxSide,
+  shouldKeepOriginalWhenLarger
+} from '../limits'
 
 /**
  * WebAssembly 核心图片处理引擎
@@ -9,23 +16,44 @@ import { injectMetadata } from '../utils/metadata'
 export const wasmEngine: ImageProcessor<CompressionOptions> = async (file, options) => {
   const format = options.format || file.type
 
-  // 1. 将输入图片快速解析为统一的 RGBA 像素阵列 (ImageData)
-  // 并根据 maxWidth/maxHeight 进行预缩放处理
   const bitmap = await createImageBitmap(file)
   let targetWidth = bitmap.width
   let targetHeight = bitmap.height
 
-  if (options.maxWidth || options.maxHeight) {
-    const ratio = bitmap.width / bitmap.height
-    if (options.maxWidth && targetWidth > options.maxWidth) {
+  if (options.maxWidth && options.maxHeight) {
+    const scale = Math.min(1, options.maxWidth / targetWidth, options.maxHeight / targetHeight)
+    targetWidth *= scale
+    targetHeight *= scale
+  } else if (options.maxWidth) {
+    if (targetWidth > options.maxWidth) {
+      const ratio = targetWidth / targetHeight
       targetWidth = options.maxWidth
       targetHeight = targetWidth / ratio
     }
-    if (options.maxHeight && targetHeight > options.maxHeight) {
+  } else if (options.maxHeight) {
+    if (targetHeight > options.maxHeight) {
+      const ratio = targetWidth / targetHeight
       targetHeight = options.maxHeight
       targetWidth = targetHeight * ratio
     }
+  } else {
+    const fitted = fitWithinMaxSide(targetWidth, targetHeight, DEFAULT_COMPRESS_LONG_EDGE)
+    targetWidth = fitted.width
+    targetHeight = fitted.height
   }
+
+  const processCap = fitWithinMaxSide(targetWidth, targetHeight, MAX_PROCESS_SIDE)
+  targetWidth = processCap.width
+  targetHeight = processCap.height
+
+  if (format === 'image/webp') {
+    const webpCap = fitWithinMaxSide(targetWidth, targetHeight, MAX_WEBP_SIDE)
+    targetWidth = webpCap.width
+    targetHeight = webpCap.height
+  }
+
+  targetWidth = Math.round(targetWidth)
+  targetHeight = Math.round(targetHeight)
 
   const canvas = new OffscreenCanvas(targetWidth, targetHeight)
   const ctx = canvas.getContext('2d')
@@ -34,6 +62,8 @@ export const wasmEngine: ImageProcessor<CompressionOptions> = async (file, optio
   ctx.imageSmoothingEnabled = true
   ctx.imageSmoothingQuality = 'high'
   ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight)
+  bitmap.close()
+
   const imageData = ctx.getImageData(0, 0, targetWidth, targetHeight)
 
   // 2. 核心编码逻辑 (支持针对目标体积的简单迭代)
@@ -62,7 +92,6 @@ export const wasmEngine: ImageProcessor<CompressionOptions> = async (file, optio
       }
       case 'image/png': {
         const { encode } = await import('@jsquash/png')
-        // 如果用户设置了较低的颜色数 (2-255)，我们可以通过颜色步进模拟索引色量化
         if (options.colors && options.colors < 256) {
           const depth = Math.max(1, Math.round(Math.log2(options.colors)))
           const factor = 256 / Math.pow(2, depth)
@@ -70,11 +99,9 @@ export const wasmEngine: ImageProcessor<CompressionOptions> = async (file, optio
           const data = imageData.data
           if (data) {
             for (let i = 0; i < data.length; i += 4) {
-              // 对 RGB 通道进行量化处理
               data[i] = Math.round((data[i] as number) / factor) * factor
               data[i + 1] = Math.round((data[i + 1] as number) / factor) * factor
               data[i + 2] = Math.round((data[i + 2] as number) / factor) * factor
-              // Alpha 通道通常保持原样或进行二值化处理
               if ((data[i + 3] as number) < 128) data[i + 3] = 0
               else data[i + 3] = 255
             }
@@ -90,7 +117,6 @@ export const wasmEngine: ImageProcessor<CompressionOptions> = async (file, optio
   let arrayBuffer: ArrayBuffer
   let currentQuality = options.quality
 
-  // 如果指定了目标体积 (maxSizeMB)，进行最多 3 次迭代尝试
   if (options.maxSizeMB && format !== 'image/png') {
     const targetSize = options.maxSizeMB * 1024 * 1024
     let attempt = 0
@@ -98,7 +124,6 @@ export const wasmEngine: ImageProcessor<CompressionOptions> = async (file, optio
 
     while (arrayBuffer.byteLength > targetSize && attempt < 3) {
       attempt++
-      // 简单的线性下降尝试，加入 0.9 的安全系数
       currentQuality = currentQuality * (targetSize / arrayBuffer.byteLength) * 0.9
       if (currentQuality < 0.1) break
       arrayBuffer = await runEncode(currentQuality)
@@ -107,7 +132,6 @@ export const wasmEngine: ImageProcessor<CompressionOptions> = async (file, optio
     arrayBuffer = await runEncode(currentQuality)
   }
 
-  // 3. 将 Wasm 吐出的 ArrayBuffer 包装为 Blob (如果需要，先缝合元数据)
   if (options.preserveExif && file instanceof File) {
     arrayBuffer = await injectMetadata(file, arrayBuffer, format)
   }
@@ -115,9 +139,15 @@ export const wasmEngine: ImageProcessor<CompressionOptions> = async (file, optio
   const outputMime = format === 'image/jpeg-li' ? 'image/jpeg' : format
   const compressedBlob = new Blob([arrayBuffer], { type: outputMime })
 
-  // 4. 判断是否保留原图（防倒车机制）
-  const shouldKeepOriginal = options.keepOriginalIfLarger !== false // 默认 true
-  if (shouldKeepOriginal && compressedBlob.size >= file.size) {
+  if (
+    shouldKeepOriginalWhenLarger(
+      options.keepOriginalIfLarger,
+      file.type,
+      outputMime,
+      compressedBlob.size,
+      file.size
+    )
+  ) {
     return {
       blob: file,
       size: file.size,

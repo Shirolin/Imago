@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../stores/imageStore'
 import { useFileHelpers } from '../composables/useFileHelpers'
+import { useImageImport } from '../composables/useImageImport'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
@@ -32,6 +33,7 @@ import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
 const store = useImageStore()
 const { downloadImage } = useFileHelpers()
+const { importImages } = useImageImport()
 const { t } = useI18n()
 
 // 状态
@@ -485,7 +487,7 @@ const handleGenerate = async () => {
         </div>
 
         <div v-else class="h-full flex flex-col items-center justify-center p-8">
-          <ImageUpload @upload="store.addImages" />
+          <ImageUpload @upload="importImages" />
         </div>
       </div>
     </template>

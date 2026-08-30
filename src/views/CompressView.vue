@@ -19,6 +19,7 @@ import { dualEngine } from '../lib/engines/index'
 import type { CompressionOptions } from '../lib/engines/compressEngine'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import type { ProcessResult } from '../lib/engines/types'
+import { DEFAULT_COMPRESS_LONG_EDGE, MAX_TARGET_SIZE_KB } from '../lib/limits'
 
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
@@ -71,13 +72,13 @@ const compressionMode = ref<'quality' | 'target'>('quality')
 const quality = ref(0.8)
 const outputFormat = ref<string>('original')
 const pngColors = ref(256)
-const pngEffort = ref(7)
+const jxlEffort = ref(7)
 const targetSizeKB = ref(500)
-// 目标体积输入为空/非法时钳制到最小有效值，避免 ''→0→静默 10MB 兜底
+// 目标体积输入为空/非法时钳制到最小有效值
 const sanitizeTargetSize = (val: unknown) => {
   const n = Number(val)
   if (!Number.isFinite(n) || n < 1) return 1
-  return Math.round(n)
+  return Math.min(MAX_TARGET_SIZE_KB, Math.round(n))
 }
 const handleTargetSize = (val: string | number | undefined) => {
   targetSizeKB.value = sanitizeTargetSize(val)
@@ -105,10 +106,8 @@ const hasGifSelected = computed(() =>
   store.images.some((img) => store.selectedIds.has(img.id) && img.file.type === 'image/gif')
 )
 
-// P2-17：quality 模式未设分辨率上限时引擎默认按 4096px 长边约束，显示提示
-const showDefaultLimitHint = computed(
-  () => compressionMode.value === 'quality' && !maxWidth.value && !maxHeight.value
-)
+// 未设分辨率上限时引擎默认按 4096px 长边约束，质量/目标模式均显示提示
+const showDefaultLimitHint = computed(() => !maxWidth.value && !maxHeight.value)
 
 const displayImages = computed(() => [...store.images].reverse())
 
@@ -149,7 +148,7 @@ watch(
     compressionMode,
     targetSizeKB,
     pngColors,
-    pngEffort,
+    jxlEffort,
     maxWidth,
     maxHeight,
     keepOriginalIfLarger,
@@ -268,7 +267,7 @@ const handleCtaClick = async () => {
             ? Number(targetSizeKB.value) / 1024
             : undefined,
         colors: outputFormat.value === 'image/png' ? pngColors.value : undefined,
-        effort: outputFormat.value === 'image/png' ? pngEffort.value : undefined,
+        effort: outputFormat.value === 'image/jxl' ? jxlEffort.value : undefined,
         keepOriginalIfLarger: keepOriginalIfLarger.value,
         preserveExif: preserveExif.value,
         maxWidth: maxWidth.value,
@@ -343,7 +342,7 @@ const handleCtaClick = async () => {
           v-model:target-size-k-b="targetSizeKB"
           @update:target-size-k-b="handleTargetSize"
           v-model:colors="pngColors"
-          v-model:effort="pngEffort"
+          v-model:effort="jxlEffort"
           v-model:max-width="maxWidth"
           v-model:max-height="maxHeight"
           v-model:keep-original-if-larger="keepOriginalIfLarger"
@@ -360,7 +359,7 @@ const handleCtaClick = async () => {
             v-if="showDefaultLimitHint"
             class="text-[0.6rem] text-muted-foreground/70 mt-2 px-1 leading-relaxed tabular-nums"
           >
-            {{ t('tools.compress.maxDimensionHint', { limit: 4096 }) }}
+            {{ t('tools.compress.maxDimensionHint', { limit: DEFAULT_COMPRESS_LONG_EDGE }) }}
           </p>
         </section>
       </template>
@@ -380,12 +379,10 @@ const handleCtaClick = async () => {
               <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
               <component :is="ctaState.icon" v-else :size="18" class="mr-2" />
             </template>
-            <span class="font-medium text-sm">
-              {{ ctaState.text }}
-              <span v-if="ctaState.progress" class="tabular-nums opacity-70">{{
-                ctaState.progress
-              }}</span>
-            </span>
+            {{ ctaState.text
+            }}<span v-if="ctaState.progress" class="tabular-nums opacity-70">{{
+              ctaState.progress
+            }}</span>
           </AppButton>
         </InspectorFooter>
       </template>

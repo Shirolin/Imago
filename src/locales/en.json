@@ -41,7 +41,8 @@
       "colorsUnit": "Colors",
       "targetSizeMode": "Target Size",
       "title": "Export Configuration",
-      "width": "Width"
+      "width": "Width",
+      "pngColorsHint": "Reduces channel precision to shrink file size; not indexed-color PNG."
     },
     "go": "Open",
     "heroDesc": "Drop, paste, or click to pick files. Processing stays in the browser.",
@@ -130,7 +131,10 @@
         "pureOffline": "Local · no upload",
         "quickPaste": "Quick Paste",
         "subtitle": "Drop, paste, or click to pick a file",
-        "title": "Put the image on this paper"
+        "title": "Put the image on this paper",
+        "errorDimensions": "File [{name}] resolution is too high ({width}×{height}). Max dimension is 16,384 px and total pixels must not exceed 100 MP.",
+        "errorDecode": "Could not read image dimensions for [{name}]. The file may be corrupted.",
+        "errorType": "[{name}] is not a supported image format."
       }
     },
     "modal": {

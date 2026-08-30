@@ -41,7 +41,8 @@
       "colorsUnit": "Farben",
       "targetSizeMode": "Zielgröße",
       "title": "Export-Konfiguration",
-      "width": "Breite (px)"
+      "width": "Breite (px)",
+      "pngColorsHint": "Reduziert die Kanalgenauigkeit zur Verringerung der Dateigröße; kein indiziertes PNG."
     },
     "go": "Öffnen",
     "heroDesc": "Die Bildverarbeitung erfolgt lokal in Ihrem Browser. Dateien werden niemals hochgeladen. Ein privates und effizientes Offline-Produktivitätstool.",
@@ -130,7 +131,10 @@
         "pureOffline": "100% Offline",
         "quickPaste": "Einfügen",
         "subtitle": "Ziehen, einfügen oder hier klicken",
-        "title": "Bild auf dieses Papier legen"
+        "title": "Bild auf dieses Papier legen",
+        "errorDimensions": "Die Auflösung von [{name}] ist zu hoch ({width}×{height}). Die längere Kante darf maximal 16384 px und die Gesamtpixel 100 MP nicht überschreiten.",
+        "errorDecode": "Bildabmessungen für [{name}] konnten nicht gelesen werden. Die Datei ist möglicherweise beschädigt.",
+        "errorType": "[{name}] ist kein unterstütztes Bildformat."
       }
     },
     "modal": {

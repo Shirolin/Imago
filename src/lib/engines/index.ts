@@ -15,9 +15,10 @@ export const dualEngine: ImageProcessor<CompressionOptions> = async (file, optio
   const nativePreferredFormats = ['image/jpeg', 'image/png', 'image/webp']
 
   if (nativePreferredFormats.includes(targetFormat)) {
-    // 再次确认浏览器真的原生支持写出这个格式
+    const skipNativeForPngColors =
+      targetFormat === 'image/png' && options.colors != null && options.colors < 256
     const isNativeSupported = await isFormatSupported(targetFormat)
-    if (isNativeSupported) {
+    if (isNativeSupported && !skipNativeForPngColors) {
       try {
         console.log(`[Imago Engine] 🚀 Routing to Native Canvas Engine for ${targetFormat}`)
         return await compressEngine(file, options)

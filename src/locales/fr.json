@@ -41,7 +41,8 @@
       "colorsUnit": "Couleurs",
       "targetSizeMode": "Taille",
       "title": "Configuration d'Exportation",
-      "width": "Largeur (px)"
+      "width": "Largeur (px)",
+      "pngColorsHint": "Réduit la précision des canaux pour diminuer le poids ; pas un PNG en couleurs indexées."
     },
     "go": "Ouvrir",
     "heroDesc": "Tout le traitement se fait localement dans votre navigateur. Les fichiers ne sont jamais téléchargés. Un véritable outil de productivité hors ligne et privé.",
@@ -130,7 +131,10 @@
         "pureOffline": "100% Hors Ligne",
         "quickPaste": "Coller",
         "subtitle": "Glisser, coller, ou cliquer pour choisir",
-        "title": "Posez l’image sur ce papier"
+        "title": "Posez l’image sur ce papier",
+        "errorDimensions": "La résolution de [{name}] est trop élevée ({width}×{height}). Le côté le plus long ne doit pas dépasser 16384 px et le total 100 MP.",
+        "errorDecode": "Impossible de lire les dimensions de [{name}]. Le fichier est peut-être corrompu.",
+        "errorType": "[{name}] n'est pas un format d'image pris en charge."
       }
     },
     "modal": {

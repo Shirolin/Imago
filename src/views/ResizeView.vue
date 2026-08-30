@@ -20,6 +20,7 @@ import ImageCompare from '../components/common/ImageCompare.vue'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
 import AppExportSettings from '../components/common/AppExportSettings.vue'
+import { MAX_PROCESS_SIDE } from '../lib/limits'
 import {
   Settings2,
   Percent,
@@ -388,7 +389,7 @@ const handleCtaClick = async () => {
                 :suffix="t('tools.resize.widthUnit')"
                 :aria-label="t('tools.resize.width')"
                 :min="1"
-                :max="16384"
+                :max="MAX_PROCESS_SIDE"
               />
               <AppInput
                 v-model.number="height"
@@ -397,7 +398,7 @@ const handleCtaClick = async () => {
                 :suffix="t('tools.resize.heightUnit')"
                 :aria-label="t('tools.resize.height')"
                 :min="1"
-                :max="16384"
+                :max="MAX_PROCESS_SIDE"
               />
               <div class="flex items-center justify-between px-1 pt-0.5">
                 <AppCheckbox
@@ -423,6 +424,7 @@ const handleCtaClick = async () => {
             v-model:quality="outputQuality"
             v-model:preserve-exif="preserveExif"
             show-exif-option
+            canvas-only
           />
         </section>
       </template>
@@ -441,7 +443,7 @@ const handleCtaClick = async () => {
             <template #icon>
               <component :is="ctaState.icon" v-if="!isProcessing" :size="18" class="mr-2" />
             </template>
-            <span class="font-medium text-sm">{{ ctaState.text }}</span>
+            {{ ctaState.text }}
           </AppButton>
         </InspectorFooter>
       </template>
