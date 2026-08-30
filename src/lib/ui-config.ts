@@ -82,5 +82,6 @@ export const VIEW_CONFIGS: Record<string, ViewMeta> = {
  * 获取指定视图的配置
  */
 export const getViewConfig = (viewId: string): ViewMeta | undefined => {
-  return VIEW_CONFIGS[viewId]
+  if (VIEW_CONFIGS[viewId]) return VIEW_CONFIGS[viewId]
+  return Object.values(VIEW_CONFIGS).find((view) => view.id === viewId)
 }

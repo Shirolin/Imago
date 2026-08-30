@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../../stores/imageStore'
 import { useLayoutStore } from '../../stores/layoutStore'
 import { useFileHelpers } from '../../composables/useFileHelpers'
+import { getViewConfig } from '../../lib/ui-config'
 import AppModal from './AppModal.vue'
 import AppButton from './AppButton.vue'
 import {
@@ -64,6 +65,10 @@ const emit = defineEmits(['reset-all'])
 // P2-19: 处理中禁用不能只依赖父级 prop（父级默认 isProcessing=false 时，
 // 队列里仍有图片在处理却可继续导出/重置/删除）。内部读取 store.processingCount 兜底，二者取或。
 const isBusy = computed(() => props.isProcessing || store.processingCount > 0)
+const layoutToggleVisible = computed(() => {
+  if (getViewConfig(props.viewId)?.features.showLayoutToggle === false) return false
+  return props.showLayoutToggle
+})
 
 const handleConfirm = () => {
   if (confirmMode.value === 'clear') {
@@ -85,7 +90,7 @@ const handleConfirm = () => {
     <div
       class="flex items-center gap-0.5 bg-[var(--well)] p-0.5 rounded-[var(--radius-ctrl)] border border-[var(--hairline)]"
     >
-      <template v-if="props.showLayoutToggle">
+      <template v-if="layoutToggleVisible">
         <button
           @click="
             layoutStore.cardSizeMode = layoutStore.cardSizeMode === 'compact' ? 'large' : 'compact'

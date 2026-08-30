@@ -14,12 +14,15 @@ import {
 } from 'lucide-vue-next'
 import { useImageStore, type ImageItem } from '../../stores/imageStore'
 import { useLayoutStore } from '../../stores/layoutStore'
+import { useBreakpoints } from '../../composables/useBreakpoints'
+import { cardActionChrome as resolveCardActionChrome } from '../../composables/cardChrome'
 import { useI18n } from 'vue-i18n'
 import AppModal from './AppModal.vue'
 import AppButton from './AppButton.vue'
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
+const { isOverlayChrome } = useBreakpoints()
 const { t } = useI18n()
 
 interface Props {
@@ -31,6 +34,9 @@ interface Props {
   processedPreview?: string
   processedBlob?: Blob
   isDirty?: boolean
+  showCompare?: boolean
+  showDownload?: boolean
+  showInteractive?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -40,12 +46,27 @@ const props = withDefaults(defineProps<Props>(), {
   showTransparency: false,
   processedPreview: undefined,
   processedBlob: undefined,
-  isDirty: false
+  isDirty: false,
+  showCompare: true,
+  showDownload: true,
+  showInteractive: false
 })
 const emit = defineEmits(['toggle', 'remove', 'download', 'compare', 'interactive', 'reset'])
 
-// 模式判定：严格遵循用户切换的全局指令
 const isLargeMode = computed(() => layoutStore.cardSizeMode === 'large')
+const actionChrome = computed(() =>
+  resolveCardActionChrome({
+    large: isLargeMode.value,
+    overlay: isOverlayChrome.value
+  })
+)
+const statusLabel = computed(() => {
+  if (props.image.status === 'processing') return t('common.image.card.wait')
+  if (props.image.status === 'done') {
+    return props.isDirty ? t('common.image.card.dirty') : t('common.image.card.ready')
+  }
+  return ''
+})
 
 // 确认框状态
 const showResetConfirm = ref(false)
@@ -290,14 +311,14 @@ watch(displayUrl, () => {
 
       <!-- 【模式 B】：Hover HUD 托盘 (仅在小图模式 + 有可用操作时浮现) -->
       <div
-        v-if="!isLargeMode && (image.status === 'done' || image.status === 'error')"
+        v-if="actionChrome === 'hud' && (image.status === 'done' || image.status === 'error')"
         class="absolute bottom-2 left-2 right-2 z-30 bg-[var(--board)] border border-[var(--hairline)] rounded-[var(--radius-ctrl)] p-1 flex items-center justify-between gap-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto touch-reveal md:bottom-3 md:left-3 md:right-3 md:p-1.5 md:gap-1.5"
       >
         <div class="flex items-center gap-1">
           <button
-            v-if="image.status === 'done'"
+            v-if="showCompare && image.status === 'done'"
             @click.stop="emit('compare', image.id)"
-            class="p-1.5 hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-lg transition-all"
+            class="p-1.5 min-h-10 min-w-10 flex items-center justify-center hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-lg transition-all"
             :aria-label="t('common.image.card.compare')"
           >
             <Columns2 :size="14" />
@@ -305,7 +326,7 @@ watch(displayUrl, () => {
           <button
             v-if="image.status === 'done' || image.status === 'error'"
             @click.stop="handleReset"
-            class="p-1.5 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded-lg transition-all"
+            class="p-1.5 min-h-10 min-w-10 flex items-center justify-center hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded-lg transition-all"
             :aria-label="t('common.image.card.reset')"
           >
             <RotateCcw :size="14" />
@@ -313,18 +334,18 @@ watch(displayUrl, () => {
         </div>
         <div class="flex items-center gap-1.5">
           <button
-            v-if="image.status === 'done'"
+            v-if="showInteractive && image.status === 'done'"
             @click.stop="emit('interactive', image.id)"
-            class="p-1.5 hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-[var(--radius)] transition-colors"
+            class="p-1.5 min-h-10 min-w-10 flex items-center justify-center hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-[var(--radius)] transition-colors"
             :aria-label="t('common.image.card.sam2')"
             :title="t('common.image.card.sam2')"
           >
             <MousePointer2 :size="14" />
           </button>
           <button
-            v-if="image.status === 'done'"
+            v-if="showDownload && image.status === 'done'"
             @click.stop="emit('download', image.id)"
-            class="p-1.5 bg-[var(--accent)] text-[var(--on-product)] rounded-[var(--radius-ctrl)] active:brightness-95 transition-colors"
+            class="p-1.5 min-h-10 min-w-10 flex items-center justify-center bg-[var(--accent)] text-[var(--on-product)] rounded-[var(--radius-ctrl)] active:brightness-95 transition-colors"
             :aria-label="t('common.image.card.download')"
           >
             <Download :size="14" />
@@ -385,15 +406,18 @@ watch(displayUrl, () => {
           {{ image.file.name }}
         </h4>
         <div class="shrink-0 flex items-center gap-1.5">
-          <div
+          <span
             v-if="image.status === 'done'"
-            class="w-2 h-2 rounded-full bg-success"
-            :class="{ 'bg-[var(--muted)]': isDirty }"
-          ></div>
+            class="text-[11px] font-medium text-[var(--muted)]"
+            :class="{ 'text-[var(--accent)]': !isDirty }"
+          >
+            {{ statusLabel }}
+          </span>
           <Loader2
             v-else-if="image.status === 'processing'"
             :size="12"
             class="text-primary animate-spin"
+            :aria-label="t('common.image.card.wait')"
           />
         </div>
       </div>
@@ -401,11 +425,11 @@ watch(displayUrl, () => {
 
       <!-- 【大图模式专属】：Large Mode Action Bar -->
       <div
-        v-if="isLargeMode"
+        v-if="actionChrome === 'bar' && (image.status === 'done' || image.status === 'error')"
         class="flex items-center gap-2 mt-3 pt-3 border-t border-[var(--hairline)]"
       >
         <button
-          v-if="image.status === 'done'"
+          v-if="showCompare && image.status === 'done'"
           class="flex-1 min-w-0 flex items-center justify-center gap-2 min-h-9 h-auto py-1.5 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] text-[var(--muted)] hover:text-[var(--ink)] transition-colors text-[12px] font-medium leading-tight outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           @click.stop="emit('compare', image.id)"
           :aria-label="t('common.image.card.compare')"
@@ -423,7 +447,7 @@ watch(displayUrl, () => {
           <span class="ui-label min-w-0 flex-1">{{ t('common.image.card.reset') }}</span>
         </button>
         <button
-          v-if="image.status === 'done'"
+          v-if="showInteractive && image.status === 'done'"
           class="flex-1 min-w-0 flex items-center justify-center gap-2 min-h-9 h-auto py-1.5 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] text-[var(--muted)] hover:text-[var(--ink)] transition-colors text-[12px] font-medium leading-tight outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           @click.stop="emit('interactive', image.id)"
           :aria-label="t('common.image.card.sam2')"
@@ -431,9 +455,11 @@ watch(displayUrl, () => {
           <MousePointer2 :size="14" />
           <span class="ui-label min-w-0 flex-1">{{ t('common.image.card.sam2') }}</span>
         </button>
-        <div class="flex gap-2 ml-auto pl-2 border-l border-[var(--hairline)]">
+        <div
+          v-if="showDownload && image.status === 'done'"
+          class="flex gap-2 ml-auto pl-2 border-l border-[var(--hairline)]"
+        >
           <button
-            v-if="image.status === 'done'"
             @click.stop="emit('download', image.id)"
             class="p-2 bg-[var(--accent)] text-[var(--on-product)] rounded-[var(--radius-ctrl)] hover:brightness-95 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             :title="t('common.image.card.download')"
