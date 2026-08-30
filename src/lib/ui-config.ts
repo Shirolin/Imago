@@ -1,8 +1,3 @@
-/**
- * Imago UI 核心配置文件
- * 统一管理各功能模块的交互类型与界面特性
- */
-
 export type InteractionType = 'list' | 'canvas' | 'special'
 
 export interface ViewMeta {
@@ -10,14 +5,13 @@ export interface ViewMeta {
   label: string
   interactionType: InteractionType
   features: {
-    showLayoutToggle: boolean // 是否显示卡片尺寸切换按钮
-    showImageStatus: boolean // 是否显示图片选择状态
-    allowBatchProcess: boolean // 是否允许批量处理
+    showLayoutToggle: boolean
+    showImageStatus: boolean
+    allowBatchProcess: boolean
   }
 }
 
 export const VIEW_CONFIGS: Record<string, ViewMeta> = {
-  // 列表式交互 (List-based)
   compress: {
     id: 'compress',
     label: '压缩转换',
@@ -49,7 +43,6 @@ export const VIEW_CONFIGS: Record<string, ViewMeta> = {
     features: { showLayoutToggle: true, showImageStatus: true, allowBatchProcess: true }
   },
 
-  // 画布式交互 (Canvas-based)
   crop: {
     id: 'crop',
     label: '裁剪图片',
@@ -69,7 +62,6 @@ export const VIEW_CONFIGS: Record<string, ViewMeta> = {
     features: { showLayoutToggle: false, showImageStatus: true, allowBatchProcess: false }
   },
 
-  // 特殊交互 (Special)
   favicon: {
     id: 'favicon',
     label: '站标生成',
@@ -78,9 +70,6 @@ export const VIEW_CONFIGS: Record<string, ViewMeta> = {
   }
 }
 
-/**
- * 获取指定视图的配置
- */
 export const getViewConfig = (viewId: string): ViewMeta | undefined => {
   if (VIEW_CONFIGS[viewId]) return VIEW_CONFIGS[viewId]
   return Object.values(VIEW_CONFIGS).find((view) => view.id === viewId)

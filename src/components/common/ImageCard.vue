@@ -68,7 +68,6 @@ const statusLabel = computed(() => {
   return ''
 })
 
-// 确认框状态
 const showResetConfirm = ref(false)
 
 const handleReset = () => {
@@ -82,28 +81,23 @@ const confirmReset = () => {
 
 const imageRef = ref<HTMLElement | null>(null)
 
-// 衍生状态
 const isDirtyDone = computed(() => props.isDirty && props.image.status === 'done')
 
-// --- 【逻辑对齐】：智能倍镜核心逻辑 ---
 const showMagnifier = ref(false)
 const mousePos = ref({ x: 50, y: 50 })
 const originalHDUrl = ref<string | null>(null)
 const localProcessedUrl = ref<string | null>(null)
 const rafId = ref<number | null>(null)
 
-// 只有在完成处理且悬停时才处理高清 URL
 watch(showMagnifier, (isShowing) => {
   if (isShowing) {
     if (props.processedPreview) {
-      // 切到 preview（外部 URL）：旧 blob URL 必须释放，防止泄漏
       const oldUrl = localProcessedUrl.value
       localProcessedUrl.value = props.processedPreview
       if (oldUrl && oldUrl !== props.processedPreview) URL.revokeObjectURL(oldUrl)
     } else if (props.processedBlob) {
       const oldUrl = localProcessedUrl.value
       localProcessedUrl.value = URL.createObjectURL(props.processedBlob)
-      // 立即释放旧的临时 URL，防止堆积
       if (oldUrl && oldUrl !== props.processedPreview) URL.revokeObjectURL(oldUrl)
     }
 
@@ -113,21 +107,17 @@ watch(showMagnifier, (isShowing) => {
   }
 })
 
-// 监听处理结果变化，实时更新倍镜
 watch(
   () => props.processedPreview,
   (newUrl) => {
     if (showMagnifier.value && newUrl) {
       const oldUrl = localProcessedUrl.value
       localProcessedUrl.value = newUrl
-      // P2-13: 替换时释放旧 blob URL（preview 是外部 URL，不释放）
       if (oldUrl && oldUrl !== newUrl) URL.revokeObjectURL(oldUrl)
     }
   }
 )
 
-// P2-13: 处理结果 Blob 变化时重建倍镜 URL，并释放被替换的旧 blob URL，
-// 避免反复处理同一张图时临时 URL 无限堆积。
 watch(
   () => props.processedBlob,
   (newBlob) => {
@@ -149,7 +139,6 @@ onUnmounted(() => {
 })
 
 const handleMouseMove = (e: MouseEvent) => {
-  // 【严谨限制】：仅在大图模式下进行坐标计算
   if (!isLargeMode.value || !props.allowMagnifier || !showMagnifier.value || !imageRef.value) return
 
   if (rafId.value) cancelAnimationFrame(rafId.value)
@@ -163,7 +152,6 @@ const handleMouseMove = (e: MouseEvent) => {
 }
 
 const enterMagnifier = () => {
-  // 【新】：严谨切换逻辑。仅在大图模式且完成处理时允许进入倍镜
   if (
     isLargeMode.value &&
     props.allowMagnifier &&
@@ -191,7 +179,6 @@ const innerContainerStyle = computed<CSSProperties>(() => {
   }
 })
 
-// 【核心对比逻辑】：计算左右分屏的裁剪路径
 const dynamicClipPath = computed(() => {
   const x = mousePos.value.x
   return {
@@ -200,7 +187,6 @@ const dynamicClipPath = computed(() => {
   }
 })
 
-// 自动切换处理前后预览图
 const displayUrl = computed(() => {
   if (props.image.status === 'done' && props.processedPreview) {
     return props.processedPreview
@@ -208,7 +194,6 @@ const displayUrl = computed(() => {
   return props.image.preview
 })
 
-// 骨架屏：预览解码完成前显示 shimmer（纯视觉状态，不影响任何业务逻辑）
 const previewLoaded = ref(false)
 watch(displayUrl, () => {
   previewLoaded.value = false
@@ -225,7 +210,6 @@ watch(displayUrl, () => {
     @click="emit('toggle', image.id)"
     @keydown.enter.space.prevent="emit('toggle', image.id)"
   >
-    <!-- Layer 1: Canvas (4:3) -->
     <div
       ref="imageRef"
       class="relative aspect-[4/3] flex items-center justify-center shrink-0 group/canvas"
@@ -233,7 +217,6 @@ watch(displayUrl, () => {
       @mouseleave="leaveMagnifier"
       @mousemove="handleMouseMove"
     >
-      <!-- 背景预览 -->
       <div
         class="absolute inset-0 overflow-hidden bg-[var(--well)]"
         :class="{ 'app-transparency-grid-sm': showTransparency }"
@@ -241,7 +224,6 @@ watch(displayUrl, () => {
         <div class="absolute inset-0 z-10 pointer-events-none">
           <slot name="visual-effects" :image="image"></slot>
         </div>
-        <!-- 骨架屏：预览未解码时显示 shimmer，解码完成后移除 -->
         <div
           v-if="!previewLoaded"
           class="absolute inset-0 bg-[var(--well)]"
@@ -266,7 +248,6 @@ watch(displayUrl, () => {
         </div>
       </div>
 
-      <!-- 【模式 A】：倍镜对比层 (仅在大图模式且 Hover 时显示) -->
       <div
         v-if="isLargeMode && showMagnifier && localProcessedUrl && originalHDUrl"
         class="absolute inset-0 z-40 pointer-events-none"
@@ -276,14 +257,12 @@ watch(displayUrl, () => {
           :class="{ 'app-transparency-grid-sm': showTransparency }"
           :style="{ left: `${mousePos.x}%`, top: `${mousePos.y}%` }"
         >
-          <!-- 左侧：原图 -->
           <div
             class="absolute"
             :style="{ ...innerContainerStyle, clipPath: dynamicClipPath.original } as CSSProperties"
           >
             <img :src="originalHDUrl!" class="w-full h-full object-contain" />
           </div>
-          <!-- 右侧：处理后图 -->
           <div
             class="absolute"
             :style="
@@ -292,7 +271,6 @@ watch(displayUrl, () => {
           >
             <img :src="localProcessedUrl!" class="w-full h-full object-contain" />
           </div>
-          <!-- 动态分割线 -->
           <div class="absolute inset-y-0 left-1/2 w-0.5 bg-[var(--on-product)] z-10"></div>
           <div
             class="absolute inset-0 flex items-center justify-between px-2 text-[10px] pointer-events-none z-20"
@@ -309,7 +287,6 @@ watch(displayUrl, () => {
         </div>
       </div>
 
-      <!-- 【模式 B】：Hover HUD 托盘 (仅在小图模式 + 有可用操作时浮现) -->
       <div
         v-if="actionChrome === 'hud' && (image.status === 'done' || image.status === 'error')"
         class="absolute bottom-2 left-2 right-2 z-30 bg-[var(--board)] border border-[var(--hairline)] rounded-[var(--radius-ctrl)] p-1 flex items-center justify-between gap-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto touch-reveal md:bottom-3 md:left-3 md:right-3 md:p-1.5 md:gap-1.5"
@@ -353,7 +330,6 @@ watch(displayUrl, () => {
         </div>
       </div>
 
-      <!-- 静态覆盖层 (Checkbox & X) -->
       <div v-if="!showMagnifier" class="absolute top-3 left-3 z-30 flex items-center gap-2">
         <div
           class="transition-all duration-300"
@@ -378,7 +354,6 @@ watch(displayUrl, () => {
         <X :size="14" />
       </button>
 
-      <!-- 处理中中心进度 -->
       <div
         v-if="image.status === 'processing'"
         class="absolute inset-0 bg-[var(--board)]/70 z-30 flex items-center justify-center"
@@ -387,9 +362,7 @@ watch(displayUrl, () => {
       </div>
     </div>
 
-    <!-- Layer 2: Info Area -->
     <div class="pt-2.5 flex flex-col gap-1.5 min-w-0">
-      <!-- 处理失败提示 -->
       <div
         v-if="image.status === 'error'"
         class="flex items-center gap-1.5 text-[11px] font-bold text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-2 py-1.5"
@@ -423,7 +396,6 @@ watch(displayUrl, () => {
       </div>
       <slot name="meta" :image="image"></slot>
 
-      <!-- 【大图模式专属】：Large Mode Action Bar -->
       <div
         v-if="actionChrome === 'bar' && (image.status === 'done' || image.status === 'error')"
         class="flex items-center gap-2 mt-3 pt-3 border-t border-[var(--hairline)]"
@@ -471,7 +443,6 @@ watch(displayUrl, () => {
       </div>
     </div>
 
-    <!-- 重置确认对话框 -->
     <AppModal
       :show="showResetConfirm"
       @close="showResetConfirm = false"

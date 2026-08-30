@@ -43,7 +43,6 @@ const layoutStore = useLayoutStore()
 const { downloadAllAsZip, triggerFileInput } = useFileHelpers()
 const { t } = useI18n()
 
-// 确认框状态
 const showConfirm = ref(false)
 const confirmMode = ref<'clear' | 'delete' | 'reset'>('clear')
 
@@ -62,8 +61,6 @@ const handleRemoveAction = () => {
 
 const emit = defineEmits(['reset-all'])
 
-// P2-19: 处理中禁用不能只依赖父级 prop（父级默认 isProcessing=false 时，
-// 队列里仍有图片在处理却可继续导出/重置/删除）。内部读取 store.processingCount 兜底，二者取或。
 const isBusy = computed(() => props.isProcessing || store.processingCount > 0)
 const layoutToggleVisible = computed(() => {
   if (getViewConfig(props.viewId)?.features.showLayoutToggle === false) return false
@@ -189,10 +186,8 @@ const handleConfirm = () => {
       </button>
     </div>
 
-    <!-- 允许插入额外的操作 -->
     <slot name="extra"></slot>
 
-    <!-- 统一确认对话框 -->
     <AppModal
       :show="showConfirm"
       @close="showConfirm = false"
