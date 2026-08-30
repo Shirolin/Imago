@@ -85,7 +85,7 @@ const handleConfirm = () => {
 <template>
   <div class="flex min-h-10 items-center gap-2 md:gap-3">
     <div
-      class="flex items-center gap-0.5 bg-[var(--well)] p-0.5 rounded-[var(--radius-ctrl)] border border-[var(--hairline)]"
+      class="flex h-10 items-center gap-0.5 bg-[var(--well)] px-0.5 rounded-[var(--radius-ctrl)] ring-1 ring-inset ring-[var(--hairline)]"
     >
       <template v-if="layoutToggleVisible">
         <button
@@ -147,7 +147,7 @@ const handleConfirm = () => {
 
     <div
       v-if="store.images.length > 0"
-      class="flex items-center gap-0.5 bg-[var(--well)] p-0.5 rounded-[var(--radius-ctrl)] border border-[var(--hairline)]"
+      class="flex h-10 items-center gap-0.5 bg-[var(--well)] px-0.5 rounded-[var(--radius-ctrl)] ring-1 ring-inset ring-[var(--hairline)]"
     >
       <button
         v-if="props.showResetAll"
