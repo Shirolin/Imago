@@ -61,11 +61,8 @@ const actionChrome = computed(() =>
   })
 )
 const statusLabel = computed(() => {
-  if (props.image.status === 'processing') return t('common.image.card.wait')
-  if (props.image.status === 'done') {
-    return props.isDirty ? t('common.image.card.dirty') : t('common.image.card.ready')
-  }
-  return ''
+  if (props.image.status !== 'done') return ''
+  return props.isDirty ? t('common.image.card.dirty') : t('common.image.card.ready')
 })
 
 const showResetConfirm = ref(false)

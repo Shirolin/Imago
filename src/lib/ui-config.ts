@@ -30,7 +30,7 @@ export const VIEW_CONFIGS: Record<string, ViewMeta> = {
     interactionType: 'list',
     features: { showLayoutToggle: true, showImageStatus: true, allowBatchProcess: true }
   },
-  bgRemove: {
+  'bg-remove': {
     id: 'bg-remove',
     label: '去除背景',
     interactionType: 'list',
@@ -71,6 +71,5 @@ export const VIEW_CONFIGS: Record<string, ViewMeta> = {
 }
 
 export const getViewConfig = (viewId: string): ViewMeta | undefined => {
-  if (VIEW_CONFIGS[viewId]) return VIEW_CONFIGS[viewId]
-  return Object.values(VIEW_CONFIGS).find((view) => view.id === viewId)
+  return VIEW_CONFIGS[viewId]
 }
