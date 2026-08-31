@@ -32,7 +32,13 @@ import AppEmptyState from '../components/common/AppEmptyState.vue'
 import AppBadge from '../components/common/AppBadge.vue'
 import AppSidebarCard from '../components/common/AppSidebarCard.vue'
 import AppInfoItem from '../components/common/AppInfoItem.vue'
-import { clearExifEngine, readExif, type ExifData } from '../lib/engines/exifEngine'
+import {
+  clearExifEngine,
+  readExif,
+  exifPrivacyStatus,
+  type ExifData
+} from '../lib/engines/exifEngine'
+import { classifyExifTag } from '../lib/engines/exifTagRegistry'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useFileHelpers, type ZipResultItem } from '../composables/useFileHelpers'
 import type { ProcessResult } from '../lib/engines/types'
@@ -44,7 +50,6 @@ const layoutStore = useLayoutStore()
 const { downloadAllAsZip } = useFileHelpers()
 const { t } = useI18n()
 
-// 本地结果存储
 interface LocalResult {
   blob: Blob
   preview: string
@@ -59,8 +64,6 @@ const cleanupResults = () => {
     URL.revokeObjectURL(res.preview)
   })
   results.value.clear()
-  // 重置 EXIF 分析状态：清除清理结果后按原图重新分析，
-  // 避免仍展示“已清理/安全”的误导性状态
   affectedIds.forEach((id) => handleReset(id))
 }
 
@@ -68,10 +71,8 @@ onUnmounted(() => {
   cleanupResults()
 })
 
-// 已见过的图片 id，用于识别拖入的新图
 const knownImageIds = new Set<string>(store.images.map((img) => img.id))
 
-// 监听图片列表变化，自动清理已删除图片的本地结果
 watch(
   () => store.images,
   (newImages) => {
@@ -83,12 +84,10 @@ watch(
       }
     })
 
-    // 同时清理 EXIF 数据缓存
     Object.keys(exifDataMap.value).forEach((id) => {
       if (!currentIds.has(id)) delete exifDataMap.value[id]
     })
 
-    // 拖入新图时自动激活（取第一个新图），触发其 EXIF 分析
     for (const img of newImages) {
       if (!knownImageIds.has(img.id)) {
         activeImageId.value = img.id
@@ -96,7 +95,6 @@ watch(
       }
     }
 
-    // 维护已知 id 集合（移除已删除的，记录新加入的）
     knownImageIds.forEach((id) => {
       if (!currentIds.has(id)) knownImageIds.delete(id)
     })
@@ -110,14 +108,13 @@ const exifDataMap = ref<Record<string, ExifData>>({})
 const activeExifData = computed(() =>
   activeImageId.value ? exifDataMap.value[activeImageId.value] : null
 )
+const activePrivacyStatus = computed(() => exifPrivacyStatus(activeExifData.value))
 const activeImage = computed(() => store.images.find((img) => img.id === activeImageId.value))
 const isReadingExif = ref(false)
 const isAllTagsExpanded = ref(false)
 const outputFormat = ref<string>('original')
 const outputQuality = ref(0.9)
 
-// P2-10：读取竞态防护 —— 快速切换图片时用序号丢弃过期结果；
-// isReadingExif 以计数管理，批量扫描与单张读取可叠加、互不误清
 let exifReadSeq = 0
 let activeExifReads = 0
 const beginExifRead = () => {
@@ -137,7 +134,6 @@ const scanAllImages = async () => {
   const pendingImages = store.images.filter((img) => img.exifCount === undefined)
   if (pendingImages.length === 0) return
 
-  // P2-1：批量分析期间显示「扫描中」状态
   beginExifRead()
   try {
     const CHUNK_SIZE = 5
@@ -149,7 +145,7 @@ const scanAllImages = async () => {
             const data = await readExif(img.file)
             if (data) {
               store.updateImage(img.id, {
-                exifCount: data.metaCount,
+                exifCount: data.privacyCount,
                 isExifUnsupported: data.unsupported,
                 exifError: data.error
               })
@@ -187,19 +183,17 @@ watch(activeImageId, async (id) => {
     try {
       const img = store.images.find((i) => i.id === id)
       if (img) {
-        // 优先读取处理后的结果
         const res = results.value.get(id)
         const fileToRead = res
           ? new File([res.blob], img.file.name, { type: res.blob.type })
           : img.file
 
         const data = await readExif(fileToRead)
-        // P2-10：期间用户切换了图片 → 丢弃过期结果
         if (seq !== exifReadSeq) return
         if (data) {
           exifDataMap.value[id] = data
           store.updateImage(id, {
-            exifCount: data.metaCount,
+            exifCount: data.privacyCount,
             isExifUnsupported: data.unsupported,
             exifError: data.error
           })
@@ -237,12 +231,11 @@ const handleClearExif = async () => {
         isDirty: false
       })
 
-      // 验证清理结果
       const data = await readExif(new File([blob], 'temp', { type: blob.type }))
       if (data) {
         exifDataMap.value[id] = data
         store.updateImage(id, {
-          exifCount: data.metaCount,
+          exifCount: data.privacyCount,
           isExifUnsupported: data.unsupported,
           exifError: data.error
         })
@@ -262,14 +255,13 @@ const handleReset = (id: string) => {
     URL.revokeObjectURL(res.preview)
     results.value.delete(id)
   }
-  // 重新读取原始 EXIF
   const img = store.images.find((i) => i.id === id)
   if (img) {
     readExif(img.file).then((data) => {
       if (data) {
         exifDataMap.value[id] = data
         store.updateImage(id, {
-          exifCount: data.metaCount,
+          exifCount: data.privacyCount,
           isExifUnsupported: data.unsupported,
           exifError: data.error,
           status: 'idle',
@@ -466,15 +458,15 @@ const handleCtaClick = async () => {
           class="space-y-4 animate-in fade-in duration-500"
         >
           <div
-            v-if="activeExifData?.metaCount"
+            v-if="activePrivacyStatus.kind === 'risk'"
             class="flex items-center gap-3 p-3 bg-destructive/5 border border-destructive/10 rounded-xl"
           >
             <ShieldAlert :size="18" class="text-destructive shrink-0" />
             <div class="text-[13px] font-bold text-destructive">
-              {{ t('tools.exif.riskDetail', { count: activeExifData.metaCount }) }}
+              {{ t('tools.exif.riskDetail', { count: activePrivacyStatus.count }) }}
             </div>
           </div>
-          <div v-if="activeExifData?.metaCount" class="space-y-4 px-1">
+          <div v-if="activePrivacyStatus.kind === 'risk'" class="space-y-4 px-1">
             <AppInfoItem
               v-if="activeExifData?.model"
               :label="t('tools.exif.items.device')"
@@ -531,7 +523,12 @@ const handleCtaClick = async () => {
               <div
                 v-for="(val, key) in activeExifData.all"
                 :key="key"
-                class="px-2 py-1 bg-muted/30 border border-[var(--hairline)] rounded-lg text-[10px] text-muted-foreground font-medium transition-colors hover:bg-muted/50"
+                :class="[
+                  'px-2 py-1 rounded-lg text-[10px] font-medium transition-colors',
+                  classifyExifTag(String(key)) === 'technical'
+                    ? 'bg-muted/10 border border-transparent text-muted-foreground/50'
+                    : 'bg-muted/30 border border-[var(--hairline)] text-muted-foreground hover:bg-muted/50'
+                ]"
               >
                 {{ key }}
               </div>
@@ -551,24 +548,34 @@ const handleCtaClick = async () => {
             </p>
           </div>
           <div
-            v-if="!activeExifData?.metaCount && !activeExifData?.error"
+            v-if="
+              (activePrivacyStatus.kind === 'safe' || activePrivacyStatus.kind === 'unsupported') &&
+              !activeExifData?.error
+            "
             class="py-10 text-center space-y-3"
           >
             <div
-              :class="[activeExifData?.unsupported ? 'bg-muted/30' : 'bg-primary/5']"
+              :class="[activePrivacyStatus.kind === 'unsupported' ? 'bg-muted/30' : 'bg-primary/5']"
               class="w-12 h-12 rounded-full flex items-center justify-center mx-auto"
             >
-              <ShieldCheck v-if="!activeExifData?.unsupported" :size="24" class="text-primary" />
+              <ShieldCheck
+                v-if="activePrivacyStatus.kind === 'safe'"
+                :size="24"
+                class="text-primary"
+              />
               <Info v-else :size="24" class="text-muted-foreground/60" />
             </div>
             <div class="text-xs font-bold text-muted-foreground px-4 leading-relaxed">
               {{
-                activeExifData?.unsupported
+                activePrivacyStatus.kind === 'unsupported'
                   ? t('tools.exif.unsupportedTip')
                   : t('tools.exif.safeTip')
               }}
             </div>
-            <p v-if="activeExifData?.unsupported" class="text-[10px] text-muted-foreground/40 px-6">
+            <p
+              v-if="activePrivacyStatus.kind === 'unsupported'"
+              class="text-[10px] text-muted-foreground/40 px-6"
+            >
               {{ t('tools.exif.supportedFormats') }}
             </p>
           </div>
