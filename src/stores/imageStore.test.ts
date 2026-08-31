@@ -17,7 +17,7 @@ describe('Image Store', () => {
       onerror = () => {}
       naturalWidth = 100
       naturalHeight = 100
-    }
+    } as unknown as typeof Image
   })
 
   it('应该能正确导入图片', async () => {
@@ -106,7 +106,7 @@ describe('Image Store', () => {
       onerror = () => {}
       naturalWidth = 20000
       naturalHeight = 1000
-    }
+    } as unknown as typeof Image
 
     const store = useImageStore()
     const mockFile = new File(['test'], 'huge.png', { type: 'image/png' })
@@ -127,7 +127,7 @@ describe('Image Store', () => {
       onerror = () => {}
       naturalWidth = 0
       naturalHeight = 0
-    }
+    } as unknown as typeof Image
 
     const store = useImageStore()
     const mockFile = new File(['test'], 'broken.png', { type: 'image/png' })
