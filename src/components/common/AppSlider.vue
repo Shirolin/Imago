@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import type { Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RotateCcw } from 'lucide-vue-next'
+import { toDisplay, fromDisplay } from '../../lib/sliderDisplay'
 
 const props = withDefaults(
   defineProps<{
@@ -18,13 +19,15 @@ const props = withDefaults(
     snapValue?: number
     description?: string
     ariaLabel?: string
+    displayScale?: number
   }>(),
   {
     min: 0,
     max: 100,
     step: 1,
     unit: '',
-    ariaLabel: ''
+    ariaLabel: '',
+    displayScale: 1
   }
 )
 
@@ -36,17 +39,16 @@ const isEditing = ref(false)
 const editValue = ref('')
 const inputRef = ref<HTMLInputElement | null>(null)
 
-// P2-10: 按 step 的小数位数格式化数值，避免 0.30000000000000004 这类浮点脏值
-// 出现在展示按钮或编辑框里（step=0.01 → 2 位小数，step=1 → 0 位小数）。
-const stepDecimals = computed(() => {
-  const s = String(props.step)
+const displayDecimals = computed(() => {
+  const displayStep = props.step * props.displayScale
+  const s = String(displayStep)
   const dot = s.indexOf('.')
   return dot === -1 ? 0 : s.length - dot - 1
 })
 
 const formatValue = (val: number) => {
   if (!Number.isFinite(val)) return String(val)
-  return val.toFixed(stepDecimals.value)
+  return toDisplay(val, props.displayScale, displayDecimals.value).toFixed(displayDecimals.value)
 }
 
 const startEdit = () => {
@@ -59,21 +61,11 @@ const finishEdit = () => {
   if (!isEditing.value) return
   isEditing.value = false
 
-  // 校验 1：如果不是有效数字，回滚
-  let num = parseFloat(editValue.value)
-  if (isNaN(num)) {
+  let num = fromDisplay(editValue.value, props.displayScale, props.min, props.max, props.step)
+  if (!Number.isFinite(num)) {
     return
   }
 
-  // 校验 2：钳制范围 [min, max] 并处理步长
-  num = Math.max(props.min, Math.min(props.max, num))
-  if (props.step) {
-    const inv = 1 / props.step
-    num = Math.round(num * inv) / inv
-  }
-
-  // P2-9: 吸附到推荐值。与推荐值相差不超过一个 step 时视为用户想选推荐值，
-  // 避免手动输入 0.74 后得到 0.74 而非推荐的 0.75 之类的“差一步”体验。
   if (props.snapValue !== undefined && Math.abs(num - props.snapValue) <= props.step) {
     num = props.snapValue
   }

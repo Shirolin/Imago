@@ -49,7 +49,9 @@ export function inspectorIsCollapsed(input: InspectorCollapsedInput): boolean {
 export function shouldExpandOverlayOnImport(
   prevCount: number,
   nextCount: number,
-  overlay: boolean
+  overlay: boolean,
+  chrome: InspectorChrome
 ): boolean {
+  if (chrome === 'phone') return false
   return overlay && prevCount === 0 && nextCount > 0
 }

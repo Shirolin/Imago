@@ -62,7 +62,7 @@ const select = (value: T) => {
         type="button"
         role="radio"
         :aria-checked="modelValue === option.value"
-        class="relative z-10 flex w-full flex-col items-center justify-center overflow-hidden py-2.5 px-1 rounded-[var(--radius-ctrl)] transition-colors duration-150 outline-none min-w-0 min-h-[2.75rem]"
+        class="relative z-10 flex w-full flex-row items-center justify-center gap-1.5 overflow-hidden py-2.5 px-1 rounded-[var(--radius-ctrl)] transition-colors duration-150 outline-none min-w-0 min-h-[2.75rem]"
         :class="
           modelValue === option.value
             ? 'text-primary'
@@ -70,7 +70,7 @@ const select = (value: T) => {
         "
         @click="select(option.value)"
       >
-        <div v-if="option.icon" class="icon-wrapper flex items-center justify-center w-5 h-4 mb-1">
+        <div v-if="option.icon" class="icon-wrapper flex items-center justify-center w-5 h-4">
           <!-- Polish: 恢复图标的自然渲染比例，通过调整 stroke 增强微标清晰度 -->
           <component
             :is="option.icon"

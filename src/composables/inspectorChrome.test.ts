@@ -98,20 +98,25 @@ describe('inspectorIsCollapsed', () => {
 })
 
 describe('shouldExpandOverlayOnImport', () => {
-  it('0 → N on overlay expands', () => {
-    expect(shouldExpandOverlayOnImport(0, 1, true)).toBe(true)
-    expect(shouldExpandOverlayOnImport(0, 3, true)).toBe(true)
+  it('0 → N on tablet overlay expands', () => {
+    expect(shouldExpandOverlayOnImport(0, 1, true, 'tablet')).toBe(true)
+    expect(shouldExpandOverlayOnImport(0, 3, true, 'tablet')).toBe(true)
+  })
+
+  it('phone overlay stays collapsed so the well stays on screen', () => {
+    expect(shouldExpandOverlayOnImport(0, 1, true, 'phone')).toBe(false)
+    expect(shouldExpandOverlayOnImport(0, 5, true, 'phone')).toBe(false)
   })
 
   it('already had images does not expand', () => {
-    expect(shouldExpandOverlayOnImport(5, 6, true)).toBe(false)
+    expect(shouldExpandOverlayOnImport(5, 6, true, 'tablet')).toBe(false)
   })
 
   it('desktop does not expand', () => {
-    expect(shouldExpandOverlayOnImport(0, 1, false)).toBe(false)
+    expect(shouldExpandOverlayOnImport(0, 1, false, 'desktop')).toBe(false)
   })
 
   it('clearing the list does not expand', () => {
-    expect(shouldExpandOverlayOnImport(2, 0, true)).toBe(false)
+    expect(shouldExpandOverlayOnImport(2, 0, true, 'tablet')).toBe(false)
   })
 })

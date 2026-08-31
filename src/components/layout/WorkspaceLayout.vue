@@ -41,6 +41,21 @@ const inspectorIsCollapsed = computed(() =>
 
 const inspectorContentIsolated = computed(() => inspectorIsCollapsed.value && isOverlayChrome.value)
 
+const phonePeekShowsCta = computed(
+  () => isPhoneChrome.value && inspectorIsCollapsed.value && store.images.length > 0
+)
+
+const phoneMainPadClass = computed(() => {
+  if (!isPhoneChrome.value) return ''
+  if (!inspectorIsCollapsed.value) {
+    return 'pb-[calc(var(--inspector-drawer-h)+var(--inspector-gutter))]'
+  }
+  if (store.images.length > 0) {
+    return 'pb-[calc(var(--inspector-peek-cta-h)+var(--inspector-gutter))]'
+  }
+  return 'pb-[calc(var(--inspector-peek-h)+var(--inspector-gutter))]'
+})
+
 watch(inspectorChromeMode, (mode) => {
   if (mode === 'phone' || mode === 'tablet') overlayInspectorCollapsed.value = true
 })
@@ -48,7 +63,14 @@ watch(inspectorChromeMode, (mode) => {
 watch(
   () => store.images.length,
   (count, prevCount) => {
-    if (shouldExpandOverlayOnImport(prevCount ?? 0, count, isOverlayChrome.value)) {
+    if (
+      shouldExpandOverlayOnImport(
+        prevCount ?? 0,
+        count,
+        isOverlayChrome.value,
+        inspectorChromeMode.value
+      )
+    ) {
       overlayInspectorCollapsed.value = false
     }
   }
@@ -96,16 +118,11 @@ onMounted(() => {
       <main
         class="flex-1 flex flex-col min-w-0 min-h-0 relative z-10 bg-[var(--paper)] overflow-hidden p-3"
         role="main"
-        :inert="(isPhoneChrome || isTabletChrome) && !inspectorIsCollapsed ? true : undefined"
-        :aria-hidden="(isPhoneChrome || isTabletChrome) && !inspectorIsCollapsed"
+        :inert="isTabletChrome && !inspectorIsCollapsed ? true : undefined"
+        :aria-hidden="isTabletChrome && !inspectorIsCollapsed"
         :class="[
           isPhoneChrome ? 'imago-phone-drawer' : '',
-          isPhoneChrome && showSidebar && !inspectorIsCollapsed
-            ? 'pb-[calc(var(--inspector-drawer-h)+var(--inspector-gutter))]'
-            : '',
-          isPhoneChrome && showSidebar && inspectorIsCollapsed
-            ? 'pb-[calc(var(--inspector-peek-h)+var(--inspector-gutter))]'
-            : '',
+          isPhoneChrome && showSidebar ? phoneMainPadClass : '',
           !isPhoneChrome ? 'pb-3' : ''
         ]"
       >
@@ -149,7 +166,7 @@ onMounted(() => {
             :aria-label="t('common.assets.trayAria')"
             :class="[
               (layoutStore.isAssetsTrayCollapsed && isDesktop) ||
-              (isPhoneChrome && showSidebar && !inspectorIsCollapsed)
+              (isPhoneChrome && showSidebar && (!inspectorIsCollapsed || store.images.length > 0))
                 ? 'h-0 border-t-0'
                 : 'h-28 border-t border-[var(--hairline)]'
             ]"
@@ -206,11 +223,10 @@ onMounted(() => {
         :class="[
           isPhoneChrome ? 'imago-phone-drawer' : '',
           isPhoneChrome
-            ? 'fixed bottom-0 left-0 right-0 h-[var(--inspector-drawer-h)] rounded-t-[var(--radius)] border-t z-[80] pb-[env(safe-area-inset-bottom,0px)]'
+            ? 'fixed bottom-0 left-0 right-0 rounded-t-[var(--radius)] border-t z-[80] pb-[env(safe-area-inset-bottom,0px)]'
             : '',
-          isPhoneChrome && inspectorIsCollapsed
-            ? 'translate-y-[calc(100%-var(--inspector-peek-h))]'
-            : '',
+          isPhoneChrome && inspectorIsCollapsed ? 'h-auto' : '',
+          isPhoneChrome && !inspectorIsCollapsed ? 'h-[var(--inspector-drawer-h)]' : '',
 
           isTabletChrome
             ? 'fixed top-[calc(var(--header-h)+env(safe-area-inset-top,0px))] right-3 bottom-3 w-[min(320px,calc(100vw-1.5rem))] rounded-[var(--radius)] border z-[80]'
@@ -266,13 +282,16 @@ onMounted(() => {
           <div
             class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar w-full"
             :class="{
-              'opacity-0': inspectorIsCollapsed && isPhoneChrome,
+              hidden: inspectorIsCollapsed && isPhoneChrome,
               'pointer-events-none': inspectorContentIsolated
             }"
             :inert="inspectorContentIsolated ? true : undefined"
             :aria-hidden="inspectorContentIsolated ? true : undefined"
           >
-            <div class="px-4 pt-5 pb-8 flex flex-col gap-6">
+            <div
+              class="px-4 flex flex-col"
+              :class="isPhoneChrome ? 'pt-3 pb-4 gap-4' : 'pt-5 pb-8 gap-6'"
+            >
               <slot name="sidebar"></slot>
             </div>
           </div>
@@ -284,7 +303,7 @@ onMounted(() => {
             <slot name="toolbar"></slot>
           </div>
 
-          <div v-if="!inspectorIsCollapsed" class="shrink-0 z-30">
+          <div v-if="!inspectorIsCollapsed || phonePeekShowsCta" class="shrink-0 z-30">
             <slot name="footer"></slot>
           </div>
         </div>

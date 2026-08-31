@@ -129,8 +129,8 @@ const showJxlEffort = computed(() => props.allowManualQuality && props.format ==
 </script>
 
 <template>
-  <div class="space-y-8">
-    <section class="space-y-5">
+  <div class="space-y-5">
+    <section class="space-y-3">
       <div class="flex items-center justify-between px-0.5">
         <AppSectionHeader :title="displayTitle" :icon="FileType" />
       </div>
@@ -153,7 +153,7 @@ const showJxlEffort = computed(() => props.allowManualQuality && props.format ==
 
         <div
           v-if="showQualitySlider || showTargetSizeInput || showPngOptions || showJxlEffort"
-          class="space-y-7 pt-3 border-t border-[var(--hairline)]"
+          class="space-y-3 pt-3 border-t border-[var(--hairline)]"
         >
           <!-- A. 输出质量 -->
           <div v-if="showQualitySlider" class="space-y-3">
@@ -165,6 +165,8 @@ const showJxlEffort = computed(() => props.allowManualQuality && props.format ==
               :min="0.1"
               :max="1.0"
               :step="0.01"
+              :display-scale="100"
+              unit="%"
               :snap-value="recommendedQualities[format]"
               :default-value="recommendedQualities[format]"
             />
@@ -232,7 +234,7 @@ const showJxlEffort = computed(() => props.allowManualQuality && props.format ==
     <!-- 2. 进阶微调 -->
     <section
       v-if="showExifOption || allowManualQuality"
-      class="space-y-5 @container pt-2 border-t border-[var(--hairline)]"
+      class="space-y-3 @container pt-2 border-t border-[var(--hairline)]"
     >
       <button
         @click="showAdvanced = !showAdvanced"
@@ -249,7 +251,7 @@ const showJxlEffort = computed(() => props.allowManualQuality && props.format ==
           class="text-muted-foreground/40 group-hover:text-primary"
         />
       </button>
-      <div v-if="showAdvanced" class="space-y-6 px-1">
+      <div v-if="showAdvanced" class="space-y-3 px-1">
         <div v-if="allowManualQuality" class="space-y-3">
           <label class="text-xs font-medium text-muted-foreground/80 px-1">{{
             t('common.export.resolutionLimit')

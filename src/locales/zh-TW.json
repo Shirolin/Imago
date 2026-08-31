@@ -121,7 +121,9 @@
         "layoutCompact": "精簡模式",
         "layoutLarge": "大圖模式",
         "resetAll": "全部還原",
-        "resetAllAria": "將所有圖片還原至初始狀態"
+        "resetAllAria": "將所有圖片還原至初始狀態",
+        "more": "更多",
+        "moreAria": "更多操作"
       },
       "upload": {
         "button": "選擇檔案",

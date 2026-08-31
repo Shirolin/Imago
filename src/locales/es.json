@@ -121,7 +121,9 @@
         "layoutCompact": "Vista compacta",
         "layoutLarge": "Tarjetas grandes",
         "resetAll": "Restablecer todo",
-        "resetAllAria": "Restablecer todas las imágenes a su estado inicial"
+        "resetAllAria": "Restablecer todas las imágenes a su estado inicial",
+        "more": "Más",
+        "moreAria": "Más acciones"
       },
       "upload": {
         "button": "Seleccionar archivos",

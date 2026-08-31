@@ -121,7 +121,9 @@
         "layoutCompact": "Kompakte Ansicht",
         "layoutLarge": "Große Kacheln",
         "resetAll": "Alle zurücksetzen",
-        "resetAllAria": "Alle Bilder auf den Anfangszustand zurücksetzen"
+        "resetAllAria": "Alle Bilder auf den Anfangszustand zurücksetzen",
+        "more": "Mehr",
+        "moreAria": "Weitere Aktionen"
       },
       "upload": {
         "button": "Dateien auswählen",

@@ -121,7 +121,9 @@
         "layoutCompact": "Modo compacto",
         "layoutLarge": "Cartões grandes",
         "resetAll": "Restaurar tudo",
-        "resetAllAria": "Restaurar todas as imagens para o estado inicial"
+        "resetAllAria": "Restaurar todas as imagens para o estado inicial",
+        "more": "Mais",
+        "moreAria": "Mais ações"
       },
       "upload": {
         "button": "Escolher arquivos",

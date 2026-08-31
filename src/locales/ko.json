@@ -120,7 +120,9 @@
         "layoutCompact": "콤팩트 모드",
         "layoutLarge": "큰 카드",
         "resetAll": "모두 복구",
-        "resetAllAria": "모든 이미지를 원본 상태로 복구"
+        "resetAllAria": "모든 이미지를 원본 상태로 복구",
+        "more": "더보기",
+        "moreAria": "추가 작업"
       },
       "upload": {
         "button": "파일 선택",

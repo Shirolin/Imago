@@ -121,7 +121,9 @@
         "layoutCompact": "Kompakt Görünüm",
         "layoutLarge": "Büyük Kart Görünümü",
         "resetAll": "Tümünü Sıfırla",
-        "resetAllAria": "Tüm görselleri başlangıç durumuna sıfırla"
+        "resetAllAria": "Tüm görselleri başlangıç durumuna sıfırla",
+        "more": "Daha fazla",
+        "moreAria": "Diğer işlemler"
       },
       "upload": {
         "button": "Dosya Seç",

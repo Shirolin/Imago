@@ -23,6 +23,7 @@
     --radius-ctrl: 8px;
     --radius: var(--radius-ctrl);
     --inspector-peek-h: calc(2.5rem + env(safe-area-inset-bottom, 0px));
+    --inspector-peek-cta-h: calc(7rem + env(safe-area-inset-bottom, 0px));
     --inspector-gutter: 0.75rem;
     --header-h: 3rem;
 
@@ -428,7 +429,7 @@
 
 @layer utilities {
   .imago-phone-drawer {
-    --inspector-drawer-h: min(52dvh, calc(100dvh - 11rem));
+    --inspector-drawer-h: min(40dvh, calc(100dvh - 11rem));
   }
 
   .imago-canvas-dock {

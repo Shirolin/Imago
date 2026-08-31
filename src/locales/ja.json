@@ -121,7 +121,9 @@
         "layoutCompact": "コンパクト表示",
         "layoutLarge": "大カード表示",
         "resetAll": "すべてリセット",
-        "resetAllAria": "すべての画像を初期状態に戻す"
+        "resetAllAria": "すべての画像を初期状態に戻す",
+        "more": "その他",
+        "moreAria": "その他の操作"
       },
       "upload": {
         "button": "ファイルを選択",

@@ -121,7 +121,9 @@
         "layoutCompact": "紧凑模式",
         "layoutLarge": "大图模式",
         "resetAll": "全部重置",
-        "resetAllAria": "将所有图片还原至初始状态"
+        "resetAllAria": "将所有图片还原至初始状态",
+        "more": "更多",
+        "moreAria": "更多操作"
       },
       "upload": {
         "button": "选文件",

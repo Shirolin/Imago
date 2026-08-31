@@ -357,7 +357,7 @@ const handleCtaClick = async () => {
           <AppTip>{{ t('tools.compress.infoTip') }}</AppTip>
           <p
             v-if="showDefaultLimitHint"
-            class="text-[0.6rem] text-muted-foreground/70 mt-2 px-1 leading-relaxed tabular-nums"
+            class="text-[11px] text-muted-foreground/70 mt-2 px-1 leading-relaxed tabular-nums"
           >
             {{ t('tools.compress.maxDimensionHint', { limit: DEFAULT_COMPRESS_LONG_EDGE }) }}
           </p>

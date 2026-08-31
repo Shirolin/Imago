@@ -121,7 +121,9 @@
         "layoutCompact": "Compact View",
         "layoutLarge": "Large Card View",
         "resetAll": "Reset All",
-        "resetAllAria": "Reset all images to their initial state"
+        "resetAllAria": "Reset all images to their initial state",
+        "more": "More",
+        "moreAria": "More actions"
       },
       "upload": {
         "button": "Choose Files",

@@ -15,7 +15,11 @@ import {
 import { useImageStore, type ImageItem } from '../../stores/imageStore'
 import { useLayoutStore } from '../../stores/layoutStore'
 import { useBreakpoints } from '../../composables/useBreakpoints'
-import { cardActionChrome as resolveCardActionChrome } from '../../composables/cardChrome'
+import {
+  cardActionChrome as resolveCardActionChrome,
+  persistIdleCheck
+} from '../../composables/cardChrome'
+import { splitFileName } from '../../lib/fileNameDisplay'
 import { useI18n } from 'vue-i18n'
 import AppModal from './AppModal.vue'
 import AppButton from './AppButton.vue'
@@ -60,20 +64,40 @@ const actionChrome = computed(() =>
     overlay: isOverlayChrome.value
   })
 )
+const idleCheckPersists = computed(() =>
+  persistIdleCheck({
+    overlay: isOverlayChrome.value,
+    selected: props.isSelected
+  })
+)
+const fileNameParts = computed(() => splitFileName(props.image.file.name))
+const isMinimalChrome = computed(() => actionChrome.value === 'minimal')
+const minimalActionReveal = computed(() =>
+  props.isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+)
 const statusLabel = computed(() => {
   if (props.image.status !== 'done') return ''
   return props.isDirty ? t('common.image.card.dirty') : t('common.image.card.ready')
 })
 
-const showResetConfirm = ref(false)
+const cardConfirm = ref<'reset' | 'remove' | null>(null)
 
 const handleReset = () => {
-  showResetConfirm.value = true
+  cardConfirm.value = 'reset'
 }
 
-const confirmReset = () => {
-  emit('reset', props.image.id)
-  showResetConfirm.value = false
+const handleRemove = () => {
+  cardConfirm.value = 'remove'
+}
+
+const closeCardConfirm = () => {
+  cardConfirm.value = null
+}
+
+const confirmCardAction = () => {
+  if (cardConfirm.value === 'reset') emit('reset', props.image.id)
+  if (cardConfirm.value === 'remove') emit('remove', props.image.id)
+  cardConfirm.value = null
 }
 
 const imageRef = ref<HTMLElement | null>(null)
@@ -199,8 +223,11 @@ watch(displayUrl, () => {
 
 <template>
   <div
-    class="imago-sheet relative cursor-pointer flex flex-col group outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--well)] p-4 md:p-6"
-    :class="[isDirtyDone ? 'ring-1 ring-[var(--muted)]' : '']"
+    class="imago-sheet relative cursor-pointer flex flex-col group outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--board)]"
+    :class="[
+      isLargeMode ? 'p-4 md:p-6' : 'p-2',
+      isDirtyDone ? 'ring-1 ring-[var(--muted)]' : isSelected ? 'ring-1 ring-[var(--hairline)]' : ''
+    ]"
     tabindex="0"
     role="button"
     :aria-pressed="isSelected"
@@ -215,7 +242,7 @@ watch(displayUrl, () => {
       @mousemove="handleMouseMove"
     >
       <div
-        class="absolute inset-0 overflow-hidden bg-[var(--well)]"
+        class="absolute inset-0 overflow-hidden bg-[var(--board)]"
         :class="{ 'app-transparency-grid-sm': showTransparency }"
       >
         <div class="absolute inset-0 z-10 pointer-events-none">
@@ -223,13 +250,13 @@ watch(displayUrl, () => {
         </div>
         <div
           v-if="!previewLoaded"
-          class="absolute inset-0 bg-[var(--well)]"
+          class="absolute inset-0 bg-[var(--board)]"
           aria-hidden="true"
         ></div>
         <img
           :src="displayUrl"
           :alt="t('common.image.card.previewAlt', { name: image.file.name })"
-          class="w-full h-full object-contain"
+          class="w-full h-full object-cover"
           @load="previewLoaded = true"
           @error="previewLoaded = true"
           :class="{
@@ -327,29 +354,63 @@ watch(displayUrl, () => {
         </div>
       </div>
 
-      <div v-if="!showMagnifier" class="absolute top-3 left-3 z-30 flex items-center gap-2">
+      <template v-if="!showMagnifier && isMinimalChrome">
         <div
-          class="transition-all duration-300"
-          :class="
-            isSelected
-              ? 'text-primary scale-110'
-              : 'text-[var(--ink)]/40 opacity-0 group-hover:opacity-100 touch-reveal'
-          "
+          class="absolute top-2 left-2 z-30 flex h-6 w-6 items-center justify-center rounded-[var(--radius-ctrl)] bg-[var(--paper)] ring-1 ring-[var(--hairline)] text-[var(--ink)] transition-opacity duration-200"
+          :class="[
+            isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
+            idleCheckPersists || isSelected ? 'touch-reveal' : ''
+          ]"
         >
-          <CheckSquare v-if="isSelected" :size="20" />
-          <Square v-else :size="20" />
+          <CheckSquare v-if="isSelected" :size="12" />
+          <Square v-else :size="12" />
         </div>
+        <button
+          type="button"
+          @click.stop="handleRemove"
+          class="absolute top-2 right-2 z-30 flex h-6 w-6 items-center justify-center rounded-[var(--radius-ctrl)] bg-[var(--product)] text-[var(--on-product)] transition-opacity duration-200 outline-none hover:bg-[var(--danger)] focus-visible:bg-[var(--danger)] focus-visible:ring-2 focus-visible:ring-[var(--danger)]"
+          :class="minimalActionReveal"
+          :title="$t('common.image.card.remove')"
+          :aria-label="$t('common.image.card.remove')"
+        >
+          <X :size="12" />
+        </button>
+        <button
+          v-if="showDownload && image.status === 'done'"
+          type="button"
+          @click.stop="emit('download', image.id)"
+          class="absolute bottom-2 right-2 z-30 flex h-7 w-7 items-center justify-center rounded-[var(--radius-ctrl)] bg-[var(--accent)] text-[var(--on-product)] transition-opacity duration-200 outline-none hover:brightness-95 focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          :class="minimalActionReveal"
+          :aria-label="t('common.image.card.download')"
+        >
+          <Download :size="12" />
+        </button>
         <slot name="overlay" :image="image"></slot>
-      </div>
-      <button
-        v-if="!showMagnifier"
-        @click.stop="store.removeImage(image.id)"
-        class="absolute top-2 right-2 z-30 bg-[var(--board)] hover:bg-[var(--danger)] text-[var(--muted)] hover:text-[var(--on-product)] p-2 min-h-10 min-w-10 flex items-center justify-center rounded-[var(--radius-ctrl)] opacity-0 group-hover:opacity-100 transition-colors border border-[var(--hairline)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] touch-reveal md:top-3 md:right-3"
-        :title="$t('common.image.card.remove')"
-        :aria-label="$t('common.image.card.remove')"
-      >
-        <X :size="14" />
-      </button>
+      </template>
+
+      <template v-else-if="!showMagnifier">
+        <div class="absolute top-3 left-3 z-30 flex items-center gap-2">
+          <div
+            class="flex h-5 w-5 items-center justify-center rounded-[var(--radius-ctrl)] bg-[var(--paper)] ring-1 ring-[var(--hairline)] text-[var(--ink)] transition-all duration-300"
+            :class="[
+              isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
+              idleCheckPersists || isSelected ? 'touch-reveal' : ''
+            ]"
+          >
+            <CheckSquare v-if="isSelected" :size="14" />
+            <Square v-else :size="14" />
+          </div>
+          <slot name="overlay" :image="image"></slot>
+        </div>
+        <button
+          @click.stop="handleRemove"
+          class="absolute top-2 right-2 z-30 flex min-h-10 min-w-10 items-center justify-center rounded-[var(--radius-ctrl)] bg-[var(--product)] p-1.5 text-[var(--on-product)] opacity-0 group-hover:opacity-100 hover:bg-[var(--danger)] hover:text-[var(--on-product)] focus-visible:bg-[var(--danger)] focus-visible:text-[var(--on-product)] focus-visible:opacity-100 active:bg-[var(--danger)] active:text-[var(--on-product)] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger)] touch-reveal md:top-3 md:right-3"
+          :title="$t('common.image.card.remove')"
+          :aria-label="$t('common.image.card.remove')"
+        >
+          <X :size="14" />
+        </button>
+      </template>
 
       <div
         v-if="image.status === 'processing'"
@@ -359,7 +420,7 @@ watch(displayUrl, () => {
       </div>
     </div>
 
-    <div class="pt-3 flex flex-col gap-2 min-w-0">
+    <div class="flex flex-col gap-1.5 min-w-0" :class="isLargeMode ? 'pt-3 gap-2' : 'pt-2'">
       <div
         v-if="image.status === 'error'"
         class="flex items-center gap-1.5 text-[11px] font-bold text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-2 py-1.5"
@@ -372,12 +433,16 @@ watch(displayUrl, () => {
       </div>
 
       <div class="flex items-center gap-3 min-w-0">
-        <h4 class="font-medium text-[var(--ink)] truncate text-sm min-w-0 flex-1">
-          {{ image.file.name }}
+        <h4
+          class="flex min-w-0 flex-1 items-baseline text-sm font-medium text-[var(--ink)]"
+          :title="image.file.name"
+        >
+          <span class="min-w-0 truncate">{{ fileNameParts.stem }}</span>
+          <span class="shrink-0">{{ fileNameParts.ext }}</span>
         </h4>
         <div class="shrink-0 flex items-center gap-1.5">
           <span
-            v-if="image.status === 'done'"
+            v-if="image.status === 'done' && isLargeMode"
             class="max-w-[7.5rem] truncate text-[11px] font-medium text-[var(--muted)]"
             :class="{ 'text-[var(--accent)]': isDirty }"
           >
@@ -437,8 +502,8 @@ watch(displayUrl, () => {
     </div>
 
     <AppModal
-      :show="showResetConfirm"
-      @close="showResetConfirm = false"
+      :show="cardConfirm !== null"
+      @close="closeCardConfirm"
       :title="t('common.image.toolbar.confirmTitle')"
       variant="dialog"
     >
@@ -449,10 +514,18 @@ watch(displayUrl, () => {
           </div>
           <div>
             <h3 class="text-lg font-medium text-foreground mb-1">
-              {{ t('common.image.toolbar.confirmReset') }}
+              {{
+                cardConfirm === 'remove'
+                  ? t('common.image.toolbar.confirmDelete')
+                  : t('common.image.toolbar.confirmReset')
+              }}
             </h3>
             <p class="text-muted-foreground text-sm leading-relaxed font-medium">
-              {{ t('common.image.toolbar.confirmResetTitle') }}
+              {{
+                cardConfirm === 'remove'
+                  ? t('common.image.toolbar.confirmDeleteTitle', { count: 1 })
+                  : t('common.image.toolbar.confirmResetTitle')
+              }}
             </p>
           </div>
         </div>
@@ -460,14 +533,14 @@ watch(displayUrl, () => {
           <AppButton
             variant="ghost"
             class="flex-1 rounded-[var(--radius-ctrl)] h-11"
-            @click="showResetConfirm = false"
+            @click="closeCardConfirm"
           >
             {{ t('common.image.toolbar.cancel') }}
           </AppButton>
           <AppButton
             variant="danger"
             class="flex-1 rounded-[var(--radius-ctrl)] h-11"
-            @click="confirmReset"
+            @click="confirmCardAction"
           >
             {{ t('common.image.toolbar.confirm') }}
           </AppButton>

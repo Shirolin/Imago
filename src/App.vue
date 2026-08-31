@@ -357,12 +357,12 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
       ></div>
     </div>
 
-    <main class="flex-1 min-h-0 flex flex-col relative z-20 bg-[var(--paper)]">
+    <main class="flex-1 min-w-0 min-h-0 flex flex-col relative z-20 bg-[var(--paper)]">
       <header
         v-if="!isCover"
-        class="shrink-0 flex items-center justify-between gap-2 px-3 md:px-4 bg-[var(--paper)] border-b border-[var(--hairline)] z-50 md:z-[110] h-[calc(var(--header-h)+env(safe-area-inset-top,0px))] pt-[env(safe-area-inset-top,0px)]"
+        class="shrink-0 flex min-w-0 items-center gap-1.5 px-2 md:gap-2 md:px-4 bg-[var(--paper)] border-b border-[var(--hairline)] z-50 md:z-[110] h-[calc(var(--header-h)+env(safe-area-inset-top,0px))] pt-[env(safe-area-inset-top,0px)]"
       >
-        <div class="flex items-center gap-2 flex-none min-w-0 z-20">
+        <div class="flex min-w-0 items-center gap-1.5 md:gap-2 z-20">
           <button
             class="lg:hidden text-[var(--ink)] hover:text-[var(--accent)] p-2 -ml-1 transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-[var(--radius)] shrink-0"
             :aria-label="t('nav.toggleMobile')"
@@ -371,19 +371,15 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
             <Menu :size="18" />
           </button>
 
-          <div class="flex items-center gap-3 min-w-0">
-            <span
-              class="text-[13px] font-medium text-[var(--ink)] whitespace-nowrap truncate max-w-[6.5rem] sm:max-w-none"
-              >{{ currentRouteName }}</span
-            >
-            <div id="top-bar-left" class="flex items-center min-w-0"></div>
-          </div>
+          <span
+            class="min-w-0 truncate text-[13px] font-medium text-[var(--ink)]"
+            :title="currentRouteName"
+            >{{ currentRouteName }}</span
+          >
+          <div id="top-bar-left" class="flex shrink-0 items-center"></div>
         </div>
 
-        <div
-          id="top-bar-center"
-          class="flex-1 flex items-center justify-end overflow-x-auto no-scrollbar min-w-0 z-20"
-        ></div>
+        <div id="top-bar-center" class="flex grow shrink-0 items-center justify-end z-20"></div>
 
         <div
           class="flex items-center gap-2 text-[11px] font-medium text-[var(--muted)] hidden xl:flex shrink-0 tabular-spec"
@@ -395,7 +391,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
 
         <div
           id="top-bar-right"
-          class="flex items-center gap-2 shrink-0 z-20 has-[:any-link]:border-l has-[:enabled]:border-l has-[button]:border-l border-[var(--hairline)] pl-2 md:pl-3"
+          class="flex shrink-0 items-center gap-2 z-20 has-[:any-link]:border-l has-[:enabled]:border-l has-[button]:border-l border-[var(--hairline)] pl-1.5 md:pl-3"
         ></div>
       </header>
 
