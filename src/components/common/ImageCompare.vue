@@ -42,22 +42,36 @@ const viewportRef = ref<HTMLElement | null>(null)
 const imageSize = ref({ width: 0, height: 0 })
 const viewportSize = ref({ width: 0, height: 0 })
 
-// 智能计算 FitScale
+const HUD_INSET = { top: 96, side: 48, bottom: 128 }
+
+type CompareSide = 'before' | 'after' | 'split'
+
+const compareSide = computed((): CompareSide => {
+  if (sliderPos.value <= 8) return 'after'
+  if (sliderPos.value >= 92) return 'before'
+  return 'split'
+})
+
+const snapToSide = (side: Exclude<CompareSide, 'split'>) => {
+  sliderPos.value = side === 'before' ? 100 : 0
+}
+
 const calculateFitScale = () => {
   if (!imageSize.value.width || !viewportSize.value.width) return 1
-  const padding = 64
-  const availableW = viewportSize.value.width - padding
-  const availableH = viewportSize.value.height - padding
+  const availableW = viewportSize.value.width - HUD_INSET.side * 2
+  const availableH = viewportSize.value.height - HUD_INSET.top - HUD_INSET.bottom
+  if (availableW <= 0 || availableH <= 0) return 1
   return Math.min(availableW / imageSize.value.width, availableH / imageSize.value.height, 1)
 }
 
 const updateFitView = () => {
   const fitScale = calculateFitScale()
   zoom.value = fitScale
-  // 居中偏移
+  const drawnW = imageSize.value.width * fitScale
+  const drawnH = imageSize.value.height * fitScale
   offset.value = {
-    x: (viewportSize.value.width - imageSize.value.width * fitScale) / 2,
-    y: (viewportSize.value.height - imageSize.value.height * fitScale) / 2
+    x: (viewportSize.value.width - drawnW) / 2,
+    y: HUD_INSET.top + (viewportSize.value.height - HUD_INSET.top - HUD_INSET.bottom - drawnH) / 2
   }
 }
 
@@ -183,6 +197,13 @@ useResizeObserver(viewportRef, (entries) => {
 })
 
 // 共享的变换样式
+const imageBox = computed(() => ({
+  left: offset.value.x,
+  top: offset.value.y,
+  width: imageSize.value.width * zoom.value,
+  height: imageSize.value.height * zoom.value
+}))
+
 const sharedTransformStyle = computed(() => ({
   transform: `translate(${offset.value.x}px, ${offset.value.y}px) scale(${zoom.value})`,
   transformOrigin: '0 0'
@@ -199,7 +220,7 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
 
 <template>
   <div
-    class="w-full h-full flex flex-col bg-[var(--product)] relative overflow-hidden select-none"
+    class="w-full h-full flex flex-col bg-[var(--product)] text-[var(--on-product)] relative overflow-hidden select-none"
     @contextmenu.prevent
   >
     <!--沉浸式专业 HUD：顶栏 -->
@@ -207,38 +228,51 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
       class="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black/80 to-transparent z-[100] flex items-center justify-between px-8 pointer-events-none"
     >
       <div class="flex items-center gap-4 pointer-events-auto">
-        <div class="p-2.5 bg-primary/20 rounded-xl border border-primary/30 text-primary">
+        <div class="p-2.5 compare-hud-fill rounded-[var(--radius-ctrl)] text-[var(--accent)]">
           <Layout :size="20" stroke-width="2.5" />
         </div>
         <div class="flex flex-col">
-          <h3 class="text-sm font-medium text-white">
+          <h3 class="text-sm font-medium">
             {{ t('common.image.compare.title') }}
           </h3>
-          <span class="text-[11px] font-medium text-[var(--on-product)]/50 mt-0.5">{{
+          <span class="text-[11px] font-medium compare-hud-muted mt-0.5">{{
             t('common.image.compare.subtitle')
           }}</span>
         </div>
       </div>
 
       <div class="flex items-center gap-6 pointer-events-auto">
-        <!-- Before/After 标签组 -->
-        <div class="flex items-center bg-white/10 rounded-xl p-1 border border-white/10">
-          <div
-            class="px-4 py-1.5 rounded-lg text-[11px] font-medium text-white/40 transition-colors"
+        <div class="compare-hud flex items-center p-1">
+          <button
+            type="button"
+            class="px-3.5 min-h-10 rounded-[var(--radius-ctrl)] text-xs font-medium transition-colors"
+            :class="
+              compareSide === 'before'
+                ? 'bg-[var(--accent)] text-[var(--on-product)]'
+                : 'compare-hud-muted hover:text-[var(--on-product)]'
+            "
+            @click="snapToSide('before')"
           >
             {{ t('common.image.card.before') }}
-          </div>
-          <div class="w-px h-3 bg-white/10"></div>
-          <div
-            class="px-4 py-1.5 rounded-lg text-[11px] font-medium text-primary transition-colors"
+          </button>
+          <div class="w-px h-3 compare-hud-rule"></div>
+          <button
+            type="button"
+            class="px-3.5 min-h-10 rounded-[var(--radius-ctrl)] text-xs font-medium transition-colors"
+            :class="
+              compareSide === 'after'
+                ? 'bg-[var(--accent)] text-[var(--on-product)]'
+                : 'compare-hud-muted hover:text-[var(--on-product)]'
+            "
+            @click="snapToSide('after')"
           >
             {{ t('common.image.card.after') }}
-          </div>
+          </button>
         </div>
 
         <button
           @click="emit('close')"
-          class="w-11 h-11 flex items-center justify-center bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/30 rounded-xl text-white/40 hover:text-rose-500 transition-colors"
+          class="compare-hud w-11 h-11 flex items-center justify-center compare-hud-muted hover:bg-[var(--danger)]/20 hover:border-[var(--danger)] hover:text-[var(--danger)] transition-colors"
           :aria-label="t('common.ui.close')"
         >
           <X :size="20" stroke-width="2.5" />
@@ -299,7 +333,7 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
       <!-- 背景统一棋盘格 -->
       <div
         v-if="showTransparency"
-        class="absolute inset-0 compare-transparency-grid pointer-events-none opacity-40"
+        class="absolute inset-0 app-transparency-grid pointer-events-none opacity-40"
       ></div>
 
       <!-- 层级 1: 处理后图片 (底层的全屏视口，负责 AFTER) -->
@@ -311,13 +345,6 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
               class="block max-w-none pointer-events-none shadow-[0_0_120px_rgba(0,0,0,0.8)]"
               style="image-rendering: pixelated"
             />
-            <!-- 物理 HUD：处理后尺寸 -->
-            <div
-              class="absolute bottom-6 right-6 px-4 py-2 bg-[var(--board)] rounded-xl border border-white/5 text-[10px] font-mono text-white/60 tabular-nums"
-            >
-              <span class="opacity-40 mr-2 font-sans font-medium">After</span
-              >{{ processedSize || '--' }}
-            </div>
           </div>
         </div>
       </div>
@@ -334,67 +361,78 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
               class="block max-w-none h-full pointer-events-none"
               style="image-rendering: pixelated"
             />
-            <!-- 物理 HUD：原图尺寸 -->
-            <div
-              class="absolute bottom-6 left-6 px-4 py-2 bg-[var(--board)] rounded-xl border border-white/5 text-[10px] font-mono text-white/60 tabular-nums"
-            >
-              <span class="opacity-40 mr-2 font-sans font-medium">Before</span
-              >{{ originalSize || '--' }}
-            </div>
           </div>
         </div>
       </div>
 
-      <!-- 交互式分割线 (绝对定位于 Viewport，与裁切坐标完美重合) -->
       <div
-        class="absolute top-0 bottom-0 w-[2px] bg-white z-50 pointer-events-none shadow-line transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)]"
+        class="absolute top-0 bottom-24 w-[2px] bg-[var(--on-product)] z-50 pointer-events-none shadow-line transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)]"
         :class="{ '!duration-0': sliderActive }"
         :style="{ left: `${sliderPos}%` }"
       >
-        <!-- 分割线控制柄 (物理质感 + 对比度增强) -->
         <div
-          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center pointer-events-auto cursor-ew-resize compare-slider-handle group"
+          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center pointer-events-auto cursor-ew-resize compare-slider-handle"
         >
           <div
-            class="w-10 h-10 bg-white rounded-full shadow-[0_0_0_1px_rgba(0,0,0,0.1),0_2px_8px_rgba(0,0,0,0.25)] flex items-center justify-center border-[4px] border-white"
+            class="w-10 h-10 bg-[var(--on-product)] rounded-full shadow-[0_0_0_1px_rgba(0,0,0,0.1),0_2px_8px_rgba(0,0,0,0.25)] flex items-center justify-center"
           >
-            <GripVertical :size="18" class="text-black" stroke-width="3" />
+            <GripVertical :size="18" class="text-[var(--product)]" stroke-width="3" />
           </div>
         </div>
+      </div>
+
+      <div
+        v-if="originalSize && compareSide !== 'after'"
+        class="compare-hud absolute z-[60] pointer-events-none px-3 py-1.5 text-[11px] tabular-nums"
+        :style="{
+          left: `${imageBox.left + 16}px`,
+          top: `${imageBox.top + imageBox.height - 44}px`
+        }"
+      >
+        <span class="compare-hud-muted mr-2 font-medium">{{ t('common.image.card.before') }}</span
+        >{{ originalSize }}
+      </div>
+      <div
+        v-if="processedSize && compareSide !== 'before'"
+        class="compare-hud absolute z-[60] pointer-events-none px-3 py-1.5 text-[11px] tabular-nums"
+        :style="{
+          left: `${imageBox.left + imageBox.width - 16}px`,
+          top: `${imageBox.top + imageBox.height - 44}px`,
+          transform: 'translateX(-100%)'
+        }"
+      >
+        <span class="compare-hud-muted mr-2 font-medium">{{ t('common.image.card.after') }}</span
+        >{{ processedSize }}
       </div>
     </div>
 
     <div
-      class="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 bg-[var(--board)] border border-white/10 rounded-[1.25rem] z-[100] animate-in fade-in slide-in-from-bottom-4 duration-700"
+      class="compare-hud absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1 p-1 z-[100]"
     >
       <button
-        class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/10 text-white/40 hover:text-white transition-colors"
+        class="w-10 h-10 flex items-center justify-center rounded-[var(--radius-ctrl)] compare-hud-hover"
         :aria-label="t('common.image.compare.zoomOut')"
         @click="zoom = Math.max(0.05, zoom * 0.8)"
       >
         <ZoomOut :size="18" stroke-width="2.5" />
       </button>
 
-      <div class="px-4 min-w-[80px] flex items-center justify-center border-x border-white/10">
-        <span
-          class="text-[11px] font-medium font-mono text-white/90 tabular-nums translate-y-[0.5px]"
-        >
+      <div class="px-3 min-w-[64px] flex items-center justify-center compare-hud-divider">
+        <span class="text-[11px] font-medium font-mono tabular-nums">
           {{ Math.round(zoom * 100) }}%
         </span>
       </div>
 
       <button
-        class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/10 text-white/40 hover:text-white transition-colors"
+        class="w-10 h-10 flex items-center justify-center rounded-[var(--radius-ctrl)] compare-hud-hover"
         :aria-label="t('common.image.compare.zoomIn')"
         @click="zoom = Math.min(20, zoom * 1.2)"
       >
         <ZoomIn :size="18" stroke-width="2.5" />
       </button>
 
-      <div class="w-2"></div>
-
       <button
-        class="flex items-center gap-2 px-3 md:px-4 h-10 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-colors"
+        class="flex items-center gap-2 px-3 md:px-4 h-10 rounded-[var(--radius-ctrl)] text-[var(--accent)] compare-hud-hover"
         :aria-label="t('common.image.compare.resetView')"
         @click="updateFitView"
       >
@@ -404,52 +442,38 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
         }}</span>
       </button>
     </div>
-
-    <!-- 交互快捷键 HUD -->
-    <div
-      class="absolute bottom-12 left-10 hidden xl:flex flex-col gap-3 pointer-events-none z-[100]"
-    >
-      <div class="flex items-center gap-3 text-[11px] font-medium text-white/20">
-        <div class="w-1.5 h-1.5 rounded-full bg-primary/40 animate-pulse"></div>
-        {{ t('common.image.compare.shortcuts') }}
-      </div>
-      <div
-        class="flex items-center gap-4 bg-[var(--board)] px-4 py-2 rounded-lg border border-white/5"
-      >
-        <div class="flex items-center gap-2">
-          <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-[9px] text-white/60">{{
-            t('common.image.compare.wheelHint')
-          }}</kbd>
-          <span class="text-[11px] text-white/30">{{ t('common.image.compare.zoomIn') }}</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-[9px] text-white/60">{{
-            t('common.image.compare.dragHint')
-          }}</kbd>
-          <span class="text-[11px] text-white/30">{{ t('common.image.compare.panHint') }}</span>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <style scoped>
-.app-transparency-grid-dark {
-  background-image:
-    linear-gradient(45deg, hsl(var(--muted-hsl) / 0.2) 25%, transparent 25%),
-    linear-gradient(-45deg, hsl(var(--muted-hsl) / 0.2) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, hsl(var(--muted-hsl) / 0.2) 75%),
-    linear-gradient(-45deg, transparent 75%, hsl(var(--muted-hsl) / 0.2) 75%);
-  background-size: 20px 20px;
-  background-position:
-    0 0,
-    0 10px,
-    10px -10px,
-    -10px 0px;
-  background-color: var(--paper);
+.compare-hud {
+  background: var(--product);
+  color: var(--on-product);
+  border: 1px solid color-mix(in srgb, var(--on-product) 15%, transparent);
+  border-radius: var(--radius-ctrl);
 }
 
-/* 分割线高对比度阴影：确保在纯白背景下依然可见 */
+.compare-hud-fill {
+  background: color-mix(in srgb, var(--on-product) 10%, transparent);
+}
+
+.compare-hud-muted {
+  color: color-mix(in srgb, var(--on-product) 70%, transparent);
+}
+
+.compare-hud-rule {
+  background: color-mix(in srgb, var(--on-product) 15%, transparent);
+}
+
+.compare-hud-divider {
+  border-left: 1px solid color-mix(in srgb, var(--on-product) 15%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--on-product) 15%, transparent);
+}
+
+.compare-hud-hover:hover {
+  background: color-mix(in srgb, var(--on-product) 10%, transparent);
+}
+
 .shadow-line {
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.1),
