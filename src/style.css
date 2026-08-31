@@ -23,6 +23,8 @@
     --radius-ctrl: 8px;
     --radius: var(--radius-ctrl);
     --inspector-peek-h: calc(2.5rem + env(safe-area-inset-bottom, 0px));
+    --inspector-gutter: 0.75rem;
+    --header-h: 3rem;
 
     --room: var(--paper);
     --chrome: var(--board);

@@ -89,10 +89,10 @@ onMounted(() => {
         :class="[
           isPhoneChrome ? 'imago-phone-drawer' : '',
           isPhoneChrome && showSidebar && !inspectorIsCollapsed
-            ? 'pb-[var(--inspector-drawer-h)]'
+            ? 'pb-[calc(var(--inspector-drawer-h)+var(--inspector-gutter))]'
             : '',
           isPhoneChrome && showSidebar && inspectorIsCollapsed
-            ? 'pb-[var(--inspector-peek-h)]'
+            ? 'pb-[calc(var(--inspector-peek-h)+var(--inspector-gutter))]'
             : '',
           !isPhoneChrome ? 'pb-3' : ''
         ]"
@@ -201,7 +201,7 @@ onMounted(() => {
             : '',
 
           isTabletChrome
-            ? 'fixed top-[calc(2.75rem+env(safe-area-inset-top,0px))] right-3 bottom-3 w-[min(320px,calc(100vw-1.5rem))] rounded-[var(--radius)] border z-[80]'
+            ? 'fixed top-[calc(var(--header-h)+env(safe-area-inset-top,0px))] right-3 bottom-3 w-[min(320px,calc(100vw-1.5rem))] rounded-[var(--radius)] border z-[80]'
             : '',
           isTabletChrome && inspectorIsCollapsed ? 'translate-x-[calc(100%+1rem)]' : '',
 
@@ -260,7 +260,7 @@ onMounted(() => {
             :inert="inspectorContentIsolated ? true : undefined"
             :aria-hidden="inspectorContentIsolated ? true : undefined"
           >
-            <div class="p-4 flex flex-col gap-6 pb-8">
+            <div class="px-4 pt-5 pb-8 flex flex-col gap-6">
               <slot name="sidebar"></slot>
             </div>
           </div>

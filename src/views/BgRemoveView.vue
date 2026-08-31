@@ -682,6 +682,7 @@ const handleResetParams = () => {
             :processed-blob="results.get(img.id)?.blob"
             :is-dirty="results.get(img.id)?.isDirty"
             show-transparency
+            show-interactive
             @toggle="handleCardClick"
             @remove="store.removeImage"
             @compare="handleCompare"

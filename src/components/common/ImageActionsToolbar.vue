@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../../stores/imageStore'
 import { useLayoutStore } from '../../stores/layoutStore'
 import { useFileHelpers } from '../../composables/useFileHelpers'
+import { getViewConfig } from '../../lib/ui-config'
 import AppModal from './AppModal.vue'
 import AppButton from './AppButton.vue'
 import {
@@ -42,7 +43,6 @@ const layoutStore = useLayoutStore()
 const { downloadAllAsZip, triggerFileInput } = useFileHelpers()
 const { t } = useI18n()
 
-// 确认框状态
 const showConfirm = ref(false)
 const confirmMode = ref<'clear' | 'delete' | 'reset'>('clear')
 
@@ -61,9 +61,11 @@ const handleRemoveAction = () => {
 
 const emit = defineEmits(['reset-all'])
 
-// P2-19: 处理中禁用不能只依赖父级 prop（父级默认 isProcessing=false 时，
-// 队列里仍有图片在处理却可继续导出/重置/删除）。内部读取 store.processingCount 兜底，二者取或。
 const isBusy = computed(() => props.isProcessing || store.processingCount > 0)
+const layoutToggleVisible = computed(() => {
+  if (getViewConfig(props.viewId)?.features.showLayoutToggle === false) return false
+  return props.showLayoutToggle
+})
 
 const handleConfirm = () => {
   if (confirmMode.value === 'clear') {
@@ -83,9 +85,9 @@ const handleConfirm = () => {
 <template>
   <div class="flex min-h-10 items-center gap-2 md:gap-3">
     <div
-      class="flex items-center gap-0.5 bg-[var(--well)] p-0.5 rounded-[var(--radius-ctrl)] border border-[var(--hairline)]"
+      class="flex h-10 items-center gap-0.5 bg-[var(--well)] px-0.5 rounded-[var(--radius-ctrl)] ring-1 ring-inset ring-[var(--hairline)]"
     >
-      <template v-if="props.showLayoutToggle">
+      <template v-if="layoutToggleVisible">
         <button
           @click="
             layoutStore.cardSizeMode = layoutStore.cardSizeMode === 'compact' ? 'large' : 'compact'
@@ -145,7 +147,7 @@ const handleConfirm = () => {
 
     <div
       v-if="store.images.length > 0"
-      class="flex items-center gap-0.5 bg-[var(--well)] p-0.5 rounded-[var(--radius-ctrl)] border border-[var(--hairline)]"
+      class="flex h-10 items-center gap-0.5 bg-[var(--well)] px-0.5 rounded-[var(--radius-ctrl)] ring-1 ring-inset ring-[var(--hairline)]"
     >
       <button
         v-if="props.showResetAll"
@@ -184,10 +186,8 @@ const handleConfirm = () => {
       </button>
     </div>
 
-    <!-- 允许插入额外的操作 -->
     <slot name="extra"></slot>
 
-    <!-- 统一确认对话框 -->
     <AppModal
       :show="showConfirm"
       @close="showConfirm = false"

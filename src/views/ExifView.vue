@@ -387,6 +387,8 @@ const handleCtaClick = async () => {
             :processed-blob="results.get(img.id)?.blob"
             :is-dirty="results.get(img.id)?.isDirty"
             :allow-magnifier="false"
+            :show-compare="false"
+            :show-download="false"
             @toggle="handleCardClick"
             @remove="store.removeImage"
             @reset="handleReset"

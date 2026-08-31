@@ -360,7 +360,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
     <main class="flex-1 min-h-0 flex flex-col relative z-20 bg-[var(--paper)]">
       <header
         v-if="!isCover"
-        class="shrink-0 flex items-center justify-between px-3 md:px-4 bg-[var(--paper)] border-b border-[var(--hairline)] z-50 md:z-[110] h-[calc(2.75rem+env(safe-area-inset-top,0px))] pt-[env(safe-area-inset-top,0px)]"
+        class="shrink-0 flex items-center justify-between gap-2 px-3 md:px-4 bg-[var(--paper)] border-b border-[var(--hairline)] z-50 md:z-[110] h-[calc(var(--header-h)+env(safe-area-inset-top,0px))] pt-[env(safe-area-inset-top,0px)]"
       >
         <div class="flex items-center gap-2 flex-none min-w-0 z-20">
           <button
@@ -380,25 +380,23 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
           </div>
         </div>
 
-        <div class="flex-1 flex items-center justify-end gap-2 min-w-0 z-20 pl-3">
-          <div
-            id="top-bar-center"
-            class="flex h-full items-center justify-end overflow-x-auto no-scrollbar min-w-0"
-          ></div>
+        <div
+          id="top-bar-center"
+          class="flex-1 flex items-center justify-end overflow-x-auto no-scrollbar min-w-0 z-20"
+        ></div>
 
-          <div
-            class="flex items-center gap-2 text-[11px] font-medium text-[var(--muted)] hidden xl:flex shrink-0 tabular-spec"
-          >
-            <Loader2 v-if="store.processingCount > 0" class="animate-spin" :size="10" />
-            <span v-if="store.processingCount === 0">{{ t('app.localProcessing') }}</span>
-            <span v-else>{{ t('app.processing') }} ({{ store.globalProgress }}%)</span>
-          </div>
-
-          <div
-            id="top-bar-right"
-            class="flex h-full items-center gap-2 shrink-0 has-[:any-link]:border-l has-[:enabled]:border-l has-[button]:border-l border-[var(--hairline)] pl-2 md:pl-3"
-          ></div>
+        <div
+          class="flex items-center gap-2 text-[11px] font-medium text-[var(--muted)] hidden xl:flex shrink-0 tabular-spec"
+        >
+          <Loader2 v-if="store.processingCount > 0" class="animate-spin" :size="10" />
+          <span v-if="store.processingCount === 0">{{ t('app.localProcessing') }}</span>
+          <span v-else>{{ t('app.processing') }} ({{ store.globalProgress }}%)</span>
         </div>
+
+        <div
+          id="top-bar-right"
+          class="flex items-center gap-2 shrink-0 z-20 has-[:any-link]:border-l has-[:enabled]:border-l has-[button]:border-l border-[var(--hairline)] pl-2 md:pl-3"
+        ></div>
       </header>
 
       <div class="flex-1 min-h-0 overflow-hidden relative h-full">
