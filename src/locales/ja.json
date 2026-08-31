@@ -524,7 +524,7 @@
       "unsupportedTip": "この形式はメタデータ解析に対応していないか、EXIF が含まれていません。"
     },
     "favicon": {
-      "adaptiveSimulator": "アダプティブアイコンシミュレーター",
+      "adaptiveSimulator": "アダプティブプレビュー",
       "appearance": "ファビコン外観スタイル",
       "appleIosNative": "Apple iOS ネイティブ",
       "appleTouchTitle": "Apple Touch アイコン",
@@ -549,12 +549,12 @@
       "canvasAlt": "キャンバス境界ガイド",
       "croppedAlt": "切り抜きプレビュー ({shape})",
       "shapes": {
-        "full": "正方形 (フル)",
-        "circle": "円形",
-        "squircle": "角丸スクエア",
+        "full": "フル",
+        "circle": "円",
+        "squircle": "スクイークル",
         "rounded": "角丸"
       },
-      "safeZone": "安全マージン (セーフゾーン)",
+      "safeZone": "セーフゾーン",
       "safeZoneAria": "セーフゾーン目安線",
       "safeZoneGuide": "プラットフォーム仕様に基づき、重要な図柄は中央 80% のセーフゾーン内に収めてください。",
       "safeZoneTipOff": "一部のプラットフォームで端が切り取られる可能性があります。",

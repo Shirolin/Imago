@@ -524,7 +524,7 @@
       "unsupportedTip": "此文件格式目前暂不支持深度元数据解析。"
     },
     "favicon": {
-      "adaptiveSimulator": "自适应模拟器",
+      "adaptiveSimulator": "自适应预览",
       "appearance": "站标外观样式",
       "appleIosNative": "Apple iOS 原生",
       "appleTouchTitle": "Apple Touch 图标",
@@ -551,10 +551,10 @@
       "shapes": {
         "full": "完整",
         "circle": "圆形",
-        "squircle": "圆角方形",
+        "squircle": "超椭圆",
         "rounded": "圆角"
       },
-      "safeZone": "安全保留边距",
+      "safeZone": "安全区",
       "safeZoneAria": "安全区示意图",
       "safeZoneGuide": "依照平台规范，核心内容应保持在 80% 范围内，以适配自适应图标裁剪。",
       "safeZoneTipOff": "当前图标内容可能会在某些平台上被裁掉边缘。",

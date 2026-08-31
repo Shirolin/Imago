@@ -520,7 +520,7 @@
       "unsupportedTip": "이 형식은 지원되지 않거나 읽을 수 있는 메타데이터가 없습니다."
     },
     "favicon": {
-      "adaptiveSimulator": "적응형 시뮬레이터",
+      "adaptiveSimulator": "적응형 미리보기",
       "appearance": "외관 설정",
       "appleIosNative": "Apple iOS 네이티브",
       "appleTouchTitle": "Apple Touch 아이콘",
@@ -546,11 +546,11 @@
       "croppedAlt": "잘라낸 미리보기 ({shape})",
       "shapes": {
         "full": "전체",
-        "circle": "원형",
-        "squircle": "둥근 사각형",
-        "rounded": "둥근 모서리"
+        "circle": "원",
+        "squircle": "스쿼클",
+        "rounded": "둥근"
       },
-      "safeZone": "세이프 존",
+      "safeZone": "세이프존",
       "safeZoneAria": "세이프 존 표시",
       "safeZoneGuide": "Android 에서는 콘텐츠를 중앙 80% 영역 내에 유지하는 것이 권장됩니다. 나머지 영역은 배경으로 사용됩니다.",
       "safeZoneTipOff": "가장자리 내용이 플랫폼에 의해 잘릴 수 있습니다.",

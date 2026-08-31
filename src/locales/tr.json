@@ -524,7 +524,7 @@
       "unsupportedTip": "Bu dosya formatı meta veri analizini desteklemiyor veya EXIF içermiyor."
     },
     "favicon": {
-      "adaptiveSimulator": "Uyarlanabilir Simge Simülatörü",
+      "adaptiveSimulator": "Uyarlanabilir önizleme",
       "appearance": "Favicon Görünüm Tarzı",
       "appleIosNative": "Apple iOS Yerel",
       "appleTouchTitle": "Apple Touch Simgesi",
@@ -549,12 +549,12 @@
       "canvasAlt": "Tuval Sınır Referansı",
       "croppedAlt": "Kırpma Önizlemesi ({shape})",
       "shapes": {
-        "full": "Kare (Tam)",
+        "full": "Tam",
         "circle": "Daire",
-        "squircle": "Squircle (Yuvarlatılmış Kare)",
-        "rounded": "Yuvarlak Köşeli"
+        "squircle": "Squircle",
+        "rounded": "Yuvarlak"
       },
-      "safeZone": "Güvenli Alan Payı",
+      "safeZone": "Güvenli alan",
       "safeZoneAria": "Güvenli alan göstergesi",
       "safeZoneGuide": "Platform standartlarına göre ana tasarım, uyarlanabilir simgelerde kesilmemesi için içteki %80 güvenli alan içinde kalmalıdır.",
       "safeZoneTipOff": "Simge kenarları bazı platformlarda kesilebilir.",

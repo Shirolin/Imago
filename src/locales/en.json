@@ -524,7 +524,7 @@
       "unsupportedTip": "This file format does not support metadata parsing or contains no readable EXIF."
     },
     "favicon": {
-      "adaptiveSimulator": "Adaptive Icon Simulator",
+      "adaptiveSimulator": "Adaptive preview",
       "appearance": "Icon Appearance",
       "appleIosNative": "Apple iOS Native",
       "appleTouchTitle": "Apple Touch Icon",
@@ -549,12 +549,12 @@
       "canvasAlt": "Canvas Boundary Reference",
       "croppedAlt": "Cropped Preview ({shape})",
       "shapes": {
-        "full": "Square (Full)",
+        "full": "Full",
         "circle": "Circle",
         "squircle": "Squircle",
         "rounded": "Rounded"
       },
-      "safeZone": "Safe Zone Margin",
+      "safeZone": "Safe zone",
       "safeZoneAria": "Safe Zone Indicator",
       "safeZoneGuide": "Per platform guidelines, core artwork should stay within the inner 80% safe zone to prevent clipping on adaptive icons.",
       "safeZoneTipOff": "Edges may be clipped on some platforms.",

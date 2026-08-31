@@ -376,6 +376,17 @@ watch(displayUrl, () => {
           <X :size="12" />
         </button>
         <button
+          v-if="image.status === 'done' || image.status === 'error'"
+          type="button"
+          @click.stop="handleReset"
+          class="absolute bottom-2 left-2 z-30 flex h-7 w-7 items-center justify-center rounded-[var(--radius-ctrl)] bg-[var(--paper)] text-[var(--ink)] ring-1 ring-[var(--hairline)] transition-opacity duration-200 outline-none hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          :class="minimalActionReveal"
+          :title="t('common.image.card.reset')"
+          :aria-label="t('common.image.card.reset')"
+        >
+          <RotateCcw :size="12" />
+        </button>
+        <button
           v-if="showDownload && image.status === 'done'"
           type="button"
           @click.stop="emit('download', image.id)"

@@ -135,7 +135,7 @@ const handleGenerate = async () => {
         <div
           v-if="activeImage"
           :key="activeImage.id"
-          class="min-h-full w-full flex flex-col items-center py-10 px-6 md:px-12"
+          class="min-h-full w-full flex flex-col items-center py-6 px-3 sm:py-8 sm:px-6 md:py-10 md:px-12"
         >
           <div class="w-full max-w-6xl space-y-10">
             <!-- 1. 顶部：环境模拟 -->
@@ -202,7 +202,7 @@ const handleGenerate = async () => {
             </section>
 
             <!-- 2. 中层：核心平台预览 -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-start">
               <!-- iOS 预览 -->
               <section v-if="selectedIds.has('apple')" class="space-y-4">
                 <div class="flex items-center gap-2.5 text-muted-foreground/40 pl-1">
@@ -212,7 +212,7 @@ const handleGenerate = async () => {
                   }}</span>
                 </div>
                 <div
-                  class="bg-card border border-[var(--hairline)] rounded-[var(--radius-well)] p-8 flex flex-col items-center justify-center gap-8 shadow-elevated group hover:border-primary/20 transition-all min-h-[320px]"
+                  class="bg-card border border-[var(--hairline)] rounded-[var(--radius-well)] p-4 sm:p-6 md:p-8 flex flex-col items-center justify-center gap-6 md:gap-8 shadow-elevated group hover:border-primary/20 transition-all min-h-[280px] sm:min-h-[320px]"
                 >
                   <div
                     class="aspect-square w-32 relative bg-background ring-1 ring-black/5 dark:ring-white/10 flex items-center justify-center"
@@ -244,38 +244,35 @@ const handleGenerate = async () => {
               </section>
 
               <!-- Android Adaptive Simulator (Maskable.app 工业标准对齐版) -->
-              <section v-if="selectedIds.has('maskable512')" class="space-y-4">
-                <div class="flex items-center justify-between pl-1 pr-4">
-                  <div class="flex items-center gap-2.5 text-muted-foreground/40">
-                    <ShieldCheck :size="14" />
-                    <span class="text-[11px] font-medium">{{
+              <section v-if="selectedIds.has('maskable512')" class="space-y-3 min-w-0">
+                <div class="flex flex-col gap-3 pl-1 pr-1 sm:pr-0">
+                  <div class="flex items-start gap-2.5 text-muted-foreground/40 min-w-0">
+                    <ShieldCheck :size="14" class="shrink-0 mt-0.5" />
+                    <span class="text-[11px] font-medium leading-snug">{{
                       t('tools.favicon.adaptiveSimulator')
                     }}</span>
                   </div>
-                  <div class="flex items-center gap-4">
+                  <div class="flex flex-wrap items-center gap-2">
                     <button
+                      type="button"
                       @click="rotateMaskShape"
-                      class="flex items-center gap-1.5 text-[11px] font-medium text-primary hover:opacity-80 transition-opacity focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 rounded-sm outline-none"
+                      class="inline-flex max-w-full items-center gap-1.5 rounded-[var(--radius-ctrl)] border border-[var(--hairline)] bg-[var(--board)] px-2.5 py-1.5 text-left text-[11px] font-medium text-[var(--ink)] transition-colors hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                       :aria-label="t('tools.favicon.rotateShape')"
                       :title="`${t('tools.favicon.currentShape')}: ${t('tools.favicon.shapes.' + activeMaskShape)}`"
                     >
-                      <RefreshCw :size="10" />
-                      {{ t('tools.favicon.shapeLabel') }}
-                      {{ t('tools.favicon.shapes.' + activeMaskShape) }}
+                      <RefreshCw :size="10" class="shrink-0 text-[var(--muted)]" />
+                      <span class="truncate">{{
+                        t('tools.favicon.shapes.' + activeMaskShape)
+                      }}</span>
                     </button>
-                  </div>
-                </div>
-                <div
-                  class="bg-card border border-[var(--hairline)] rounded-[var(--radius-well)] p-8 flex flex-col items-center justify-center gap-8 shadow-elevated group hover:border-primary/20 transition-all min-h-[320px] relative overflow-hidden"
-                >
-                  <div class="absolute top-6 right-8 z-30">
                     <button
+                      type="button"
                       @click="autoPadding = !autoPadding"
-                      class="flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-ctrl)] border transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none"
+                      class="inline-flex max-w-full items-center gap-2 rounded-[var(--radius-ctrl)] border px-2.5 py-1.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                       :class="
                         autoPadding
-                          ? 'bg-primary border-primary text-primary-foreground'
-                          : 'bg-background border-border text-muted-foreground'
+                          ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--on-product)]'
+                          : 'border-[var(--hairline)] bg-[var(--board)] text-[var(--muted)]'
                       "
                       :aria-label="
                         autoPadding
@@ -283,11 +280,16 @@ const handleGenerate = async () => {
                           : t('tools.favicon.enableSafeZone')
                       "
                     >
-                      <LayoutIcon :size="12" />
-                      <span class="text-[11px] font-medium">{{ t('tools.favicon.safeZone') }}</span>
+                      <LayoutIcon :size="12" class="shrink-0" />
+                      <span class="truncate text-[11px] font-medium">{{
+                        t('tools.favicon.safeZone')
+                      }}</span>
                     </button>
                   </div>
-
+                </div>
+                <div
+                  class="bg-card border border-[var(--hairline)] rounded-[var(--radius-well)] p-4 sm:p-6 md:p-8 flex flex-col items-center justify-center gap-6 md:gap-8 shadow-elevated group hover:border-primary/20 transition-all min-h-[280px] sm:min-h-[320px] relative overflow-hidden"
+                >
                   <!-- 物理容器 ( w-40 = 160px = 100% 物理文件 ) -->
                   <div
                     class="relative w-40 h-40 flex items-center justify-center bg-muted/20 rounded-[var(--radius-well)] shadow-inner ring-1 ring-black/5 dark:ring-white/5 overflow-hidden"
@@ -407,7 +409,7 @@ const handleGenerate = async () => {
                 <span class="text-[11px] font-medium">{{ t('tools.favicon.matrixTitle') }}</span>
               </div>
               <div
-                class="bg-card border border-[var(--hairline)] rounded-[var(--radius-well)] p-10 shadow-elevated w-full transition-all hover:border-primary/20"
+                class="bg-card border border-[var(--hairline)] rounded-[var(--radius-well)] p-4 sm:p-6 md:p-10 shadow-elevated w-full transition-all hover:border-primary/20"
               >
                 <div
                   class="flex flex-wrap items-end justify-center lg:justify-start gap-x-12 gap-y-12 px-2"

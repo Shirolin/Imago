@@ -524,7 +524,7 @@
       "unsupportedTip": "此檔案格式目前暫不支援中繼資料深度解析。"
     },
     "favicon": {
-      "adaptiveSimulator": "自適應圖示模擬器",
+      "adaptiveSimulator": "自適應預覽",
       "appearance": "網站圖示外觀樣式",
       "appleIosNative": "Apple iOS 原生",
       "appleTouchTitle": "Apple Touch 圖示",
@@ -549,12 +549,12 @@
       "canvasAlt": "畫布邊界參考",
       "croppedAlt": "裁切預覽 ({shape})",
       "shapes": {
-        "full": "正方形 (完整)",
+        "full": "完整",
         "circle": "圓形",
-        "squircle": "圓角方形",
+        "squircle": "超橢圓",
         "rounded": "圓角"
       },
-      "safeZone": "安全保留邊距",
+      "safeZone": "安全區",
       "safeZoneAria": "安全區示意圖",
       "safeZoneGuide": "依照平台規範，核心內容應保持在 80% 安全區範圍內，以適配自適應圖示裁切。",
       "safeZoneTipOff": "目前圖示內容可能會在某些平台上被裁切邊緣。",

@@ -524,7 +524,7 @@
       "unsupportedTip": "Este formato de archivo no admite análisis de metadatos o no contiene EXIF."
     },
     "favicon": {
-      "adaptiveSimulator": "Simulador de iconos adaptativos",
+      "adaptiveSimulator": "Vista adaptativa",
       "appearance": "Estilo del favicon",
       "appleIosNative": "Apple iOS Nativo",
       "appleTouchTitle": "Icono Apple Touch",
@@ -549,12 +549,12 @@
       "canvasAlt": "Referencia de límites del lienzo",
       "croppedAlt": "Vista previa de recorte ({shape})",
       "shapes": {
-        "full": "Cuadrado (Completo)",
+        "full": "Completo",
         "circle": "Círculo",
-        "squircle": "Squircle (Cuadrado redondeado)",
-        "rounded": "Bordes redondeados"
+        "squircle": "Squircle",
+        "rounded": "Redondeado"
       },
-      "safeZone": "Zona de seguridad (Margen)",
+      "safeZone": "Zona segura",
       "safeZoneAria": "Indicador de zona de seguridad",
       "safeZoneGuide": "Según las normas de las plataformas, el diseño principal debe mantenerse dentro del 80% central para no recortarse en iconos adaptativos.",
       "safeZoneTipOff": "Los bordes del icono pueden quedar recortados en algunas plataformas.",
