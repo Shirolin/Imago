@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest'
 import {
   inspectorChromeFromViewport,
   inspectorIsCollapsed,
-  isOverlayChrome
+  isOverlayChrome,
+  shouldExpandOverlayOnImport
 } from './inspectorChrome'
 
 describe('inspectorChromeFromViewport', () => {
@@ -93,5 +94,24 @@ describe('inspectorIsCollapsed', () => {
         storeCollapsed: true
       })
     ).toBe(true)
+  })
+})
+
+describe('shouldExpandOverlayOnImport', () => {
+  it('0 → N on overlay expands', () => {
+    expect(shouldExpandOverlayOnImport(0, 1, true)).toBe(true)
+    expect(shouldExpandOverlayOnImport(0, 3, true)).toBe(true)
+  })
+
+  it('already had images does not expand', () => {
+    expect(shouldExpandOverlayOnImport(5, 6, true)).toBe(false)
+  })
+
+  it('desktop does not expand', () => {
+    expect(shouldExpandOverlayOnImport(0, 1, false)).toBe(false)
+  })
+
+  it('clearing the list does not expand', () => {
+    expect(shouldExpandOverlayOnImport(2, 0, true)).toBe(false)
   })
 })
