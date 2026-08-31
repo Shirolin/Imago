@@ -7,7 +7,7 @@ export interface ImageItem {
   file: File
   preview: string
   status: 'idle' | 'processing' | 'done' | 'error'
-  progress?: number // 0 to 1
+  progress?: number
   originalSize: number
   width?: number
   height?: number
@@ -34,7 +34,6 @@ export const useImageStore = defineStore('image', () => {
   const activeId = ref<string | null>(null)
   const sortMode = ref<'upload' | 'name' | 'status'>('upload')
 
-  // 智能倍镜设置
   const showMagnifier = ref(localStorage.getItem('imago-show-magnifier') !== 'false')
 
   const setShowMagnifier = (value: boolean) => {
@@ -58,7 +57,6 @@ export const useImageStore = defineStore('image', () => {
     if (totalCount.value === 0) return 0
     if (processingCount.value === 0 && doneCount.value === totalCount.value) return 100
 
-    // 计算已完成的部分 + 正在处理的部分的权重
     const doneBase = doneCount.value
     const processingProgress = images.value
       .filter((img) => img.status === 'processing')
@@ -67,7 +65,6 @@ export const useImageStore = defineStore('image', () => {
     return Math.round(((doneBase + processingProgress) / totalCount.value) * 100)
   })
 
-  // 排序逻辑
   const sortedImages = computed(() => {
     const list = [...images.value]
     if (sortMode.value === 'upload') return list
@@ -80,7 +77,6 @@ export const useImageStore = defineStore('image', () => {
     return list
   })
 
-  // 获取当前的活动图片对象 (回退逻辑：如果 activeId 无效，取最后一张)
   const activeImage = computed(() => {
     if (!images.value.length) return null
     return (
@@ -175,7 +171,10 @@ export const useImageStore = defineStore('image', () => {
     )
     images.value.push(...resolvedImages)
 
-    // 自动激活最后一张新图片
+    for (const img of resolvedImages) {
+      selectedIds.value.add(img.id)
+    }
+
     if (resolvedImages.length > 0) {
       const last = resolvedImages[resolvedImages.length - 1]
       if (last) activeId.value = last.id
@@ -196,7 +195,6 @@ export const useImageStore = defineStore('image', () => {
       images.value.splice(index, 1)
       selectedIds.value.delete(id)
 
-      // 如果删除的是活动图片，切换到现有列表的最后一张
       if (activeId.value === id) {
         const last = images.value[images.value.length - 1]
         activeId.value = last ? last.id : null

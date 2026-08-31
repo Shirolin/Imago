@@ -5,12 +5,10 @@ import { useImageStore } from './imageStore'
 describe('Image Store', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
-    // 使用 spyOn 模拟 URL 方法，避免直接修改 readonly 属性导致的类型错误
     vi.spyOn(URL, 'createObjectURL').mockReturnValue('mock-url')
     vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
 
     // 模拟 Image 类以防止在 jsdom 中加载超时
-    // @ts-expect-error: Mocking Image for JSDOM
     global.Image = class {
       set src(value: string) {
         setTimeout(() => this.onload(), 0)
@@ -19,7 +17,7 @@ describe('Image Store', () => {
       onerror = () => {}
       naturalWidth = 100
       naturalHeight = 100
-    }
+    } as unknown as typeof Image
   })
 
   it('应该能正确导入图片', async () => {
@@ -38,9 +36,21 @@ describe('Image Store', () => {
     const mockFile = new File(['test'], 'test.png', { type: 'image/png' })
 
     await store.addImages([mockFile])
-    await store.addImages([mockFile]) // 重复添加
+    await store.addImages([mockFile])
 
     expect(store.images.length).toBe(1)
+  })
+
+  it('导入后自动选中新图片', async () => {
+    const store = useImageStore()
+    await store.addImages([
+      new File(['1'], '1.png', { type: 'image/png' }),
+      new File(['2'], '2.png', { type: 'image/png' })
+    ])
+
+    expect(store.selectedCount).toBe(2)
+    expect(store.selectedIds.has(store.images[0]!.id)).toBe(true)
+    expect(store.selectedIds.has(store.images[1]!.id)).toBe(true)
   })
 
   it('应该能正确切换选择状态', async () => {
@@ -49,12 +59,14 @@ describe('Image Store', () => {
     await store.addImages([mockFile])
     const id = store.images[0]!.id
 
-    store.toggleSelection(id)
     expect(store.selectedIds.has(id)).toBe(true)
     expect(store.selectedCount).toBe(1)
 
     store.toggleSelection(id)
     expect(store.selectedIds.has(id)).toBe(false)
+
+    store.toggleSelection(id)
+    expect(store.selectedIds.has(id)).toBe(true)
   })
 
   it('应该能全选和取消全选', async () => {
@@ -86,7 +98,6 @@ describe('Image Store', () => {
   })
 
   it('超长边图片应被拒绝导入', async () => {
-    // @ts-expect-error: Mocking Image for JSDOM
     global.Image = class {
       set src(_value: string) {
         setTimeout(() => this.onload(), 0)
@@ -95,7 +106,7 @@ describe('Image Store', () => {
       onerror = () => {}
       naturalWidth = 20000
       naturalHeight = 1000
-    }
+    } as unknown as typeof Image
 
     const store = useImageStore()
     const mockFile = new File(['test'], 'huge.png', { type: 'image/png' })
@@ -108,7 +119,6 @@ describe('Image Store', () => {
   })
 
   it('无法解码的图片应被拒绝导入', async () => {
-    // @ts-expect-error: Mocking Image for JSDOM
     global.Image = class {
       set src(_value: string) {
         setTimeout(() => this.onerror(), 0)
@@ -117,7 +127,7 @@ describe('Image Store', () => {
       onerror = () => {}
       naturalWidth = 0
       naturalHeight = 0
-    }
+    } as unknown as typeof Image
 
     const store = useImageStore()
     const mockFile = new File(['test'], 'broken.png', { type: 'image/png' })

@@ -7,7 +7,10 @@ import ImageUpload from '../common/ImageUpload.vue'
 import AssetsTray from './AssetsTray.vue'
 import { PanelRightClose, PanelRightOpen, ChevronUp, ChevronDown } from 'lucide-vue-next'
 import { useBreakpoints } from '../../composables/useBreakpoints'
-import { inspectorIsCollapsed as resolveInspectorCollapsed } from '../../composables/inspectorChrome'
+import {
+  inspectorIsCollapsed as resolveInspectorCollapsed,
+  shouldExpandOverlayOnImport
+} from '../../composables/inspectorChrome'
 import { useImageImport } from '../../composables/useImageImport'
 
 const store = useImageStore()
@@ -41,6 +44,15 @@ const inspectorContentIsolated = computed(() => inspectorIsCollapsed.value && is
 watch(inspectorChromeMode, (mode) => {
   if (mode === 'phone' || mode === 'tablet') overlayInspectorCollapsed.value = true
 })
+
+watch(
+  () => store.images.length,
+  (count, prevCount) => {
+    if (shouldExpandOverlayOnImport(prevCount ?? 0, count, isOverlayChrome.value)) {
+      overlayInspectorCollapsed.value = false
+    }
+  }
+)
 
 const toggleInspector = () => {
   if (isOverlayChrome.value) {

@@ -1,6 +1,7 @@
 import exifr from 'exifr'
 import type { ImageProcessor } from './types'
 import { MAX_PROCESS_SIDE, fitWithinMaxSide } from '../limits'
+import { classifyExifTags } from './exifTagRegistry'
 
 export interface ExifData {
   make?: string
@@ -13,11 +14,28 @@ export interface ExifData {
   focalLength?: string
   latitude?: number
   longitude?: number
-  metaCount: number
+  privacyCount: number
+  technicalCount: number
   all?: Record<string, string | number | boolean>
   error?: string
   unsupported?: boolean
 }
+
+export type ExifPrivacyStatus =
+  | { kind: 'risk'; count: number }
+  | { kind: 'safe' }
+  | { kind: 'unsupported' }
+  | { kind: 'error'; message: string }
+
+export function exifPrivacyStatus(data: ExifData | null | undefined): ExifPrivacyStatus {
+  if (!data) return { kind: 'safe' }
+  if (data.error) return { kind: 'error', message: data.error }
+  if (data.unsupported) return { kind: 'unsupported' }
+  if (data.privacyCount > 0) return { kind: 'risk', count: data.privacyCount }
+  return { kind: 'safe' }
+}
+
+const EMPTY_COUNTS = { privacyCount: 0, technicalCount: 0 }
 
 const SUPPORTED_MIME_TYPES = [
   'image/jpeg',
@@ -30,9 +48,8 @@ const SUPPORTED_MIME_TYPES = [
 ]
 
 export const readExif = async (file: File): Promise<ExifData | null> => {
-  // 快速检查：如果是不支持的格式，直接返回 unsupported 状态
   if (!SUPPORTED_MIME_TYPES.includes(file.type)) {
-    return { metaCount: 0, unsupported: true }
+    return { ...EMPTY_COUNTS, unsupported: true }
   }
 
   try {
@@ -45,9 +62,8 @@ export const readExif = async (file: File): Promise<ExifData | null> => {
       xmp: true
     })) as Record<string, unknown>
 
-    if (!rawData) return { metaCount: 0 }
+    if (!rawData) return { ...EMPTY_COUNTS }
 
-    // 过滤并存储基础类型用于全量展示
     const filteredRaw: Record<string, string | number | boolean> = {}
     Object.entries(rawData).forEach(([key, value]) => {
       if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
@@ -57,7 +73,7 @@ export const readExif = async (file: File): Promise<ExifData | null> => {
       }
     })
 
-    const metaCount = Object.keys(rawData).length
+    const { privacyCount, technicalCount } = classifyExifTags(Object.keys(filteredRaw))
 
     return {
       make: typeof rawData.Make === 'string' ? rawData.Make : undefined,
@@ -73,17 +89,17 @@ export const readExif = async (file: File): Promise<ExifData | null> => {
       focalLength: typeof rawData.FocalLength === 'number' ? `${rawData.FocalLength}mm` : undefined,
       latitude: typeof rawData.latitude === 'number' ? rawData.latitude : undefined,
       longitude: typeof rawData.longitude === 'number' ? rawData.longitude : undefined,
-      metaCount,
+      privacyCount,
+      technicalCount,
       all: filteredRaw
     }
   } catch (error) {
-    // 捕获“未知文件格式”错误
     const errorMessage = error instanceof Error ? error.message : String(error)
     if (errorMessage.includes('Unknown file format')) {
-      return { metaCount: 0, unsupported: true }
+      return { ...EMPTY_COUNTS, unsupported: true }
     }
     console.error('Failed to read EXIF:', error)
-    return { metaCount: 0, error: errorMessage }
+    return { ...EMPTY_COUNTS, error: errorMessage }
   }
 }
 
@@ -92,10 +108,6 @@ export interface ExifOptions {
   quality?: number
 }
 
-/**
- * 清除 EXIF 信息的引擎
- * 原理：通过 Canvas 重新绘制图片，Canvas 不会保留原始图片的元数据。
- */
 export const clearExifEngine: ImageProcessor<ExifOptions> = async (file, options) => {
   return new Promise((resolve, reject) => {
     const img = new Image()

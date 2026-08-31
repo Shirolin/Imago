@@ -45,3 +45,11 @@ export function inspectorIsCollapsed(input: InspectorCollapsedInput): boolean {
   if (input.chrome === 'desktop') return input.storeCollapsed
   return input.overlayCollapsed
 }
+
+export function shouldExpandOverlayOnImport(
+  prevCount: number,
+  nextCount: number,
+  overlay: boolean
+): boolean {
+  return overlay && prevCount === 0 && nextCount > 0
+}
