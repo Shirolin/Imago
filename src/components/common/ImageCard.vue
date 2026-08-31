@@ -199,7 +199,7 @@ watch(displayUrl, () => {
 
 <template>
   <div
-    class="imago-sheet relative cursor-pointer flex flex-col group outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--well)] p-3 md:p-8"
+    class="imago-sheet relative cursor-pointer flex flex-col group outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--well)] p-4 md:p-6"
     :class="[isDirtyDone ? 'ring-1 ring-[var(--muted)]' : '']"
     tabindex="0"
     role="button"
@@ -359,7 +359,7 @@ watch(displayUrl, () => {
       </div>
     </div>
 
-    <div class="pt-2.5 flex flex-col gap-1.5 min-w-0">
+    <div class="pt-3 flex flex-col gap-2 min-w-0">
       <div
         v-if="image.status === 'error'"
         class="flex items-center gap-1.5 text-[11px] font-bold text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-2 py-1.5"
@@ -371,15 +371,15 @@ watch(displayUrl, () => {
         }}</span>
       </div>
 
-      <div class="flex items-center justify-between gap-2">
-        <h4 class="font-medium text-[var(--ink)] truncate text-sm flex-1">
+      <div class="flex items-center gap-3 min-w-0">
+        <h4 class="font-medium text-[var(--ink)] truncate text-sm min-w-0 flex-1">
           {{ image.file.name }}
         </h4>
         <div class="shrink-0 flex items-center gap-1.5">
           <span
             v-if="image.status === 'done'"
-            class="text-[11px] font-medium text-[var(--muted)]"
-            :class="{ 'text-[var(--accent)]': !isDirty }"
+            class="max-w-[7.5rem] truncate text-[11px] font-medium text-[var(--muted)]"
+            :class="{ 'text-[var(--accent)]': isDirty }"
           >
             {{ statusLabel }}
           </span>
@@ -395,48 +395,44 @@ watch(displayUrl, () => {
 
       <div
         v-if="actionChrome === 'bar' && (image.status === 'done' || image.status === 'error')"
-        class="flex items-center gap-2 mt-3 pt-3 border-t border-[var(--hairline)]"
+        class="flex items-center gap-3 mt-1 pt-3 border-t border-[var(--hairline)]"
       >
         <button
           v-if="showCompare && image.status === 'done'"
-          class="flex-1 min-w-0 flex items-center justify-center gap-2 min-h-9 h-auto py-1.5 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] text-[var(--muted)] hover:text-[var(--ink)] transition-colors text-[12px] font-medium leading-tight outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          class="flex-1 min-w-0 flex h-10 items-center justify-center gap-1.5 px-2.5 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] text-[var(--muted)] hover:text-[var(--ink)] transition-colors text-[12px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           @click.stop="emit('compare', image.id)"
           :aria-label="t('common.image.card.compare')"
         >
-          <Columns2 :size="14" />
-          <span class="ui-label min-w-0 flex-1">{{ t('common.image.card.compare') }}</span>
+          <Columns2 :size="14" class="shrink-0" />
+          <span class="truncate">{{ t('common.image.card.compare') }}</span>
         </button>
         <button
           v-if="image.status === 'done' || image.status === 'error'"
-          class="flex-1 min-w-0 flex items-center justify-center gap-2 min-h-9 h-auto py-1.5 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[var(--danger)]/10 text-[var(--muted)] hover:text-[var(--danger)] transition-colors text-[12px] font-medium leading-tight outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger)]"
+          class="shrink-0 flex h-10 items-center justify-center gap-1.5 px-2.5 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[var(--danger)]/10 text-[var(--muted)] hover:text-[var(--danger)] transition-colors text-[12px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger)]"
           @click.stop="handleReset"
           :aria-label="t('common.image.card.reset')"
         >
-          <RotateCcw :size="14" />
-          <span class="ui-label min-w-0 flex-1">{{ t('common.image.card.reset') }}</span>
+          <RotateCcw :size="14" class="shrink-0" />
+          <span class="whitespace-nowrap">{{ t('common.image.card.reset') }}</span>
         </button>
         <button
           v-if="showInteractive && image.status === 'done'"
-          class="flex-1 min-w-0 flex items-center justify-center gap-2 min-h-9 h-auto py-1.5 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] text-[var(--muted)] hover:text-[var(--ink)] transition-colors text-[12px] font-medium leading-tight outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          class="shrink-0 flex h-10 items-center justify-center gap-1.5 px-2.5 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] text-[var(--muted)] hover:text-[var(--ink)] transition-colors text-[12px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           @click.stop="emit('interactive', image.id)"
           :aria-label="t('common.image.card.sam2')"
         >
-          <MousePointer2 :size="14" />
-          <span class="ui-label min-w-0 flex-1">{{ t('common.image.card.sam2') }}</span>
+          <MousePointer2 :size="14" class="shrink-0" />
+          <span class="whitespace-nowrap">{{ t('common.image.card.sam2') }}</span>
         </button>
-        <div
+        <button
           v-if="showDownload && image.status === 'done'"
-          class="flex gap-2 ml-auto pl-2 border-l border-[var(--hairline)]"
+          @click.stop="emit('download', image.id)"
+          class="flex h-10 w-10 shrink-0 items-center justify-center bg-[var(--accent)] text-[var(--on-product)] rounded-[var(--radius-ctrl)] hover:brightness-95 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          :title="t('common.image.card.download')"
+          :aria-label="t('common.image.card.download')"
         >
-          <button
-            @click.stop="emit('download', image.id)"
-            class="p-2 bg-[var(--accent)] text-[var(--on-product)] rounded-[var(--radius-ctrl)] hover:brightness-95 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-            :title="t('common.image.card.download')"
-            :aria-label="t('common.image.card.download')"
-          >
-            <Download :size="16" />
-          </button>
-        </div>
+          <Download :size="16" />
+        </button>
       </div>
     </div>
 

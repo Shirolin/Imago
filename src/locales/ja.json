@@ -56,7 +56,7 @@
       "card": {
         "after": "処理後",
         "before": "処理前",
-        "compare": "画質の詳細を比較",
+        "compare": "比較",
         "dirty": "未同期",
         "download": "現在の画像を書き出し",
         "idle": "待機中",

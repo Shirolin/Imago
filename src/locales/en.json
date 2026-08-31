@@ -56,7 +56,7 @@
       "card": {
         "after": "After",
         "before": "Before",
-        "compare": "Compare Details",
+        "compare": "Compare",
         "dirty": "Pending Sync",
         "download": "Export Image",
         "idle": "Idle",

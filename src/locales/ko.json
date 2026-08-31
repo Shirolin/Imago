@@ -55,7 +55,7 @@
       "card": {
         "after": "처리 후",
         "before": "처리 전",
-        "compare": "상세 비교",
+        "compare": "비교",
         "dirty": "업데이트 대기",
         "download": "처리된 이미지 저장",
         "idle": "대기 중",

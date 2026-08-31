@@ -56,14 +56,14 @@
       "card": {
         "after": "Après",
         "before": "Avant",
-        "compare": "Comparer les détails",
+        "compare": "Comparer",
         "dirty": "En attente de sync",
         "download": "Exporter l'image",
         "idle": "Inactif",
         "previewAlt": "Aperçu de {name}",
         "ready": "Prêt",
         "remove": "Supprimer",
-        "reset": "Réinitialiser",
+        "reset": "Rétablir",
         "sam2": "SAM2",
         "select": "Sélectionner",
         "wait": "En attente"

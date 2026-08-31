@@ -21,6 +21,8 @@ import {
   REFINER_HEADER_KEYS,
   FILTER_PRESET_BUDGET,
   FILTER_PRESET_KEYS,
+  CARD_BAR_BUDGET,
+  CARD_BAR_KEYS,
   SEGMENT_BUDGET,
   SEGMENT_COLS5_KEYS,
   SEGMENT_LABEL_KEYS
@@ -70,10 +72,7 @@ const FILL_KEYS = [
   'tools.split.clearAll',
   'tools.crop.fillAll',
   'tools.crop.undo',
-  'tools.crop.redo',
-  'common.image.card.compare',
-  'common.image.card.reset',
-  'common.image.card.sam2'
+  'tools.crop.redo'
 ]
 
 const HINT_KEYS = ['tools.compress.cta.clickToAbort', 'tools.split.cta.clickToAbort']
@@ -216,6 +215,17 @@ describe('button labels fit inspector chrome', () => {
       for (const key of REFINER_HEADER_KEYS) {
         const text = lookup(tree as LocaleTree, key)
         if (!withinBudget(text, locale, REFINER_HEADER_BUDGET)) {
+          overflows.push(`${key} = "${text}" (${graphemeCount(text)} graphemes)`)
+        }
+      }
+      expect(overflows, overflows.join('\n')).toEqual([])
+    })
+
+    it(`${locale} card action bar labels fit single-line budget`, () => {
+      const overflows: string[] = []
+      for (const key of CARD_BAR_KEYS) {
+        const text = lookup(tree as LocaleTree, key)
+        if (!withinBudget(text, locale, CARD_BAR_BUDGET)) {
           overflows.push(`${key} = "${text}" (${graphemeCount(text)} graphemes)`)
         }
       }

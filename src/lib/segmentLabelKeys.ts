@@ -73,6 +73,15 @@ export const GRID_HALF_FILL_KEYS = [
 
 export const GRID_HALF_FILL_BUDGET = { cjk: 6, latin: 10 } as const
 
+/** ImageCard labeled action bar: one line in ~100px at 12px. */
+export const CARD_BAR_KEYS = [
+  'common.image.card.compare',
+  'common.image.card.reset',
+  'common.image.card.sam2'
+] as const
+
+export const CARD_BAR_BUDGET = { cjk: 4, latin: 12 } as const
+
 /** BgRemove model status panel labels (~200px inspector, single line). */
 export const MODEL_STATUS_LABEL_KEYS = [
   'tools.bgRemove.engineDashboard',
