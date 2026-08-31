@@ -117,6 +117,35 @@ const initUrls = async () => {
   }
 }
 
+const zoomTowardCursor = (
+  cursor: { x: number; y: number },
+  origin: { x: number; y: number },
+  zoomRatio: number
+) => ({
+  x: cursor.x - (cursor.x - origin.x) * zoomRatio,
+  y: cursor.y - (cursor.y - origin.y) * zoomRatio
+})
+
+const keepPanCentered = (
+  origin: { x: number; y: number },
+  from: { width: number; height: number },
+  to: { width: number; height: number }
+) => ({
+  x: origin.x + (to.width - from.width) / 2,
+  y: origin.y + (to.height - from.height) / 2
+})
+
+const applyZoom = (factor: number) => {
+  if (!viewportSize.value.width) return
+  const newZoom = Math.max(0.05, Math.min(zoom.value * factor, 20))
+  const anchor = {
+    x: viewportSize.value.width / 2,
+    y: viewportSize.value.height / 2
+  }
+  offset.value = zoomTowardCursor(anchor, offset.value, newZoom / zoom.value)
+  zoom.value = newZoom
+}
+
 // --- 交互逻辑 (Interaction) ---
 const handleWheel = (e: WheelEvent) => {
   if (isDecoding.value) return
@@ -128,18 +157,13 @@ const handleWheel = (e: WheelEvent) => {
   const rect = viewportRef.value?.getBoundingClientRect()
   if (!rect) return
 
-  const mouseX = e.clientX - rect.left
-  const mouseY = e.clientY - rect.top
-
-  // 工业级：以鼠标指针为中心缩放
   const delta = e.deltaY > 0 ? 0.9 : 1.1
   const newZoom = Math.max(0.05, Math.min(zoom.value * delta, 20))
-
-  const zoomRatio = newZoom / zoom.value
-  offset.value = {
-    x: mouseX - (mouseX - offset.value.x) * zoomRatio,
-    y: mouseY - (mouseY - offset.value.y) * zoomRatio
-  }
+  offset.value = zoomTowardCursor(
+    { x: e.clientX - rect.left, y: e.clientY - rect.top },
+    offset.value,
+    newZoom / zoom.value
+  )
   zoom.value = newZoom
 }
 
@@ -189,19 +213,18 @@ useResizeObserver(viewportRef, (entries) => {
 
   // 窗口缩放时保持居中
   if (oldSize.width > 0) {
-    offset.value = {
-      x: offset.value.x + (width - oldSize.width) / 2,
-      y: offset.value.y + (height - oldSize.height) / 2
-    }
+    offset.value = keepPanCentered(offset.value, oldSize, { width, height })
   }
 })
 
-// 共享的变换样式
-const imageBox = computed(() => ({
-  left: offset.value.x,
-  top: offset.value.y,
-  width: imageSize.value.width * zoom.value,
-  height: imageSize.value.height * zoom.value
+const beforeChipStyle = computed(() => ({
+  transform: `scale(${1 / zoom.value})`,
+  transformOrigin: 'bottom left'
+}))
+
+const afterChipStyle = computed(() => ({
+  transform: `scale(${1 / zoom.value})`,
+  transformOrigin: 'bottom right'
 }))
 
 const sharedTransformStyle = computed(() => ({
@@ -251,6 +274,7 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
                 ? 'bg-[var(--accent)] text-[var(--on-product)]'
                 : 'compare-hud-muted hover:text-[var(--on-product)]'
             "
+            :aria-pressed="compareSide === 'before'"
             @click="snapToSide('before')"
           >
             {{ t('common.image.card.before') }}
@@ -264,6 +288,7 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
                 ? 'bg-[var(--accent)] text-[var(--on-product)]'
                 : 'compare-hud-muted hover:text-[var(--on-product)]'
             "
+            :aria-pressed="compareSide === 'after'"
             @click="snapToSide('after')"
           >
             {{ t('common.image.card.after') }}
@@ -272,7 +297,7 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
 
         <button
           @click="emit('close')"
-          class="compare-hud w-11 h-11 flex items-center justify-center compare-hud-muted hover:bg-[var(--danger)]/20 hover:border-[var(--danger)] hover:text-[var(--danger)] transition-colors"
+          class="compare-hud compare-hud-close w-11 h-11 flex items-center justify-center compare-hud-muted transition-colors"
           :aria-label="t('common.ui.close')"
         >
           <X :size="20" stroke-width="2.5" />
@@ -345,6 +370,16 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
               class="block max-w-none pointer-events-none shadow-[0_0_120px_rgba(0,0,0,0.8)]"
               style="image-rendering: pixelated"
             />
+            <div
+              v-if="processedSize"
+              class="compare-hud absolute bottom-6 right-6 pointer-events-none px-3 py-1.5 text-[11px] tabular-nums"
+              :style="afterChipStyle"
+            >
+              <span class="compare-hud-muted mr-2 font-medium">{{
+                t('common.image.card.after')
+              }}</span
+              >{{ processedSize }}
+            </div>
           </div>
         </div>
       </div>
@@ -361,6 +396,16 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
               class="block max-w-none h-full pointer-events-none"
               style="image-rendering: pixelated"
             />
+            <div
+              v-if="originalSize"
+              class="compare-hud absolute bottom-6 left-6 pointer-events-none px-3 py-1.5 text-[11px] tabular-nums"
+              :style="beforeChipStyle"
+            >
+              <span class="compare-hud-muted mr-2 font-medium">{{
+                t('common.image.card.before')
+              }}</span
+              >{{ originalSize }}
+            </div>
           </div>
         </div>
       </div>
@@ -380,30 +425,6 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
           </div>
         </div>
       </div>
-
-      <div
-        v-if="originalSize && compareSide !== 'after'"
-        class="compare-hud absolute z-[60] pointer-events-none px-3 py-1.5 text-[11px] tabular-nums"
-        :style="{
-          left: `${imageBox.left + 16}px`,
-          top: `${imageBox.top + imageBox.height - 44}px`
-        }"
-      >
-        <span class="compare-hud-muted mr-2 font-medium">{{ t('common.image.card.before') }}</span
-        >{{ originalSize }}
-      </div>
-      <div
-        v-if="processedSize && compareSide !== 'before'"
-        class="compare-hud absolute z-[60] pointer-events-none px-3 py-1.5 text-[11px] tabular-nums"
-        :style="{
-          left: `${imageBox.left + imageBox.width - 16}px`,
-          top: `${imageBox.top + imageBox.height - 44}px`,
-          transform: 'translateX(-100%)'
-        }"
-      >
-        <span class="compare-hud-muted mr-2 font-medium">{{ t('common.image.card.after') }}</span
-        >{{ processedSize }}
-      </div>
     </div>
 
     <div
@@ -412,7 +433,7 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
       <button
         class="w-10 h-10 flex items-center justify-center rounded-[var(--radius-ctrl)] compare-hud-hover"
         :aria-label="t('common.image.compare.zoomOut')"
-        @click="zoom = Math.max(0.05, zoom * 0.8)"
+        @click="applyZoom(0.8)"
       >
         <ZoomOut :size="18" stroke-width="2.5" />
       </button>
@@ -426,7 +447,7 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
       <button
         class="w-10 h-10 flex items-center justify-center rounded-[var(--radius-ctrl)] compare-hud-hover"
         :aria-label="t('common.image.compare.zoomIn')"
-        @click="zoom = Math.min(20, zoom * 1.2)"
+        @click="applyZoom(1.2)"
       >
         <ZoomIn :size="18" stroke-width="2.5" />
       </button>
@@ -472,6 +493,12 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
 
 .compare-hud-hover:hover {
   background: color-mix(in srgb, var(--on-product) 10%, transparent);
+}
+
+.compare-hud-close:hover {
+  background: color-mix(in srgb, var(--danger) 20%, transparent);
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
 .shadow-line {
