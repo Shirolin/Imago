@@ -24,20 +24,17 @@ const props = defineProps<{
 const emit = defineEmits(['close'])
 const { t } = useI18n()
 
-// --- 基础状态 ---
 const beforeUrl = ref<string>('')
 const afterUrl = ref<string>('')
 const isDecoding = ref(true)
 const error = ref<string | null>(null)
 
-// --- 物理变换状态 (Physical Transform) ---
 const zoom = ref(1)
 const offset = ref({ x: 0, y: 0 })
-const sliderPos = ref(50) // 0-100
+const sliderPos = ref(50)
 const isDragging = ref(false)
 const dragStart = ref({ x: 0, y: 0, offX: 0, offY: 0 })
 
-// --- 视口与尺寸状态 ---
 const viewportRef = ref<HTMLElement | null>(null)
 const imageSize = ref({ width: 0, height: 0 })
 const viewportSize = ref({ width: 0, height: 0 })
@@ -117,29 +114,39 @@ const initUrls = async () => {
   }
 }
 
-// --- 交互逻辑 (Interaction) ---
+const zoomTowardCursor = (
+  cursor: { x: number; y: number },
+  origin: { x: number; y: number },
+  zoomRatio: number
+) => ({
+  x: cursor.x - (cursor.x - origin.x) * zoomRatio,
+  y: cursor.y - (cursor.y - origin.y) * zoomRatio
+})
+
+const keepPanCentered = (
+  origin: { x: number; y: number },
+  from: { width: number; height: number },
+  to: { width: number; height: number }
+) => ({
+  x: origin.x + (to.width - from.width) / 2,
+  y: origin.y + (to.height - from.height) / 2
+})
+
 const handleWheel = (e: WheelEvent) => {
   if (isDecoding.value) return
-  // P2-14: 仅 Ctrl/Cmd + 滚轮时劫持滚动并缩放；
-  // 普通滚动（浏览长图/页面滚动）不 preventDefault，不劫持。
   if (!e.ctrlKey && !e.metaKey) return
   e.preventDefault()
 
   const rect = viewportRef.value?.getBoundingClientRect()
   if (!rect) return
 
-  const mouseX = e.clientX - rect.left
-  const mouseY = e.clientY - rect.top
-
-  // 工业级：以鼠标指针为中心缩放
   const delta = e.deltaY > 0 ? 0.9 : 1.1
   const newZoom = Math.max(0.05, Math.min(zoom.value * delta, 20))
-
-  const zoomRatio = newZoom / zoom.value
-  offset.value = {
-    x: mouseX - (mouseX - offset.value.x) * zoomRatio,
-    y: mouseY - (mouseY - offset.value.y) * zoomRatio
-  }
+  offset.value = zoomTowardCursor(
+    { x: e.clientX - rect.left, y: e.clientY - rect.top },
+    offset.value,
+    newZoom / zoom.value
+  )
   zoom.value = newZoom
 }
 
@@ -150,7 +157,6 @@ const handlePointerDown = (e: PointerEvent) => {
 
   viewportRef.value?.setPointerCapture(e.pointerId)
 
-  // 判断是滑动分割线还是平移画布
   if ((e.target as HTMLElement).closest('.compare-slider-handle')) {
     sliderActive.value = true
     return
@@ -187,16 +193,11 @@ useResizeObserver(viewportRef, (entries) => {
   const oldSize = { ...viewportSize.value }
   viewportSize.value = { width, height }
 
-  // 窗口缩放时保持居中
   if (oldSize.width > 0) {
-    offset.value = {
-      x: offset.value.x + (width - oldSize.width) / 2,
-      y: offset.value.y + (height - oldSize.height) / 2
-    }
+    offset.value = keepPanCentered(offset.value, oldSize, { width, height })
   }
 })
 
-// 共享的变换样式
 const imageBox = computed(() => ({
   left: offset.value.x,
   top: offset.value.y,
@@ -223,7 +224,6 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
     class="w-full h-full flex flex-col bg-[var(--product)] text-[var(--on-product)] relative overflow-hidden select-none"
     @contextmenu.prevent
   >
-    <!--沉浸式专业 HUD：顶栏 -->
     <div
       class="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black/80 to-transparent z-[100] flex items-center justify-between px-8 pointer-events-none"
     >
@@ -280,7 +280,6 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
       </div>
     </div>
 
-    <!-- 异常状态 -->
     <div
       v-if="error"
       class="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-6"
@@ -298,7 +297,6 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
       </div>
     </div>
 
-    <!-- 加载中状态 -->
     <div
       v-else-if="isDecoding"
       class="flex-1 flex flex-col items-center justify-center p-12 space-y-8"
@@ -319,7 +317,6 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
       </div>
     </div>
 
-    <!-- 核心视图区域 (物理锁定层) -->
     <div
       v-else
       ref="viewportRef"
@@ -330,13 +327,11 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
       @pointerup="handlePointerUp"
       @pointerleave="handlePointerUp"
     >
-      <!-- 背景统一棋盘格 -->
       <div
         v-if="showTransparency"
         class="absolute inset-0 app-transparency-grid pointer-events-none opacity-40"
       ></div>
 
-      <!-- 层级 1: 处理后图片 (底层的全屏视口，负责 AFTER) -->
       <div class="absolute inset-0 overflow-hidden pointer-events-none">
         <div class="absolute will-change-transform" :style="sharedTransformStyle">
           <div class="relative">
@@ -349,7 +344,6 @@ watch(() => [props.originalUrl, props.processedUrl], initUrls)
         </div>
       </div>
 
-      <!-- 层级 2: 处理前图片 (顶层的全屏视口，应用视口级裁切，负责 BEFORE) -->
       <div
         class="absolute inset-0 overflow-hidden pointer-events-none"
         :style="{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }"
