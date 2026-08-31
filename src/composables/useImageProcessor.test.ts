@@ -3,15 +3,6 @@ import { setActivePinia, createPinia } from 'pinia'
 import { useImageStore } from '../stores/imageStore'
 import { useImageProcessor } from './useImageProcessor'
 
-/**
- * useImageProcessor 回归测试（processSingle isProcessing 置位/复位、队列级 AbortController
- * 中止整批、单任务 abort 回 idle、进度聚合 0-100 不越界）
- *
- * Mock 策略：store 用真实 pinia + Image 桩（addImages 需要 naturalWidth）；processor 用
- * deferred mock——同步收集调用（file/options），由测试决定 resolve/reject，signal 监听 abort
- * 事件立即 reject('AbortError')；不依赖真实定时器。
- */
-
 type MockFn = Mock
 
 interface ProcessorEntry {
@@ -258,7 +249,7 @@ describe('processQueue（经 processAll 驱动） / processSelected', () => {
     const store = await addItems('a.png', 'b.png')
     const processor = vi.fn(async () => ({ size: 1 }))
     const { processSelected } = useImageProcessor(processor)
-    store.toggleSelection(store.images[0]!.id)
+    store.toggleSelection(store.images[1]!.id)
 
     await processSelected({})
     expect(processor).toHaveBeenCalledTimes(1)
