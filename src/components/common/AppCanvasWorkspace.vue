@@ -100,7 +100,7 @@ defineExpose({
   <div class="h-full flex flex-col overflow-hidden w-full relative">
     <div
       ref="containerRef"
-      class="flex-1 overflow-hidden relative w-full group select-none touch-none"
+      class="imago-canvas-workspace flex-1 overflow-hidden relative w-full group select-none touch-none"
       role="application"
       :aria-label="($attrs['aria-label'] as string) || t('common.canvas.workspaceAria')"
       :aria-describedby="$attrs['aria-describedby'] as string"

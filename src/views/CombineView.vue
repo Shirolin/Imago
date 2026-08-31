@@ -589,97 +589,97 @@ useResizeObserver(containerRef, resetView)
                 class="absolute inset-0 rounded-sm bg-[var(--well)] animate-pulse"
                 aria-hidden="true"
               ></div>
+            </div>
+          </Transition>
+        </template>
 
-              <!-- P0-1：解码失败图片的可见错误态 -->
+        <!-- 屏幕空间 HUD：不随画布 fit-scale 缩放 -->
+        <template #floating>
+          <Transition name="fade-scale">
+            <div
+              v-if="(!hasEnoughImages && store.images.length > 0) || sortOrderNotice"
+              class="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 pointer-events-none max-w-[min(92%,20rem)]"
+            >
               <div
-                v-if="previewErrorText"
-                class="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none max-w-[92%] px-4 py-2 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-[11px] font-medium leading-normal text-center animate-in fade-in"
-                role="alert"
+                v-if="!hasEnoughImages && store.images.length > 0"
+                class="w-full px-3 py-1.5 rounded-[var(--radius-ctrl)] bg-[var(--board)]/95 border border-[var(--hairline)] text-[11px] font-medium text-[var(--muted)] text-center backdrop-blur-sm"
+                role="status"
               >
-                {{ previewErrorText }}
+                {{ t('tools.combine.empty.desc') }}
               </div>
 
-              <!-- P1-3：托盘排序被回锁为导入顺序的提示 -->
               <div
                 v-if="sortOrderNotice"
-                class="absolute top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none px-3 py-1.5 rounded-[var(--radius-ctrl)] bg-[var(--board)] border border-[var(--hairline)] text-[11px] font-medium text-foreground animate-in fade-in"
+                class="w-full px-3 py-1.5 rounded-[var(--radius-ctrl)] bg-[var(--board)] border border-[var(--hairline)] text-[11px] font-medium text-foreground text-center"
                 role="status"
               >
                 {{ sortOrderNotice }}
               </div>
-
-              <!-- 【无障碍层】：逻辑排序层 -->
-              <div class="sr-only" role="list" :aria-label="t('tools.combine.canvas.sortListAria')">
-                <TransitionGroup name="sort-list">
-                  <div
-                    v-for="(img, index) in store.images"
-                    :key="img.id"
-                    :data-order-item="index"
-                    tabindex="0"
-                    role="listitem"
-                    class="focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 focus:bg-[var(--board)] focus:p-3 focus:rounded-2xl focus:border-2 focus:border-primary focus:animate-in focus:fade-in focus:zoom-in-95 focus:duration-200"
-                    :aria-label="
-                      t('tools.combine.canvas.itemAria', { index: index + 1, name: img.file.name })
-                    "
-                    @keydown.left.prevent="handleMoveImage(index, -1)"
-                    @keydown.right.prevent="handleMoveImage(index, 1)"
-                    @keydown.delete.prevent="handleRemoveImage(img.id, img.file.name)"
-                  >
-                    <div class="flex items-center gap-3 text-xs font-bold min-w-[200px]">
-                      <span class="bg-primary/10 text-primary px-2 py-1 rounded-lg">{{
-                        index + 1
-                      }}</span>
-                      <span class="truncate flex-1">{{ img.file.name }}</span>
-                      <div class="flex gap-1.5 ml-auto">
-                        <button
-                          @click="handleMoveImage(index, -1)"
-                          class="p-1 hover:bg-muted rounded"
-                          :aria-label="t('tools.combine.canvas.movePrev')"
-                        >
-                          <ArrowUp :size="12" class="-rotate-90" />
-                        </button>
-                        <button
-                          @click="handleMoveImage(index, 1)"
-                          class="p-1 hover:bg-muted rounded"
-                          :aria-label="t('tools.combine.canvas.moveNext')"
-                        >
-                          <ArrowUp :size="12" class="rotate-90" />
-                        </button>
-                        <button
-                          @click="handleRemoveImage(img.id, img.file.name)"
-                          class="p-1 hover:text-destructive rounded"
-                          :aria-label="t('common.image.card.remove')"
-                        >
-                          <Trash2 :size="12" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </TransitionGroup>
-              </div>
             </div>
           </Transition>
 
-          <Transition name="fade-scale">
-            <div
-              v-if="!hasEnoughImages"
-              class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center pointer-events-none"
-            >
+          <div
+            v-if="previewErrorText"
+            class="absolute bottom-[calc(var(--canvas-dock-clearance)+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 z-20 pointer-events-none max-w-[min(92%,24rem)] px-4 py-2 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-[11px] font-medium leading-normal text-center animate-in fade-in"
+            role="alert"
+          >
+            {{ previewErrorText }}
+          </div>
+
+          <!-- 【无障碍层】：逻辑排序层（屏幕空间，避免 fit-scale 缩小焦点面板） -->
+          <div
+            v-if="store.images.length > 0"
+            class="sr-only"
+            role="list"
+            :aria-label="t('tools.combine.canvas.sortListAria')"
+          >
+            <TransitionGroup name="sort-list">
               <div
-                class="w-14 h-14 rounded-[var(--radius-well)] bg-[var(--well)] border border-[var(--hairline)] flex items-center justify-center mb-6"
+                v-for="(img, index) in store.images"
+                :key="img.id"
+                :data-order-item="index"
+                tabindex="0"
+                role="listitem"
+                class="focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-[var(--board)] focus:p-3 focus:rounded-2xl focus:border-2 focus:border-primary focus:animate-in focus:fade-in focus:zoom-in-95 focus:duration-200"
+                :aria-label="
+                  t('tools.combine.canvas.itemAria', { index: index + 1, name: img.file.name })
+                "
+                @keydown.left.prevent="handleMoveImage(index, -1)"
+                @keydown.right.prevent="handleMoveImage(index, 1)"
+                @keydown.delete.prevent="handleRemoveImage(img.id, img.file.name)"
               >
-                <Layers :size="24" class="text-muted-foreground" />
+                <div class="flex items-center gap-3 text-xs font-bold min-w-[200px]">
+                  <span class="bg-primary/10 text-primary px-2 py-1 rounded-lg">{{
+                    index + 1
+                  }}</span>
+                  <span class="truncate flex-1">{{ img.file.name }}</span>
+                  <div class="flex gap-1.5 ml-auto">
+                    <button
+                      @click="handleMoveImage(index, -1)"
+                      class="p-1 hover:bg-muted rounded"
+                      :aria-label="t('tools.combine.canvas.movePrev')"
+                    >
+                      <ArrowUp :size="12" class="-rotate-90" />
+                    </button>
+                    <button
+                      @click="handleMoveImage(index, 1)"
+                      class="p-1 hover:bg-muted rounded"
+                      :aria-label="t('tools.combine.canvas.moveNext')"
+                    >
+                      <ArrowUp :size="12" class="rotate-90" />
+                    </button>
+                    <button
+                      @click="handleRemoveImage(img.id, img.file.name)"
+                      class="p-1 hover:text-destructive rounded"
+                      :aria-label="t('common.image.card.remove')"
+                    >
+                      <Trash2 :size="12" />
+                    </button>
+                  </div>
+                </div>
               </div>
-              <AppButton
-                variant="cta"
-                size="md"
-                class="rounded-[var(--radius)] px-8 pointer-events-auto"
-                @click="triggerFileInput"
-              >
-                <Plus :size="18" class="mr-1.5" />{{ t('tools.combine.importNow') }}
-              </AppButton>
-            </div>
-          </Transition>
+            </TransitionGroup>
+          </div>
         </template>
       </AppCanvasWorkspace>
     </template>
@@ -803,9 +803,22 @@ useResizeObserver(containerRef, resetView)
               {{ combineError }}
             </div>
           </div>
-          <!-- P1-2：图片不足（0/1 张）时仅保留空态覆盖层单个 CTA，避免重复导入按钮 -->
+          <!-- 单图：预览区不挡画面，导入入口放检查器底栏 -->
           <AppButton
-            v-if="hasEnoughImages"
+            v-if="!hasEnoughImages && store.images.length > 0"
+            size="lg"
+            fill
+            variant="cta"
+            class="w-full rounded-xl transition-colors"
+            @click="triggerFileInput"
+          >
+            <template #icon>
+              <Plus :size="19" class="mr-2" />
+            </template>
+            {{ t('tools.combine.importNow') }}
+          </AppButton>
+          <AppButton
+            v-else-if="hasEnoughImages"
             size="lg"
             fill
             variant="cta"

@@ -432,14 +432,20 @@
     --inspector-drawer-h: min(40dvh, calc(100dvh - 11rem));
   }
 
+  .imago-canvas-workspace {
+    --canvas-dock-bottom: 1.5rem;
+    --canvas-dock-h: 2.75rem;
+    --canvas-dock-clearance: calc(var(--canvas-dock-bottom) + var(--canvas-dock-h) + 0.5rem);
+  }
+
   .imago-canvas-dock {
     position: absolute;
-    bottom: 1.5rem;
+    bottom: var(--canvas-dock-bottom);
   }
 
   .imago-canvas-hud {
     position: absolute;
-    bottom: 6rem;
+    bottom: var(--canvas-dock-clearance);
   }
 
   @media (hover: none) {
