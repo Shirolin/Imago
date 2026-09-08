@@ -13,7 +13,8 @@ import {
   containMold,
   isOutOfBounds,
   needsOpaqueFill,
-  uniqueZipName
+  uniqueZipName,
+  type MoldRect
 } from '../lib/moldCut'
 import { cropEngine } from '../lib/engines/cropEngine'
 import type { ProcessResult } from '../lib/engines/types'
@@ -127,8 +128,13 @@ const resetView = () => {
   workspaceRef.value?.triggerAutoFit(imgW.value, imgH.value)
 }
 
-const onMoldDrag = (m: { x: number; y: number }) => {
-  pos.value = { x: m.x, y: m.y }
+// 模具框回传完整矩形：移动只取 x/y，缩放同时收下 w/h（此前丢弃宽高导致手柄无效）
+const onMoldDrag = (m: MoldRect) => {
+  const n = normalizeMold(m)
+  moldW.value = n.w
+  moldH.value = n.h
+  const c = hasSize.value ? containMold(n, imgW.value, imgH.value) : n
+  pos.value = { x: c.x, y: c.y }
 }
 
 const nudge = (dx: number, dy: number) => {
