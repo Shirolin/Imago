@@ -24,6 +24,7 @@ import { MAX_FILE_BYTES } from './lib/limits'
 import { useImageImport } from './composables/useImageImport'
 import { useLayoutStore } from './stores/layoutStore'
 import SponsorModal from './components/SponsorModal.vue'
+import AppLogo from './components/common/AppLogo.vue'
 import LanguageSwitcher from './components/common/LanguageSwitcher.vue'
 
 const store = useImageStore()
@@ -189,7 +190,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
   const base =
     'flex items-center text-sm transition-colors duration-150 group relative outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]'
   const pad = collapsed
-    ? 'shrink-0 lg:justify-center min-h-[40px] lg:h-10 lg:w-10 lg:mx-auto px-3 py-2 gap-2 rounded-[var(--radius-ctrl)]'
+    ? 'shrink-0 lg:justify-center min-h-[40px] lg:h-10 lg:w-10 lg:mx-auto lg:p-0 px-3 py-2 gap-2 rounded-[var(--radius-ctrl)]'
     : 'min-w-0 px-3 py-2 min-h-[40px] gap-2 rounded-[var(--radius-ctrl)]'
   const state = active
     ? 'bg-[var(--well)] text-[var(--ink)]'
@@ -248,12 +249,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
           >
             <span class="imago-serif text-[22px] leading-none text-[var(--ink)]">Imago</span>
           </div>
-          <span
-            v-else
-            class="imago-serif hidden lg:inline text-[18px] text-[var(--ink)]"
-            aria-hidden="true"
-            >I</span
-          >
+          <AppLogo v-else :size="26" class="hidden lg:block" />
         </router-link>
       </div>
 
@@ -269,13 +265,13 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
           class="flex flex-col"
           :class="[
             layoutStore.isMenuCollapsed && !isMobileSidebarOpen
-              ? 'lg:w-[64px] mt-1 gap-0.5 lg:items-center w-full'
+              ? 'mt-1 gap-0.5 lg:items-center w-full'
               : 'w-full mt-5 first:mt-1 gap-0.5'
           ]"
         >
           <div
             v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-            class="min-w-0 truncate text-[11px] font-medium text-[var(--muted)] mb-1 ml-3"
+            class="min-w-0 truncate text-[11px] font-medium text-[var(--muted)] mb-1 ml-6"
             :title="group.label"
             :class="{ 'lg:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
           >
@@ -299,11 +295,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
             :title="item.name"
             @click="closeMobileSidebar"
           >
-            <component
-              :is="item.icon"
-              :size="layoutStore.isMenuCollapsed && !isMobileSidebarOpen ? 18 : 16"
-              class="shrink-0"
-            />
+            <component :is="item.icon" :size="16" class="shrink-0" />
             <span
               v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
               :class="{ 'lg:hidden': layoutStore.isMenuCollapsed && !isMobileSidebarOpen }"
