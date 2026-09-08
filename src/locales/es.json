@@ -36,7 +36,8 @@
         "processed": "_procesado",
         "resized": "_redimensionado",
         "split": "_dividido",
-        "combined": "_combinado"
+        "combined": "_combinado",
+        "moldCut": "_molde"
       },
       "targetSize": "Tamaño de archivo objetivo",
       "colorsUnit": "Colores",
@@ -523,6 +524,26 @@
       "unsupported": "Formato no compatible",
       "unsupportedTip": "Este formato de archivo no admite análisis de metadatos o no contiene EXIF."
     },
+    "moldCut": {
+      "name": "Corte con molde",
+      "desc": "Sella mosaicos de tamaño fijo en una cesta",
+      "moldSize": "Tamaño del molde",
+      "custom": "Personalizado",
+      "width": "Ancho",
+      "height": "Alto",
+      "lockRatio": "Bloquear proporción",
+      "unlockRatio": "Desbloquear proporción",
+      "basket": "Cesta ({count})",
+      "basketEmpty": "Coloca el molde, Espacio para el primer mosaico",
+      "basketFull": "Cesta llena (100 mosaicos), elimina algunos",
+      "stamp": "Sellar",
+      "exportZip": "Exportar cesta",
+      "removeStamp": "Quitar {name}",
+      "outOfBoundsHint": "Molde fuera de límites, exceso transparente",
+      "jpegFillHint": "JPEG sin canal alfa, exceso en blanco",
+      "overflowSuffix": "· transparente",
+      "moldAria": "Molde {w}×{h} en {x}, {y}"
+    },
     "favicon": {
       "adaptiveSimulator": "Vista adaptativa",
       "appearance": "Estilo del favicon",
@@ -723,7 +744,8 @@
       "combine": "Combinar",
       "bgRemove": "Quitar fondo",
       "filters": "Filtros",
-      "favicon": "Favicon"
+      "favicon": "Favicon",
+      "moldCut": "Corte con molde"
     }
   }
 }

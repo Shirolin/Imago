@@ -36,7 +36,8 @@
         "processed": "_islenmis",
         "resized": "_boyutlandirilmis",
         "split": "_bolunmus",
-        "combined": "_birlestirilmis"
+        "combined": "_birlestirilmis",
+        "moldCut": "_kalip"
       },
       "targetSize": "Hedef Dosya Boyutu",
       "colorsUnit": "Renk",
@@ -523,6 +524,26 @@
       "unsupported": "Desteklenmeyen Format",
       "unsupportedTip": "Bu dosya formatı meta veri analizini desteklemiyor veya EXIF içermiyor."
     },
+    "moldCut": {
+      "name": "Kalıp Kesimi",
+      "desc": "Sabit boyutlu karoları damgalayıp sepette topla",
+      "moldSize": "Kalıp boyutu",
+      "custom": "Özel",
+      "width": "Genişlik",
+      "height": "Yükseklik",
+      "lockRatio": "Oranı kilitle",
+      "unlockRatio": "Oran kilidini aç",
+      "basket": "Sepet ({count})",
+      "basketEmpty": "Kalıbı yerleştir, ilk karo için Boşluk",
+      "basketFull": "Sepet dolu (100 karo), silip devam et",
+      "stamp": "Damgala",
+      "exportZip": "Sepeti dışa aktar",
+      "removeStamp": "{name} öğesini kaldır",
+      "outOfBoundsHint": "Kalıp sınır dışında, taşan kısım saydam",
+      "jpegFillHint": "JPEG'de alfa yok, taşan kısım beyaz",
+      "overflowSuffix": "· saydam",
+      "moldAria": "Kalıp {w}×{h}, konum {x}, {y}"
+    },
     "favicon": {
       "adaptiveSimulator": "Uyarlanabilir önizleme",
       "appearance": "Favicon Görünüm Tarzı",
@@ -723,7 +744,8 @@
       "combine": "Birleştir",
       "bgRemove": "Arka Planı Kaldır",
       "filters": "Filtreler",
-      "favicon": "Favicon"
+      "favicon": "Favicon",
+      "moldCut": "Kalıp Kesimi"
     }
   }
 }

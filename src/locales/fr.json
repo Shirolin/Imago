@@ -36,7 +36,8 @@
         "processed": "_traite",
         "resized": "_redimensionne",
         "split": "_decoupe",
-        "combined": "_combine"
+        "combined": "_combine",
+        "moldCut": "_moule"
       },
       "targetSize": "Taille de fichier cible",
       "colorsUnit": "Couleurs",
@@ -523,6 +524,26 @@
       "unsupported": "Format non pris en charge",
       "unsupportedTip": "Ce format de fichier ne prend pas en charge l'analyse des métadonnées ou ne contient pas d'EXIF."
     },
+    "moldCut": {
+      "name": "Découpe moule",
+      "desc": "Tamponnez des tuiles de taille fixe dans un panier",
+      "moldSize": "Taille du moule",
+      "custom": "Personnalisé",
+      "width": "Largeur",
+      "height": "Hauteur",
+      "lockRatio": "Verrouiller le ratio",
+      "unlockRatio": "Déverrouiller le ratio",
+      "basket": "Panier ({count})",
+      "basketEmpty": "Placez le moule, Espace pour la première tuile",
+      "basketFull": "Panier plein (100 tuiles), retirez-en",
+      "stamp": "Tamponner",
+      "exportZip": "Exporter le panier",
+      "removeStamp": "Supprimer {name}",
+      "outOfBoundsHint": "Moule hors cadre, débord transparent",
+      "jpegFillHint": "JPEG sans canal alpha, débord en blanc",
+      "overflowSuffix": "· transparent",
+      "moldAria": "Moule {w}×{h} à {x}, {y}"
+    },
     "favicon": {
       "adaptiveSimulator": "Aperçu adaptatif",
       "appearance": "Style du favicon",
@@ -723,7 +744,8 @@
       "combine": "Assembler",
       "bgRemove": "Supprimer le fond",
       "filters": "Filtres",
-      "favicon": "Favicon"
+      "favicon": "Favicon",
+      "moldCut": "Découpe moule"
     }
   }
 }

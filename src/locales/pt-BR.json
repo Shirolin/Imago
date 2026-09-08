@@ -36,7 +36,8 @@
         "processed": "_processado",
         "resized": "_redimensionado",
         "split": "_dividido",
-        "combined": "_combinado"
+        "combined": "_combinado",
+        "moldCut": "_molde"
       },
       "targetSize": "Tamanho de arquivo alvo",
       "colorsUnit": "Cores",
@@ -523,6 +524,26 @@
       "unsupported": "Formato não suportado",
       "unsupportedTip": "Este formato de arquivo não suporta análise de metadados ou não contém EXIF."
     },
+    "moldCut": {
+      "name": "Corte com molde",
+      "desc": "Carimbe peças de tamanho fixo numa cesta",
+      "moldSize": "Tamanho do molde",
+      "custom": "Personalizado",
+      "width": "Largura",
+      "height": "Altura",
+      "lockRatio": "Bloquear proporção",
+      "unlockRatio": "Desbloquear proporção",
+      "basket": "Cesta ({count})",
+      "basketEmpty": "Posicione o molde, Espaço para a primeira peça",
+      "basketFull": "Cesta cheia (100 peças), remova algumas",
+      "stamp": "Carimbar",
+      "exportZip": "Exportar cesta",
+      "removeStamp": "Remover {name}",
+      "outOfBoundsHint": "Molde fora dos limites, excesso transparente",
+      "jpegFillHint": "JPEG sem canal alfa, excesso em branco",
+      "overflowSuffix": "· transparente",
+      "moldAria": "Molde {w}×{h} em {x}, {y}"
+    },
     "favicon": {
       "adaptiveSimulator": "Prévia adaptável",
       "appearance": "Estilo do favicon",
@@ -723,7 +744,8 @@
       "combine": "Combinar",
       "bgRemove": "Remover fundo",
       "filters": "Filtros",
-      "favicon": "Favicon"
+      "favicon": "Favicon",
+      "moldCut": "Corte com molde"
     }
   }
 }

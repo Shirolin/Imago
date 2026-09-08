@@ -35,7 +35,8 @@
         "processed": "_처리됨",
         "resized": "_크기조정됨",
         "split": "_분할됨",
-        "combined": "_결합됨"
+        "combined": "_결합됨",
+        "moldCut": "_틀"
       },
       "targetSize": "목표 용량",
       "colorsUnit": "색상 수",
@@ -519,6 +520,26 @@
       "unsupported": "지원되지 않는 형식",
       "unsupportedTip": "이 형식은 지원되지 않거나 읽을 수 있는 메타데이터가 없습니다."
     },
+    "moldCut": {
+      "name": "틀 자르기",
+      "desc": "고정 크기 틀을 찍어 바구니에 모으기",
+      "moldSize": "틀 크기",
+      "custom": "사용자 지정",
+      "width": "너비",
+      "height": "높이",
+      "lockRatio": "비율 잠금",
+      "unlockRatio": "비율 잠금 해제",
+      "basket": "바구니 ({count})",
+      "basketEmpty": "틀을 놓고 Space로 첫 조각",
+      "basketFull": "바구니 가득 참(100장), 삭제 후 계속",
+      "stamp": "찍기",
+      "exportZip": "바구니 내보내기",
+      "removeStamp": "{name} 삭제",
+      "outOfBoundsHint": "틀이 범위 밖, 초과분 투명 처리",
+      "jpegFillHint": "JPEG는 알파 없음, 초과분 흰색 처리",
+      "overflowSuffix": "· 투명",
+      "moldAria": "틀 {w}×{h}, 위치 {x}, {y}"
+    },
     "favicon": {
       "adaptiveSimulator": "적응형 미리보기",
       "appearance": "외관 설정",
@@ -719,7 +740,8 @@
       "combine": "이어붙이기",
       "bgRemove": "배경 제거",
       "filters": "필터",
-      "favicon": "아이콘 만들기"
+      "favicon": "아이콘 만들기",
+      "moldCut": "틀 자르기"
     }
   }
 }

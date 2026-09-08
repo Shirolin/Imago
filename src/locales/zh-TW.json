@@ -36,7 +36,8 @@
         "processed": "_已處理",
         "resized": "_縮放",
         "split": "_分割",
-        "combined": "_拼接"
+        "combined": "_拼接",
+        "moldCut": "_模具切"
       },
       "targetSize": "目標檔案大小",
       "colorsUnit": "色數",
@@ -523,6 +524,26 @@
       "unsupported": "格式不相容",
       "unsupportedTip": "此檔案格式目前暫不支援中繼資料深度解析。"
     },
+    "moldCut": {
+      "name": "模具切",
+      "desc": "固定模具連蓋，多張切片一次收齊",
+      "moldSize": "模具尺寸",
+      "custom": "自訂",
+      "width": "寬",
+      "height": "高",
+      "lockRatio": "鎖定比例",
+      "unlockRatio": "解鎖比例",
+      "basket": "收集籃 ({count})",
+      "basketEmpty": "拖好模具，按空白鍵蓋下第一張",
+      "basketFull": "收集籃已滿（100 張），刪掉一些再蓋",
+      "stamp": "蓋一張",
+      "exportZip": "匯出收集籃",
+      "removeStamp": "刪除 {name}",
+      "outOfBoundsHint": "模具已出界，出界部分補透明",
+      "jpegFillHint": "JPEG 無透明通道，出界部分將填白底",
+      "overflowSuffix": "· 補透明",
+      "moldAria": "模具 {w}×{h}，位於 {x}, {y}"
+    },
     "favicon": {
       "adaptiveSimulator": "自適應預覽",
       "appearance": "網站圖示外觀樣式",
@@ -723,7 +744,8 @@
       "combine": "拼接",
       "bgRemove": "去背",
       "filters": "濾鏡",
-      "favicon": "製作圖示"
+      "favicon": "製作圖示",
+      "moldCut": "模具切"
     }
   }
 }

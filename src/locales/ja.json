@@ -36,7 +36,8 @@
         "processed": "_処理済み",
         "resized": "_リサイズ",
         "split": "_分割",
-        "combined": "_結合"
+        "combined": "_結合",
+        "moldCut": "_型抜き"
       },
       "targetSize": "目標ファイルサイズ",
       "colorsUnit": "色",
@@ -523,6 +524,26 @@
       "unsupported": "非対応フォーマット",
       "unsupportedTip": "この形式はメタデータ解析に対応していないか、EXIF が含まれていません。"
     },
+    "moldCut": {
+      "name": "型抜き",
+      "desc": "固定サイズの型でスタンプしてカゴに収集",
+      "moldSize": "型サイズ",
+      "custom": "カスタム",
+      "width": "幅",
+      "height": "高さ",
+      "lockRatio": "比率をロック",
+      "unlockRatio": "比率を解除",
+      "basket": "カゴ ({count})",
+      "basketEmpty": "型を配置し、Spaceで最初の1枚",
+      "basketFull": "カゴがいっぱい（100枚）、削除して続行",
+      "stamp": "スタンプ",
+      "exportZip": "カゴを書き出し",
+      "removeStamp": "{name}を削除",
+      "outOfBoundsHint": "型が範囲外、はみ出しは透明補完",
+      "jpegFillHint": "JPEGに透明なし、はみ出しは白埋め",
+      "overflowSuffix": "· 透明補完",
+      "moldAria": "型 {w}×{h}、位置 {x}, {y}"
+    },
     "favicon": {
       "adaptiveSimulator": "アダプティブプレビュー",
       "appearance": "ファビコン外観スタイル",
@@ -723,7 +744,8 @@
       "combine": "結合",
       "bgRemove": "背景削除",
       "filters": "フィルター",
-      "favicon": "ファビコン"
+      "favicon": "ファビコン",
+      "moldCut": "型抜き"
     }
   }
 }

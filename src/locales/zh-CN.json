@@ -36,7 +36,8 @@
         "processed": "_已处理",
         "resized": "_缩放",
         "split": "_分割",
-        "combined": "_合并"
+        "combined": "_合并",
+        "moldCut": "_模具切"
       },
       "targetSize": "目标文件体积",
       "colorsUnit": "色数",
@@ -523,6 +524,26 @@
       "unsupported": "格式不兼容",
       "unsupportedTip": "此文件格式目前暂不支持深度元数据解析。"
     },
+    "moldCut": {
+      "name": "模具切",
+      "desc": "固定模具连盖，多张切片一次收齐",
+      "moldSize": "模具尺寸",
+      "custom": "自定义",
+      "width": "宽",
+      "height": "高",
+      "lockRatio": "锁定比例",
+      "unlockRatio": "解锁比例",
+      "basket": "收集篮 ({count})",
+      "basketEmpty": "拖好模具，按空格盖下第一张",
+      "basketFull": "收集篮已满（100 张），删掉一些再盖",
+      "stamp": "盖一张",
+      "exportZip": "导出收集篮",
+      "removeStamp": "删除 {name}",
+      "outOfBoundsHint": "模具已出界，出界部分补透明",
+      "overflowSuffix": "· 补透明",
+      "moldAria": "模具 {w}×{h}，位于 {x}, {y}",
+      "jpegFillHint": "JPEG 无透明通道，出界部分将填白底"
+    },
     "favicon": {
       "adaptiveSimulator": "自适应预览",
       "appearance": "站标外观样式",
@@ -723,7 +744,8 @@
       "combine": "拼接",
       "bgRemove": "去背景",
       "filters": "滤镜",
-      "favicon": "做图标"
+      "favicon": "做图标",
+      "moldCut": "模具切"
     }
   }
 }

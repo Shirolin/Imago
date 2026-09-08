@@ -36,7 +36,8 @@
         "processed": "_verarbeitet",
         "resized": "_skaliert",
         "split": "_geteilt",
-        "combined": "_kombiniert"
+        "combined": "_kombiniert",
+        "moldCut": "_form"
       },
       "targetSize": "Ziel-Dateigröße",
       "colorsUnit": "Farben",
@@ -523,6 +524,26 @@
       "unsupported": "Nicht unterstütztes Format",
       "unsupportedTip": "Dieses Dateiformat unterstützt keine Metadaten-Analyse oder enthält kein EXIF."
     },
+    "moldCut": {
+      "name": "Formen-Schnitt",
+      "desc": "Fixe Kachelform stempeln und im Korb sammeln",
+      "moldSize": "Formgröße",
+      "custom": "Benutzerdefiniert",
+      "width": "Breite",
+      "height": "Höhe",
+      "lockRatio": "Seitenverhältnis sperren",
+      "unlockRatio": "Seitenverhältnis entsperren",
+      "basket": "Korb ({count})",
+      "basketEmpty": "Form positionieren, Leertaste für die erste Kachel",
+      "basketFull": "Korb voll (100 Kacheln), erst entfernen",
+      "stamp": "Stempeln",
+      "exportZip": "Korb exportieren",
+      "removeStamp": "{name} entfernen",
+      "outOfBoundsHint": "Form außerhalb, Überstand wird transparent",
+      "jpegFillHint": "JPEG hat keinen Alphakanal, Überstand wird weiß",
+      "overflowSuffix": "· transparent",
+      "moldAria": "Form {w}×{h} bei {x}, {y}"
+    },
     "favicon": {
       "adaptiveSimulator": "Adaptive-Vorschau",
       "appearance": "Favicon-Erscheinungsbild",
@@ -723,7 +744,8 @@
       "combine": "Zusammenfügen",
       "bgRemove": "Hintergrund entfernen",
       "filters": "Filter",
-      "favicon": "Favicon"
+      "favicon": "Favicon",
+      "moldCut": "Formen-Schnitt"
     }
   }
 }

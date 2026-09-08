@@ -36,7 +36,8 @@
         "processed": "_processed",
         "resized": "_resized",
         "split": "_split",
-        "combined": "_combined"
+        "combined": "_combined",
+        "moldCut": "_mold"
       },
       "targetSize": "Target File Size",
       "colorsUnit": "Colors",
@@ -523,6 +524,26 @@
       "unsupported": "Unsupported Format",
       "unsupportedTip": "This file format does not support metadata parsing or contains no readable EXIF."
     },
+    "moldCut": {
+      "name": "Mold Cut",
+      "desc": "Stamp fixed-size tiles and collect them in one basket",
+      "moldSize": "Mold size",
+      "custom": "Custom",
+      "width": "Width",
+      "height": "Height",
+      "lockRatio": "Lock aspect ratio",
+      "unlockRatio": "Unlock aspect ratio",
+      "basket": "Basket ({count})",
+      "basketEmpty": "Position the mold, press Space to stamp the first tile",
+      "basketFull": "Basket is full (100 tiles), remove some to continue",
+      "stamp": "Stamp",
+      "exportZip": "Export basket",
+      "removeStamp": "Remove {name}",
+      "outOfBoundsHint": "Mold is out of bounds, overflow fills transparent",
+      "overflowSuffix": "· transparent",
+      "moldAria": "Mold {w}×{h} at {x}, {y}",
+      "jpegFillHint": "JPEG has no alpha channel, overflow fills white"
+    },
     "favicon": {
       "adaptiveSimulator": "Adaptive preview",
       "appearance": "Icon Appearance",
@@ -723,7 +744,8 @@
       "combine": "Combine",
       "bgRemove": "Remove BG",
       "filters": "Filters",
-      "favicon": "Favicon"
+      "favicon": "Favicon",
+      "moldCut": "Mold Cut"
     }
   }
 }
