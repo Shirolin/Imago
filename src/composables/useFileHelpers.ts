@@ -29,7 +29,8 @@ export function useFileHelpers() {
     filters: 'common.export.suffix.filtered',
     resize: 'common.export.suffix.resized',
     split: 'common.export.suffix.split',
-    combine: 'common.export.suffix.combined'
+    combine: 'common.export.suffix.combined',
+    moldCut: 'common.export.suffix.moldCut'
   }
 
   /**

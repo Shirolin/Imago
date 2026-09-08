@@ -61,6 +61,12 @@ export const VIEW_CONFIGS: Record<string, ViewMeta> = {
     interactionType: 'canvas',
     features: { showLayoutToggle: false, showImageStatus: true, allowBatchProcess: false }
   },
+  moldCut: {
+    id: 'moldCut',
+    label: '模具切图',
+    interactionType: 'canvas',
+    features: { showLayoutToggle: false, showImageStatus: true, allowBatchProcess: false }
+  },
 
   favicon: {
     id: 'favicon',

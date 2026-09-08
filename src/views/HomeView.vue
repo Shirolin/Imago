@@ -22,7 +22,8 @@ const steps = computed(() => [
   { n: '05', label: t('cover.steps.combine'), to: '/combine' },
   { n: '06', label: t('cover.steps.bgRemove'), to: '/bg-remove' },
   { n: '07', label: t('cover.steps.filters'), to: '/filters' },
-  { n: '08', label: t('cover.steps.favicon'), to: '/favicon' }
+  { n: '08', label: t('cover.steps.favicon'), to: '/favicon' },
+  { n: '09', label: t('cover.steps.moldCut'), to: '/mold-cut' }
 ])
 
 const goToStep = (to: string) => {

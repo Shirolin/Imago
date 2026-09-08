@@ -67,6 +67,12 @@ const router = createRouter({
       name: 'bgRemove',
       component: () => import('./views/BgRemoveView.vue'),
       meta: { title: 'tools.bgRemove.name' }
+    },
+    {
+      path: '/mold-cut',
+      name: 'moldCut',
+      component: () => import('./views/MoldCutView.vue'),
+      meta: { title: 'tools.moldCut.name' }
     }
   ]
 })

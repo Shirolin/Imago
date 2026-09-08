@@ -16,7 +16,8 @@ import {
   ChevronRight,
   Box,
   Heart,
-  Eraser
+  Eraser,
+  Stamp
 } from 'lucide-vue-next'
 import { useImageStore } from './stores/imageStore'
 import { MAX_FILE_BYTES } from './lib/limits'
@@ -159,7 +160,8 @@ const menuGroups = computed(() => [
     items: [
       { name: t('tools.bgRemove.name'), path: '/bg-remove', icon: Eraser },
       { name: t('tools.filters.name'), path: '/filters', icon: Palette },
-      { name: t('tools.favicon.name'), path: '/favicon', icon: Box }
+      { name: t('tools.favicon.name'), path: '/favicon', icon: Box },
+      { name: t('tools.moldCut.name'), path: '/mold-cut', icon: Stamp }
     ]
   }
 ])
@@ -176,7 +178,8 @@ const currentRouteName = computed(() => {
     'favicon',
     'combine',
     'bgRemove',
-    'filters'
+    'filters',
+    'moldCut'
   ].find((key) => key.toLowerCase() === routeName?.toLowerCase())
   if (toolKey) return t(`tools.${toolKey}.name`)
   return routeName || t('nav.allTools')
