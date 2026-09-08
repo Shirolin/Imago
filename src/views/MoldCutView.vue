@@ -280,6 +280,7 @@ watch(
               :image-height="imgH"
               :model-value="mold"
               :scale="scale"
+              :preserve-ratio="lockRatio"
               @update:model-value="onMoldDrag"
             />
           </div>

@@ -76,6 +76,57 @@ export function canAddToBasket(count: number): boolean {
   return count < MAX_BASKET
 }
 
+export type MoldHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w'
+
+const isCorner = (h: MoldHandle): boolean => h.length === 2
+
+/**
+ * 手柄缩放：dx/dy 已是原图像素位移（调用方负责除以画布 scale）。
+ * 允许出界（与 containMold 只管拖拽收容的分工一致），仅钳制 1..MAX。
+ * 角手柄 + preserveRatio 时按变化主导轴等比换算。
+ */
+export function resizeMold(
+  mold: MoldRect,
+  handle: MoldHandle,
+  dx: number,
+  dy: number,
+  preserveRatio = false
+): MoldRect {
+  let { x, y, w, h } = mold
+  if (handle.includes('e')) w += dx
+  if (handle.includes('s')) h += dy
+  if (handle.includes('w')) {
+    x += dx
+    w -= dx
+  }
+  if (handle.includes('n')) {
+    y += dy
+    h -= dy
+  }
+
+  if (preserveRatio && isCorner(handle) && mold.w > 0 && mold.h > 0) {
+    const r = mold.w / mold.h
+    if (Math.abs(w - mold.w) / mold.w >= Math.abs(h - mold.h) / mold.h) {
+      h = w / r
+    } else {
+      w = h * r
+    }
+    if (handle.includes('w')) x = mold.x + mold.w - w
+    if (handle.includes('n')) y = mold.y + mold.h - h
+  }
+
+  const right = handle.includes('w') ? mold.x + mold.w : x + w
+  const bottom = handle.includes('n') ? mold.y + mold.h : y + h
+  const nw = Math.min(MAX_MOLD_SIDE, Math.max(MIN_MOLD_SIDE, Math.round(w)))
+  const nh = Math.min(MAX_MOLD_SIDE, Math.max(MIN_MOLD_SIDE, Math.round(h)))
+  return {
+    x: handle.includes('w') ? Math.round(right - nw) : Math.round(x),
+    y: handle.includes('n') ? Math.round(bottom - nh) : Math.round(y),
+    w: nw,
+    h: nh
+  }
+}
+
 /** ZIP 同名去重：同坐标连盖会产生同名条目，JSZip 会静默覆盖 */
 export function uniqueZipName(used: Set<string>, name: string): string {
   let candidate = name

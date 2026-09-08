@@ -11,7 +11,8 @@ import {
   buildStampBaseName,
   needsOpaqueFill,
   canAddToBasket,
-  uniqueZipName
+  uniqueZipName,
+  resizeMold
 } from './moldCut'
 
 describe('moldCut 纯逻辑', () => {
@@ -76,6 +77,37 @@ describe('moldCut 纯逻辑', () => {
     expect(normalizeMoldSize(NaN, NaN)).toEqual({ w: 32, h: 32 })
     expect(normalizeMoldSize(NaN, Infinity)).toEqual({ w: 32, h: MAX_MOLD_SIDE })
     expect(normalizeMold({ x: NaN, y: 0, w: 32, h: 32 }).x).toBe(0)
+  })
+
+  it('手柄缩放：边角换算与最小钳制', () => {
+    expect(resizeMold({ x: 0, y: 0, w: 32, h: 32 }, 'se', 5, 10)).toEqual({
+      x: 0,
+      y: 0,
+      w: 37,
+      h: 42
+    })
+    expect(resizeMold({ x: 10, y: 10, w: 32, h: 32 }, 'nw', 4, 6)).toEqual({
+      x: 14,
+      y: 16,
+      w: 28,
+      h: 26
+    })
+    // 西边拉过头：宽收至 1，右沿不动
+    expect(resizeMold({ x: 0, y: 0, w: 32, h: 32 }, 'w', 100, 0)).toEqual({
+      x: 31,
+      y: 0,
+      w: 1,
+      h: 32
+    })
+    // 出界允许：西边往负方向拉
+    expect(resizeMold({ x: 0, y: 0, w: 32, h: 32 }, 'w', -5, 0).x).toBe(-5)
+    // 角手柄锁比：宽主导时高跟随
+    expect(resizeMold({ x: 0, y: 0, w: 32, h: 16 }, 'se', 16, 0, true)).toEqual({
+      x: 0,
+      y: 0,
+      w: 48,
+      h: 24
+    })
   })
 
   it('ZIP 同名去重：同坐标连盖不互相覆盖', () => {
