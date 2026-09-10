@@ -19,6 +19,14 @@ import {
   Eraser,
   Stamp
 } from 'lucide-vue-next'
+import { Motion, AnimatePresence } from 'motion-v'
+import { usePreferredReducedMotion } from '@vueuse/core'
+import {
+  PAGE_INITIAL,
+  PAGE_ENTER,
+  PAGE_EXIT,
+  pageTransition
+} from './components/motion/pageVariants'
 import { useImageStore } from './stores/imageStore'
 import { MAX_FILE_BYTES } from './lib/limits'
 import { useImageImport } from './composables/useImageImport'
@@ -27,6 +35,8 @@ import SponsorModal from './components/SponsorModal.vue'
 import AppLogo from './components/common/AppLogo.vue'
 import LanguageSwitcher from './components/common/LanguageSwitcher.vue'
 
+const reducedMotion = usePreferredReducedMotion()
+const prefersReduced = computed(() => reducedMotion.value === 'reduce')
 const store = useImageStore()
 const layoutStore = useLayoutStore()
 const { t } = useI18n()
@@ -391,9 +401,17 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
       </header>
 
       <div class="flex-1 min-h-0 overflow-hidden relative h-full">
-        <router-view v-slot="{ Component, route }">
-          <transition name="page-fade" mode="out-in">
-            <div v-if="Component" :key="route.fullPath" class="h-full w-full flex flex-col min-h-0">
+        <router-view v-slot="{ Component, route: r }">
+          <AnimatePresence mode="wait" :initial="false">
+            <Motion
+              v-if="Component"
+              :key="r.path"
+              :initial="prefersReduced ? false : PAGE_INITIAL"
+              :animate="PAGE_ENTER"
+              :exit="prefersReduced ? { opacity: 0 } : PAGE_EXIT"
+              :transition="pageTransition(isCover)"
+              class="h-full w-full flex flex-col min-h-0 will-change-transform"
+            >
               <suspense :timeout="0">
                 <template #default>
                   <component :is="Component" />
@@ -404,8 +422,8 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
                   </div>
                 </template>
               </suspense>
-            </div>
-          </transition>
+            </Motion>
+          </AnimatePresence>
         </router-view>
       </div>
     </main>
@@ -434,13 +452,9 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
   opacity: 0;
 }
 
-.page-fade-enter-active,
-.page-fade-leave-active {
-  transition: opacity 0.15s ease-out;
-}
-
-.page-fade-enter-from,
-.page-fade-leave-to {
-  opacity: 0;
+@media (prefers-reduced-motion: reduce) {
+  .will-change-transform {
+    will-change: auto;
+  }
 }
 </style>

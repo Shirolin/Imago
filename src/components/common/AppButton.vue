@@ -97,7 +97,7 @@ const toneClasses = computed(() => {
 const extraClasses = computed(() =>
   cn(
     className.value,
-    'transition-colors duration-150 flex items-center justify-center select-none rounded-[var(--radius-ctrl)]',
+    'transition-colors duration-150 flex items-center justify-center select-none rounded-[var(--radius-ctrl)] active:scale-[0.98] disabled:active:scale-100 motion-reduce:transform-none',
     (props.icon || props.loading) && hasLabel.value ? 'gap-2' : '',
     toneClasses.value,
     props.fill
