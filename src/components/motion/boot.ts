@@ -179,11 +179,24 @@ export function initBoot({ isHome, reduced }: BootOptions): void {
   } catch {
     played = false
   }
-  const full = isHome && !reduced && !played
+  // 调试开关：首页加 ?motion=full 强制播完整三幕，无视减动效与会话标记
+  const forceFull = new URLSearchParams(window.location.search).get('motion') === 'full'
+  const full = forceFull || (isHome && !reduced && !played)
+  if (!full) {
+    // 轻路：减动效/复访/工作台直达，不等字体不等封面，路由就绪后两帧即撤
+    const frames = new Promise((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(resolve))
+    })
+    const cap = new Promise((resolve) => setTimeout(resolve, 1500))
+    void Promise.race([frames, cap])
+      .then(() => dismissVeil())
+      .catch(() => dismissVeil())
+    return
+  }
   fontsReady()
     .then(() => waitCover())
     .then((found) => {
-      if (full && found) playBoot()
+      if (found) playBoot()
       else dismissVeil()
     })
     .catch(() => dismissVeil())
