@@ -194,7 +194,7 @@
 
   /* Segmented control: single line, truncate overflow (HIG pattern). */
   .segment-label {
-    @apply flex w-full min-w-0 max-w-full justify-center;
+    @apply flex w-full min-w-0 max-w-full justify-start;
   }
 
   .segment-label-inner {
