@@ -18,15 +18,13 @@ export function dismissVeil(): void {
   markBooted()
 }
 
-/** 三幕落纸：凝墨 → 落纸与揭幕叠播 → 收尾清理 */
+/** 揭幕：凝墨字条由 CSS 首帧即播，这里只做落纸与揭幕叠播 → 收尾清理 */
 export function playBoot(): void {
   const v = document.getElementById('boot-veil')
   if (!v) {
     markBooted()
     return
   }
-  const letters = [...v.querySelectorAll('#boot-word span')].filter((n) => n instanceof HTMLElement)
-  const bar = v.querySelector('#boot-bar i')
   const print = document.querySelector('.imago-cover-print')
   const rows = [...document.querySelectorAll('.imago-ticket-list li')].filter(
     (n) => n instanceof HTMLElement
@@ -64,18 +62,6 @@ export function playBoot(): void {
     dismissVeil()
   }
 
-  anims.push(
-    animate(letters, {
-      opacity: [0, 1],
-      y: [16, 0],
-      duration: 550,
-      delay: stagger(55),
-      ease: 'outExpo'
-    })
-  )
-  if (bar instanceof HTMLElement) {
-    anims.push(animate(bar, { scaleX: [0, 1], duration: TOTAL_MS, ease: 'linear' }))
-  }
   anims.push(
     animate(v, {
       opacity: [1, 0],
