@@ -19,14 +19,8 @@ import {
   Eraser,
   Stamp
 } from 'lucide-vue-next'
-import { Motion, AnimatePresence } from 'motion-v'
 import { usePreferredReducedMotion } from '@vueuse/core'
-import {
-  PAGE_INITIAL,
-  PAGE_ENTER,
-  PAGE_EXIT,
-  pageTransition
-} from './components/motion/pageVariants'
+import { enterPage, leavePage } from './components/motion/pageAnime'
 import { useImageStore } from './stores/imageStore'
 import { MAX_FILE_BYTES } from './lib/limits'
 import { useImageImport } from './composables/useImageImport'
@@ -50,6 +44,23 @@ const isGlobalDragging = ref(false)
 let dragTarget: EventTarget | null = null
 
 const isCover = computed(() => route.name === 'home')
+const onPageEnter = (el: Element, done: () => void) => {
+  try {
+    enterPage(el, isCover.value, prefersReduced.value, done)
+  } catch (e) {
+    console.error('[page-enter-fail]', e)
+    done()
+  }
+}
+
+const onPageLeave = (el: Element, done: () => void) => {
+  try {
+    leavePage(el, prefersReduced.value, done)
+  } catch (e) {
+    console.error('[page-leave-fail]', e)
+    done()
+  }
+}
 
 const toggleMobileSidebar = () => {
   isMobileSidebarOpen.value = !isMobileSidebarOpen.value
@@ -402,16 +413,8 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
 
       <div class="flex-1 min-h-0 overflow-hidden relative h-full">
         <router-view v-slot="{ Component, route: r }">
-          <AnimatePresence mode="wait" :initial="false">
-            <Motion
-              v-if="Component"
-              :key="r.path"
-              :initial="prefersReduced ? false : PAGE_INITIAL"
-              :animate="PAGE_ENTER"
-              :exit="prefersReduced ? { opacity: 0 } : PAGE_EXIT"
-              :transition="pageTransition(isCover)"
-              class="h-full w-full flex flex-col min-h-0 will-change-transform"
-            >
+          <Transition :css="false" @enter="onPageEnter" @leave="onPageLeave">
+            <div v-if="Component" :key="r.path" class="h-full w-full flex flex-col min-h-0">
               <suspense :timeout="0">
                 <template #default>
                   <component :is="Component" />
@@ -422,8 +425,8 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
                   </div>
                 </template>
               </suspense>
-            </Motion>
-          </AnimatePresence>
+            </div>
+          </Transition>
         </router-view>
       </div>
     </main>
@@ -450,11 +453,5 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .will-change-transform {
-    will-change: auto;
-  }
 }
 </style>
