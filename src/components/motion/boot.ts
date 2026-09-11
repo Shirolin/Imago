@@ -179,14 +179,11 @@ export function initBoot({ isHome, reduced }: BootOptions): void {
   } catch {
     played = false
   }
-  if (!isHome || reduced || played) {
-    dismissVeil()
-    return
-  }
+  const full = isHome && !reduced && !played
   fontsReady()
     .then(() => waitCover())
     .then((found) => {
-      if (found) playBoot()
+      if (full && found) playBoot()
       else dismissVeil()
     })
     .catch(() => dismissVeil())
