@@ -109,6 +109,7 @@ onMounted(() => {
     </div>
 
     <div
+      data-boot-cta
       class="absolute bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))] right-4 z-10 md:bottom-8 md:right-8"
     >
       <AppButton

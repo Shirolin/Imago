@@ -21,6 +21,7 @@ import {
 } from 'lucide-vue-next'
 import { usePreferredReducedMotion } from '@vueuse/core'
 import { enterPage, leavePage } from './components/motion/pageAnime'
+import { initBoot } from './components/motion/boot'
 import { useImageStore } from './stores/imageStore'
 import { MAX_FILE_BYTES } from './lib/limits'
 import { useImageImport } from './composables/useImageImport'
@@ -144,6 +145,9 @@ const onGlobalFileSelect = (e: Event) => {
 
 onMounted(() => {
   document.documentElement.setAttribute('data-theme', 'light')
+  void router.isReady().then(() => {
+    initBoot({ isHome: route.name === 'home', reduced: prefersReduced.value })
+  })
 
   window.addEventListener('paste', onPaste)
   document.addEventListener('dragenter', onGlobalDragEnter)
