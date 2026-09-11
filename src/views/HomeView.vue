@@ -74,11 +74,11 @@ onMounted(() => {
       <div class="imago-cover-stage">
         <figure class="imago-board imago-cover-print shrink-0 rounded-[var(--radius-well)]">
           <img
-            src="/cover-print.jpg"
+            src="/cover-print.webp"
             :alt="t('cover.printAlt')"
             class="imago-cover-print-img block aspect-[3/4] object-cover"
-            width="1024"
-            height="1536"
+            width="765"
+            height="1024"
           />
         </figure>
 
