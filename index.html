@@ -13,7 +13,7 @@
       #boot-word span{display:inline-block;opacity:0;transform:translateY(16px)}
       #boot-bar{width:120px;height:1px;background:#E6DFD8;position:relative;overflow:hidden}
       #boot-bar i{position:absolute;inset:0;background:#CC785C;transform-origin:left center;transform:scaleX(0)}
-      @media (prefers-reduced-motion:reduce){#boot-veil{display:none}}
+      /* 减动效也不隐藏 veil：它是静态首屏盖板，动画跳过由 JS 门控，隐藏它会漏出工作台空壳 */
     </style>
 
     <!-- Primary Meta Tags -->
