@@ -219,7 +219,8 @@
       "zoomIn": "Zoom avant",
       "zoomOut": "Zoom arrière",
       "resetView": "Réinitialiser la vue",
-      "oneToOne": "Taille réelle (1:1)"
+      "oneToOne": "Taille réelle (1:1)",
+      "operationFailed": "L’opération a échoué. Veuillez réessayer."
     },
     "canvas": {
       "workspaceAria": "Espace de travail image",

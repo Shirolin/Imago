@@ -38,6 +38,7 @@ const { t } = useI18n()
 
 // 状态
 const isProcessing = ref(false)
+const operationFailed = ref(false)
 const backgroundColor = ref('transparent')
 const selectedIds = ref<Set<string>>(new Set(FAVICON_SPECS.map((s) => s.id)))
 
@@ -103,6 +104,7 @@ const getPreviewSize = (size: number) => {
 const handleGenerate = async () => {
   if (!activeImage.value) return
   isProcessing.value = true
+  operationFailed.value = false
   try {
     const result = await faviconEngine.generateSuite(activeImage.value.file, {
       backgroundColor: backgroundColor.value,
@@ -111,6 +113,7 @@ const handleGenerate = async () => {
     })
     downloadImage(result.zip, `favicon_pack_${Date.now()}`, '')
   } catch (error) {
+    operationFailed.value = true
     console.error('Favicon generation failed:', error)
   } finally {
     isProcessing.value = false
@@ -496,6 +499,9 @@ const handleGenerate = async () => {
 
     <template #sidebar>
       <div class="space-y-8 py-2">
+        <AppTip v-if="operationFailed" status class="text-destructive">
+          {{ t('common.ui.operationFailed') }}
+        </AppTip>
         <section class="space-y-4">
           <AppSectionHeader :title="t('tools.favicon.appearance')" :icon="Monitor" />
           <div class="space-y-4">

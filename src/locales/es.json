@@ -219,7 +219,8 @@
       "zoomIn": "Acercar",
       "zoomOut": "Alejar",
       "resetView": "Restablecer vista",
-      "oneToOne": "Tamaño real (1:1)"
+      "oneToOne": "Tamaño real (1:1)",
+      "operationFailed": "La operación falló. Inténtalo de nuevo."
     },
     "canvas": {
       "workspaceAria": "Espacio de trabajo de imagen",

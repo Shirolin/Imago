@@ -219,7 +219,8 @@
       "zoomIn": "放大视图",
       "zoomOut": "缩小视图",
       "resetView": "重置视图",
-      "oneToOne": "原始比例"
+      "oneToOne": "原始比例",
+      "operationFailed": "操作失败，请重试。"
     },
     "canvas": {
       "workspaceAria": "图片工作区",

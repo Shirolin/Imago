@@ -46,6 +46,7 @@ const outputFormat = ref('image/png')
 const outputQuality = ref(0.92)
 const isStamping = ref(false)
 const isExporting = ref(false)
+const operationFailed = ref(false)
 
 const workspaceRef = ref<InstanceType<typeof AppCanvasWorkspace> | null>(null)
 const selectedImage = computed(() => store.activeImage)
@@ -156,6 +157,7 @@ const stamp = async () => {
   const img = selectedImage.value
   if (!img || !hasSize.value || isStamping.value || basket.isFull.value) return
   isStamping.value = true
+  operationFailed.value = false
   try {
     const m = mold.value
     const res = (await cropEngine(img.file, {
@@ -171,6 +173,7 @@ const stamp = async () => {
     const blob = res.blob
     if (blob) basket.addStamp(blob, img.file.name, m)
   } catch (e) {
+    operationFailed.value = true
     console.warn('模具盖章失败:', e)
   } finally {
     isStamping.value = false
@@ -204,6 +207,7 @@ const exportBasket = async () => {
     return
   }
   isExporting.value = true
+  operationFailed.value = false
   try {
     const zip = new JSZip()
     const used = new Set<string>()
@@ -220,6 +224,7 @@ const exportBasket = async () => {
     a.click()
     URL.revokeObjectURL(url)
   } catch (e) {
+    operationFailed.value = true
     console.warn('收集篮导出失败:', e)
   } finally {
     isExporting.value = false
@@ -387,6 +392,10 @@ watch(
           </div>
         </div>
       </section>
+
+      <AppTip v-if="operationFailed" status class="text-destructive">
+        {{ t('common.ui.operationFailed') }}
+      </AppTip>
 
       <AppExportSettings
         v-model:format="outputFormat"

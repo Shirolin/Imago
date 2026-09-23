@@ -219,7 +219,8 @@
       "zoomIn": "拡大",
       "zoomOut": "縮小",
       "resetView": "表示をリセット",
-      "oneToOne": "等倍表示 (1:1)"
+      "oneToOne": "等倍表示 (1:1)",
+      "operationFailed": "操作に失敗しました。もう一度お試しください。"
     },
     "canvas": {
       "workspaceAria": "画像ワークスペース",

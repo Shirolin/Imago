@@ -179,6 +179,7 @@ const comparingImage = ref<ImageItem | null>(null)
 const showDownloadModal = ref(false)
 const showEditorModal = ref(false)
 const activeInteractiveImage = ref<ImageItem | null>(null)
+const interactiveError = ref(false)
 
 const handleInteractiveClick = (id: string) => {
   const item = store.images.find((img) => img.id === id)
@@ -208,84 +209,90 @@ const handleInteractiveApply = async (maskBlob: Blob) => {
 
   const id = activeInteractiveImage.value.id
   const originalUrl = activeInteractiveImage.value.preview
+  interactiveError.value = false
 
   // === 遮罩合成：将 SAM2 遮罩叠加到原图，生成透明背景抠图 ===
-  // P2-19：遮罩 objectURL 用完即 revoke，避免泄漏
+  // 遮罩 objectURL 统一在 finally 释放，覆盖加载、Canvas 和编码失败路径。
   const maskUrl = URL.createObjectURL(maskBlob)
-  const [origImg, maskImg] = await Promise.all([
-    // 加载原图
-    new Promise<HTMLImageElement>((resolve, reject) => {
-      const img = new Image()
-      img.onload = () => resolve(img)
-      img.onerror = reject
-      img.crossOrigin = 'anonymous'
-      img.src = originalUrl
-    }),
-    // 加载遮罩（白色=前景，黑色=背景）
-    new Promise<HTMLImageElement>((resolve, reject) => {
-      const img = new Image()
-      img.onload = () => resolve(img)
-      img.onerror = () => {
-        URL.revokeObjectURL(maskUrl)
-        reject(new Error('遮罩图片加载失败'))
-      }
-      img.src = maskUrl
+  try {
+    const [origImg, maskImg] = await Promise.all([
+      // 加载原图
+      new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image()
+        img.onload = () => resolve(img)
+        img.onerror = reject
+        img.crossOrigin = 'anonymous'
+        img.src = originalUrl
+      }),
+      // 加载遮罩（白色=前景，黑色=背景）
+      new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image()
+        img.onload = () => resolve(img)
+        img.onerror = () => reject(new Error('遮罩图片加载失败'))
+        img.src = maskUrl
+      })
+    ])
+
+    const canvas = document.createElement('canvas')
+    canvas.width = origImg.naturalWidth
+    canvas.height = origImg.naturalHeight
+    const ctx = canvas.getContext('2d')!
+    if (!ctx) throw new Error('无法创建图像合成上下文')
+
+    // 1. 绘制原图
+    ctx.drawImage(origImg, 0, 0)
+
+    // 2. 读取原图像素，并以遮罩的 R 通道作为 Alpha 通道写回
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+
+    // 在临时 Canvas 上读取遮罩的灰度值
+    const maskCanvas = document.createElement('canvas')
+    maskCanvas.width = canvas.width
+    maskCanvas.height = canvas.height
+    const maskCtx = maskCanvas.getContext('2d')!
+    if (!maskCtx) throw new Error('无法创建遮罩图像上下文')
+    maskCtx.drawImage(maskImg, 0, 0, canvas.width, canvas.height)
+    const maskData = maskCtx.getImageData(0, 0, canvas.width, canvas.height)
+
+    // 3. 遮罩的 R 通道即为 Alpha（白色=255=完全保留，黑色=0=完全透明）
+    for (let i = 0; i < imgData.data.length; i += 4) {
+      imgData.data[i + 3] = maskData.data[i]! // R 通道即是灰度值
+    }
+    ctx.putImageData(imgData, 0, 0)
+
+    // 4. 导出为 PNG（保留透明通道）
+    const resultBlob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (blob) resolve(blob)
+        else reject(new Error('Canvas toBlob failed'))
+      }, 'image/png')
     })
-  ])
 
-  const canvas = document.createElement('canvas')
-  canvas.width = origImg.naturalWidth
-  canvas.height = origImg.naturalHeight
-  const ctx = canvas.getContext('2d')!
+    // 5. 更新本地结果
+    const oldRes = results.value.get(id)
+    if (oldRes) URL.revokeObjectURL(oldRes.preview)
 
-  // 1. 绘制原图
-  ctx.drawImage(origImg, 0, 0)
+    const preview = URL.createObjectURL(resultBlob)
+    results.value.set(id, {
+      blob: resultBlob,
+      preview,
+      size: resultBlob.size,
+      isDirty: false
+    })
 
-  // 2. 读取原图像素，并以遮罩的 R 通道作为 Alpha 通道写回
-  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    store.updateImage(id, {
+      status: 'done',
+      progress: 1
+    })
 
-  // 在临时 Canvas 上读取遮罩的灰度值
-  const maskCanvas = document.createElement('canvas')
-  maskCanvas.width = canvas.width
-  maskCanvas.height = canvas.height
-  const maskCtx = maskCanvas.getContext('2d')!
-  maskCtx.drawImage(maskImg, 0, 0, canvas.width, canvas.height)
-  URL.revokeObjectURL(maskUrl) // P2-19：遮罩像素已读入 maskCanvas，URL 立即释放
-  const maskData = maskCtx.getImageData(0, 0, canvas.width, canvas.height)
-
-  // 3. 遮罩的 R 通道即为 Alpha（白色=255=完全保留，黑色=0=完全透明）
-  for (let i = 0; i < imgData.data.length; i += 4) {
-    imgData.data[i + 3] = maskData.data[i]! // R 通道即是灰度值
+    showEditorModal.value = false
+    activeInteractiveImage.value = null
+  } catch (error) {
+    interactiveError.value = true
+    console.error('Interactive background removal failed:', error)
+  } finally {
+    URL.revokeObjectURL(maskUrl)
   }
-  ctx.putImageData(imgData, 0, 0)
-
-  // 4. 导出为 PNG（保留透明通道）
-  const resultBlob = await new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob) resolve(blob)
-      else reject(new Error('Canvas toBlob failed'))
-    }, 'image/png')
-  })
-
-  // 5. 更新本地结果
-  const oldRes = results.value.get(id)
-  if (oldRes) URL.revokeObjectURL(oldRes.preview)
-
-  const preview = URL.createObjectURL(resultBlob)
-  results.value.set(id, {
-    blob: resultBlob,
-    preview,
-    size: resultBlob.size,
-    isDirty: false
-  })
-
-  store.updateImage(id, {
-    status: 'done',
-    progress: 1
-  })
-
-  showEditorModal.value = false
-  activeInteractiveImage.value = null
 }
 
 const matchProcessor = useImageProcessor(matchBgRemoveEngine)
@@ -719,6 +726,10 @@ const handleResetParams = () => {
     </template>
 
     <template #sidebar>
+      <AppTip v-if="interactiveError" status class="text-destructive mb-4">
+        {{ t('common.ui.operationFailed') }}
+      </AppTip>
+
       <!-- 第一分区：方案设定 -->
       <section class="space-y-4">
         <div class="flex items-center justify-between pr-1">

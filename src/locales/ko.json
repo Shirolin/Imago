@@ -215,7 +215,8 @@
       "zoomIn": "확대",
       "zoomOut": "축소",
       "resetView": "보기 리셋",
-      "oneToOne": "실제 크기"
+      "oneToOne": "실제 크기",
+      "operationFailed": "작업에 실패했습니다. 다시 시도해 주세요."
     },
     "canvas": {
       "workspaceAria": "이미지 작업 영역",

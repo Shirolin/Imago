@@ -219,7 +219,8 @@
       "zoomIn": "Zoom In",
       "zoomOut": "Zoom Out",
       "resetView": "Reset View",
-      "oneToOne": "1:1 Actual Size"
+      "oneToOne": "1:1 Actual Size",
+      "operationFailed": "Operation failed. Please try again."
     },
     "canvas": {
       "workspaceAria": "Image Workspace",
