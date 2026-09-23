@@ -221,6 +221,9 @@ export function useFileHelpers() {
       URL.revokeObjectURL(url)
     } catch (error) {
       console.error('Failed to create ZIP:', error)
+      if (typeof window !== 'undefined') {
+        window.alert(t('common.ui.operationFailed'))
+      }
     } finally {
       isDownloadingAll.value = false
     }
