@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { getCurrentInstance, onUnmounted, ref } from 'vue'
 import { useImageStore, type ImageItem } from '../stores/imageStore'
 import type { ImageProcessor, MultiImageProcessor, ProcessResult } from '../lib/engines/types'
 
@@ -41,6 +41,7 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
 
     const externalSignal = (options as { signal?: AbortSignal }).signal
     const ownController = externalSignal ? null : new AbortController()
+    const signal = externalSignal ?? ownController!.signal
     if (ownController) currentController = ownController
     if (manageProcessing) isProcessing.value = true
 
@@ -54,8 +55,9 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
       const result = await (processor as ImageProcessor<T>)(item.file, {
         ...options,
         jobId: id,
-        signal: externalSignal ?? ownController!.signal,
+        signal,
         onProgress: (p: number) => {
+          if (signal.aborted) return
           // 单任务场景直接暴露进度；队列场景由 externalOnProgress 聚合后统一写入
           if (manageProcessing) progress.value = p
           store.updateImage(id, { progress: p })
@@ -63,21 +65,23 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
         }
       })
 
+      // 某些第三方处理器无法真正中断；abort 后即使 Promise 成功返回，
+      // 也不能再把用户已取消的任务写回 done。
+      if (signal.aborted) {
+        store.updateImage(id, { status: 'idle', abortController: undefined })
+        return
+      }
+
       store.updateImage(id, {
         status: 'done',
         progress: 1,
         abortController: undefined
       })
-      if (manageProcessing) {
-        progress.value = 0
-        currentController = null
-      }
       return result
     } catch (error) {
-      if (manageProcessing) progress.value = 0
-      currentController = null
       const err = error as Error
       if (
+        signal.aborted ||
         err.name === 'AbortError' ||
         err.message?.includes('AbortError') ||
         err.message?.includes('abort')
@@ -92,7 +96,11 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
         abortController: undefined
       })
     } finally {
-      if (manageProcessing) isProcessing.value = false
+      if (manageProcessing && (ownController === null || currentController === ownController)) {
+        currentController = null
+        isProcessing.value = false
+        progress.value = 0
+      }
     }
   }
 
@@ -103,18 +111,18 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
     currentController = abortController
 
     try {
-      const result = await (processor as MultiImageProcessor<T>)(files, {
+      return await (processor as MultiImageProcessor<T>)(files, {
         ...options,
         signal: abortController.signal
       })
-      isProcessing.value = false
-      currentController = null
-      return result
     } catch (error) {
-      isProcessing.value = false
-      currentController = null
       console.error('Combine failed:', error)
       throw error
+    } finally {
+      if (currentController === abortController) {
+        currentController = null
+        isProcessing.value = false
+      }
     }
   }
 
@@ -145,7 +153,7 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
     }
 
     const worker = async () => {
-      while (index < items.length) {
+      while (!queueController.signal.aborted && index < items.length) {
         const item = items[index++]
         if (!item) continue
         itemProgress.set(item.id, 0)
@@ -158,6 +166,7 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
           },
           false
         )
+        if (queueController.signal.aborted) return
         if (result && onResult) {
           onResult(item.id, result as ProcessResult | Blob | Blob[])
         }
@@ -166,16 +175,21 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
       }
     }
 
-    // 启动初始并发进程
-    for (let i = 0; i < Math.min(CONCURRENCY_LIMIT, items.length); i++) {
-      results.push(worker())
+    try {
+      // 启动初始并发进程
+      for (let i = 0; i < Math.min(CONCURRENCY_LIMIT, items.length); i++) {
+        results.push(worker())
+      }
+
+      await Promise.all(results)
+    } finally {
+      // 旧队列结束时不得覆盖同一 composable 中新启动的任务状态。
+      if (currentController === queueController) {
+        currentController = null
+        isProcessing.value = false
+        progress.value = 0
+      }
     }
-
-    await Promise.all(results)
-
-    currentController = null
-    isProcessing.value = false
-    progress.value = 0
   }
 
   const processAll = async (
@@ -192,6 +206,11 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
   ) => {
     const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
     await processQueue(selectedImages, options, onResult)
+  }
+
+  // composable 只在组件 setup 中使用时自动随宿主卸载；独立测试或非组件调用不注册。
+  if (getCurrentInstance()) {
+    onUnmounted(abortProcessing)
   }
 
   return {

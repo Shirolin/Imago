@@ -28,11 +28,17 @@ const checkScroll = () => {
   canScrollRight.value = scrollLeft + clientWidth < scrollWidth - 10
 }
 
+let resizeObserver: ResizeObserver | null = null
+
 onMounted(() => {
   checkScroll()
-  const resizeObserver = new ResizeObserver(checkScroll)
+  resizeObserver = new ResizeObserver(checkScroll)
   if (scrollContainer.value) resizeObserver.observe(scrollContainer.value)
-  onUnmounted(() => resizeObserver.disconnect())
+})
+
+onUnmounted(() => {
+  resizeObserver?.disconnect()
+  resizeObserver = null
 })
 
 watch(

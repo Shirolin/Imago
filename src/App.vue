@@ -154,14 +154,14 @@ onMounted(() => {
   document.addEventListener('dragover', onGlobalDragOver)
   document.addEventListener('dragleave', onGlobalDragLeave)
   document.addEventListener('drop', onGlobalDrop)
+})
 
-  onBeforeUnmount(() => {
-    window.removeEventListener('paste', onPaste)
-    document.removeEventListener('dragenter', onGlobalDragEnter)
-    document.removeEventListener('dragover', onGlobalDragOver)
-    document.removeEventListener('dragleave', onGlobalDragLeave)
-    document.removeEventListener('drop', onGlobalDrop)
-  })
+onBeforeUnmount(() => {
+  window.removeEventListener('paste', onPaste)
+  document.removeEventListener('dragenter', onGlobalDragEnter)
+  document.removeEventListener('dragover', onGlobalDragOver)
+  document.removeEventListener('dragleave', onGlobalDragLeave)
+  document.removeEventListener('drop', onGlobalDrop)
 })
 
 const menuGroups = computed(() => [

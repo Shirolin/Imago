@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
+import { defineComponent } from 'vue'
+import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
 import { useImageStore } from '../stores/imageStore'
 import { useImageProcessor } from './useImageProcessor'
@@ -132,6 +134,26 @@ describe('processSingle', () => {
     expect(isProcessing.value).toBe(false)
   })
 
+  it('处理器忽略 abort 并晚到成功：不会把已取消任务写回 done', async () => {
+    const store = await addItems('a.png')
+    let resolveLate: ((value: unknown) => void) | undefined
+    const processor = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          resolveLate = resolve
+        })
+    ) as unknown as MockFn
+    const { processSingle, abortProcessing } = useImageProcessor(processor)
+    const id = store.images[0]!.id
+
+    const promise = processSingle(id, {})
+    abortProcessing()
+    resolveLate!({ size: 1 })
+    await promise
+
+    expect(store.images[0]?.status).toBe('idle')
+  })
+
   it('未知 id：返回 undefined 且不调用 processor', async () => {
     const { processor } = deferredProcessor()
     const { processSingle, isProcessing } = useImageProcessor(processor)
@@ -190,8 +212,46 @@ describe('processQueue（经 processAll 驱动） / processSelected', () => {
     expect(isProcessing.value).toBe(false)
   })
 
+  it('队列中止后不再领取尚未启动的任务', async () => {
+    const store = await addItems('a.png', 'b.png', 'c.png', 'd.png')
+    const { processor, entries } = deferredProcessor()
+    const { processAll, abortProcessing, isProcessing } = useImageProcessor(processor)
+
+    const promise = processAll({})
+    expect(entries).toHaveLength(3)
+    expect(processor).toHaveBeenCalledTimes(3)
+
+    abortProcessing()
+    await promise
+
+    expect(processor).toHaveBeenCalledTimes(3)
+    expect(store.images.find((image) => image.file.name === 'd.png')?.status).toBe('idle')
+    expect(isProcessing.value).toBe(false)
+  })
+
+  it('组件卸载时自动中止队列', async () => {
+    const store = await addItems('a.png')
+    const { processor, entries } = deferredProcessor()
+    let processingPromise: Promise<unknown> | undefined
+
+    const wrapper = mount(
+      defineComponent({
+        setup() {
+          const { processAll } = useImageProcessor(processor)
+          processingPromise = processAll({})
+          return () => null
+        }
+      })
+    )
+
+    expect(entries).toHaveLength(1)
+    wrapper.unmount()
+    await processingPromise
+    expect(store.images[0]?.status).toBe('idle')
+  })
+
   it('队列进度聚合：0-100 且不越界', async () => {
-    const store = await addItems('a.png', 'b.png')
+    await addItems('a.png', 'b.png')
     const { processor, entries } = deferredProcessor()
     const { processAll, progress } = useImageProcessor(processor)
 
