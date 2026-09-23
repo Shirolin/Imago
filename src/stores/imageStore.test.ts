@@ -53,6 +53,23 @@ describe('Image Store', () => {
     expect(store.selectedIds.has(store.images[1]!.id)).toBe(true)
   })
 
+  it('离开工具时应清除上一工具的处理状态', async () => {
+    const store = useImageStore()
+    await store.addImages([
+      new File(['done'], 'done.png', { type: 'image/png' }),
+      new File(['error'], 'error.png', { type: 'image/png' })
+    ])
+    store.updateImage(store.images[0]!.id, { status: 'done', progress: 1 })
+    store.updateImage(store.images[1]!.id, { status: 'error', error: 'failed', progress: 0.5 })
+
+    store.resetToolState()
+
+    expect(store.images.every((image) => image.status === 'idle')).toBe(true)
+    expect(store.images.every((image) => image.progress === 0 && image.error === undefined)).toBe(
+      true
+    )
+  })
+
   it('应该能正确切换选择状态', async () => {
     const store = useImageStore()
     const mockFile = new File(['test'], 'test.png', { type: 'image/png' })

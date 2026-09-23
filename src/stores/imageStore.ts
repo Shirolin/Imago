@@ -297,6 +297,19 @@ export const useImageStore = defineStore('image', () => {
     }
   }
 
+  const resetToolState = () => {
+    images.value.forEach((img) => {
+      if (img.status !== 'idle') {
+        Object.assign(img, {
+          status: 'idle' as const,
+          progress: 0,
+          error: undefined,
+          abortController: undefined
+        })
+      }
+    })
+  }
+
   return {
     images,
     activeId,
@@ -315,6 +328,7 @@ export const useImageStore = defineStore('image', () => {
     removeImage,
     removeSelected,
     clearImages,
+    resetToolState,
     toggleSelection,
     selectRange,
     selectAll,

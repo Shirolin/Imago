@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import { useImageStore } from '../../stores/imageStore'
 import { useLayoutStore } from '../../stores/layoutStore'
 import { useI18n } from 'vue-i18n'
@@ -86,6 +86,12 @@ const toggleInspector = () => {
 
 onMounted(() => {
   isMounted.value = true
+})
+
+onBeforeUnmount(() => {
+  // 每个工具的结果由页面局部持有；离开工具后清除上一工具遗留的瞬时状态，
+  // 避免新工具展示不可用的“完成 / 错误 / 处理中”操作。
+  store.resetToolState()
 })
 </script>
 
