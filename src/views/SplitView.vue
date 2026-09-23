@@ -235,8 +235,9 @@ const draw = () => {
   const scale = workspaceRef.value?.scale || 1
   if (!canvas || !ctx || !offscreenCanvas || !img) return
 
-  canvas.width = img.width!
-  canvas.height = img.height!
+  // 仅在图片尺寸变化时重置 backing store；相同尺寸重复赋值会逐帧清空并重新分配内存。
+  if (canvas.width !== img.width!) canvas.width = img.width!
+  if (canvas.height !== img.height!) canvas.height = img.height!
   ctx.clearRect(0, 0, img.width!, img.height!)
   ctx.drawImage(offscreenCanvas, 0, 0)
 

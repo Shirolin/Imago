@@ -85,6 +85,37 @@ describe('Image Store', () => {
     expect(store.isAllSelected).toBe(false)
   })
 
+  it('批量导入时应限制全尺寸解码并发', async () => {
+    let activeDecodes = 0
+    let maxConcurrentDecodes = 0
+
+    global.Image = class {
+      set src(_value: string) {
+        activeDecodes += 1
+        maxConcurrentDecodes = Math.max(maxConcurrentDecodes, activeDecodes)
+        setTimeout(() => {
+          activeDecodes -= 1
+          this.onload()
+        }, 0)
+      }
+      onload = () => {}
+      onerror = () => {}
+      naturalWidth = 100
+      naturalHeight = 100
+    } as unknown as typeof Image
+
+    const store = useImageStore()
+    await store.addImages(
+      Array.from(
+        { length: 12 },
+        (_, index) => new File(['x'], `${index}.png`, { type: 'image/png' })
+      )
+    )
+
+    expect(maxConcurrentDecodes).toBe(4)
+    expect(store.images).toHaveLength(12)
+  })
+
   it('移除图片时应清理资源', async () => {
     const store = useImageStore()
     const mockFile = new File(['test'], 'test.png', { type: 'image/png' })

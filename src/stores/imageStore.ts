@@ -125,7 +125,7 @@ export const useImageStore = defineStore('image', () => {
       return true
     })
 
-    const newImagePromises = uniqueFiles.map(async (file) => {
+    const decodeImageItem = async (file: File): Promise<ImageItem | null> => {
       const preview = URL.createObjectURL(file)
 
       const dimensions = await new Promise<{ width: number; height: number }>((resolve) => {
@@ -158,17 +158,28 @@ export const useImageStore = defineStore('image', () => {
         id: Math.random().toString(36).substring(7),
         file,
         preview,
-        status: 'idle' as const,
+        status: 'idle',
         originalSize: file.size,
         width: dimensions.width,
         height: dimensions.height,
         format: file.name.split('.').pop()?.toUpperCase() || 'IMG'
       }
-    })
+    }
 
-    const resolvedImages = (await Promise.all(newImagePromises)).filter(
-      (img): img is NonNullable<typeof img> => img !== null
-    )
+    // 批量导入时限制全尺寸解码并发，避免一次选中大量大图造成解码峰值。
+    const resolvedSlots: Array<ImageItem | null> = Array.from({ length: uniqueFiles.length })
+    let nextFileIndex = 0
+    const decodeWorker = async () => {
+      while (nextFileIndex < uniqueFiles.length) {
+        const index = nextFileIndex++
+        const file = uniqueFiles[index]
+        if (file) resolvedSlots[index] = await decodeImageItem(file)
+      }
+    }
+    const importConcurrency = Math.min(4, uniqueFiles.length)
+    await Promise.all(Array.from({ length: importConcurrency }, () => decodeWorker()))
+
+    const resolvedImages = resolvedSlots.filter((img): img is ImageItem => img !== null)
     images.value.push(...resolvedImages)
 
     for (const img of resolvedImages) {
