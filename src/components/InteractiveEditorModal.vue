@@ -112,14 +112,21 @@ useEventListener(window, 'keyup', (e: KeyboardEvent) => {
 
 // Worker 引用
 let worker: Worker | null = null
+let workerGeneration = 0
+
+const disposeWorker = () => {
+  workerGeneration += 1
+  worker?.terminate()
+  worker = null
+}
 
 // 初始化 Worker
 const initWorker = () => {
-  // P2-16: 重复打开模态框会反复创建 Worker，先终止上一个实例防止线程与显存泄漏
-  if (worker) {
-    worker.terminate()
-    worker = null
-  }
+  disposeWorker()
+  const generation = workerGeneration
+  isLoading.value = true
+  isEncoding.value = false
+  statusMessage.value = t('common.modal.interactive.connecting')
 
   // 滚动至中心
   nextTick(() => {
@@ -131,12 +138,16 @@ const initWorker = () => {
   })
 
   import('../lib/engines/sam2.worker?worker').then((WorkerModule) => {
-    worker = new WorkerModule.default()
+    // 用户可能在动态 import 完成前已经关闭模态框；过期的初始化不得重新创建 Worker。
+    if (!props.show || generation !== workerGeneration) return
+
+    const nextWorker = new WorkerModule.default()
+    worker = nextWorker
 
     // 主动触发模型加载
-    worker.postMessage({ type: 'load' })
+    nextWorker.postMessage({ type: 'load' })
 
-    worker!.onmessage = (e) => {
+    nextWorker.onmessage = (e) => {
       const { type, message, maskUrl: newMaskUrl } = e.data
 
       switch (type) {
@@ -350,8 +361,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (maskUrl.value) URL.revokeObjectURL(maskUrl.value)
-  worker?.terminate()
+  disposeWorker()
+  clearMask()
 })
 
 watch(
@@ -365,7 +376,11 @@ watch(
       clearMask()
       initWorker()
     } else {
-      // 退出清理
+      // 关闭即释放模型线程与图像 embedding；重新打开时按需加载。
+      disposeWorker()
+      clearMask()
+      isLoading.value = true
+      isEncoding.value = false
     }
   }
 )

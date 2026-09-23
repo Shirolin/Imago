@@ -15,6 +15,11 @@ export interface BgRemoveOptions {
 
 let sharedWorker: Worker | null = null
 
+export const disposeBgRemoveWorker = () => {
+  sharedWorker?.terminate()
+  sharedWorker = null
+}
+
 const getWorker = () => {
   if (!sharedWorker) {
     sharedWorker = new BgRemoveWorker()
@@ -63,7 +68,7 @@ export const bgRemoveEngine: ImageProcessor<BgRemoveOptions> = (file, options) =
       console.error('[Imago Engine] Worker Error:', error)
       clearTimeout(timeoutId)
       worker.removeEventListener('message', handleMessage)
-      sharedWorker = null // 标记损坏，下次重新创建
+      disposeBgRemoveWorker() // 标记损坏，下次重新创建
       reject(new Error(`Worker 计算失败: ${error.message}`))
     }
     worker.addEventListener('error', handleError, { once: true })

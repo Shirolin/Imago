@@ -31,7 +31,7 @@ import {
   Trash2,
   CheckCircle2
 } from 'lucide-vue-next'
-import { bgRemoveEngine } from '../lib/engines/bgRemoveEngine'
+import { bgRemoveEngine, disposeBgRemoveWorker } from '../lib/engines/bgRemoveEngine'
 import { matchBgRemoveEngine } from '../lib/engines/matchBgRemoveEngine'
 import { preload } from '@imgly/background-removal'
 import { useImageProcessor } from '../composables/useImageProcessor'
@@ -64,10 +64,6 @@ const cleanupResults = () => {
   })
   results.value.clear()
 }
-
-onUnmounted(() => {
-  cleanupResults()
-})
 
 // P2-20：跨视图状态残留 —— 卸载时本地 results 已清空但 store.status 仍为 done。
 // 挂载时把「无本地结果却标记 done」的图片复位为 idle，避免误显示已处理/可导出；
@@ -294,6 +290,13 @@ const handleInteractiveApply = async (maskBlob: Blob) => {
 
 const matchProcessor = useImageProcessor(matchBgRemoveEngine)
 const proProcessor = useImageProcessor(bgRemoveEngine)
+
+onUnmounted(() => {
+  matchProcessor.abortProcessing()
+  proProcessor.abortProcessing()
+  disposeBgRemoveWorker()
+  cleanupResults()
+})
 
 const isProcessing = computed(
   () => matchProcessor.isProcessing.value || proProcessor.isProcessing.value
@@ -527,6 +530,8 @@ const handleCtaClick = async () => {
 }
 
 const handleResetEngine = async () => {
+  disposeBgRemoveWorker()
+
   // 1. 物理删除：清理浏览器 Cache Storage 中的大文件资产。
   //    P2-12：不再依赖 'imgly' 前缀匹配（@imgly 版本升级可能换缓存名），
   //    直接枚举并删除本域全部 Cache 键；本应用无 Service Worker，无其他缓存需要保留。
