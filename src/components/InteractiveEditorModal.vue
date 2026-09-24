@@ -8,6 +8,7 @@ import { Undo2, Redo2, ZoomIn, ZoomOut, Maximize } from 'lucide-vue-next'
 
 const props = defineProps<{
   show: boolean
+  errorMessage?: string
   imageItem: { id: string; file: File; url: string }
 }>()
 
@@ -401,7 +402,9 @@ watch(
             class="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20"
           >
             <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-            <span class="text-[10px] font-medium text-primary">{{ statusMessage }}</span>
+            <span class="text-[10px] font-medium text-primary">{{
+              errorMessage || statusMessage
+            }}</span>
           </div>
           <button
             v-if="points.length > 0"

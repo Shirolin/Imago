@@ -195,38 +195,41 @@ const mimeToExt = (mime: string): string => {
 const exportBasket = async () => {
   const img = selectedImage.value
   if (!img || basket.count.value === 0 || isExporting.value) return
-  // 单张直下，多张打 ZIP
-  if (basket.count.value === 1) {
-    const item = basket.items.value[0]!
-    const url = URL.createObjectURL(item.blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${item.name}${mimeToExt(item.blob.type)}`
-    a.click()
-    URL.revokeObjectURL(url)
-    return
-  }
+
   isExporting.value = true
   operationFailed.value = false
+  let objectUrl: string | undefined
+
   try {
+    // 单张直下，多张打 ZIP
+    if (basket.count.value === 1) {
+      const item = basket.items.value[0]!
+      objectUrl = URL.createObjectURL(item.blob)
+      const a = document.createElement('a')
+      a.href = objectUrl
+      a.download = `${item.name}${mimeToExt(item.blob.type)}`
+      a.click()
+      return
+    }
+
     const zip = new JSZip()
     const used = new Set<string>()
     for (const item of basket.items.value) {
       zip.file(uniqueZipName(used, `${item.name}${mimeToExt(item.blob.type)}`), item.blob)
     }
     const content = await zip.generateAsync({ type: 'blob' })
-    const url = URL.createObjectURL(content)
+    objectUrl = URL.createObjectURL(content)
     const a = document.createElement('a')
-    a.href = url
+    a.href = objectUrl
     const dot = img.file.name.lastIndexOf('.')
     const base = dot > 0 ? img.file.name.substring(0, dot) : img.file.name
     a.download = `${base}${t('common.export.suffix.moldCut')}.zip`
     a.click()
-    URL.revokeObjectURL(url)
   } catch (e) {
     operationFailed.value = true
     console.warn('收集篮导出失败:', e)
   } finally {
+    if (objectUrl) URL.revokeObjectURL(objectUrl)
     isExporting.value = false
   }
 }

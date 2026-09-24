@@ -111,7 +111,7 @@ const handleGenerate = async () => {
       selectedIds: selectedIds.value,
       autoPadding: autoPadding.value
     })
-    downloadImage(result.zip, `favicon_pack_${Date.now()}`, '')
+    await downloadImage(result.zip, `favicon_pack_${Date.now()}`, '')
   } catch (error) {
     operationFailed.value = true
     console.error('Favicon generation failed:', error)

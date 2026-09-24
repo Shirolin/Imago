@@ -185,6 +185,7 @@ const handleInteractiveClick = (id: string) => {
   const item = store.images.find((img) => img.id === id)
   if (!item) return
   activeInteractiveImage.value = item
+  interactiveError.value = false
 
   // 检查是否已经同意下载过 (使用 v2 版本号强制重新授权一次)
   const isReady = localStorage.getItem('imago-sam2-v2-ready') === 'true'
@@ -537,6 +538,7 @@ const handleCtaClick = async () => {
 }
 
 const handleResetEngine = async () => {
+  proProcessor.abortProcessing()
   disposeBgRemoveWorker()
 
   // 1. 物理删除：清理浏览器 Cache Storage 中的大文件资产。
@@ -714,6 +716,7 @@ const handleResetParams = () => {
         <InteractiveEditorModal
           v-if="activeInteractiveImage"
           :show="showEditorModal"
+          :error-message="interactiveError ? t('common.ui.operationFailed') : undefined"
           :image-item="{
             id: activeInteractiveImage.id,
             file: activeInteractiveImage.file,
@@ -802,6 +805,7 @@ const handleResetParams = () => {
               class="p-1 rounded-md text-muted-foreground/50 hover:text-destructive transition-colors"
               :title="t('tools.bgRemove.forceInit')"
               :aria-label="t('tools.bgRemove.deleteModel')"
+              :disabled="isProcessing || currentStatus === 'loading'"
             >
               <Trash2 :size="14" />
             </button>

@@ -15,9 +15,24 @@ export interface BgRemoveOptions {
 
 let sharedWorker: Worker | null = null
 
-export const disposeBgRemoveWorker = () => {
-  sharedWorker?.terminate()
+interface ActiveRequest {
+  worker: Worker
+  fail: (error: Error) => void
+}
+
+const activeRequests = new Set<ActiveRequest>()
+
+export const disposeBgRemoveWorker = (message = '背景移除 Worker 已释放') => {
+  const worker = sharedWorker
   sharedWorker = null
+  worker?.terminate()
+
+  // terminate 不会向 Promise 派发消息，必须主动结束该 Worker 上的全部请求。
+  for (const request of activeRequests) {
+    if (request.worker === worker) {
+      request.fail(new Error(message))
+    }
+  }
 }
 
 const getWorker = () => {
@@ -34,72 +49,102 @@ const getWorker = () => {
 export const bgRemoveEngine: ImageProcessor<BgRemoveOptions> = (file, options) => {
   return new Promise((resolve, reject) => {
     const worker = getWorker()
-
-    // 生成唯一请求 ID 以匹配并发消息
     const requestId = Math.random().toString(36).slice(2)
+    let settled = false
+    const timeoutRef: { current?: ReturnType<typeof setTimeout> } = {}
+
+    const cleanup = () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      worker.removeEventListener('message', handleMessage)
+      worker.removeEventListener('error', handleError)
+      options.signal?.removeEventListener('abort', handleAbort)
+      activeRequests.delete(request)
+    }
+
+    const fail = (error: Error) => {
+      if (settled) return
+      settled = true
+      cleanup()
+      reject(error)
+    }
+
+    const request: ActiveRequest = { worker, fail }
+
+    const succeed = (blob: Blob) => {
+      if (settled) return
+      settled = true
+      cleanup()
+      resolve(blob)
+    }
 
     const handleMessage = (event: MessageEvent) => {
       const { type, value, blob, message, requestId: respId } = event.data
-
-      if (respId !== requestId) return
+      if (respId !== requestId || settled) return
 
       if (type === 'progress') {
         if (options.onProgress) options.onProgress(value)
       } else if (type === 'done') {
-        clearTimeout(timeoutId)
-        worker.removeEventListener('message', handleMessage)
-        resolve(blob)
+        succeed(blob)
       } else if (type === 'error') {
-        clearTimeout(timeoutId)
-        worker.removeEventListener('message', handleMessage)
-        reject(new Error(message || 'Worker 内部错误'))
+        fail(new Error(message || 'Worker 内部错误'))
       }
     }
 
-    // 长任务兜底：单张超过 120s 判定失败，避免无限等待
-    const timeoutId = setTimeout(() => {
-      worker.removeEventListener('message', handleMessage)
-      reject(new Error('处理超时（120 秒）'))
+    const handleError = (event: ErrorEvent) => {
+      console.error('[Imago Engine] Worker Error:', event)
+      const error = new Error(`Worker 计算失败: ${event.message}`)
+      // 旧 Worker 的迟到 error 事件不能终止已经替换的新 Worker。
+      if (sharedWorker === worker) {
+        disposeBgRemoveWorker(error.message)
+      } else {
+        fail(error)
+      }
+    }
+
+    const handleAbort = () => {
+      // 第三方推理无法协作取消；终止共享 Worker 才能真正停止 CPU/GPU 工作。
+      if (sharedWorker === worker) {
+        disposeBgRemoveWorker('AbortError')
+      } else {
+        fail(new Error('AbortError'))
+      }
+    }
+
+    activeRequests.add(request)
+    worker.addEventListener('message', handleMessage)
+    worker.addEventListener('error', handleError, { once: true })
+    options.signal?.addEventListener('abort', handleAbort, { once: true })
+
+    if (options.signal?.aborted) {
+      handleAbort()
+      return
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      if (sharedWorker === worker) {
+        disposeBgRemoveWorker('处理超时（120 秒）')
+      } else {
+        fail(new Error('处理超时（120 秒）'))
+      }
     }, 120_000)
 
-    worker.addEventListener('message', handleMessage)
-
-    const handleError = (error: ErrorEvent) => {
-      console.error('[Imago Engine] Worker Error:', error)
-      clearTimeout(timeoutId)
-      worker.removeEventListener('message', handleMessage)
-      disposeBgRemoveWorker() // 标记损坏，下次重新创建
-      reject(new Error(`Worker 计算失败: ${error.message}`))
+    try {
+      worker.postMessage({
+        requestId,
+        file,
+        options: {
+          model: options.model,
+          usePreScaling: options.usePreScaling,
+          maskThreshold: options.maskThreshold,
+          maskBlur: options.maskBlur,
+          maskShrink: options.maskShrink,
+          jobId: options.jobId,
+          format: options.format,
+          quality: options.quality
+        }
+      })
+    } catch (error) {
+      fail(error instanceof Error ? error : new Error(String(error)))
     }
-    worker.addEventListener('error', handleError, { once: true })
-
-    // 监听中止信号
-    if (options.signal) {
-      options.signal.addEventListener(
-        'abort',
-        () => {
-          clearTimeout(timeoutId)
-          worker.removeEventListener('message', handleMessage)
-          reject(new Error('AbortError'))
-        },
-        { once: true }
-      )
-    }
-
-    // 发送任务到 Worker
-    worker.postMessage({
-      requestId,
-      file,
-      options: {
-        model: options.model,
-        usePreScaling: options.usePreScaling,
-        maskThreshold: options.maskThreshold,
-        maskBlur: options.maskBlur,
-        maskShrink: options.maskShrink,
-        jobId: options.jobId,
-        format: options.format,
-        quality: options.quality
-      }
-    })
   })
 }
