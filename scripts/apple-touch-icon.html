@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Imago apple-touch-icon</title>
+
+    <!--
+      apple-touch-icon 渲染源。产物 public/apple-touch-icon.png（180×180）。
+
+      与 favicon.svg 的关键差异（别把这两处搞混）：
+      - 直角，不带 rx。favicon.svg 的 rx=6 是给浏览器小图标用的；
+        iOS 会自己套一层超椭圆遮罩，若这里再带圆角就成了「圆角套圆角」。
+      - 不带 alpha。iOS 会把透明区渲染成黑色。
+      - 字形比例与 favicon.svg 逐点相同（同一 viewBox、同一 path）。
+        刻意不放大：标签页和主屏应该是同一个标记，不许各自漂移。
+
+      设计 token 真源是仓库根目录 DESIGN.md。
+    -->
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 180px;
+        height: 180px;
+        overflow: hidden;
+        background: #cc785c; /* --accent */
+      }
+
+      .glyph {
+        display: block;
+        width: 180px;
+        height: 180px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- 路径与 public/favicon.svg 完全一致，viewBox 同为 0 0 32 32 -->
+    <svg
+      class="glyph"
+      viewBox="0 0 32 32"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="Imago"
+    >
+      <rect width="32" height="32" fill="#CC785C" />
+      <path fill="#FAF9F5" d="M9.5 7.2h13v2.4h-4.9v12.8h4.9v2.4h-13v-2.4h4.9V9.6h-4.9z" />
+    </svg>
+  </body>
+</html>
+
+<!--
+重生成（PowerShell 7）：
+
+  & "C:\Program Files\Google\Chrome\Application\chrome.exe" `
+    --headless=new --disable-gpu --hide-scrollbars `
+    --force-device-scale-factor=1 --window-size=180,180 `
+    --screenshot="D:\Project\Imago\public\apple-touch-icon.png" `
+    "file:///D:/Project/Imago/scripts/apple-touch-icon.html"
+
+本图是纯色块 + 矢量路径，不含网络字体，离线可渲染。
+-->
