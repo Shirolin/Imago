@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Imago OG</title>
+
+    <!--
+      OG 图渲染源。产物 public/og-image.png（1200×630），由本机 Chrome headless 截图生成。
+      重生成：见本文件底部注释。设计 token 真源是仓库根目录 DESIGN.md，禁止在此另发明 hex。
+    -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500&family=Noto+Serif+SC:wght@500&display=block"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        /* DESIGN.md · 暖纸 */
+        --paper: #faf9f5;
+        --board: #f5f0e8;
+        --ink: #141413;
+        --muted: #6c6a64;
+        --accent: #cc785c;
+        --hairline: #e6dfd8;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: var(--paper);
+      }
+
+      body {
+        -webkit-font-smoothing: antialiased;
+        text-rendering: geometricPrecision;
+      }
+
+      .frame {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+        padding: 64px 80px;
+      }
+
+      .main {
+        display: flex;
+        flex: 1 1 auto;
+        min-height: 0;
+        align-items: center;
+        gap: 72px;
+      }
+
+      /* 装裱印样：board 卡纸 + 宽奶油画纸边，圆角 radius-well */
+      .mount {
+        flex: none;
+        padding: 48px;
+        background: var(--board);
+        border-radius: 20px;
+      }
+
+      .mount img {
+        display: block;
+        width: 252px;
+        height: 336px;
+        object-fit: cover;
+      }
+
+      /* 文字块：珊瑚 1px 装订线，呼应封面工单 */
+      .copy {
+        flex: 1 1 auto;
+        min-width: 0;
+        padding-left: 32px;
+        border-left: 1px solid var(--accent);
+      }
+
+      .wordmark {
+        font-family: 'Noto Serif SC', Georgia, 'Songti SC', serif;
+        font-size: 100px;
+        font-weight: 500;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+      }
+
+      .tagline {
+        margin-top: 18px;
+        font-family: 'Noto Sans SC', sans-serif;
+        font-size: 34px;
+        font-weight: 500;
+        line-height: 1.2;
+        color: var(--ink);
+      }
+
+      /* 细线只留给页脚那道结构分隔。这里用留白分层——400px 缩略图下短线会糊成灰点 */
+      .tools {
+        margin-top: 34px;
+        font-family: 'Noto Sans SC', sans-serif;
+        font-size: 21px;
+        font-weight: 400;
+        line-height: 1.5;
+        color: var(--muted);
+      }
+
+      .foot {
+        display: flex;
+        flex: none;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-top: 28px;
+        padding-top: 20px;
+        border-top: 1px solid var(--hairline);
+        font-family: 'Noto Sans SC', sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+      }
+
+      .foot .domain {
+        font-weight: 400;
+        font-variant-numeric: tabular-nums;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="frame">
+      <div class="main">
+        <div class="mount">
+          <img src="../public/cover-print.webp" alt="竖版快照" />
+        </div>
+
+        <div class="copy">
+          <p class="wordmark">Imago</p>
+          <p class="tagline">本地图片工作台</p>
+          <p class="tools">压缩 · 裁切 · 去背景 · 格式转换 · 去拍摄信息</p>
+        </div>
+      </div>
+
+      <div class="foot">
+        <span>本地 · 不上传</span>
+        <span class="domain">imago.app</span>
+      </div>
+    </div>
+  </body>
+</html>
+
+<!--
+重生成（PowerShell 7）：
+
+  & "C:\Program Files\Google\Chrome\Application\chrome.exe" `
+    --headless=new --disable-gpu --hide-scrollbars `
+    --force-device-scale-factor=1 --window-size=1200,630 `
+    --virtual-time-budget=8000 `
+    --screenshot="D:\Project\Imago\public\og-image.png" `
+    "file:///D:/Project/Imago/scripts/og-image.html"
+
+字体走 Google Fonts 链接，渲染时需联网。产物入库后线上运行不依赖此文件。
+-->
