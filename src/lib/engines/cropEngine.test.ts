@@ -319,6 +319,19 @@ describe('cropEngine 错误路径与中止', () => {
     await expect(promise).rejects.toThrow('Task aborted')
     expect(state.images[0]!.srcValue).toBe('')
   })
+
+  it('signal 一开始就已中止：立即 reject，不解码不建canvas', async () => {
+    // 此前缺这道检查：onAbort 只在 signal 后续 abort 时触发，
+    // 预先已中止的 signal 不会再发事件，整条渲染链会白跑一遍才 reject。
+    const controller = new AbortController()
+    controller.abort()
+    const before = state.images.length
+    const promise = cropEngine(makeFile(), { signal: controller.signal })
+    await expect(promise).rejects.toSatisfy(
+      (e: unknown) => e instanceof Error && e.name === 'AbortError'
+    )
+    expect(state.images).toHaveLength(before)
+  })
 })
 
 describe('cropEngine 元数据保留', () => {

@@ -1,6 +1,7 @@
 import exifr from 'exifr'
 import type { ImageProcessor } from './types'
 import { MAX_PROCESS_SIDE, fitWithinMaxSide } from '../limits'
+import { AbortError, onAbort } from './abort'
 import { classifyExifTags } from './exifTagRegistry'
 
 export interface ExifData {
@@ -109,11 +110,21 @@ export interface ExifOptions {
 }
 
 export const clearExifEngine: ImageProcessor<ExifOptions> = async (file, options) => {
+  // ExifView 的 CTA 在处理中显示可点击中止，引擎必须真的响应。
+  // 此前完全没有 signal 处理：按钮可点，点了没反应。
+  if (options.signal?.aborted) throw new AbortError()
+
   return new Promise((resolve, reject) => {
     const img = new Image()
     const url = URL.createObjectURL(file)
 
+    const release = onAbort(options.signal, () => {
+      img.src = ''
+      reject(new AbortError())
+    })
+
     img.onload = () => {
+      release()
       URL.revokeObjectURL(url)
       const { width, height } = fitWithinMaxSide(img.width, img.height, MAX_PROCESS_SIDE)
       const canvas = document.createElement('canvas')
@@ -158,6 +169,7 @@ export const clearExifEngine: ImageProcessor<ExifOptions> = async (file, options
     }
 
     img.onerror = () => {
+      release()
       URL.revokeObjectURL(url)
       reject(new Error('Failed to load image'))
     }

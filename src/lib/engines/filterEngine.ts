@@ -19,6 +19,11 @@ export interface FilterOptions {
 }
 
 export const filterEngine: ImageProcessor<FilterOptions> = async (file, options) => {
+  // 已中止就直接退出，不做解码与渲染。
+  // onAbort 只在 signal 后续 abort 时触发；signal 一开始就已中止的话，
+  // 裸监听器永远等不到事件，整条渲染链会白跑一遍才reject。
+  if (options.signal?.aborted) throw new AbortError()
+
   return new Promise((resolve, reject) => {
     const img = new Image()
     const url = URL.createObjectURL(file)
