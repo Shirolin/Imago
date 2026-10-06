@@ -35,7 +35,7 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
     options: T,
     externalOnProgress?: (p: number) => void,
     manageProcessing = true
-  ): Promise<ProcessResult | Blob | Blob[] | undefined> => {
+  ): Promise<ProcessResult | undefined> => {
     const item = store.images.find((img) => img.id === id)
     if (!item) return
 
@@ -129,7 +129,7 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
   const processQueue = async (
     items: ImageItem[],
     options: T,
-    onResult?: (id: string, result: ProcessResult | Blob | Blob[]) => void
+    onResult?: (id: string, result: ProcessResult) => void
   ) => {
     const total = items.length
     if (total === 0) return
@@ -168,7 +168,7 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
         )
         if (queueController.signal.aborted) return
         if (result && onResult) {
-          onResult(item.id, result as ProcessResult | Blob | Blob[])
+          onResult(item.id, result)
         }
         itemProgress.set(item.id, 1) // 确保完成后计为 1
         updateGlobalProgress()
@@ -192,17 +192,14 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
     }
   }
 
-  const processAll = async (
-    options: T,
-    onResult?: (id: string, result: ProcessResult | Blob | Blob[]) => void
-  ) => {
+  const processAll = async (options: T, onResult?: (id: string, result: ProcessResult) => void) => {
     const pendingImages = store.images.filter((img) => img.status !== 'done')
     await processQueue(pendingImages, options, onResult)
   }
 
   const processSelected = async (
     options: T,
-    onResult?: (id: string, result: ProcessResult | Blob | Blob[]) => void
+    onResult?: (id: string, result: ProcessResult) => void
   ) => {
     const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
     await processQueue(selectedImages, options, onResult)

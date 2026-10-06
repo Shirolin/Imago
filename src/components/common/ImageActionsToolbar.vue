@@ -115,7 +115,7 @@ const emit = defineEmits(['reset-all'])
 const isBusy = computed(() => props.isProcessing || store.processingCount > 0)
 
 const layoutToggleVisible = computed(() => {
-  if (getViewConfig(props.viewId)?.features.showLayoutToggle === false) return false
+  if (getViewConfig(props.viewId)?.showLayoutToggle === false) return false
 
   return props.showLayoutToggle
 })

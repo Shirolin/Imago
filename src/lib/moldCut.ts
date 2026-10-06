@@ -17,11 +17,6 @@ export interface MoldRect {
   h: number
 }
 
-/** 取整：与 cropEngine 同规则，起点 round、宽高按右端 round 差值 */
-export function roundCoord(n: number): number {
-  return Math.round(n)
-}
-
 export function normalizeMoldSize(w: number, h: number): { w: number; h: number } {
   const cw = Math.min(MAX_MOLD_SIDE, Math.max(MIN_MOLD_SIDE, Math.round(w)))
   const ch = Math.min(MAX_MOLD_SIDE, Math.max(MIN_MOLD_SIDE, Math.round(h)))

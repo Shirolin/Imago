@@ -72,7 +72,6 @@ const toolRun = useToolRun<CompressionOptions>({
     format: (outputFormat.value === 'original'
       ? undefined
       : outputFormat.value) as CompressionOptions['format'],
-    mode: compressionMode.value,
     maxSizeMB:
       compressionMode.value === 'target' && Number(targetSizeKB.value) > 0
         ? Number(targetSizeKB.value) / 1024

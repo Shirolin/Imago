@@ -3,13 +3,15 @@ import type { ProcessResult } from '../engines/types'
 /**
  * 引擎返回值的归一化。
  *
- * 引擎层的返回形状目前有三种，且都不是 ProcessResult 说谎造成的偶然：
- *  - `{ blob, size, ... }`      绝大多数引擎
- *  - `{ blobs, size }`          splitEngine
- *  - 裸 `Blob`                  bgRemoveEngine / matchBgRemoveEngine（签名声明
- *                              Promise<ProcessResult>，实际 resolve(blob)）
- * 用 ImageItem 或视图去兜这三种，等于让 N 个调用方各写一遍防御；
- * 在 seam 内归一一次，接口上只留 Blob[] 一种形态。
+ * 当前引擎层的返回形状只有两种，都是合法的：
+ *  - `{ blob, size, ... }`    绝大多数引擎
+ *  - `{ blobs, size }`        splitEngine
+ *
+ * 下面的裸 `Blob` / 裸 `Blob[]` 分支曾是为两个「类型说谎」的引擎兜底
+ * （bgRemoveEngine / matchBgRemoveEngine 声明 Promise<ProcessResult> 却
+ * resolve 裸 Blob，已修正）。它们现在不可达，但保留作为边界防御：若将来
+ * 某个引擎再次返回裸值，走下面的 object 分支会因找不到 blob 字段而返回
+ * null，表现为「静默不写结果」，比明确识别更难排查。
  */
 
 export interface NormalizedResult {

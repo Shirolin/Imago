@@ -21,14 +21,3 @@ export async function isFormatSupported(mimeType: string): Promise<boolean> {
     return false
   }
 }
-
-/**
- * 获取浏览器支持的状态映射
- */
-export async function getSupportedFormats(formats: string[]): Promise<Record<string, boolean>> {
-  const results: Record<string, boolean> = {}
-  for (const format of formats) {
-    results[format] = await isFormatSupported(format)
-  }
-  return results
-}

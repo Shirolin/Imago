@@ -1,4 +1,4 @@
-import type { ImageProcessor } from './types'
+import type { ImageProcessor, ProcessResult } from './types'
 
 export interface MatchBgRemoveOptions {
   targetColor?: { r: number; g: number; b: number }
@@ -120,12 +120,13 @@ export const matchBgRemoveEngine: ImageProcessor<MatchBgRemoveOptions> = async (
   const finalImageData = new ImageData(new Uint8ClampedArray(processedData), width, height)
   ctx.putImageData(finalImageData, 0, 0)
 
-  return new Promise<Blob>((resolve, reject) => {
+  return new Promise<ProcessResult>((resolve, reject) => {
     // 'original' 保留 PNG 语义（抠图结果含透明通道）
     const outType = !options.format || options.format === 'original' ? 'image/png' : options.format
     canvas.toBlob(
       (blob) => {
-        if (blob) resolve(blob)
+        // 包成 ProcessResult：此前 resolve(blob) 与声明的 Promise<ProcessResult> 不符
+        if (blob) resolve({ blob, size: blob.size, width, height })
         else reject(new Error('Canvas toBlob failed'))
       },
       outType,

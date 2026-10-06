@@ -4,7 +4,6 @@ import BgRemoveWorker from './bgRemove.worker?worker'
 export interface BgRemoveOptions {
   format?: string
   quality?: number
-  isAnime?: boolean // 兼容旧版，保留逻辑
   usePreScaling?: boolean
   model?: 'isnet' | 'isnet_fp16' | 'isnet_quint8' // 新增：模型精度选择
   maskThreshold?: number // 新增：边缘严格度 (0-1)
@@ -74,7 +73,9 @@ export const bgRemoveEngine: ImageProcessor<BgRemoveOptions> = (file, options) =
       if (settled) return
       settled = true
       cleanup()
-      resolve(blob)
+      // 包成 ProcessResult：此前直接 resolve(blob)，与声明的 Promise<ProcessResult>
+      // 不符，迫使每个调用方写 `result.blob || (result as Blob)` 双保险
+      resolve({ blob, size: blob.size })
     }
 
     const handleMessage = (event: MessageEvent) => {

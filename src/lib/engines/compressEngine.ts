@@ -6,7 +6,7 @@ import { resolveCompressLongEdge, shouldKeepOriginalWhenLarger } from '../limits
 
 export interface CompressionOptions {
   quality: number
-  mode?: 'quality' | 'target' // 压缩模式：画质优先或目标体积
+  /** 目标体积（MB）。给了就走「按体积循环降质量」，不依赖 mode 字段 */
   maxSizeMB?: number
   maxWidth?: number
   maxHeight?: number

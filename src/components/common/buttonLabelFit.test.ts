@@ -27,6 +27,7 @@ import {
   SEGMENT_COLS5_KEYS,
   SEGMENT_LABEL_KEYS
 } from '../../lib/segmentLabelKeys'
+import { CTA_ABORT_HINT_KEYS, CTA_OTHER_KEYS, collectCtaLabelKeys } from '../../lib/ctaLabelKeys'
 
 const locales = {
   de,
@@ -43,39 +44,15 @@ const locales = {
 
 type LocaleTree = string | { [key: string]: LocaleTree }
 
-/** Inspector fill CTAs only (not inline/nowrap buttons like cover.start). */
-const FILL_KEYS = [
-  'common.image.toolbar.import',
-  'common.image.toolbar.exportAll',
-  'common.image.toolbar.confirm',
-  'common.image.toolbar.deleteSelected',
-  'common.image.toolbar.clearAll',
-  'common.modal.download.confirm',
-  'tools.compress.cta.startCompress',
-  'tools.compress.cta.updateCompress',
-  'tools.compress.cta.exportResults',
-  'tools.compress.cta.rendering',
-  'tools.compress.cta.selectImage',
-  'tools.bgRemove.cta.export',
-  'tools.bgRemove.cta.process',
-  'tools.bgRemove.cta.processing',
-  'tools.bgRemove.cta.select',
-  'tools.split.cta.select',
-  'tools.split.cta.rendering',
-  'tools.filters.cta.select',
-  'tools.filters.cta.rendering',
-  'tools.combine.cta.processing',
-  'tools.combine.cta.export',
-  'tools.favicon.cta',
-  'tools.resize.cta.select',
-  'tools.split.syncGrid',
-  'tools.split.clearAll',
-  'tools.crop.fillAll',
-  'tools.crop.undo',
-  'tools.crop.redo'
-]
+/**
+ * Inspector fill CTAs only (not inline/nowrap buttons like cover.start).
+ *
+ * 工具 CTA 键从src/views 派生（见 lib/ctaLabelKeys）——此前是手抄清单，
+ * 只覆盖 22 个而实际用到 36 个，新增工具因此拿不到预算门禁。
+ */
+const FILL_KEYS: string[] = [...CTA_OTHER_KEYS, ...collectCtaLabelKeys()]
 
-const HINT_KEYS = ['tools.compress.cta.clickToAbort', 'tools.split.cta.clickToAbort']
+const HINT_KEYS: string[] = [...CTA_ABORT_HINT_KEYS]
 
 const NAV_KEYS = [
   'nav.groups.core',

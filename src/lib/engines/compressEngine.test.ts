@@ -41,12 +41,12 @@ function makeFile(type = 'image/jpeg') {
 
 describe('compressEngine 策略', () => {
   it('质量模式不传 maxSizeMB', async () => {
-    await compressEngine(makeFile(), { quality: 0.8, mode: 'quality' })
+    await compressEngine(makeFile(), { quality: 0.8 })
     expect(compressionCalls[0]).not.toHaveProperty('maxSizeMB')
   })
 
   it('目标体积模式传入 maxSizeMB', async () => {
-    await compressEngine(makeFile(), { quality: 0.8, mode: 'target', maxSizeMB: 0.5 })
+    await compressEngine(makeFile(), { quality: 0.8, maxSizeMB: 0.5 })
     expect(compressionCalls[0]?.maxSizeMB).toBe(0.5)
   })
 
