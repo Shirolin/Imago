@@ -1,5 +1,6 @@
 import JSZip from 'jszip'
 import type { ProcessingOptions } from './types'
+import { AbortError, onAbort, throwIfAborted } from './abort'
 
 export interface FaviconSpec {
   id: string
@@ -153,11 +154,17 @@ export interface FaviconOptions extends ProcessingOptions {
 export const faviconEngine = {
   async generateSuite(file: File, options: FaviconOptions): Promise<FaviconResult> {
     const zip = new JSZip()
-    const img = await this.loadImage(file)
+    const signal = options.signal
+    // 12 个变体逐个渲染，512px 那几个在大图上很慢；
+    // 没有中止钩子时用户点了「终止」只能等全部跑完。
+    throwIfAborted(signal)
+
+    const img = await this.loadImage(file, signal)
     const { backgroundColor = 'transparent', selectedIds, autoPadding } = options
 
     // 1. 生成选中的图片
     for (const spec of FAVICON_SPECS) {
+      throwIfAborted(signal)
       if (spec.type === 'image' && selectedIds.has(spec.id) && spec.size) {
         const isMaskable = spec.id === 'maskable512'
         const shouldScale = isMaskable && autoPadding
@@ -234,15 +241,22 @@ ${headCode}${chromeGuide}
     return { zip: content }
   },
 
-  loadImage(file: File): Promise<HTMLImageElement> {
+  loadImage(file: File, signal?: AbortSignal): Promise<HTMLImageElement> {
+    throwIfAborted(signal)
     return new Promise((resolve, reject) => {
       const img = new Image()
       const url = URL.createObjectURL(file)
+      const release = onAbort(signal, () => {
+        img.src = ''
+        reject(new AbortError())
+      })
       img.onload = () => {
+        release()
         URL.revokeObjectURL(url)
         resolve(img)
       }
       img.onerror = () => {
+        release()
         URL.revokeObjectURL(url)
         reject(new Error('Failed to load image'))
       }
@@ -256,11 +270,16 @@ ${headCode}${chromeGuide}
     bg: string,
     shouldScale = false
   ): Promise<Blob> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const canvas = document.createElement('canvas')
       canvas.width = size
       canvas.height = size
-      const ctx = canvas.getContext('2d')!
+      // 非空断言会在浏览器资源紧张时崩在下一行，且报错点离原因很远
+      const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        reject(new Error('Failed to get canvas context'))
+        return
+      }
 
       if (bg !== 'transparent') {
         ctx.fillStyle = bg
@@ -280,7 +299,16 @@ ${headCode}${chromeGuide}
         ctx.drawImage(img, sx, sy, sourceSize, sourceSize, 0, 0, size, size)
       }
 
-      canvas.toBlob((blob) => resolve(blob!), 'image/png', 1.0)
+      canvas.toBlob(
+        (blob) => {
+          // 此前 resolve(blob!) 把 null 当 Blob 返回，
+          // 结果是 ZIP 里躺着一个无法打开的 0 字节条目而用户毫无察觉
+          if (blob) resolve(blob)
+          else reject(new Error('Canvas toBlob failed'))
+        },
+        'image/png',
+        1.0
+      )
     })
   }
 }
