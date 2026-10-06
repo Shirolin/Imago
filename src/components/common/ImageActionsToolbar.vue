@@ -47,6 +47,13 @@ const props = withDefaults(
     /** 是否显示卡片尺寸切换按钮。无卡片网格的视图（如 Combine）传 false 隐藏 */
 
     showLayoutToggle?: boolean
+
+    /**
+     * 「全部导出」的实际执行者。结果集活在各视图本地（store 不知道处理结果），
+     * 所以由视图把已组装好的导出动作交进来；不传则退回通用打包路径，
+     * 仅适用于 store 里带 blob 的场景（当前无此场景，故多数视图应传入）。
+     */
+    onExportAll?: () => Promise<void>
   }>(),
 
   {
@@ -69,6 +76,13 @@ const store = useImageStore()
 const layoutStore = useLayoutStore()
 
 const { downloadAllAsZip, triggerFileInput } = useFileHelpers()
+
+/**
+ * 未注入 onExportAll 时的兜底。结果集在视图本地、store 查不到 blob，
+ * 这条路径会因筛不出可导出项而静默返回——保留它只为不让「缺回调」变成报错。
+ */
+const handleExportAll = () =>
+  props.onExportAll ? props.onExportAll() : downloadAllAsZip(props.viewId)
 
 const { t } = useI18n()
 
@@ -244,7 +258,7 @@ onUnmounted(() => {
 
     <button
       v-if="props.showDownloadAll && store.doneCount > 0"
-      @click="downloadAllAsZip(viewId)"
+      @click="handleExportAll"
       class="flex items-center gap-2 px-3 md:px-4 min-h-10 h-10 rounded-[var(--radius-ctrl)] bg-[var(--accent)] text-[var(--on-product)] hover:bg-[var(--accent-press)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)] whitespace-nowrap"
       :class="{ 'opacity-50 cursor-not-allowed': isBusy }"
       :disabled="isBusy"

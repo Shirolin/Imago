@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ImageItem } from '../stores/imageStore'
 import { useImageStore } from '../stores/imageStore'
 import { useLayoutStore } from '../stores/layoutStore'
-import { useFileHelpers, type ZipResultItem } from '../composables/useFileHelpers'
+import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
 import AppModal from '../components/common/AppModal.vue'
@@ -17,55 +17,15 @@ import AppTip from '../components/common/AppTip.vue'
 import { Play, Download, Loader2 } from 'lucide-vue-next'
 import { dualEngine } from '../lib/engines/index'
 import type { CompressionOptions } from '../lib/engines/compressEngine'
-import { useImageProcessor } from '../composables/useImageProcessor'
-import type { ProcessResult } from '../lib/engines/types'
+import { useToolRun } from '../composables/useToolRun'
 import { DEFAULT_COMPRESS_LONG_EDGE, MAX_TARGET_SIZE_KB } from '../lib/limits'
 
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
-const { formatSize, downloadImage, downloadAllAsZip } = useFileHelpers()
+const { formatSize } = useFileHelpers()
 const { t } = useI18n()
-
-// 本地结果存储
-interface LocalResult {
-  blob: Blob
-  preview: string
-  size: number
-  isDirty: boolean
-  /** 压缩结果未减小（保留原图），UI 显示「已跳过」而非虚假成功 */
-  skipped?: boolean
-}
-const results = ref<Map<string, LocalResult>>(new Map())
-
-const cleanupResults = () => {
-  results.value.forEach((res) => {
-    URL.revokeObjectURL(res.preview)
-  })
-  results.value.clear()
-}
-
-onUnmounted(() => {
-  // 路由切换中止处理：DESIGN.md 2.2 要求全局清理挂起任务，避免后台继续跑 + 结果泄漏
-  abortProcessing()
-  cleanupResults()
-})
-
-// 监听图片列表变化，自动清理已删除图片的本地结果
-watch(
-  () => store.images,
-  (newImages) => {
-    const currentIds = new Set(newImages.map((img) => img.id))
-    results.value.forEach((res, id) => {
-      if (!currentIds.has(id)) {
-        URL.revokeObjectURL(res.preview)
-        results.value.delete(id)
-      }
-    })
-  },
-  { deep: true }
-)
 
 // 状态
 const compressionMode = ref<'quality' | 'target'>('quality')
@@ -99,7 +59,35 @@ watch(outputFormat, (fmt) => {
   }
 })
 
-const { isProcessing, processSelected, abortProcessing } = useImageProcessor(dualEngine)
+/**
+ * 处理 → 结果 → 导出交给 useToolRun。这里只声明引擎与参数，
+ * 结果容器、预览 URL 所有权、脏标记、CTA 判定、ZIP 组装、卸载清理都在 module 内。
+ */
+const toolRun = useToolRun<CompressionOptions>({
+  id: 'compress',
+  scope: 'selected',
+  processor: dualEngine,
+  options: () => ({
+    quality: quality.value,
+    format: (outputFormat.value === 'original'
+      ? undefined
+      : outputFormat.value) as CompressionOptions['format'],
+    mode: compressionMode.value,
+    maxSizeMB:
+      compressionMode.value === 'target' && Number(targetSizeKB.value) > 0
+        ? Number(targetSizeKB.value) / 1024
+        : undefined,
+    colors: outputFormat.value === 'image/png' ? pngColors.value : undefined,
+    effort: outputFormat.value === 'image/jxl' ? jxlEffort.value : undefined,
+    keepOriginalIfLarger: keepOriginalIfLarger.value,
+    preserveExif: preserveExif.value,
+    maxWidth: maxWidth.value,
+    maxHeight: maxHeight.value
+  })
+})
+
+const { cta, result: resultOf, act: run, download, reset, exportAll } = toolRun
+const isProcessing = toolRun.isRunning
 
 // P2-15：GIF 会被引擎转为静态图（取首帧），选中 GIF 时提示
 const hasGifSelected = computed(() =>
@@ -113,7 +101,7 @@ const displayImages = computed(() => [...store.images].reverse())
 
 const handleCompare = (id: string) => {
   const item = store.images.find((img) => img.id === id)
-  const result = results.value.get(id)
+  const result = resultOf(id)
   if (!item || !result) return
   comparingImage.value = item
   showCompareModal.value = true
@@ -126,170 +114,32 @@ const handleModalLeave = () => {
   comparingImage.value = null
 }
 
-const handleDownload = (id: string) => {
-  const item = store.images.find((img) => img.id === id)
-  const result = results.value.get(id)
-  if (item && result) downloadImage(result.blob, item.file.name, 'compress')
-}
-
-const handleReset = (id: string) => {
-  const result = results.value.get(id)
-  if (result) {
-    URL.revokeObjectURL(result.preview)
-    results.value.delete(id)
-  }
-  store.updateImage(id, { status: 'idle', error: undefined, progress: 0 })
-}
-
-watch(
-  [
-    quality,
-    outputFormat,
-    compressionMode,
-    targetSizeKB,
-    pngColors,
-    jxlEffort,
-    maxWidth,
-    maxHeight,
-    keepOriginalIfLarger,
-    preserveExif
-  ],
-  () => {
-    results.value.forEach((res) => {
-      res.isDirty = true
-    })
-  },
-  { deep: true }
-)
-
-const ctaState = computed(() => {
-  // P2-13：区分「无图片」与「有图片但未选中」——无图提示导入，未选中提示选择
-  if (store.images.length === 0)
-    return {
-      text: t('tools.compress.cta.startCompress'),
-      progress: '',
-      icon: Play,
-      action: 'none',
-      disabled: true
-    }
-
-  if (store.selectedCount === 0)
-    return {
-      text: t('tools.compress.cta.selectImage'),
-      progress: '',
-      icon: Play,
-      action: 'none',
-      disabled: true
-    }
-
-  // P2-9：处理中 CTA 可点击中止（参考 SplitView：action:'abort'、禁用解除、Loader2 图标）
-  if (isProcessing.value) {
-    const total = store.selectedCount
-    const processed = store.images.filter(
-      (img) => store.selectedIds.has(img.id) && img.status === 'done'
-    ).length
-    return {
-      text: t('tools.compress.cta.rendering'),
-      progress: `(${processed}/${total})`,
-      icon: Loader2,
-      action: 'abort',
-      disabled: false
-    }
-  }
-
-  const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
-  const allDoneAndClean =
-    selectedImages.length > 0 &&
-    selectedImages.every((img) => {
-      const res = results.value.get(img.id)
-      return img.status === 'done' && res && !res.isDirty
-    })
-
-  if (allDoneAndClean) {
-    return {
-      text: t('tools.compress.cta.exportResults'),
-      progress: `(${store.selectedCount})`,
-      icon: Download,
-      action: 'download',
-      disabled: false
-    }
-  }
-
-  const anyDirty = selectedImages.some((img) => {
-    const res = results.value.get(img.id)
-    return img.status === 'done' && res?.isDirty
-  })
-  return {
-    text: anyDirty ? t('tools.compress.cta.updateCompress') : t('tools.compress.cta.startCompress'),
-    progress: `(${store.selectedCount})`,
-    icon: Play,
-    action: 'process',
-    disabled: false
+// CTA 文案与图标。判定逻辑在 module 内（resolveCta），这里只做展示映射。
+const ctaCopy = computed(() => {
+  switch (cta.value.action) {
+    case 'import':
+      return { text: t('tools.compress.cta.startCompress'), icon: Play }
+    case 'select':
+      return { text: t('tools.compress.cta.selectImage'), icon: Play }
+    case 'abort':
+      return { text: t('tools.compress.cta.rendering'), icon: Loader2 }
+    case 'export':
+      return { text: t('tools.compress.cta.exportResults'), icon: Download }
+    case 'update':
+      return { text: t('tools.compress.cta.updateCompress'), icon: Play }
+    case 'blocked':
+      return { text: t('tools.compress.cta.startCompress'), icon: Play }
+    default:
+      return { text: t('tools.compress.cta.startCompress'), icon: Play }
   }
 })
 
 const handleCtaClick = async () => {
-  const state = ctaState.value
-  if (state.action === 'none') return
+  await run()
+}
 
-  if (state.action === 'abort') {
-    abortProcessing()
-    return
-  }
-
-  if (state.action === 'download') {
-    const zipResults = store.images
-      .filter((img) => store.selectedIds.has(img.id))
-      .map((img) => {
-        const res = results.value.get(img.id)
-        return {
-          file: img.file,
-          processedBlob: res?.blob,
-          status: img.status
-        }
-      })
-      .filter((r) => r.status === 'done' && r.processedBlob) as ZipResultItem[]
-
-    await downloadAllAsZip('compress', zipResults)
-    return
-  }
-
-  if (state.action === 'process') {
-    await processSelected(
-      {
-        quality: quality.value,
-        format: (outputFormat.value === 'original'
-          ? undefined
-          : outputFormat.value) as CompressionOptions['format'],
-        mode: compressionMode.value,
-        maxSizeMB:
-          compressionMode.value === 'target' && Number(targetSizeKB.value) > 0
-            ? Number(targetSizeKB.value) / 1024
-            : undefined,
-        colors: outputFormat.value === 'image/png' ? pngColors.value : undefined,
-        effort: outputFormat.value === 'image/jxl' ? jxlEffort.value : undefined,
-        keepOriginalIfLarger: keepOriginalIfLarger.value,
-        preserveExif: preserveExif.value,
-        maxWidth: maxWidth.value,
-        maxHeight: maxHeight.value
-      },
-      (id: string, result: ProcessResult | Blob | Blob[]) => {
-        const typedResult = result as ProcessResult
-        const blob = typedResult.blob || (result as Blob)
-        const oldRes = results.value.get(id)
-
-        if (oldRes) URL.revokeObjectURL(oldRes.preview)
-
-        results.value.set(id, {
-          blob,
-          preview: URL.createObjectURL(blob),
-          size: typedResult.size || blob.size,
-          isDirty: false,
-          skipped: typedResult.skipped
-        })
-      }
-    )
-  }
+const cleanupResults = () => {
+  reset()
 }
 </script>
 
@@ -304,6 +154,7 @@ const handleCtaClick = async () => {
           :show-download-all="false"
           show-clear-all
           @reset-all="cleanupResults"
+          @export-all="exportAll"
       /></template>
 
       <template #content>
@@ -321,14 +172,14 @@ const handleCtaClick = async () => {
               :key="img.id"
               :image="img"
               :is-selected="store.selectedIds.has(img.id)"
-              :processed-preview="results.get(img.id)?.preview"
-              :processed-blob="results.get(img.id)?.blob"
-              :is-dirty="results.get(img.id)?.isDirty"
+              :processed-preview="resultOf(img.id)?.preview"
+              :processed-blob="resultOf(img.id)?.primary"
+              :is-dirty="resultOf(img.id)?.dirty"
               @toggle="store.toggleSelection"
               @remove="store.removeImage"
-              @download="handleDownload"
+              @download="download"
               @compare="handleCompare"
-              @reset="handleReset"
+              @reset="reset"
             />
           </div>
         </div>
@@ -369,20 +220,18 @@ const handleCtaClick = async () => {
           <AppButton
             size="lg"
             fill
-            :variant="ctaState.action === 'download' ? 'success' : 'cta'"
+            :variant="cta.action === 'export' ? 'success' : 'cta'"
             class="w-full rounded-[var(--radius-ctrl)] transition-colors"
-            :disabled="ctaState.disabled"
-            :hint="ctaState.action === 'abort' ? t('tools.compress.cta.clickToAbort') : undefined"
+            :disabled="cta.disabled"
+            :hint="cta.action === 'abort' ? t('tools.compress.cta.clickToAbort') : undefined"
             @click="handleCtaClick"
           >
             <template #icon>
               <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
-              <component :is="ctaState.icon" v-else :size="18" class="mr-2" />
+              <component :is="ctaCopy.icon" v-else :size="18" class="mr-2" />
             </template>
-            {{ ctaState.text
-            }}<span v-if="ctaState.progress" class="tabular-nums opacity-70">{{
-              ctaState.progress
-            }}</span>
+            {{ ctaCopy.text
+            }}<span v-if="cta.badge" class="tabular-nums opacity-70">{{ cta.badge }}</span>
           </AppButton>
         </InspectorFooter>
       </template>
@@ -396,11 +245,11 @@ const handleCtaClick = async () => {
       @after-leave="handleModalLeave"
     >
       <ImageCompare
-        v-if="comparingImage && results.has(comparingImage.id)"
+        v-if="comparingImage && resultOf(comparingImage.id)"
         :original-url="comparingImage.file"
-        :processed-url="results.get(comparingImage.id)!.blob"
+        :processed-url="resultOf(comparingImage.id)!.primary"
         :original-size="formatSize(comparingImage.originalSize)"
-        :processed-size="formatSize(results.get(comparingImage.id)!.size)"
+        :processed-size="formatSize(resultOf(comparingImage.id)!.size)"
         @close="closeCompare"
       />
     </AppModal>

@@ -35,49 +35,18 @@ import AppInput from '../components/common/AppInput.vue'
 import AppColorPicker from '../components/common/AppColorPicker.vue'
 import AppTip from '../components/common/AppTip.vue'
 import { cropEngine } from '../lib/engines/cropEngine'
-import { useImageProcessor } from '../composables/useImageProcessor'
+import { useToolRun } from '../composables/useToolRun'
 import { useResizeObserver, useDebounceFn } from '@vueuse/core'
 import { useHistory } from '../composables/useHistory'
-import { useFileHelpers } from '../composables/useFileHelpers'
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
-import type { ProcessResult } from '../lib/engines/types'
 
 const store = useImageStore()
-const { downloadImage } = useFileHelpers()
 const { t } = useI18n()
 
-// 本地结果存储
-interface LocalResult {
-  blob: Blob
-  preview: string
-  size: number
-  isDirty: boolean
-}
-const results = ref<Map<string, LocalResult>>(new Map())
-
-const cleanupResults = () => {
-  results.value.forEach((res) => {
-    URL.revokeObjectURL(res.preview)
-  })
-  results.value.clear()
-}
-
-onUnmounted(() => {
-  cleanupResults()
-})
-
-// 监听图片列表变化，自动清理已删除图片的本地结果
+// 监听图片列表变化：结果集清理交给 useToolRun，这里只管工具侧的复位
 watch(
   () => store.images,
   (newImages) => {
-    const currentIds = new Set(newImages.map((img) => img.id))
-    results.value.forEach((res, id) => {
-      if (!currentIds.has(id)) {
-        URL.revokeObjectURL(res.preview)
-        results.value.delete(id)
-      }
-    })
-
     if (newImages.length === 0) {
       clearHistory()
       resetView()
@@ -197,7 +166,6 @@ const handleFillImage = () => {
 const isDragging = ref(false)
 const isSnapping = ref(false)
 
-const { isProcessing, processSingle } = useImageProcessor(cropEngine)
 const selectedImage = computed(() => store.activeImage)
 
 const workspaceRef = ref<InstanceType<typeof AppCanvasWorkspace> | null>(null)
@@ -441,11 +409,7 @@ const resetAllState = () => {
   fillColor.value = 'transparent'
 
   if (store.activeId) {
-    const res = results.value.get(store.activeId)
-    if (res) {
-      URL.revokeObjectURL(res.preview)
-      results.value.delete(store.activeId)
-    }
+    reset(store.activeId)
   }
 
   clearHistory()
@@ -497,75 +461,21 @@ watch(
   { immediate: true }
 )
 
-// 【状态驱动】：监听所有配置变化，自动标记为“脏数据”以激活“更新裁剪”按钮
-watch(
-  () => allSettings.value,
-  () => {
-    if (store.activeId) {
-      const res = results.value.get(store.activeId)
-      if (res) res.isDirty = true
-    }
-  },
-  { deep: true }
-)
-
-const ctaState = computed(() => {
-  const img = selectedImage.value
-  if (!img)
-    return { text: t('tools.crop.cta.select'), icon: Scissors, action: 'none', disabled: true }
-
-  if (isProcessing.value) {
-    return { text: t('common.processing'), icon: Scissors, action: 'none', disabled: true }
-  }
-
-  const result = results.value.get(img.id)
-
-  // done 且无脏数据 → download CTA
-  if (img.status === 'done' && result && !result.isDirty) {
-    return {
-      text: t('tools.crop.cta.export', { count: 1 }),
-      icon: Download,
-      action: 'download',
-      disabled: false
-    }
-  }
-
-  // 默认 apply；X/Y/W/H 越界时禁用 CTA
-  if (!cropBoundsValid.value) {
-    return {
-      text: t('tools.crop.cta.apply', { count: 1 }),
-      icon: Scissors,
-      action: 'none',
-      disabled: true
-    }
-  }
-  return {
-    text: result?.isDirty
-      ? t('tools.crop.cta.apply', { count: 1 })
-      : t('tools.crop.cta.apply', { count: 1 }),
-    icon: Scissors,
-    action: 'process',
-    disabled: false
-  }
-})
-
-const handleCtaClick = async () => {
-  const state = ctaState.value
-  if (state.action === 'none') return
-
-  const img = selectedImage.value
-  if (!img) return
-
-  const result = results.value.get(img.id)
-
-  if (state.action === 'download' && result) {
-    downloadImage(result.blob, img.file.name, 'crop')
-    return
-  }
-
-  if (state.action === 'process') {
+/**
+ * 处理 → 结果 → 导出交给 useToolRun。
+ *
+ * scope: 'active' —— 裁剪一次只作用于当前聚焦的一张。
+ * blocked 用 cropBoundsValid 挡住 X/Y/W/H 越界，此前是 CTA 状态机里的一个分支。
+ * onEmpty 承接「图片清空后清历史 + 复位视图」，属工具语义。
+ */
+const toolRun = useToolRun({
+  id: 'crop',
+  scope: 'active',
+  processor: cropEngine,
+  blocked: () => !cropBoundsValid.value,
+  options: () => {
     const coords = pxCoords.value
-    const res = await processSingle(img.id, {
+    return {
       x: coords.x,
       y: coords.y,
       width: coords.w,
@@ -579,22 +489,34 @@ const handleCtaClick = async () => {
       format: outputFormat.value === 'original' ? undefined : outputFormat.value,
       quality: outputQuality.value,
       preserveExif: preserveExif.value
-    })
-
-    if (res) {
-      const typedResult = res as ProcessResult
-      const blob = typedResult.blob || (res as Blob)
-      const oldRes = results.value.get(img.id)
-      if (oldRes) URL.revokeObjectURL(oldRes.preview)
-
-      results.value.set(img.id, {
-        blob,
-        preview: URL.createObjectURL(blob),
-        size: typedResult.size || blob.size,
-        isDirty: false
-      })
     }
+  },
+  onEmpty: () => {
+    clearHistory()
+    resetView()
   }
+})
+
+const { cta, act: run, reset } = toolRun
+const isProcessing = toolRun.isRunning
+
+const cleanupResults = () => reset()
+
+const ctaCopy = computed(() => {
+  switch (cta.value.action) {
+    case 'select':
+      return { text: t('tools.crop.cta.select'), icon: Scissors }
+    case 'export':
+      return { text: t('tools.crop.cta.export', { count: 1 }), icon: Download }
+    case 'abort':
+      return { text: t('common.processing'), icon: Scissors }
+    default:
+      return { text: t('tools.crop.cta.apply', { count: 1 }), icon: Scissors }
+  }
+})
+
+const handleCtaClick = async () => {
+  await run()
 }
 
 const ratios = computed(() => [
@@ -972,16 +894,16 @@ const ratios = computed(() => [
         <AppButton
           size="lg"
           fill
-          :variant="ctaState.action === 'download' ? 'success' : 'cta'"
+          :variant="cta.action === 'export' ? 'success' : 'cta'"
           class="w-full rounded-xl transition-colors"
           :loading="isProcessing"
-          :disabled="ctaState.disabled"
+          :disabled="cta.disabled"
           @click="handleCtaClick"
         >
           <template #icon>
-            <component :is="ctaState.icon" v-if="!isProcessing" :size="18" class="mr-2" />
+            <component :is="ctaCopy.icon" v-if="!isProcessing" :size="18" class="mr-2" />
           </template>
-          {{ ctaState.text }}
+          {{ ctaCopy.text }}
         </AppButton>
       </InspectorFooter>
     </template>

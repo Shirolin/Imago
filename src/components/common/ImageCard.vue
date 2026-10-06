@@ -110,16 +110,30 @@ const originalHDUrl = ref<string | null>(null)
 const localProcessedUrl = ref<string | null>(null)
 const rafId = ref<number | null>(null)
 
+/**
+ * localProcessedUrl 可能有两类来源：借来的 props.processedPreview（归视图所有）
+ * 与本组件 createObjectURL 出来的（归本组件所有）。只有后者能由这里释放，
+ * 否则会把视图仍要用的 URL 提前回收——此前按「新值」比较守卫，导致用户打开过
+ * 放大镜后换结果时同一 URL 被释放两次。
+ */
+const ownsLocalUrl = ref(false)
+
+const releaseLocalUrl = () => {
+  const url = localProcessedUrl.value
+  if (url && ownsLocalUrl.value) URL.revokeObjectURL(url)
+  localProcessedUrl.value = null
+  ownsLocalUrl.value = false
+}
+
 watch(showMagnifier, (isShowing) => {
   if (isShowing) {
     if (props.processedPreview) {
-      const oldUrl = localProcessedUrl.value
+      releaseLocalUrl()
       localProcessedUrl.value = props.processedPreview
-      if (oldUrl && oldUrl !== props.processedPreview) URL.revokeObjectURL(oldUrl)
     } else if (props.processedBlob) {
-      const oldUrl = localProcessedUrl.value
+      releaseLocalUrl()
       localProcessedUrl.value = URL.createObjectURL(props.processedBlob)
-      if (oldUrl && oldUrl !== props.processedPreview) URL.revokeObjectURL(oldUrl)
+      ownsLocalUrl.value = true
     }
 
     if (!originalHDUrl.value) {
@@ -132,9 +146,8 @@ watch(
   () => props.processedPreview,
   (newUrl) => {
     if (showMagnifier.value && newUrl) {
-      const oldUrl = localProcessedUrl.value
+      releaseLocalUrl()
       localProcessedUrl.value = newUrl
-      if (oldUrl && oldUrl !== newUrl) URL.revokeObjectURL(oldUrl)
     }
   }
 )
@@ -143,16 +156,14 @@ watch(
   () => props.processedBlob,
   (newBlob) => {
     if (!showMagnifier.value || !newBlob || props.processedPreview) return
-    const oldUrl = localProcessedUrl.value
+    releaseLocalUrl()
     localProcessedUrl.value = URL.createObjectURL(newBlob)
-    if (oldUrl && oldUrl !== props.processedPreview) URL.revokeObjectURL(oldUrl)
+    ownsLocalUrl.value = true
   }
 )
 
 onUnmounted(() => {
-  if (localProcessedUrl.value && localProcessedUrl.value !== props.processedPreview) {
-    URL.revokeObjectURL(localProcessedUrl.value)
-  }
+  releaseLocalUrl()
   if (originalHDUrl.value && originalHDUrl.value !== props.image.preview) {
     URL.revokeObjectURL(originalHDUrl.value)
   }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../stores/imageStore'
 import { useLayoutStore } from '../stores/layoutStore'
@@ -39,50 +39,22 @@ import {
   type ExifData
 } from '../lib/engines/exifEngine'
 import { classifyExifTag } from '../lib/engines/exifTagRegistry'
-import { useImageProcessor } from '../composables/useImageProcessor'
-import { useFileHelpers, type ZipResultItem } from '../composables/useFileHelpers'
-import type { ProcessResult } from '../lib/engines/types'
+import { useToolRun } from '../composables/useToolRun'
 
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
-const { downloadAllAsZip } = useFileHelpers()
 const { t } = useI18n()
-
-interface LocalResult {
-  blob: Blob
-  preview: string
-  size: number
-  isDirty: boolean
-}
-const results = ref<Map<string, LocalResult>>(new Map())
-
-const cleanupResults = () => {
-  const affectedIds = [...results.value.keys()]
-  results.value.forEach((res) => {
-    URL.revokeObjectURL(res.preview)
-  })
-  results.value.clear()
-  affectedIds.forEach((id) => handleReset(id))
-}
-
-onUnmounted(() => {
-  cleanupResults()
-})
 
 const knownImageIds = new Set<string>(store.images.map((img) => img.id))
 
+// 结果集的删图清理由 useToolRun 负责；这里只管 EXIF 侧的三件事：
+// exifDataMap 同步清理、activeImageId 跟随新导入的图、knownImageIds 维护。
 watch(
   () => store.images,
   (newImages) => {
     const currentIds = new Set(newImages.map((img) => img.id))
-    results.value.forEach((res, id) => {
-      if (!currentIds.has(id)) {
-        URL.revokeObjectURL(res.preview)
-        results.value.delete(id)
-      }
-    })
 
     Object.keys(exifDataMap.value).forEach((id) => {
       if (!currentIds.has(id)) delete exifDataMap.value[id]
@@ -125,8 +97,6 @@ const endExifRead = () => {
   activeExifReads = Math.max(0, activeExifReads - 1)
   if (activeExifReads === 0) isReadingExif.value = false
 }
-
-const { isProcessing, processSelected } = useImageProcessor(clearExifEngine)
 
 const displayImages = computed(() => [...store.images].reverse())
 
@@ -183,9 +153,9 @@ watch(activeImageId, async (id) => {
     try {
       const img = store.images.find((i) => i.id === id)
       if (img) {
-        const res = results.value.get(id)
+        const res = resultOf(id)
         const fileToRead = res
-          ? new File([res.blob], img.file.name, { type: res.blob.type })
+          ? new File([res.primary], img.file.name, { type: res.primary.type })
           : img.file
 
         const data = await readExif(fileToRead)
@@ -212,137 +182,84 @@ onMounted(() => {
   }
 })
 
-const handleClearExif = async () => {
-  await processSelected(
-    {
-      format: outputFormat.value,
-      quality: outputQuality.value
-    },
-    async (id: string, result: ProcessResult | Blob | Blob[]) => {
-      const typedResult = result as ProcessResult
-      const blob = typedResult.blob || (result as Blob)
-      const oldRes = results.value.get(id)
-      if (oldRes) URL.revokeObjectURL(oldRes.preview)
-
-      results.value.set(id, {
-        blob,
-        preview: URL.createObjectURL(blob),
-        size: typedResult.size || blob.size,
-        isDirty: false
+/**
+ * 处理 → 结果 → 导出交给 useToolRun。
+ *
+ * onResult 承担「清除后重读 EXIF」——清除元数据后卡片上的 EXIF 面板要显示
+ * 「已清空」而非旧数据。此前这段是 processSelected 的 async 回调，而
+ * useImageProcessor 并不 await 它，EXIF 回读实际浮空（写入时机不可控）；
+ * 现在由 module 在结果写入后调用，且返回值被 act() 收敛。
+ *
+ * downloadOne: false —— EXIF 工具的卡片不提供单张下载，只走批量导出。
+ */
+const toolRun = useToolRun({
+  id: 'exif',
+  scope: 'selected',
+  processor: clearExifEngine,
+  downloadOne: false,
+  options: () => ({
+    format: outputFormat.value,
+    quality: outputQuality.value
+  }),
+  onResult: (id, result) => {
+    const blob = result.primary
+    void readExif(new File([blob], 'temp', { type: blob.type })).then((data) => {
+      if (!data) return
+      exifDataMap.value[id] = data
+      store.updateImage(id, {
+        exifCount: data.privacyCount,
+        isExifUnsupported: data.unsupported,
+        exifError: data.error
       })
+    })
+  }
+})
 
-      const data = await readExif(new File([blob], 'temp', { type: blob.type }))
-      if (data) {
-        exifDataMap.value[id] = data
-        store.updateImage(id, {
-          exifCount: data.privacyCount,
-          isExifUnsupported: data.unsupported,
-          exifError: data.error
-        })
-      }
-    }
-  )
-}
+const { cta, result: resultOf, act: run, reset, exportAll } = toolRun
+const isProcessing = toolRun.isRunning
 
 const handleCardClick = (id: string) => {
   activeImageId.value = id
   store.toggleSelection(id)
 }
 
+/** 重置单张：module 负责结果与 status，这里补回该图的原始 EXIF 展示数据 */
 const handleReset = (id: string) => {
-  const res = results.value.get(id)
-  if (res) {
-    URL.revokeObjectURL(res.preview)
-    results.value.delete(id)
-  }
+  reset(id)
   const img = store.images.find((i) => i.id === id)
-  if (img) {
-    readExif(img.file).then((data) => {
-      if (data) {
-        exifDataMap.value[id] = data
-        store.updateImage(id, {
-          exifCount: data.privacyCount,
-          isExifUnsupported: data.unsupported,
-          exifError: data.error,
-          status: 'idle',
-          progress: 0
-        })
-      }
+  if (!img) return
+  void readExif(img.file).then((data) => {
+    if (!data) return
+    exifDataMap.value[id] = data
+    store.updateImage(id, {
+      exifCount: data.privacyCount,
+      isExifUnsupported: data.unsupported,
+      exifError: data.error,
+      status: 'idle',
+      progress: 0
     })
-  }
+  })
 }
 
-watch(
-  [outputFormat, outputQuality],
-  () => {
-    results.value.forEach((res) => {
-      res.isDirty = true
-    })
-  },
-  { deep: true }
-)
+const cleanupResults = () => {
+  const affected = store.images.filter((img) => img.status === 'done').map((img) => img.id)
+  reset()
+  affected.forEach((id) => handleReset(id))
+}
 
-const ctaState = computed(() => {
-  if (store.selectedCount === 0)
-    return { text: t('tools.exif.cta.select'), icon: Trash2, action: 'none', disabled: true }
-  if (isProcessing.value)
-    return { text: t('tools.exif.cta.processing'), icon: Trash2, action: 'none', disabled: true }
-
-  const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
-  const allDoneAndClean =
-    selectedImages.length > 0 &&
-    selectedImages.every((img) => {
-      const res = results.value.get(img.id)
-      return img.status === 'done' && res && !res.isDirty
-    })
-
-  if (allDoneAndClean) {
-    return {
-      text: t('tools.exif.cta.export', { count: store.selectedCount }),
-      icon: Download,
-      action: 'download',
-      disabled: false
-    }
-  }
-
-  const anyDirty = selectedImages.some((img) => {
-    const res = results.value.get(img.id)
-    return img.status === 'done' && res?.isDirty
-  })
-  return {
-    text: anyDirty
-      ? t('tools.exif.cta.process', { count: store.selectedCount })
-      : t('tools.exif.cta.process', { count: store.selectedCount }),
-    icon: Trash2,
-    action: 'process',
-    disabled: false
+const ctaCopy = computed(() => {
+  switch (cta.value.action) {
+    case 'select':
+      return { text: t('tools.exif.cta.select'), icon: Trash2 }
+    case 'export':
+      return { text: t('tools.exif.cta.export', { count: store.selectedCount }), icon: Download }
+    default:
+      return { text: t('tools.exif.cta.process', { count: store.selectedCount }), icon: Trash2 }
   }
 })
 
 const handleCtaClick = async () => {
-  const state = ctaState.value
-  if (state.action === 'none') return
-
-  if (state.action === 'download') {
-    const zipResults = store.images
-      .filter((img) => store.selectedIds.has(img.id))
-      .map((img) => {
-        const res = results.value.get(img.id)
-        return {
-          file: img.file,
-          processedBlob: res?.blob,
-          status: img.status
-        }
-      })
-      .filter((r) => r.status === 'done' && r.processedBlob) as ZipResultItem[]
-
-    await downloadAllAsZip('exif', zipResults)
-    return
-  }
-
-  if (state.action === 'process') {
-    await handleClearExif()
-  }
+  await run()
 }
 </script>
 
@@ -350,7 +267,11 @@ const handleCtaClick = async () => {
   <WorkspaceLayout show-sidebar no-scroll>
     <template #header-left><ImageSelectionStatus :show-card-size="false" /></template>
     <template #header-actions
-      ><ImageActionsToolbar view-id="exif" show-clear-all @reset-all="cleanupResults"
+      ><ImageActionsToolbar
+        view-id="exif"
+        show-clear-all
+        @reset-all="cleanupResults"
+        @export-all="exportAll"
     /></template>
 
     <template #content>
@@ -375,9 +296,9 @@ const handleCtaClick = async () => {
             :key="img.id"
             :image="img"
             :is-selected="store.selectedIds.has(img.id)"
-            :processed-preview="results.get(img.id)?.preview"
-            :processed-blob="results.get(img.id)?.blob"
-            :is-dirty="results.get(img.id)?.isDirty"
+            :processed-preview="resultOf(img.id)?.preview"
+            :processed-blob="resultOf(img.id)?.primary"
+            :is-dirty="resultOf(img.id)?.dirty"
             :allow-magnifier="false"
             :show-compare="false"
             :show-download="false"
@@ -440,7 +361,7 @@ const handleCtaClick = async () => {
         class="relative aspect-video bg-muted/20 rounded-xl overflow-hidden border border-[var(--hairline)] mb-4 shrink-0"
       >
         <img
-          :src="results.get(activeImageId!)?.preview || activeImage.preview"
+          :src="resultOf(activeImageId!)?.preview || activeImage.preview"
           class="w-full h-full object-contain"
         />
         <div
@@ -608,16 +529,16 @@ const handleCtaClick = async () => {
         <AppButton
           size="lg"
           fill
-          :variant="ctaState.action === 'download' ? 'success' : 'cta'"
+          :variant="cta.action === 'export' ? 'success' : 'cta'"
           class="w-full rounded-xl transition-colors"
           :loading="isProcessing || isReadingExif"
-          :disabled="ctaState.disabled"
+          :disabled="cta.disabled"
           @click="handleCtaClick"
         >
           <template #icon>
-            <component :is="ctaState.icon" v-if="!isProcessing" :size="18" class="mr-2" />
+            <component :is="ctaCopy.icon" v-if="!isProcessing" :size="18" class="mr-2" />
           </template>
-          {{ ctaState.text }}
+          {{ ctaCopy.text }}
         </AppButton>
       </InspectorFooter>
     </template>

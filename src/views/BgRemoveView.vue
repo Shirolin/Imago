@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ImageItem } from '../stores/imageStore'
 import { useImageStore } from '../stores/imageStore'
@@ -34,62 +34,19 @@ import {
 import { bgRemoveEngine, disposeBgRemoveWorker } from '../lib/engines/bgRemoveEngine'
 import { matchBgRemoveEngine } from '../lib/engines/matchBgRemoveEngine'
 import { preload } from '@imgly/background-removal'
-import { useImageProcessor } from '../composables/useImageProcessor'
-import { useFileHelpers, type ZipResultItem } from '../composables/useFileHelpers'
+import { useToolRun } from '../composables/useToolRun'
+import { useFileHelpers } from '../composables/useFileHelpers'
 import AppSlider from '../components/common/AppSlider.vue'
 import AppCheckbox from '../components/common/AppCheckbox.vue'
 import AppModal from '../components/common/AppModal.vue'
 import AppColorPicker from '../components/common/AppColorPicker.vue'
 import AppTip from '../components/common/AppTip.vue'
 import ImageCompare from '../components/common/ImageCompare.vue'
-import type { ProcessResult } from '../lib/engines/types'
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
-const { downloadImage, downloadAllAsZip, formatSize } = useFileHelpers()
+const { formatSize } = useFileHelpers()
 const { t } = useI18n()
-
-// 本地结果存储
-interface LocalResult {
-  blob: Blob
-  preview: string
-  size: number
-  isDirty: boolean
-}
-const results = ref<Map<string, LocalResult>>(new Map())
-
-const cleanupResults = () => {
-  results.value.forEach((res) => {
-    URL.revokeObjectURL(res.preview)
-  })
-  results.value.clear()
-}
-
-// P2-20：跨视图状态残留 —— 卸载时本地 results 已清空但 store.status 仍为 done。
-// 挂载时把「无本地结果却标记 done」的图片复位为 idle，避免误显示已处理/可导出；
-// 不影响其他视图：其他视图的本地结果同样随其卸载清空，回来后本就按未处理展示。
-onMounted(() => {
-  store.images.forEach((img) => {
-    if (img.status === 'done' && !results.value.has(img.id)) {
-      store.updateImage(img.id, { status: 'idle', progress: 0 })
-    }
-  })
-})
-
-// 监听图片列表变化，自动清理已删除图片的本地结果
-watch(
-  () => store.images,
-  (newImages) => {
-    const currentIds = new Set(newImages.map((img) => img.id))
-    results.value.forEach((res, id) => {
-      if (!currentIds.has(id)) {
-        URL.revokeObjectURL(res.preview)
-        results.value.delete(id)
-      }
-    })
-  },
-  { deep: true }
-)
 
 // 引擎模式：Match (取色) vs Smart (智能-标准) vs Pro (专业-全量)
 const engineMode = ref<'match' | 'smart' | 'pro'>('match')
@@ -269,22 +226,9 @@ const handleInteractiveApply = async (maskBlob: Blob) => {
       }, 'image/png')
     })
 
-    // 5. 更新本地结果
-    const oldRes = results.value.get(id)
-    if (oldRes) URL.revokeObjectURL(oldRes.preview)
-
-    const preview = URL.createObjectURL(resultBlob)
-    results.value.set(id, {
-      blob: resultBlob,
-      preview,
-      size: resultBlob.size,
-      isDirty: false
-    })
-
-    store.updateImage(id, {
-      status: 'done',
-      progress: 1
-    })
+    // 5. 交回 module：预览 URL 所有权与 status 写入都在同一条路径上，
+    // 此前这里是手写 results.set + 手写 status:'done'（P2-20 的补丁来源）
+    toolRun.commitResult(id, [resultBlob])
 
     showEditorModal.value = false
     activeInteractiveImage.value = null
@@ -296,67 +240,70 @@ const handleInteractiveApply = async (maskBlob: Blob) => {
   }
 }
 
-const matchProcessor = useImageProcessor(matchBgRemoveEngine)
-const proProcessor = useImageProcessor(bgRemoveEngine)
-
-onUnmounted(() => {
-  matchProcessor.abortProcessing()
-  proProcessor.abortProcessing()
-  disposeBgRemoveWorker()
-  cleanupResults()
+/**
+ * 处理 → 结果 → 导出交给 useToolRun。
+ *
+ * 关键点：processor 传工厂而非引擎本身。此前这里是两个 useImageProcessor 实例
+ * （matchProcessor / proProcessor），配一个 || 合成的 isProcessing、两处双 abort 调用、
+ * 以及 BgRemoveView:429-430 那段 p<=1?p*100:p 的量纲防御。现在 module 内部只持一个
+ * trampoline，引擎按 engineMode 现取，这些全部消失。
+ *
+ * blocked 用模型就绪状态挡住 CTA：模型没下载完就不该启动推理。
+ * 注意它排在「未选中图片」之前——工具自己没准备好时，先解决工具本身。
+ */
+const toolRun = useToolRun({
+  id: 'bg-remove',
+  scope: 'selected',
+  resolveEngine: () => (engineMode.value === 'match' ? matchBgRemoveEngine : bgRemoveEngine),
+  blocked: () => currentStatus.value !== 'ready',
+  options: () => {
+    const common = {
+      format: outputFormat.value,
+      quality: outputQuality.value
+    }
+    if (engineMode.value === 'match') {
+      return {
+        ...common,
+        targetColor: hexToRgb(matchColor.value),
+        tolerance: matchTolerance.value / 100,
+        feather: matchFeather.value / 100
+      }
+    }
+    return {
+      ...common,
+      // 字面量类型需显式收窄：BgRemoveOptions.model 是 'isnet' | 'isnet_fp16' |
+      // 'isnet_quint8' 的联合，引擎据此选权重文件
+      model: engineMode.value === 'pro' ? ('isnet' as const) : ('isnet_quint8' as const),
+      usePreScaling: !useHighFidelity.value,
+      // threshold / shrink 是 0-1 系数（worker 里当作 contrast/brightness 偏置），
+      // blur 是直接给 ctx.filter 的像素半径，故只有前两者除 100——与迁移前一致
+      maskThreshold: aiStrictness.value / 100,
+      maskShrink: aiOffset.value / 100,
+      maskBlur: aiSmoothness.value
+    }
+  }
 })
 
-const isProcessing = computed(
-  () => matchProcessor.isProcessing.value || proProcessor.isProcessing.value
-)
+const { cta, result: resultOf, act: run, download, reset, exportAll } = toolRun
+const isProcessing = toolRun.isRunning
+
+// Worker 生命周期属于「引擎初始化」而非「结果」，仍由视图持有
+onUnmounted(() => {
+  disposeBgRemoveWorker()
+})
 
 const displayImages = computed(() => [...store.images].reverse())
 
 const handleCardClick = (id: string) => store.toggleSelection(id)
 const handleCompare = (id: string) => {
   const item = store.images.find((img) => img.id === id)
-  const result = results.value.get(id)
+  const result = resultOf(id)
   if (!item || !result) return
   comparingImage.value = item
   showCompareModal.value = true
 }
 const closeCompare = () => (showCompareModal.value = false)
 const handleModalLeave = () => (comparingImage.value = null)
-const handleDownload = (id: string) => {
-  const item = store.images.find((img) => img.id === id)
-  const result = results.value.get(id)
-  if (item && result) downloadImage(result.blob, item.file.name, 'bg-remove')
-}
-
-const handleReset = (id: string) => {
-  const result = results.value.get(id)
-  if (result) {
-    URL.revokeObjectURL(result.preview)
-    results.value.delete(id)
-  }
-  store.updateImage(id, { status: 'idle', error: undefined, progress: 0 })
-}
-
-// 监听参数变化标记脏数据
-watch(
-  [
-    outputFormat,
-    outputQuality,
-    matchTolerance,
-    matchFeather,
-    matchColor,
-    aiStrictness,
-    aiOffset,
-    aiSmoothness,
-    useHighFidelity,
-    engineMode
-  ],
-  () => {
-    results.value.forEach((res) => {
-      res.isDirty = true
-    })
-  }
-)
 
 const handleInitialize = async () => {
   if (currentStatus.value === 'loading') return
@@ -388,7 +335,8 @@ const handleInitialize = async () => {
   }
 }
 
-const ctaState = computed(() => {
+/** CTA 文案与图标。模型未就绪的三态（待激活/加载中/重试）优先级最高。 */
+const ctaCopy = computed(() => {
   const status = currentStatus.value
   if (status === 'not_ready' || status === 'error') {
     return {
@@ -400,145 +348,49 @@ const ctaState = computed(() => {
                 engineMode.value === 'pro' ? t('tools.bgRemove.pro') : t('tools.bgRemove.smart'),
               size: MODEL_SIZE[engineMode.value]
             }),
-      icon: Zap,
-      action: 'show_init',
-      disabled: false,
-      variant: 'cta' as const
+      icon: Zap
     }
   }
   if (status === 'loading') {
     return {
       text: t('tools.bgRemove.initializing', { progress: initProgress.value }),
-      icon: Loader2,
-      action: 'none',
-      disabled: true,
-      variant: 'cta' as const
+      icon: Loader2
     }
   }
-  if (store.selectedCount === 0)
-    return {
-      text: t('tools.bgRemove.cta.select'),
-      icon: ImageMinus,
-      action: 'none',
-      disabled: true,
-      variant: 'cta' as const
-    }
-  if (isProcessing.value) {
-    const p =
-      engineMode.value === 'match' ? matchProcessor.progress.value : proProcessor.progress.value
-    // 队列聚合进度为 0-100、单任务进度为 0-1，统一归一化为整数百分比
-    const pct = Math.round(p <= 1 ? p * 100 : p)
-    return {
-      text: t('tools.bgRemove.cta.processing', { progress: pct }),
-      icon: Eraser,
-      action: 'abort',
-      disabled: false,
-      variant: 'cta' as const
-    }
-  }
-  const selectedImages = store.images.filter((img) => store.selectedIds.has(img.id))
-  const allDone =
-    selectedImages.length > 0 &&
-    selectedImages.every((img) => {
-      const res = results.value.get(img.id)
-      return img.status === 'done' && res && !res.isDirty
-    })
-
-  if (allDone)
-    return {
-      text: t('tools.bgRemove.cta.export', { count: store.selectedCount }),
-      icon: Download,
-      action: 'download',
-      disabled: false,
-      variant: 'success' as const
-    }
-  return {
-    text: t('tools.bgRemove.cta.process', { count: store.selectedCount }),
-    icon: Eraser,
-    action: 'process',
-    disabled: false,
-    variant: 'cta' as const
+  switch (cta.value.action) {
+    case 'select':
+      return { text: t('tools.bgRemove.cta.select'), icon: ImageMinus }
+    case 'abort':
+      return {
+        text: t('tools.bgRemove.cta.processing', {
+          progress: Math.round(toolRun.progress.value * 100)
+        }),
+        icon: Eraser
+      }
+    case 'export':
+      return {
+        text: t('tools.bgRemove.cta.export', { count: store.selectedCount }),
+        icon: Download
+      }
+    default:
+      return {
+        text: t('tools.bgRemove.cta.process', { count: store.selectedCount }),
+        icon: Eraser
+      }
   }
 })
 
 const handleCtaClick = async () => {
-  const state = ctaState.value
-  if (state.action === 'none') return
-  if (state.action === 'abort') {
-    // 长任务可中止：两个处理器各持队列级 AbortController，未激活的一侧自动空转
-    matchProcessor.abortProcessing()
-    proProcessor.abortProcessing()
-    return
-  }
-  if (state.action === 'show_init') {
+  // 模型未就绪时按 CTA 语义打开初始化弹窗（module 的 blocked 态不自动做这件事）
+  if (currentStatus.value !== 'ready') {
     showInitModal.value = true
     return
   }
-  if (state.action === 'download') {
-    const zipResults = store.images
-      .filter((img) => store.selectedIds.has(img.id))
-      .map((img) => {
-        const res = results.value.get(img.id)
-        return {
-          file: img.file,
-          processedBlob: res?.blob,
-          status: img.status
-        }
-      })
-      .filter((r) => r.status === 'done' && r.processedBlob) as ZipResultItem[]
-
-    await downloadAllAsZip('bg-remove', zipResults)
-    return
-  }
-
-  if (state.action === 'process') {
-    const commonOptions = {
-      format: outputFormat.value,
-      quality: outputQuality.value,
-      usePreScaling: !useHighFidelity.value
-    }
-
-    const onResult = (id: string, result: ProcessResult | Blob | Blob[]) => {
-      const typedResult = result as ProcessResult
-      const blob = typedResult.blob || (result as Blob)
-      const oldRes = results.value.get(id)
-      if (oldRes) URL.revokeObjectURL(oldRes.preview)
-
-      results.value.set(id, {
-        blob,
-        preview: URL.createObjectURL(blob),
-        size: typedResult.size || blob.size,
-        isDirty: false
-      })
-    }
-
-    if (engineMode.value === 'match') {
-      await matchProcessor.processSelected(
-        {
-          ...commonOptions,
-          targetColor: hexToRgb(matchColor.value),
-          tolerance: matchTolerance.value / 100,
-          feather: matchFeather.value / 100
-        },
-        onResult
-      )
-    } else {
-      await proProcessor.processSelected(
-        {
-          ...commonOptions,
-          model: engineMode.value === 'pro' ? 'isnet' : 'isnet_quint8',
-          maskThreshold: aiStrictness.value / 100,
-          maskShrink: aiOffset.value / 100,
-          maskBlur: aiSmoothness.value
-        },
-        onResult
-      )
-    }
-  }
+  await run()
 }
 
 const handleResetEngine = async () => {
-  proProcessor.abortProcessing()
+  reset()
   disposeBgRemoveWorker()
 
   // 1. 物理删除：清理浏览器 Cache Storage 中的大文件资产。
@@ -582,7 +434,8 @@ const handleResetParams = () => {
         view-id="bg-remove"
         :is-processing="isProcessing"
         show-clear-all
-        @reset-all="cleanupResults"
+        @reset-all="() => reset()"
+        @export-all="exportAll"
     /></template>
     <template #content>
       <div class="h-full w-full overflow-y-auto custom-scrollbar p-4 md:p-6 relative">
@@ -692,17 +545,17 @@ const handleResetParams = () => {
             :key="img.id"
             :image="img"
             :is-selected="store.selectedIds.has(img.id)"
-            :processed-preview="results.get(img.id)?.preview"
-            :processed-blob="results.get(img.id)?.blob"
-            :is-dirty="results.get(img.id)?.isDirty"
+            :processed-preview="resultOf(img.id)?.preview"
+            :processed-blob="resultOf(img.id)?.primary"
+            :is-dirty="resultOf(img.id)?.dirty"
             show-transparency
             show-interactive
             @toggle="handleCardClick"
             @remove="store.removeImage"
             @compare="handleCompare"
-            @download="handleDownload"
+            @download="download"
             @interactive="handleInteractiveClick"
-            @reset="handleReset"
+            @reset="reset"
           />
         </div>
 
@@ -980,23 +833,23 @@ const handleResetParams = () => {
         <AppButton
           size="lg"
           fill
-          :variant="ctaState.variant"
+          :variant="cta.action === 'export' ? 'success' : 'cta'"
           class="w-full rounded-xl transition-colors"
           :loading="currentStatus === 'loading'"
-          :disabled="ctaState.disabled"
-          :hint="ctaState.action === 'abort' ? t('tools.split.cta.clickToAbort') : undefined"
+          :disabled="cta.disabled && currentStatus === 'loading'"
+          :hint="cta.action === 'abort' ? t('tools.split.cta.clickToAbort') : undefined"
           @click="handleCtaClick"
         >
           <template #icon>
             <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
             <component
               v-else-if="currentStatus !== 'loading'"
-              :is="ctaState.icon"
+              :is="ctaCopy.icon"
               :size="18"
               class="mr-2"
             />
           </template>
-          {{ ctaState.text }}
+          {{ ctaCopy.text }}
         </AppButton>
       </InspectorFooter>
     </template>
@@ -1010,11 +863,11 @@ const handleResetParams = () => {
     @after-leave="handleModalLeave"
   >
     <ImageCompare
-      v-if="comparingImage && results.has(comparingImage.id)"
+      v-if="comparingImage && resultOf(comparingImage.id)"
       :original-url="comparingImage.file"
-      :processed-url="results.get(comparingImage.id)!.blob"
+      :processed-url="resultOf(comparingImage.id)!.primary"
       :original-size="formatSize(comparingImage.originalSize)"
-      :processed-size="formatSize(results.get(comparingImage.id)!.size)"
+      :processed-size="formatSize(resultOf(comparingImage.id)!.size)"
       show-transparency
       @close="closeCompare"
     />

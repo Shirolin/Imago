@@ -2,7 +2,6 @@
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../stores/imageStore'
-import { useFileHelpers } from '../composables/useFileHelpers'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
 import AppButton from '../components/common/AppButton.vue'
 import AppCanvasWorkspace from '../components/common/AppCanvasWorkspace.vue'
@@ -26,50 +25,14 @@ import {
   Loader2
 } from 'lucide-vue-next'
 import { splitEngine } from '../lib/engines/splitEngine'
-import type { ViewSettings, ProcessResult } from '../lib/engines/types'
-import { useImageProcessor } from '../composables/useImageProcessor'
+import type { ViewSettings } from '../lib/engines/types'
+import { useToolRun } from '../composables/useToolRun'
 import { useResizeObserver } from '@vueuse/core'
 
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
 const { t } = useI18n()
 const store = useImageStore()
-const { downloadImage } = useFileHelpers()
-
-// 本地结果存储
-interface LocalResult {
-  blobs: Blob[]
-  isDirty: boolean
-}
-const results = ref<Map<string, LocalResult>>(new Map())
-
-const cleanupResults = () => {
-  results.value.clear()
-}
-
-onUnmounted(() => {
-  cleanupResults()
-})
-
-// 监听图片列表变化，自动清理已删除图片的本地结果
-watch(
-  () => store.images,
-  (newImages) => {
-    const currentIds = new Set(newImages.map((img) => img.id))
-    results.value.forEach((_res, id) => {
-      if (!currentIds.has(id)) {
-        results.value.delete(id)
-      }
-    })
-
-    if (newImages.length === 0) {
-      linesX.value = []
-      linesY.value = []
-      selectedLine.value = null
-    }
-  },
-  { deep: true }
-)
 
 // 状态
 const rows = ref(3)
@@ -117,7 +80,6 @@ const confirmResetSplit = () => {
       linesX.value = newLinesX
       linesY.value = newLinesY
       srMessage.value = t('tools.split.messages.resetToGrid')
-      saveMeta()
     }
   } else {
     viewSettings.value = {
@@ -160,7 +122,6 @@ const triggerHaptic = (intensity = 5) => {
 
 let lastLoadId = 0
 
-const { isProcessing, progress, processSingle, abortProcessing } = useImageProcessor(splitEngine)
 const selectedImage = computed(() => store.activeImage)
 
 const isAborting = ref(false)
@@ -367,13 +328,6 @@ const resetView = () => {
   workspaceRef.value?.triggerAutoFit(img.width!, img.height!)
 }
 
-const saveMeta = () => {
-  if (selectedImage.value) {
-    const res = results.value.get(selectedImage.value.id)
-    if (res) res.isDirty = true
-  }
-}
-
 const handleKeyDown = (e: KeyboardEvent) => {
   const target = e.target as HTMLElement
   if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
@@ -390,7 +344,6 @@ const handleKeyDown = (e: KeyboardEvent) => {
       axis: axis === 'x' ? t('tools.split.verticalLine') : t('tools.split.horizontalLine')
     })
     selectedLine.value = null
-    saveMeta()
     e.preventDefault()
     return
   }
@@ -412,7 +365,6 @@ const handleKeyDown = (e: KeyboardEvent) => {
   }
 
   e.preventDefault()
-  saveMeta()
 }
 
 onMounted(() => {
@@ -579,7 +531,6 @@ const handlePointerDown = (e: PointerEvent) => {
       selectedLine.value = { axis: 'y', index: newIndex }
       if (snapped) triggerHaptic(8)
     }
-    saveMeta()
   }
 }
 
@@ -681,7 +632,6 @@ const handlePointerUp = (e: PointerEvent) => {
       }
     }
     draggingLine.value = null
-    saveMeta()
   }
 }
 
@@ -689,7 +639,6 @@ const clearLines = () => {
   linesX.value = []
   linesY.value = []
   srMessage.value = t('tools.split.messages.cleared')
-  saveMeta()
 }
 
 // P1-1：网格 ↔ 自由编辑切换时保持画布状态一致
@@ -714,17 +663,6 @@ watch(editMode, (newMode, oldMode) => {
     linesY.value = newLinesY
   }
 })
-
-watch(
-  [rows, cols, editMode, centerMode, shave, outputFormat, outputQuality],
-  () => {
-    if (selectedImage.value) {
-      const res = results.value.get(selectedImage.value.id)
-      if (res) res.isDirty = true
-    }
-  },
-  { deep: true }
-)
 
 // P1-2：视图层校验切分参数，阻止产生零宽/零高切片（配合引擎兜底 reject）
 const validateSplit = (): string | null => {
@@ -755,18 +693,20 @@ const validateSplit = (): string | null => {
   return null
 }
 
-const handleApplyProcess = async () => {
-  if (!selectedImage.value) return
-  const id = selectedImage.value.id
-
-  // P1-2：视图层阻止无效分割，避免静默产出空切片
-  const invalid = validateSplit()
-  if (invalid) {
-    srMessage.value = invalid
-    return
-  }
-
-  const res = await processSingle(id, {
+/**
+ * 处理 → 结果 → 导出交给 useToolRun。
+ *
+ * 关键点：linesX / linesY 都在 options() 里被读，module 的脏标记由 options 指纹驱动，
+ * 因此此前需要 saveMeta() 手工标脏的 6 处调用点（拖线、键盘步进、删线、重置网格…）
+ * 全部不再需要——这顺带修掉了 SplitView:719 那个 watch 漏掉 linesX/linesY
+ * 导致自定义模式拖动分割线后 CTA 仍停在「导出切片」、导出旧切片的缺陷。
+ */
+const toolRun = useToolRun({
+  id: 'split',
+  scope: 'active',
+  processor: splitEngine,
+  blocked: () => validateSplit() !== null,
+  options: () => ({
     rows: editMode.value === 'custom' ? linesY.value.length + 1 : rows.value,
     cols: editMode.value === 'custom' ? linesX.value.length + 1 : cols.value,
     mode: editMode.value,
@@ -776,75 +716,51 @@ const handleApplyProcess = async () => {
     shave: shave.value,
     format: outputFormat.value === 'original' ? undefined : outputFormat.value,
     quality: outputQuality.value
-  })
-
-  if (res) {
-    const typedResult = res as ProcessResult
-    const blobs = typedResult.blobs || (Array.isArray(res) ? res : [])
-    results.value.set(id, {
-      blobs,
-      isDirty: false
-    })
-    return
+  }),
+  onEmpty: () => {
+    linesX.value = []
+    linesY.value = []
+    selectedLine.value = null
   }
+})
 
-  // 处理失败（引擎错误/中止）：不写入结果 → 无结果则不进入 download CTA；播报可显示的引擎错误
-  const img = store.images.find((i) => i.id === id)
-  if (img && img.status === 'error' && img.error) {
-    srMessage.value = img.error
-  }
-}
+const { cta, act: run, reset } = toolRun
+const isProcessing = toolRun.isRunning
+const progress = toolRun.progress
 
 useResizeObserver(containerRef, resetView)
 
-const ctaState = computed(() => {
-  const img = selectedImage.value
-  if (!img)
-    return { text: t('tools.split.cta.select'), icon: Scissors, action: 'none', disabled: true }
-
+const ctaCopy = computed(() => {
   if (isAborting.value) {
-    return { text: t('tools.split.cta.aborted'), icon: RotateCcw, action: 'none', disabled: true }
+    return { text: t('tools.split.cta.aborted'), icon: RotateCcw }
   }
-
-  if (isProcessing.value) {
-    const progressText =
-      progress.value > 0
-        ? t('tools.split.cta.rendering', { progress: Math.round(progress.value * 100) })
-        : t('tools.split.cta.renderingNoProgress')
-    return {
-      text: `${progressText}`,
-      icon: Trash2,
-      action: 'abort',
-      disabled: false
+  switch (cta.value.action) {
+    case 'abort': {
+      // 单图路径的 progress 已归一到 0..1；为 0 表示引擎尚未上报，用无进度文案
+      const pct = Math.round(progress.value * 100)
+      return {
+        text:
+          pct > 0
+            ? t('tools.split.cta.rendering', { progress: pct })
+            : t('tools.split.cta.renderingNoProgress'),
+        icon: Trash2
+      }
     }
-  }
-
-  const result = results.value.get(img.id)
-
-  if (img.status === 'done' && result && !result.isDirty) {
-    return {
-      text: t('tools.split.cta.exportSlices'),
-      icon: Download,
-      action: 'download',
-      disabled: false
-    }
-  }
-
-  return {
-    text: result?.isDirty ? t('tools.split.cta.updateSplit') : t('tools.split.cta.splitImage'),
-    icon: Scissors,
-    action: 'process',
-    disabled: false
+    case 'export':
+      return { text: t('tools.split.cta.exportSlices'), icon: Download }
+    case 'update':
+      return { text: t('tools.split.cta.updateSplit'), icon: Scissors }
+    case 'run':
+      return { text: t('tools.split.cta.splitImage'), icon: Scissors }
+    default:
+      return { text: t('tools.split.cta.select'), icon: Scissors }
   }
 })
 
 const handleCtaClick = async () => {
-  const state = ctaState.value
-  if (state.action === 'none') return
-
-  if (state.action === 'abort') {
+  if (cta.value.action === 'abort') {
     isAborting.value = true
-    abortProcessing()
+    await run()
     srMessage.value = t('tools.split.messages.abortedTask')
     setTimeout(() => {
       isAborting.value = false
@@ -852,16 +768,20 @@ const handleCtaClick = async () => {
     return
   }
 
-  if (state.action === 'download') {
-    const result = results.value.get(selectedImage.value?.id || '')
-    if (selectedImage.value && result) {
-      downloadImage(result.blobs, selectedImage.value.file.name, 'split')
-    }
+  // P1-2：参数非法时不进引擎，直接播报原因
+  const invalid = validateSplit()
+  if (invalid) {
+    srMessage.value = invalid
     return
   }
 
-  if (state.action === 'process') {
-    await handleApplyProcess()
+  const written = await run()
+  if (written.length === 0) {
+    // 引擎错误或中止：module 不写结果，CTA 不会进 export；播报可显示的引擎错误
+    const img = selectedImage.value
+    if (img && img.status === 'error' && img.error) {
+      srMessage.value = img.error
+    }
   }
 }
 </script>
@@ -875,7 +795,7 @@ const handleCtaClick = async () => {
         :is-processing="isProcessing"
         :show-download-all="false"
         show-clear-all
-        @reset-all="cleanupResults"
+        @reset-all="() => reset()"
     /></template>
 
     <template #content>
@@ -1177,17 +1097,17 @@ const handleCtaClick = async () => {
         <AppButton
           size="lg"
           fill
-          :variant="ctaState.action === 'download' ? 'success' : 'cta'"
+          :variant="cta.action === 'export' ? 'success' : 'cta'"
           class="w-full rounded-xl transition-colors"
-          :disabled="ctaState.disabled"
-          :hint="ctaState.action === 'abort' ? t('tools.split.cta.clickToAbort') : undefined"
+          :disabled="cta.disabled || isAborting"
+          :hint="cta.action === 'abort' ? t('tools.split.cta.clickToAbort') : undefined"
           @click="handleCtaClick"
         >
           <template #icon>
             <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
-            <component :is="ctaState.icon" v-else :size="18" class="mr-2" />
+            <component :is="ctaCopy.icon" v-else :size="18" class="mr-2" />
           </template>
-          <span :class="{ 'tabular-nums': isProcessing }">{{ ctaState.text }}</span>
+          <span :class="{ 'tabular-nums': isProcessing }">{{ ctaCopy.text }}</span>
         </AppButton>
       </InspectorFooter>
     </template>
