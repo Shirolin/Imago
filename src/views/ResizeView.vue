@@ -27,7 +27,8 @@ import {
   RefreshCw,
   Download,
   FileSearch,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-vue-next'
 import { resizeEngine } from '../lib/engines/resizeEngine'
 import { useToolRun } from '../composables/useToolRun'
@@ -318,12 +319,13 @@ const handleCtaClick = async () => {
             fill
             :variant="cta.action === 'export' ? 'success' : 'cta'"
             class="w-full rounded-xl transition-colors"
-            :loading="isProcessing"
             :disabled="cta.disabled"
+            :hint="cta.action === 'abort' ? t('tools.split.cta.clickToAbort') : undefined"
             @click="handleCtaClick"
           >
             <template #icon>
-              <component :is="ctaCopy.icon" v-if="!isProcessing" :size="18" class="mr-2" />
+              <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
+              <component :is="ctaCopy.icon" v-else :size="18" class="mr-2" />
             </template>
             {{ ctaCopy.text }}
           </AppButton>

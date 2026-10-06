@@ -23,7 +23,8 @@ import {
   FileSearch,
   Eye,
   Download,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-vue-next'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
@@ -531,12 +532,13 @@ const handleCtaClick = async () => {
           fill
           :variant="cta.action === 'export' ? 'success' : 'cta'"
           class="w-full rounded-xl transition-colors"
-          :loading="isProcessing || isReadingExif"
-          :disabled="cta.disabled"
+          :disabled="cta.disabled || isReadingExif"
+          :hint="cta.action === 'abort' ? t('tools.split.cta.clickToAbort') : undefined"
           @click="handleCtaClick"
         >
           <template #icon>
-            <component :is="ctaCopy.icon" v-if="!isProcessing" :size="18" class="mr-2" />
+            <Loader2 v-if="isProcessing || isReadingExif" :size="18" class="animate-spin mr-2" />
+            <component :is="ctaCopy.icon" v-else :size="18" class="mr-2" />
           </template>
           {{ ctaCopy.text }}
         </AppButton>

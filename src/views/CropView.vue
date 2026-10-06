@@ -25,7 +25,8 @@ import {
   Unlink,
   History,
   Download,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-vue-next'
 import ImageSelectionStatus from '../components/common/ImageSelectionStatus.vue'
 import ImageActionsToolbar from '../components/common/ImageActionsToolbar.vue'
@@ -239,6 +240,27 @@ const pxCoords = computed<RotRect>({
 const cropBoundsValid = computed(() =>
   isCropBoundsValid(pxCoords.value, rotDims.value.w, rotDims.value.h)
 )
+
+/**
+ * 数字输入的 min/max 必须与 CropBox 的实际拖拽范围一致。
+ *
+ * CropBox 把选区钳在百分比 [-50, 150 - w]，即允许四边各越界 50%——
+ * 越界时选区描 --danger 且 CTA 走 blocked 禁用，这是有意设计（可见反馈）。
+ * 但若把 :min/:max 设成「选区须完整落在画布内」，AppInput 的 watch 会把
+ * 越界值静默钳回并 emit，把用户的每一次越界拖拽都撤销掉：值瞬间弹回、
+ * 视觉上毫无痕迹，blocked 分支永远走不到。
+ */
+const POS_MIN = -0.5
+const POS_MAX = 1.5
+/** 位置输入的可达上限：留出 50% 越界余量，同时给尺寸留 1px */
+const posMaxW = computed(() => Math.round(POS_MAX * rotDims.value.w - 1))
+const posMaxH = computed(() => Math.round(POS_MAX * rotDims.value.h - 1))
+const posMinW = computed(() => Math.round(POS_MIN * rotDims.value.w))
+const posMinH = computed(() => Math.round(POS_MIN * rotDims.value.h))
+/** 尺寸输入：1px ~ （画布 + 两侧越界余量） */
+const sizeMaxW = computed(() => Math.round(2 * rotDims.value.w))
+const sizeMaxH = computed(() => Math.round(2 * rotDims.value.h))
+
 const handlePxInputChange = (key: 'x' | 'y' | 'w' | 'h', val: number | string) => {
   if (val === '' || val == null) return
   const num = typeof val === 'number' ? val : Number(val)
@@ -602,8 +624,8 @@ const ratios = computed(() => [
               <AppInput
                 type="number"
                 :model-value="Math.round(pxCoords.x)"
-                :min="0"
-                :max="Math.max(0, rotDims.w - pxCoords.w)"
+                :min="posMinW"
+                :max="posMaxW"
                 @update:model-value="handlePxInputChange('x', $event)"
                 class="h-10 text-xs font-mono transition-all"
                 :class="[
@@ -620,8 +642,8 @@ const ratios = computed(() => [
               <AppInput
                 type="number"
                 :model-value="Math.round(pxCoords.y)"
-                :min="0"
-                :max="Math.max(0, rotDims.h - pxCoords.h)"
+                :min="posMinH"
+                :max="posMaxH"
                 @update:model-value="handlePxInputChange('y', $event)"
                 class="h-10 text-xs font-mono transition-all"
                 :class="[
@@ -643,7 +665,7 @@ const ratios = computed(() => [
                   type="number"
                   :model-value="Math.round(pxCoords.w)"
                   :min="1"
-                  :max="Math.max(1, rotDims.w - pxCoords.x)"
+                  :max="sizeMaxW"
                   @update:model-value="handlePxInputChange('w', $event)"
                   class="h-10 text-xs font-mono transition-all"
                   :class="[
@@ -682,7 +704,7 @@ const ratios = computed(() => [
                   type="number"
                   :model-value="Math.round(pxCoords.h)"
                   :min="1"
-                  :max="Math.max(1, rotDims.h - pxCoords.y)"
+                  :max="sizeMaxH"
                   @update:model-value="handlePxInputChange('h', $event)"
                   class="h-10 text-xs font-mono transition-all"
                   :class="[
@@ -795,12 +817,13 @@ const ratios = computed(() => [
           fill
           :variant="cta.action === 'export' ? 'success' : 'cta'"
           class="w-full rounded-xl transition-colors"
-          :loading="isProcessing"
           :disabled="cta.disabled"
+          :hint="cta.action === 'abort' ? t('tools.split.cta.clickToAbort') : undefined"
           @click="handleCtaClick"
         >
           <template #icon>
-            <component :is="ctaCopy.icon" v-if="!isProcessing" :size="18" class="mr-2" />
+            <Loader2 v-if="isProcessing" :size="18" class="animate-spin mr-2" />
+            <component :is="ctaCopy.icon" v-else :size="18" class="mr-2" />
           </template>
           {{ ctaCopy.text }}
         </AppButton>
