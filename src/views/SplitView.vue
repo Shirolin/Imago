@@ -27,6 +27,12 @@ import {
 import { splitEngine } from '../lib/engines/splitEngine'
 import type { ViewSettings } from '../lib/engines/types'
 import { useToolRun } from '../composables/useToolRun'
+import {
+  clampDraggedLine as clampDraggedLinePure,
+  clampNewLine as clampNewLinePure,
+  snapLine as snapLinePure,
+  gridLines
+} from '../lib/splitLines'
 import { useResizeObserver } from '@vueuse/core'
 
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
@@ -73,10 +79,8 @@ const confirmResetSplit = () => {
   if (resetType.value === 'grid') {
     const img = selectedImage.value
     if (img) {
-      const newLinesX: number[] = []
-      const newLinesY: number[] = []
-      for (let i = 1; i < cols.value; i++) newLinesX.push((img.width! / cols.value) * i)
-      for (let i = 1; i < rows.value; i++) newLinesY.push((img.height! / rows.value) * i)
+      const newLinesX = gridLines(cols.value, img.width!)
+      const newLinesY = gridLines(rows.value, img.height!)
       linesX.value = newLinesX
       linesY.value = newLinesY
       srMessage.value = t('tools.split.messages.resetToGrid')
@@ -416,55 +420,40 @@ const getLogicPos = (e: PointerEvent) => {
   return { x: (e.clientX - rect.left) / scale, y: (e.clientY - rect.top) / scale }
 }
 
-// P1-3：把位置钳制在 [相邻线+1, 相邻线-1] ∩ [1, max-1]，保证每个切片至少 1px、线不重叠
-const clampWithin = (pos: number, prev: number, next: number, max: number) => {
-  const lo = Math.min(Math.max(prev + 1, 1), max - 1)
-  const hi = Math.max(Math.min(next - 1, max - 1), lo)
-  return Math.min(Math.max(pos, lo), hi)
+/**
+ * 分割线钳制与吸附已抽出到 lib/splitLines（原为内联约 60 行、零测试覆盖）。
+ * 这里的薄封装负责从 store 与画布状态取数，约束本身由纯函数承担。
+ */
+
+/** 当前轴的画布长度与线集合 */
+const axisContext = (axis: 'x' | 'y') => {
+  const img = selectedImage.value
+  if (!img) return null
+  return {
+    max: (axis === 'x' ? img.width : img.height) ?? 0,
+    lines: axis === 'x' ? linesX.value : linesY.value
+  }
 }
 
 // 拖拽中的线：以相邻线为界钳制
 const clampDraggedLine = (axis: 'x' | 'y', index: number, pos: number) => {
-  const img = selectedImage.value
-  if (!img) return pos
-  const max = axis === 'x' ? img.width! : img.height!
-  const lines = axis === 'x' ? linesX.value : linesY.value
-  const prev = index > 0 ? lines[index - 1]! : 0
-  const next = index < lines.length - 1 ? lines[index + 1]! : max
-  return clampWithin(pos, prev, next, max)
+  const ctx = axisContext(axis)
+  if (!ctx) return pos
+  return clampDraggedLinePure(pos, ctx.lines, index, ctx.max)
 }
 
-// 新添加的线：按插入位置（lines 保持有序）以相邻线为界钳制；
-// 相邻线之间已无空隙（间隙 ≤1px）时返回 null，避免插入与既有线重合的重复线
+// 新添加的线：按插入位置钳制；相邻无空隙时返回 null，避免插入重复线
 const clampNewLine = (axis: 'x' | 'y', pos: number): number | null => {
-  const img = selectedImage.value
-  if (!img) return pos
-  const max = axis === 'x' ? img.width! : img.height!
-  const lines = axis === 'x' ? linesX.value : linesY.value
-  let k = 0
-  while (k < lines.length && lines[k]! <= pos) k++
-  const prev = k > 0 ? lines[k - 1]! : 0
-  const next = k < lines.length ? lines[k]! : max
-  const clamped = clampWithin(pos, prev, next, max)
-  if (clamped >= next || clamped <= prev) return null
-  return clamped
+  const ctx = axisContext(axis)
+  if (!ctx) return pos
+  return clampNewLinePure(pos, ctx.lines, ctx.max)
 }
 
 const snapLine = (pos: number, axis: 'x' | 'y') => {
-  const img = selectedImage.value
-  if (!img) return { pos, snapped: false }
-  const max = axis === 'x' ? img.width! : img.height!
+  const ctx = axisContext(axis)
+  if (!ctx) return { pos, snapped: false }
   const scale = workspaceRef.value?.scale || 1
-  const threshold = 15 / scale
-
-  // 吸附到边缘
-  if (pos < threshold) return { pos: 0, snapped: true }
-  if (Math.abs(pos - max) < threshold) return { pos: max, snapped: true }
-
-  // 吸附到中点
-  if (Math.abs(pos - max / 2) < threshold) return { pos: max / 2, snapped: true }
-
-  return { pos, snapped: false }
+  return snapLinePure(pos, ctx.max, 15 / scale)
 }
 
 const handlePointerDown = (e: PointerEvent) => {
@@ -479,10 +468,8 @@ const handlePointerDown = (e: PointerEvent) => {
   if (hoveredLine.value) {
     // 如果是在 Grid 模式点中的，先执行转换
     if (editMode.value === 'grid') {
-      const newLinesX: number[] = []
-      const newLinesY: number[] = []
-      for (let i = 1; i < cols.value; i++) newLinesX.push((img.width! / cols.value) * i)
-      for (let i = 1; i < rows.value; i++) newLinesY.push((img.height! / rows.value) * i)
+      const newLinesX = gridLines(cols.value, img.width!)
+      const newLinesY = gridLines(rows.value, img.height!)
       linesX.value = newLinesX
       linesY.value = newLinesY
       editMode.value = 'custom'
@@ -655,10 +642,8 @@ watch(editMode, (newMode, oldMode) => {
     return
   }
   if (oldMode === 'grid' && img) {
-    const newLinesX: number[] = []
-    const newLinesY: number[] = []
-    for (let i = 1; i < cols.value; i++) newLinesX.push((img.width! / cols.value) * i)
-    for (let i = 1; i < rows.value; i++) newLinesY.push((img.height! / rows.value) * i)
+    const newLinesX = gridLines(cols.value, img.width!)
+    const newLinesY = gridLines(rows.value, img.height!)
     linesX.value = newLinesX
     linesY.value = newLinesY
   }

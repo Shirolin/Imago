@@ -35,6 +35,14 @@ import AppInput from '../components/common/AppInput.vue'
 import AppColorPicker from '../components/common/AppColorPicker.vue'
 import AppTip from '../components/common/AppTip.vue'
 import { cropEngine } from '../lib/engines/cropEngine'
+import {
+  toPixelCoords,
+  fromRotatedFrame,
+  rotatedDims,
+  clampCropPercent,
+  isCropBoundsValid,
+  type RotRect
+} from '../lib/cropFrame'
 import { useToolRun } from '../composables/useToolRun'
 import { useResizeObserver, useDebounceFn } from '@vueuse/core'
 import { useHistory } from '../composables/useHistory'
@@ -192,127 +200,24 @@ const resetView = () => {
  * → 旋转帧 (H − py − ph, px, ph, pw)；180°：镜像 (W − px − pw, H − py − ph, pw, ph)；
  * 270°：(py, W − px − pw, ph, pw)。flipH/flipV（sx/sy ∈ {±1}）参与各轴符号。
  */
-type RotRect = { x: number; y: number; w: number; h: number }
+/**
+ * 坐标帧变换已抽出到 lib/cropFrame。
+ * 原为内联约 150 行（toRotatedFrame / fromRotatedFrame / rotDims /
+ * cropBoundsValid / 护栏钳制），因 <script setup> 语法锁住而完全不可测；
+ * 现由 40 条表驱动测试覆盖，含 6 种旋转 × 4 种翻转的往返一致性。
+ */
 
-const toRotatedFrame = (
-  crop: RotRect,
-  W: number,
-  H: number,
-  rotation: number,
-  flipH: boolean,
-  flipV: boolean
-): RotRect => {
-  const rot = ((rotation % 360) + 360) % 360
-  const sx = flipH ? -1 : 1
-  const sy = flipV ? -1 : 1
-  const px = (crop.x / 100) * W
-  const py = (crop.y / 100) * H
-  const pw = (crop.w / 100) * W
-  const ph = (crop.h / 100) * H
-
-  switch (rot) {
-    case 90:
-      return {
-        x: sy === 1 ? H - py - ph : py,
-        y: sx === 1 ? px : W - px - pw,
-        w: ph,
-        h: pw
-      }
-    case 180:
-      return {
-        x: sx === 1 ? W - px - pw : px,
-        y: sy === 1 ? H - py - ph : py,
-        w: pw,
-        h: ph
-      }
-    case 270:
-      return {
-        x: sy === 1 ? py : H - py - ph,
-        y: sx === 1 ? W - px - pw : px,
-        w: ph,
-        h: pw
-      }
-    default:
-      return {
-        x: sx === 1 ? px : W - px - pw,
-        y: sy === 1 ? py : H - py - ph,
-        w: pw,
-        h: ph
-      }
-  }
-}
-
-/** 反向：旋转帧像素矩形 → 未旋转局部帧百分比（供数字输入回写 internalCrop） */
-const fromRotatedFrame = (
-  rect: RotRect,
-  W: number,
-  H: number,
-  rotation: number,
-  flipH: boolean,
-  flipV: boolean
-): RotRect => {
-  const rot = ((rotation % 360) + 360) % 360
-  const sx = flipH ? -1 : 1
-  const sy = flipV ? -1 : 1
-  const { x: X, y: Y, w: cw, h: ch } = rect
-
-  let px: number, py: number, pw: number, ph: number
-  switch (rot) {
-    case 90:
-      px = sx === 1 ? Y : W - Y - ch
-      pw = ch
-      py = sy === 1 ? H - X - cw : X
-      ph = cw
-      break
-    case 180:
-      px = sx === 1 ? W - X - cw : X
-      pw = cw
-      py = sy === 1 ? H - Y - ch : Y
-      ph = ch
-      break
-    case 270:
-      px = sx === 1 ? W - Y - ch : Y
-      pw = ch
-      py = sy === 1 ? X : H - X - cw
-      ph = cw
-      break
-    default:
-      px = sx === 1 ? X : W - X - cw
-      pw = cw
-      py = sy === 1 ? Y : H - Y - ch
-      ph = ch
-  }
-  return {
-    x: (px / W) * 100,
-    y: (py / H) * 100,
-    w: (pw / W) * 100,
-    h: (ph / H) * 100
-  }
-}
-
-// 旋转后画布尺寸（引擎 workCanvas）：90°/270° 时宽高互换
-const rotDims = computed(() => {
-  const img = selectedImage.value
-  if (!img || !img.width || !img.height) return { w: 0, h: 0 }
-  return rotation.value % 180 !== 0
-    ? { w: img.height!, h: img.width! }
-    : { w: img.width!, h: img.height! }
-})
-
-/** 裁剪矩形是否落在旋转画布内（越界时 --danger 描边并禁用 CTA） */
-const cropBoundsValid = computed(() => {
-  const dims = rotDims.value
-  if (!dims.w || !dims.h) return true
-  const c = pxCoords.value
-  return c.x >= 0 && c.y >= 0 && c.w >= 1 && c.h >= 1 && c.x + c.w <= dims.w && c.y + c.h <= dims.h
-})
+/** 旋转后画布尺寸（引擎 workCanvas）：90°/270° 时宽高互换 */
+const rotDims = computed(() =>
+  rotatedDims(selectedImage.value?.width, selectedImage.value?.height, rotation.value)
+)
 
 // pxCoords 统一为“旋转帧像素坐标”（与引擎输出一致）：显示与数字输入均按 rotatedWidth/rotatedHeight
-const pxCoords = computed({
+const pxCoords = computed<RotRect>({
   get: () => {
     const img = selectedImage.value
     if (!img || !img.width || !img.height) return { x: 0, y: 0, w: 0, h: 0 }
-    const r = toRotatedFrame(
+    return toPixelCoords(
       internalCrop.value,
       img.width,
       img.height,
@@ -320,26 +225,20 @@ const pxCoords = computed({
       flipH.value,
       flipV.value
     )
-    return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.w), h: Math.round(r.h) }
   },
   set: (val) => {
     const img = selectedImage.value
     if (!img || !img.width || !img.height) return
-    const p = fromRotatedFrame(val, img.width, img.height, rotation.value, flipH.value, flipV.value)
-    // 基本护栏，防止非法百分比透传（与 CropBox 拖拽允许范围一致）
-    p.x = Math.max(-50, Math.min(150, p.x))
-    p.y = Math.max(-50, Math.min(150, p.y))
-    p.w = Math.max(0.5, Math.min(200, p.w))
-    p.h = Math.max(0.5, Math.min(200, p.h))
-    internalCrop.value = {
-      x: Number(p.x.toFixed(4)),
-      y: Number(p.y.toFixed(4)),
-      w: Number(p.w.toFixed(4)),
-      h: Number(p.h.toFixed(4))
-    }
+    internalCrop.value = clampCropPercent(
+      fromRotatedFrame(val, img.width, img.height, rotation.value, flipH.value, flipV.value)
+    )
   }
 })
 
+/** 裁剪矩形是否落在旋转画布内（越界时 --danger 描边并禁用 CTA） */
+const cropBoundsValid = computed(() =>
+  isCropBoundsValid(pxCoords.value, rotDims.value.w, rotDims.value.h)
+)
 const handlePxInputChange = (key: 'x' | 'y' | 'w' | 'h', val: number | string) => {
   if (val === '' || val == null) return
   const num = typeof val === 'number' ? val : Number(val)

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onUnmounted, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { boundsOfNonBackground, downsampleSize } from '../../lib/contentBounds'
 
 const { t } = useI18n()
 
@@ -183,74 +184,20 @@ const handleImageLoad = () => {
   if (!img || img.naturalWidth === 0) return
   imgNaturalSize.value = { w: img.naturalWidth, h: img.naturalHeight }
 
-  const canvas = document.createElement('canvas'),
-    ctx = canvas.getContext('2d', { willReadFrequently: true })
-  if (!ctx) return
-  const max = 1024
-  let w = img.naturalWidth,
-    h = img.naturalHeight
-  if (w > max || h > max) {
-    if (w > h) {
-      h = Math.round((h * max) / w)
-      w = max
-    } else {
-      w = Math.round((w * max) / h)
-      h = max
-    }
-  }
+  const size = downsampleSize(img.naturalWidth, img.naturalHeight, 1024)
+  const w = size.w
+  const h = size.h
+  const canvas = document.createElement('canvas')
   canvas.width = w
   canvas.height = h
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })
+  if (!ctx) return
   ctx.drawImage(img, 0, 0, w, h)
   try {
+    // 纯算法（背景中位采样 + 非背景包围盒）已抽出到 lib/contentBounds
     const data = ctx.getImageData(0, 0, w, h).data
-    const rs: number[] = [],
-      gs: number[] = [],
-      bs: number[] = [],
-      as: number[] = []
-    const step = Math.max(1, Math.round(Math.min(w, h) / 40))
-    for (let x = 0; x < w; x += step) {
-      const ti = x * 4,
-        bi = ((h - 1) * w + x) * 4
-      for (const idx of [ti, bi]) {
-        rs.push(data[idx]!)
-        gs.push(data[idx + 1]!)
-        bs.push(data[idx + 2]!)
-        as.push(data[idx + 3]!)
-      }
-    }
-    const med = (arr: number[]) => {
-      arr.sort((a, b) => a - b)
-      return arr[Math.floor(arr.length / 2)] ?? 0
-    }
-    const bg = { r: med(rs), g: med(gs), b: med(bs), a: med(as) }
-    const isBg = (r: number, g: number, b: number, a: number) =>
-      bg.a < 64
-        ? a < 128
-        : Math.abs(r - bg.r) + Math.abs(g - bg.g) + Math.abs(b - bg.b) < 40 &&
-          Math.abs(a - bg.a) < 40
-    let minX = w,
-      minY = h,
-      maxX = 0,
-      maxY = 0,
-      hasC = false
-    for (let y = 0; y < h; y++)
-      for (let x = 0; x < w; x++) {
-        const i = (y * w + x) * 4
-        if (!isBg(data[i]!, data[i + 1]!, data[i + 2]!, data[i + 3]!)) {
-          minX = Math.min(minX, x)
-          minY = Math.min(minY, y)
-          maxX = Math.max(maxX, x)
-          maxY = Math.max(maxY, y)
-          hasC = true
-        }
-      }
-    if (hasC)
-      contentBounds.value = {
-        x: (minX / w) * 100,
-        y: (minY / h) * 100,
-        w: ((maxX - minX + 1) / w) * 100,
-        h: ((maxY - minY + 1) / h) * 100
-      }
+    const bounds = boundsOfNonBackground(data, w, h)
+    if (bounds) contentBounds.value = bounds
   } catch (e) {
     console.warn(e)
   }
