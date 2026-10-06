@@ -1,6 +1,7 @@
 import type { ImageProcessor } from './types'
 import { injectMetadata } from '../utils/metadata'
 import { MAX_PROCESS_SIDE, fitWithinMaxSide } from '../limits'
+import { throwIfAborted } from './abort'
 
 export interface ResizeOptions {
   mode: 'pixels' | 'percentage'
@@ -18,13 +19,11 @@ export const resizeEngine: ImageProcessor<ResizeOptions> = async (file, options)
     const processImage = async () => {
       let bitmap: ImageBitmap | null = null
       try {
-        if (options.signal?.aborted) throw new Error('Task aborted')
+        throwIfAborted(options.signal)
 
         bitmap = await createImageBitmap(file)
 
-        if (options.signal?.aborted) {
-          throw new Error('Task aborted')
-        }
+        throwIfAborted(options.signal)
 
         let targetWidth = bitmap.width
         let targetHeight = bitmap.height

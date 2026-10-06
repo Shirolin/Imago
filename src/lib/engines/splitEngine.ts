@@ -1,4 +1,5 @@
 import type { ImageProcessor, ProcessResult, SplitOptions } from './types'
+import { throwIfAborted } from './abort'
 
 /**
  * 智能切图引擎 (Web Canvas 版)
@@ -64,7 +65,7 @@ export const splitEngine: ImageProcessor<SplitOptions> = async (file, options) =
         for (let r = 0; r < actualRows; r++) {
           for (let c = 0; c < actualCols; c++) {
             if (options.signal?.aborted) {
-              throw new Error('AbortError')
+              throwIfAborted(options.signal)
             }
 
             processedCount++

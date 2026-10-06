@@ -351,6 +351,10 @@ describe('splitEngine 错误路径与中止', () => {
       signal: controller.signal
     })
     fireImages()
-    await expect(promise).rejects.toThrow('AbortError')
+    await expect(promise).rejects.toSatisfy(
+      // 断言错误身份而非文案：中止语义已收进 AbortError 类型，
+      // 文案可能变（'Task aborted' / 'Aborted' / 各语言），name 不会
+      (e: unknown) => e instanceof Error && e.name === 'AbortError'
+    )
   })
 })

@@ -1,5 +1,6 @@
 import type { ImageProcessor } from './types'
 import { MAX_PROCESS_SIDE, fitWithinMaxSide } from '../limits'
+import { AbortError, onAbort } from './abort'
 
 export interface FilterOptions {
   brightness: number
@@ -118,9 +119,9 @@ export const filterEngine: ImageProcessor<FilterOptions> = async (file, options)
     }
 
     if (options.signal) {
-      options.signal.addEventListener('abort', () => {
+      onAbort(options.signal, () => {
         img.src = ''
-        reject(new Error('Task aborted'))
+        reject(new AbortError())
       })
     }
 

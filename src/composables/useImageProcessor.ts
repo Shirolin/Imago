@@ -1,6 +1,7 @@
 import { getCurrentInstance, onUnmounted, ref } from 'vue'
 import { useImageStore, type ImageItem } from '../stores/imageStore'
 import type { ImageProcessor, MultiImageProcessor, ProcessResult } from '../lib/engines/types'
+import { isAbortError } from '../lib/engines/abort'
 
 export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImageProcessor<T>) {
   const store = useImageStore()
@@ -80,12 +81,9 @@ export function useImageProcessor<T>(processor: ImageProcessor<T> | MultiImagePr
       return result
     } catch (error) {
       const err = error as Error
-      if (
-        signal.aborted ||
-        err.name === 'AbortError' ||
-        err.message?.includes('AbortError') ||
-        err.message?.includes('abort')
-      ) {
+      // 此前靠 err.message?.includes('abort') 字符串匹配识别中止——
+      // 换个人写错文案，中止就会被当成真实失败报给用户。现改为按类型判定。
+      if (signal.aborted || isAbortError(err)) {
         store.updateImage(id, { status: 'idle', abortController: undefined })
         return
       }

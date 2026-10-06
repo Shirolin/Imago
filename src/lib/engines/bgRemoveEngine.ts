@@ -1,5 +1,6 @@
 import type { ImageProcessor } from './types'
 import BgRemoveWorker from './bgRemove.worker?worker'
+import { AbortError } from './abort'
 
 export interface BgRemoveOptions {
   format?: string
@@ -107,7 +108,7 @@ export const bgRemoveEngine: ImageProcessor<BgRemoveOptions> = (file, options) =
       if (sharedWorker === worker) {
         disposeBgRemoveWorker('AbortError')
       } else {
-        fail(new Error('AbortError'))
+        fail(new AbortError())
       }
     }
 

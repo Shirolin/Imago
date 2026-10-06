@@ -1,6 +1,7 @@
 import type { ImageProcessor } from './types'
 import { injectMetadata } from '../utils/metadata'
 import { MAX_PROCESS_SIDE, fitWithinMaxSide } from '../limits'
+import { AbortError, onAbort } from './abort'
 
 export interface CropOptions {
   x?: number
@@ -193,9 +194,11 @@ export const cropEngine: ImageProcessor<CropOptions> = async (file, options) => 
     }
 
     if (options.signal) {
-      options.signal.addEventListener('abort', () => {
+      // 用 onAbort 而非裸 addEventListener：它补上了「signal 已中止则立即回调」
+      // 的盲区，并保证解绑（裸监听器每次处理泄漏一个，且闭包捕获整个 promise 作用域）
+      onAbort(options.signal, () => {
         img.src = ''
-        reject(new Error('Task aborted'))
+        reject(new AbortError())
       })
     }
 
