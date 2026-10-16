@@ -311,7 +311,8 @@ const handleInitialize = async () => {
   initError.value = ''
 
   const targetModel = (engineMode.value === 'pro' ? 'isnet' : 'isnet_quint8') as
-    'isnet' | 'isnet_quint8'
+    | 'isnet'
+    | 'isnet_quint8'
   const statusRef = engineMode.value === 'pro' ? proStatus : smartStatus
   const storageKey =
     engineMode.value === 'pro' ? 'imago-bg-v2-pro-ready' : 'imago-bg-v2-smart-ready'

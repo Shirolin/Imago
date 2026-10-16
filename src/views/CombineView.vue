@@ -33,6 +33,7 @@ import AppSegmentedControl from '../components/common/AppSegmentedControl.vue'
 import AppSlider from '../components/common/AppSlider.vue'
 import AppColorPicker from '../components/common/AppColorPicker.vue'
 import { combineEngine } from '../lib/engines/combineEngine'
+import { computeLayout, paintCombine } from '../lib/combineLayout'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useFileHelpers } from '../composables/useFileHelpers'
 import type { ProcessResult } from '../lib/engines/types'
@@ -181,97 +182,20 @@ const drawPreview = async () => {
     return
   }
 
-  const maxWidth = Math.max(...loadedImages.map((img) => img.width))
-  const maxHeight = Math.max(...loadedImages.map((img) => img.height))
-
-  let totalWidth = 0
-  let totalHeight = 0
-  let cols = 1
-  let rows = 1
-
-  const drawInfos: { x: number; y: number; w: number; h: number }[] = []
-
-  if (combineDirection.value === 'vertical') {
-    let currentY = padding.value
-    loadedImages.forEach((img) => {
-      let drawW = img.width
-      let drawH = img.height
-      let drawX = padding.value
-
-      if (layoutMode.value === 'smart') {
-        drawW = maxWidth
-        drawH = img.height * (maxWidth / img.width)
-      } else {
-        if (alignment.value === 'center') drawX = padding.value + (maxWidth - img.width) / 2
-        else if (alignment.value === 'end') drawX = padding.value + maxWidth - img.width
-      }
-
-      drawInfos.push({ x: drawX, y: currentY, w: drawW, h: drawH })
-      currentY += drawH + spacing.value
-    })
-    totalWidth = maxWidth
-    totalHeight = currentY - spacing.value - padding.value
-  } else if (combineDirection.value === 'horizontal') {
-    let currentX = padding.value
-    loadedImages.forEach((img) => {
-      let drawW = img.width
-      let drawH = img.height
-      let drawY = padding.value
-
-      if (layoutMode.value === 'smart') {
-        drawH = maxHeight
-        drawW = img.width * (maxHeight / img.height)
-      } else {
-        if (alignment.value === 'center') drawY = padding.value + (maxHeight - img.height) / 2
-        else if (alignment.value === 'end') drawY = padding.value + maxHeight - img.height
-      }
-
-      drawInfos.push({ x: currentX, y: drawY, w: drawW, h: drawH })
-      currentX += drawW + spacing.value
-    })
-    totalWidth = currentX - spacing.value - padding.value
-    totalHeight = maxHeight
-  } else {
-    cols = columns.value || Math.ceil(Math.sqrt(loadedImages.length))
-    rows = Math.ceil(loadedImages.length / cols)
-    const cellW = maxWidth
-    const cellH = maxHeight
-
-    loadedImages.forEach((img, i) => {
-      const r = Math.floor(i / cols)
-      const c = i % cols
-      let drawW = img.width
-      let drawH = img.height
-      let offsetX = 0
-      let offsetY = 0
-
-      if (layoutMode.value === 'smart') {
-        const ratio = Math.max(cellW / img.width, cellH / img.height)
-        drawW = img.width * ratio
-        drawH = img.height * ratio
-        offsetX = (cellW - drawW) / 2
-        offsetY = (cellH - drawH) / 2
-      } else {
-        if (alignment.value === 'center') {
-          offsetX = (cellW - img.width) / 2
-          offsetY = (cellH - img.height) / 2
-        } else if (alignment.value === 'end') {
-          offsetX = cellW - img.width
-          offsetY = cellH - img.height
-        }
-      }
-
-      const x = padding.value + c * (cellW + spacing.value) + offsetX
-      const y = padding.value + r * (cellH + spacing.value) + offsetY
-      drawInfos.push({ x, y, w: drawW, h: drawH })
-    })
-
-    totalWidth = cols * cellW + (cols - 1) * spacing.value
-    totalHeight = rows * cellH + (rows - 1) * spacing.value
-  }
-
-  const finalW = totalWidth + padding.value * 2
-  const finalH = totalHeight + padding.value * 2
+  // 布局几何与导出引擎共用 lib/combineLayout,预览结果与导出不会分叉
+  const layout = computeLayout(
+    loadedImages.map((src) => ({ width: src.width, height: src.height })),
+    {
+      direction: combineDirection.value,
+      layoutMode: layoutMode.value,
+      alignment: alignment.value,
+      spacing: spacing.value,
+      columns: columns.value,
+      padding: padding.value
+    }
+  )
+  const finalW = layout.width
+  const finalH = layout.height
 
   // P1-5：预览降采样 —— 超大拼接（如 6000x80000）不撑爆预览画布，
   // 同时降低每次重绘的像素开销，保证拖动参数时界面可用
@@ -294,40 +218,11 @@ const drawPreview = async () => {
     }
   }
 
-  // 画布尺寸赋值会重置变换，这里幂等应用预览缩放；背景填充覆盖整个画布
+  // 画布尺寸赋值会重置变换，这里幂等应用预览缩放；背景与格子统一交给 paintCombine
   ctx.setTransform(previewScale, 0, 0, previewScale, 0, 0)
-  ctx.clearRect(0, 0, Math.ceil(scaledW / previewScale), Math.ceil(scaledH / previewScale))
-  if (backgroundColor.value !== 'transparent') {
-    ctx.fillStyle = backgroundColor.value
-    ctx.fillRect(0, 0, Math.ceil(scaledW / previewScale), Math.ceil(scaledH / previewScale))
-  }
-
-  loadedImages.forEach((img, i) => {
-    const { x, y, w, h } = drawInfos[i]!
-    ctx.save()
-
-    // 网格裁剪
-    if (combineDirection.value === 'grid' && layoutMode.value === 'smart') {
-      const r = Math.floor(i / cols)
-      const c = i % cols
-      ctx.beginPath()
-      ctx.rect(
-        padding.value + c * (maxWidth + spacing.value),
-        padding.value + r * (maxHeight + spacing.value),
-        maxWidth,
-        maxHeight
-      )
-      ctx.clip()
-    }
-
-    if (borderRadius.value > 0) {
-      ctx.beginPath()
-      if (ctx.roundRect) ctx.roundRect(x, y, w, h, borderRadius.value)
-      else ctx.rect(x, y, w, h)
-      ctx.clip()
-    }
-    ctx.drawImage(img, x, y, w, h)
-    ctx.restore()
+  paintCombine(ctx, loadedImages, layout, {
+    backgroundColor: backgroundColor.value,
+    borderRadius: borderRadius.value
   })
 }
 
