@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import { clampWithin, clampDraggedLine, clampNewLine, snapLine, gridLines } from './splitLines'
+import {
+  clampWithin,
+  clampDraggedLine,
+  clampNewLine,
+  snapLine,
+  gridLines,
+  computeSliceBounds,
+  findZeroSlice
+} from './splitLines'
 
 /**
  * 分割线钳制与吸附的边界验证。
@@ -152,5 +160,54 @@ describe('gridLines', () => {
       expect(out[i]!).toBeLessThan(350)
       if (i > 0) expect(out[i]!).toBeGreaterThan(out[i - 1]!)
     }
+  })
+})
+
+describe('computeSliceBounds', () => {
+  it('grid 模式：n 等分产生 n+1 个边界，两端为 0 与 max', () => {
+    const { bX, bY } = computeSliceBounds(300, 600, 'grid', 3, 4, [], [])
+    expect(bX).toEqual([0, 75, 150, 225, 300])
+    expect(bY).toEqual([0, 200, 400, 600])
+  })
+
+  it('custom 模式：实体线排序后夹在 0 与 max 之间（输入乱序也要排序）', () => {
+    const { bX } = computeSliceBounds(100, 100, 'custom', 1, 1, [80, 30], [50])
+    expect(bX).toEqual([0, 30, 80, 100])
+  })
+
+  it('custom 模式不改入参数组', () => {
+    const linesX = [70, 20]
+    computeSliceBounds(100, 100, 'custom', 1, 1, linesX, [])
+    expect(linesX).toEqual([70, 20])
+  })
+
+  it('grid/custom 对同一组线返回相同边界（切换模式前后校验口径一致）', () => {
+    const lines = gridLines(3, 300)
+    const a = computeSliceBounds(300, 300, 'grid', 3, 3, [], [])
+    const b = computeSliceBounds(300, 300, 'custom', 3, 3, lines, lines)
+    expect(b.bX).toEqual(a.bX)
+  })
+})
+
+describe('findZeroSlice', () => {
+  it('无 shave 且网格均分 → 全部有效', () => {
+    const { bX, bY } = computeSliceBounds(300, 300, 'grid', 3, 3, [], [])
+    expect(findZeroSlice(bX, bY, 0)).toBeNull()
+  })
+
+  it('shave 过大 → 返回首个零尺寸切片', () => {
+    const { bX, bY } = computeSliceBounds(90, 300, 'grid', 2, 3, [], [])
+    expect(findZeroSlice(bX, bY, 20)).toEqual({ row: 0, col: 0 })
+  })
+
+  it('恰好减到 0 也算零尺寸（sw/sh 用 ≤0 判定）', () => {
+    const { bX, bY } = computeSliceBounds(100, 100, 'grid', 1, 1, [], [])
+    expect(findZeroSlice(bX, bY, 50)).not.toBeNull()
+    expect(findZeroSlice(bX, bY, 49)).toBeNull()
+  })
+
+  it('紧贴的自定义线（间隙 ≤ shave*2）被判为零尺寸', () => {
+    const { bX, bY } = computeSliceBounds(100, 100, 'custom', 1, 1, [30, 31], [])
+    expect(findZeroSlice(bX, bY, 1)).toEqual({ row: 0, col: 1 })
   })
 })

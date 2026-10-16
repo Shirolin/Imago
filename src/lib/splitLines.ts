@@ -72,3 +72,50 @@ export function gridLines(count: number, max: number): number[] {
   for (let i = 1; i < count; i++) out.push((max / count) * i)
   return out
 }
+
+/**
+ * 切片边界序列（含 0 与 max 在两端）。
+ * - grid 模式：均分产生 count+1 个边界
+ * - custom 模式：实体线排序后夹在 0 与 max 之间
+ * 渲染（网格模式画线）、悬停命中、导出校验共用这一个定义，
+ * 避免三处各自手写 (max / count) * i 的公式。
+ */
+export function computeSliceBounds(
+  w: number,
+  h: number,
+  mode: 'grid' | 'custom',
+  rows: number,
+  cols: number,
+  linesX: readonly number[],
+  linesY: readonly number[]
+): { bX: number[]; bY: number[] } {
+  if (mode === 'custom') {
+    return {
+      bX: [0, ...[...linesX].sort((a, b) => a - b), w],
+      bY: [0, ...[...linesY].sort((a, b) => a - b), h]
+    }
+  }
+  return {
+    bX: [0, ...gridLines(cols, w), w],
+    bY: [0, ...gridLines(rows, h), h]
+  }
+}
+
+/**
+ * 校验切分是否会产生零宽/零高切片（每片需预留两侧 shave 边距）。
+ * 返回首个零尺寸切片的 {row, col}，全部有效时返回 null。
+ */
+export function findZeroSlice(
+  bX: readonly number[],
+  bY: readonly number[],
+  shave: number
+): { row: number; col: number } | null {
+  for (let r = 0; r < bY.length - 1; r++) {
+    for (let c = 0; c < bX.length - 1; c++) {
+      const sw = bX[c + 1]! - bX[c]! - shave * 2
+      const sh = bY[r + 1]! - bY[r]! - shave * 2
+      if (sw <= 0 || sh <= 0) return { row: r, col: c }
+    }
+  }
+  return null
+}

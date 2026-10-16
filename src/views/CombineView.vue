@@ -34,6 +34,7 @@ import AppSlider from '../components/common/AppSlider.vue'
 import AppColorPicker from '../components/common/AppColorPicker.vue'
 import { combineEngine } from '../lib/engines/combineEngine'
 import { computeLayout, paintCombine } from '../lib/combineLayout'
+import { triggerHaptic } from '../lib/haptics'
 import { useImageProcessor } from '../composables/useImageProcessor'
 import { useFileHelpers } from '../composables/useFileHelpers'
 import type { ProcessResult } from '../lib/engines/types'
@@ -51,13 +52,6 @@ const combineError = ref('')
 // P1-3：托盘排序被强制回锁时的可见提示
 const sortOrderNotice = ref('')
 let sortNoticeTimer: ReturnType<typeof setTimeout> | undefined
-
-// 【打磨】：触感反馈辅助函数
-const triggerHaptic = (intensity = 5) => {
-  if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
-    window.navigator.vibrate(intensity)
-  }
-}
 
 // 视口引擎
 const workspaceRef = ref<InstanceType<typeof AppCanvasWorkspace> | null>(null)

@@ -31,8 +31,12 @@ import {
   clampDraggedLine as clampDraggedLinePure,
   clampNewLine as clampNewLinePure,
   snapLine as snapLinePure,
-  gridLines
+  gridLines,
+  computeSliceBounds,
+  findZeroSlice
 } from '../lib/splitLines'
+import { useSplitCanvas } from '../composables/useSplitCanvas'
+import { triggerHaptic } from '../lib/haptics'
 import { useResizeObserver } from '@vueuse/core'
 
 import InspectorFooter from '../components/layout/InspectorFooter.vue'
@@ -117,14 +121,7 @@ const handleColorKeydown = (e: KeyboardEvent) => {
   })
 }
 
-// 【新】：触感反馈
-const triggerHaptic = (intensity = 5) => {
-  if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
-    window.navigator.vibrate(intensity)
-  }
-}
-
-let lastLoadId = 0
+// 【新】：触感反馈 —— 已抽到 lib/haptics(与 CombineView 共用)
 
 const selectedImage = computed(() => store.activeImage)
 
@@ -150,181 +147,6 @@ const linesY = ref<number[]>([])
 
 // 无障碍播报
 const srMessage = ref('')
-
-let offscreenCanvas: HTMLCanvasElement | null = null
-let cachedPrimaryColor = 'hsl(215, 100%, 50%)' // 默认值
-
-let isDrawingRaf = false
-
-let themeObserver: MutationObserver | null = null
-
-const updateThemeColor = () => {
-  const root = document.documentElement
-  const colorPrimary = getComputedStyle(root).getPropertyValue('--primary').trim()
-  if (colorPrimary) {
-    const newColor = colorPrimary.includes('hsl') ? colorPrimary : `hsl(${colorPrimary})`
-    if (newColor !== cachedPrimaryColor) {
-      cachedPrimaryColor = newColor
-      requestDraw()
-    }
-  }
-}
-
-const updateCachedImage = () => {
-  const imgData = selectedImage.value
-  if (!imgData) {
-    offscreenCanvas = null
-    return
-  }
-  const loadId = ++lastLoadId
-  const img = new Image()
-  img.src = imgData.preview
-  img.onload = () => {
-    if (loadId !== lastLoadId) return
-    offscreenCanvas = document.createElement('canvas')
-    offscreenCanvas.width = imgData.width!
-    offscreenCanvas.height = imgData.height!
-    const octx = offscreenCanvas.getContext('2d')
-    octx?.drawImage(img, 0, 0)
-
-    updateThemeColor()
-    requestDraw()
-    nextTick(resetView)
-  }
-}
-
-const draw = () => {
-  const canvas = canvasRef.value
-  const ctx = canvas?.getContext('2d')
-  const img = selectedImage.value
-  const scale = workspaceRef.value?.scale || 1
-  if (!canvas || !ctx || !offscreenCanvas || !img) return
-
-  // 仅在图片尺寸变化时重置 backing store；相同尺寸重复赋值会逐帧清空并重新分配内存。
-  if (canvas.width !== img.width!) canvas.width = img.width!
-  if (canvas.height !== img.height!) canvas.height = img.height!
-  ctx.clearRect(0, 0, img.width!, img.height!)
-  ctx.drawImage(offscreenCanvas, 0, 0)
-
-  const drawStylizedLine = (
-    pos: number,
-    isVertical: boolean,
-    isHovered: boolean,
-    isDragging: boolean,
-    isSelected: boolean
-  ) => {
-    ctx.save()
-    const activeColor = cachedPrimaryColor
-    const isActive = isHovered || isDragging || isSelected
-    const { lineWidth, lineColor, lineOpacity } = viewSettings.value
-
-    // 1. 绘制底层：高对比度黑边 (确保在浅色背景可见)
-    ctx.beginPath()
-    ctx.lineWidth = (isActive ? lineWidth * 2.5 : lineWidth * 2) / scale
-    ctx.strokeStyle = `rgba(0, 0, 0, ${lineOpacity * 0.4})`
-
-    if (isVertical) {
-      ctx.moveTo(pos, 0)
-      ctx.lineTo(pos, img.height!)
-    } else {
-      ctx.moveTo(0, pos)
-      ctx.lineTo(img.width!, pos)
-    }
-    ctx.stroke()
-
-    // 2. 绘制顶层：核心线
-    ctx.beginPath()
-    ctx.lineWidth = (isActive ? lineWidth * 1.5 : lineWidth) / scale
-
-    // 颜色映射逻辑
-    let coreColor = 'rgba(255, 255, 255, 0.95)'
-    if (isActive) {
-      coreColor = activeColor
-    } else {
-      if (lineColor === 'primary') coreColor = activeColor
-      else if (lineColor === 'blue') coreColor = '#3b82f6'
-      else if (lineColor === 'red') coreColor = '#ef4444'
-      else if (lineColor === 'black') coreColor = 'rgba(0, 0, 0, 0.95)'
-      else coreColor = `rgba(255, 255, 255, ${lineOpacity})`
-    }
-
-    ctx.strokeStyle = coreColor
-
-    // 激活态增加外发光
-    if (isActive) {
-      ctx.shadowBlur = 10 / scale
-      ctx.shadowColor = isDragging || isSelected ? activeColor : 'rgba(0, 0, 0, 0.5)'
-    }
-
-    if (isVertical) {
-      ctx.moveTo(pos, 0)
-      ctx.lineTo(pos, img.height!)
-    } else {
-      ctx.moveTo(0, pos)
-      ctx.lineTo(img.width!, pos)
-    }
-    ctx.stroke()
-
-    ctx.restore()
-  }
-
-  // 绘制网格线 (均分模式)
-  if (editMode.value === 'grid') {
-    for (let i = 1; i < cols.value; i++) {
-      drawStylizedLine((img.width! / cols.value) * i, true, false, false, false)
-    }
-    for (let i = 1; i < rows.value; i++) {
-      drawStylizedLine((img.height! / rows.value) * i, false, false, false, false)
-    }
-  } else {
-    // 绘制自定义线 (自由模式)
-    linesX.value.forEach((lx, i) =>
-      drawStylizedLine(
-        lx,
-        true,
-        hoveredLine.value?.axis === 'x' && hoveredLine.value.index === i,
-        draggingLine.value?.axis === 'x' && draggingLine.value.index === i,
-        selectedLine.value?.axis === 'x' && selectedLine.value.index === i
-      )
-    )
-    linesY.value.forEach((ly, i) =>
-      drawStylizedLine(
-        ly,
-        false,
-        hoveredLine.value?.axis === 'y' && hoveredLine.value.index === i,
-        draggingLine.value?.axis === 'y' && draggingLine.value.index === i,
-        selectedLine.value?.axis === 'y' && selectedLine.value.index === i
-      )
-    )
-  }
-}
-
-const requestDraw = () => {
-  if (!isDrawingRaf) {
-    isDrawingRaf = true
-    requestAnimationFrame(() => {
-      draw()
-      isDrawingRaf = false
-    })
-  }
-}
-
-// 监听绘制相关的状态 (细化监听以提升性能)
-watch(
-  [rows, cols, editMode, linesX, linesY, hoveredLine, draggingLine, selectedLine],
-  requestDraw,
-  { deep: true }
-)
-
-// 【极致性能优化】：仅监听视图设置中的具体原子属性，避免闭包内对象解构的内存开销
-watch(
-  [
-    () => viewSettings.value.lineWidth,
-    () => viewSettings.value.lineColor,
-    () => viewSettings.value.lineOpacity
-  ],
-  () => requestDraw()
-)
 
 const resetView = () => {
   const img = selectedImage.value
@@ -372,33 +194,14 @@ const handleKeyDown = (e: KeyboardEvent) => {
 }
 
 onMounted(() => {
-  updateThemeColor()
   window.addEventListener('keydown', handleKeyDown)
-
-  // 【极致性能优化】：被动观察主题变化，而非在渲染循环中轮询 DOM
-  themeObserver = new MutationObserver(() => {
-    updateThemeColor()
-  })
-  themeObserver.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ['class', 'style', 'data-theme']
-  })
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyDown)
-  if (themeObserver) {
-    themeObserver.disconnect()
-    themeObserver = null
-  }
-  // 【性能优化】：显式释放离屏 Canvas 显存
-  if (offscreenCanvas) {
-    offscreenCanvas.width = offscreenCanvas.height = 0
-    offscreenCanvas = null
-  }
 })
 
-watch(() => selectedImage.value?.id, updateCachedImage, { immediate: true })
+// 换图时清空编辑线（渲染侧的离屏缓存由 useSplitCanvas 内部按 id 失效）
 watch(
   () => selectedImage.value?.id,
   (newId) => {
@@ -412,6 +215,24 @@ watch(
   },
   { immediate: true }
 )
+
+// 渲染侧收进 useSplitCanvas：解码/主题观察/描线规则/rAF 合并归它，
+// 编辑状态机(指针/键盘)归本视图。传入的都是上面已有的响应式状态。
+const { primaryColor } = useSplitCanvas({
+  canvasRef,
+  workspaceRef,
+  image: selectedImage,
+  editMode,
+  rows,
+  cols,
+  linesX,
+  linesY,
+  hoveredLine,
+  draggingLine,
+  selectedLine,
+  viewSettings,
+  onImageReady: () => resetView()
+})
 
 const getLogicPos = (e: PointerEvent) => {
   if (!canvasRef.value) return { x: 0, y: 0 }
@@ -553,20 +374,12 @@ const handlePointerMove = (e: PointerEvent) => {
   const img = selectedImage.value
   let found = false
 
-  // 【核心增强】：支持检测 Grid 模式下的虚拟线
+  // 【核心增强】：支持检测 Grid 模式下的虚拟线（与渲染/校验共用 gridLines）
   const checkLinesX =
-    editMode.value === 'custom'
-      ? linesX.value
-      : img
-        ? Array.from({ length: cols.value - 1 }, (_, i) => (img.width! / cols.value) * (i + 1))
-        : []
+    editMode.value === 'custom' ? linesX.value : img ? gridLines(cols.value, img.width!) : []
 
   const checkLinesY =
-    editMode.value === 'custom'
-      ? linesY.value
-      : img
-        ? Array.from({ length: rows.value - 1 }, (_, i) => (img.height! / rows.value) * (i + 1))
-        : []
+    editMode.value === 'custom' ? linesY.value : img ? gridLines(rows.value, img.height!) : []
 
   for (let i = 0; i < checkLinesX.length; i++) {
     if (Math.abs(pos.x - checkLinesX[i]!) < threshold) {
@@ -650,30 +463,21 @@ watch(editMode, (newMode, oldMode) => {
 })
 
 // P1-2：视图层校验切分参数，阻止产生零宽/零高切片（配合引擎兜底 reject）
+// 边界序列与零尺寸判定收进 lib/splitLines（可表驱动测试），这里只做参数胶合
 const validateSplit = (): string | null => {
   const img = selectedImage.value
   if (!img) return null
-  const w = img.width!
-  const h = img.height!
-
-  let bX: number[]
-  let bY: number[]
-  if (editMode.value === 'custom') {
-    bX = [0, ...[...linesX.value].sort((a, b) => a - b), w]
-    bY = [0, ...[...linesY.value].sort((a, b) => a - b), h]
-  } else {
-    bX = Array.from({ length: cols.value + 1 }, (_, i) => (w / cols.value) * i)
-    bY = Array.from({ length: rows.value + 1 }, (_, i) => (h / rows.value) * i)
-  }
-
-  for (let r = 0; r < bY.length - 1; r++) {
-    for (let c = 0; c < bX.length - 1; c++) {
-      const sw = bX[c + 1]! - bX[c]! - shave.value * 2
-      const sh = bY[r + 1]! - bY[r]! - shave.value * 2
-      if (sw <= 0 || sh <= 0) {
-        return '切分参数导致切片尺寸为零，请减小裁剪边距或调整分割线位置'
-      }
-    }
+  const { bX, bY } = computeSliceBounds(
+    img.width!,
+    img.height!,
+    editMode.value,
+    rows.value,
+    cols.value,
+    linesX.value,
+    linesY.value
+  )
+  if (findZeroSlice(bX, bY, shave.value)) {
+    return '切分参数导致切片尺寸为零，请减小裁剪边距或调整分割线位置'
   }
   return null
 }
@@ -1006,7 +810,7 @@ const handleCtaClick = async () => {
                   <div
                     class="w-4 h-4 rounded-full border border-black/10"
                     :style="{
-                      backgroundColor: c.value === 'primary' ? cachedPrimaryColor : c.color
+                      backgroundColor: c.value === 'primary' ? primaryColor : c.color
                     }"
                   ></div>
                 </button>
