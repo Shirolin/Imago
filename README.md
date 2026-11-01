@@ -11,7 +11,9 @@
 [![Vite](https://img.shields.io/badge/Vite-6.x-646cff.svg)](https://vitejs.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6.svg)](https://www.typescriptlang.org/)
 
-[简体中文](README.md) | [English](README_EN.md)
+[![Online Demo](https://img.shields.io/badge/Online_Demo-在线使用-4fc08d?style=for-the-badge&logo=cloudflare&logoColor=white)](https://imago-8pp.pages.dev)
+
+[简体中文](README.md) | [English](README_EN.md) · [**🌐 立即在线使用 (Live Demo) ↗**](https://imago-8pp.pages.dev)
 
 </div>
 
