@@ -6,14 +6,13 @@
 
 **Modern Image Processing Toolkit · High-Performance · Privacy-First**
 
+[简体中文](README.md) | **English** · [**Launch Web App ↗**](https://imago-8pp.pages.dev)
+
+[![Web App](https://img.shields.io/badge/Web_App-Launch_Online-4fc08d.svg?logo=cloudflare&logoColor=white)](https://imago-8pp.pages.dev)
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![Vue](https://img.shields.io/badge/Vue-3.x-4fc08d.svg)](https://vuejs.org/)
 [![Vite](https://img.shields.io/badge/Vite-6.x-646cff.svg)](https://vitejs.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6.svg)](https://www.typescriptlang.org/)
-
-[![Online Demo](https://img.shields.io/badge/Online_Demo-Try_Online-4fc08d?style=for-the-badge&logo=cloudflare&logoColor=white)](https://imago-8pp.pages.dev)
-
-[简体中文](README.md) | [English](README_EN.md) · [**🌐 Try Online (Live Demo) ↗**](https://imago-8pp.pages.dev)
 
 </div>
 
