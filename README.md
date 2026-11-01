@@ -6,14 +6,13 @@
 
 **现代化图片处理工具 · 高性能 · 隐私至上**
 
+**简体中文** | [English](README_EN.md) · [**在线工作台 (Web App) ↗**](https://imago-8pp.pages.dev)
+
+[![Web App](https://img.shields.io/badge/Web_App-在线使用-4fc08d.svg?logo=cloudflare&logoColor=white)](https://imago-8pp.pages.dev)
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![Vue](https://img.shields.io/badge/Vue-3.x-4fc08d.svg)](https://vuejs.org/)
 [![Vite](https://img.shields.io/badge/Vite-6.x-646cff.svg)](https://vitejs.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6.svg)](https://www.typescriptlang.org/)
-
-[![Online Demo](https://img.shields.io/badge/Online_Demo-在线使用-4fc08d?style=for-the-badge&logo=cloudflare&logoColor=white)](https://imago-8pp.pages.dev)
-
-[简体中文](README.md) | [English](README_EN.md) · [**🌐 立即在线使用 (Live Demo) ↗**](https://imago-8pp.pages.dev)
 
 </div>
 
