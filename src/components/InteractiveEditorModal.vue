@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useResizeObserver, useEventListener } from '@vueuse/core'
 import AppModal from './common/AppModal.vue'
@@ -20,7 +20,10 @@ const isLoading = ref(true)
 const statusMessage = ref(t('common.modal.interactive.connecting'))
 const isEncoding = ref(false)
 const points = ref<{ x: number; y: number; label: number }[]>([])
-const maskUrl = ref<string | null>(null)
+// 三个候选掩码：SAM2 的 multimask 输出，按 IoU 排序由界面选择
+const maskOptions = ref<{ url: string; score: number }[]>([])
+const selectedMask = ref(0)
+const maskUrl = computed(() => maskOptions.value[selectedMask.value]?.url ?? null)
 const imageRef = ref<HTMLImageElement | null>(null)
 const viewportRef = ref<HTMLElement | null>(null)
 
@@ -149,7 +152,7 @@ const initWorker = () => {
     nextWorker.postMessage({ type: 'load' })
 
     nextWorker.onmessage = (e) => {
-      const { type, message, maskUrl: newMaskUrl } = e.data
+      const { type, message, masks, selected } = e.data
 
       switch (type) {
         case 'status':
@@ -165,8 +168,9 @@ const initWorker = () => {
           statusMessage.value = t('common.modal.interactive.readyTip')
           break
         case 'mask':
-          if (maskUrl.value) URL.revokeObjectURL(maskUrl.value)
-          maskUrl.value = newMaskUrl
+          clearMask()
+          maskOptions.value = masks ?? []
+          selectedMask.value = selected ?? 0
           break
         case 'error':
           console.error('[SAM2 Editor] Error:', message)
@@ -244,8 +248,16 @@ const redo = () => {
 }
 
 const clearMask = () => {
-  if (maskUrl.value) URL.revokeObjectURL(maskUrl.value)
-  maskUrl.value = null
+  maskOptions.value.forEach((m) => URL.revokeObjectURL(m.url))
+  maskOptions.value = []
+  selectedMask.value = 0
+}
+
+/** 切换候选掩码，并把选择回传给 Worker 作为下一次点选的 feedback */
+const selectMask = (index: number) => {
+  if (index === selectedMask.value || !maskOptions.value[index]) return
+  selectedMask.value = index
+  worker?.postMessage({ type: 'select-mask', data: { index } })
 }
 
 const resetPoints = () => {
@@ -567,6 +579,39 @@ watch(
               ></div>
             </div>
           </div>
+        </div>
+
+        <!-- 候选掩码切换：SAM2 multimask 的三个结果 -->
+        <div
+          v-if="maskOptions.length > 1"
+          class="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-2 px-2 py-2 bg-[var(--product)]/95 rounded-[var(--radius-ctrl)] border border-[var(--hairline)]"
+        >
+          <button
+            v-for="(candidate, i) in maskOptions"
+            :key="i"
+            class="relative w-14 h-14 rounded-md overflow-hidden border-2 transition-colors"
+            :class="selectedMask === i ? 'border-primary' : 'border-white/10 hover:border-white/30'"
+            :title="
+              t('common.modal.interactive.candidate', {
+                index: i + 1,
+                score: Math.round(candidate.score * 100)
+              })
+            "
+            :aria-label="
+              t('common.modal.interactive.candidate', {
+                index: i + 1,
+                score: Math.round(candidate.score * 100)
+              })
+            "
+            @click="selectMask(i)"
+          >
+            <img :src="candidate.url" class="w-full h-full object-contain bg-black/50" alt="" />
+            <span
+              class="absolute right-0.5 bottom-0.5 text-[9px] font-mono text-white/80 bg-black/50 px-1 rounded"
+            >
+              {{ Math.round(candidate.score * 100) }}%
+            </span>
+          </button>
         </div>
 
         <!-- 悬浮指令提示板 (恢复) -->

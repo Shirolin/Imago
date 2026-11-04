@@ -6,11 +6,11 @@ export interface BgRemoveOptions {
   format?: string
   quality?: number
   usePreScaling?: boolean
-  model?: 'isnet' | 'isnet_fp16' | 'isnet_quint8' // 新增：模型精度选择
-  maskThreshold?: number // 新增：边缘严格度 (0-1)
-  maskBlur?: number // 新增：平滑度
-  maskShrink?: number // 新增：边缘偏移 (0-1)
-  jobId?: string // 新增：用于缓存 AI 遮罩以实现秒级精修
+  model?: 'smart' | 'pro' // 模型档位：ORMBG 量化 / BiRefNet-lite
+  maskThreshold?: number // 边缘严格度 (0-1)
+  maskBlur?: number // 平滑度
+  maskShrink?: number // 边缘偏移 (0-1)
+  jobId?: string // 用于缓存 AI 遮罩以实现秒级精修
 }
 
 let sharedWorker: Worker | null = null
@@ -124,15 +124,16 @@ export const bgRemoveEngine: ImageProcessor<BgRemoveOptions> = (file, options) =
 
     timeoutRef.current = setTimeout(() => {
       if (sharedWorker === worker) {
-        disposeBgRemoveWorker('处理超时（120 秒）')
+        disposeBgRemoveWorker('处理超时（180 秒）')
       } else {
-        fail(new Error('处理超时（120 秒）'))
+        fail(new Error('处理超时（180 秒）'))
       }
-    }, 120_000)
+    }, 180_000)
 
     try {
       worker.postMessage({
         requestId,
+        type: 'infer',
         file,
         options: {
           model: options.model,
@@ -145,6 +146,91 @@ export const bgRemoveEngine: ImageProcessor<BgRemoveOptions> = (file, options) =
           quality: options.quality
         }
       })
+    } catch (error) {
+      fail(error instanceof Error ? error : new Error(String(error)))
+    }
+  })
+}
+
+export interface PreloadBgModelOptions {
+  onProgress?: (progress: number) => void
+  signal?: AbortSignal
+}
+
+/**
+ * 在共享 Worker 内预下载/初始化模型。模型缓存在 Worker 内存里，
+ * 后续推理不会重复加载；失败时由调用方决定是否重试。
+ */
+export const preloadBgRemoveModel = (
+  model: 'smart' | 'pro',
+  options: PreloadBgModelOptions = {}
+) => {
+  return new Promise<void>((resolve, reject) => {
+    const worker = getWorker()
+    const requestId = Math.random().toString(36).slice(2)
+    let settled = false
+
+    const cleanup = () => {
+      worker.removeEventListener('message', handleMessage)
+      worker.removeEventListener('error', handleError)
+      options.signal?.removeEventListener('abort', handleAbort)
+      activeRequests.delete(request)
+    }
+
+    const fail = (error: Error) => {
+      if (settled) return
+      settled = true
+      cleanup()
+      reject(error)
+    }
+
+    const request: ActiveRequest = { worker, fail }
+
+    const handleMessage = (event: MessageEvent) => {
+      const { type, value, message, requestId: respId } = event.data
+      if (respId !== requestId || settled) return
+
+      if (type === 'preload-progress') {
+        options.onProgress?.(value)
+      } else if (type === 'preload-done') {
+        settled = true
+        cleanup()
+        resolve()
+      } else if (type === 'error') {
+        fail(new Error(message || '模型加载失败'))
+      }
+    }
+
+    const handleError = (event: ErrorEvent) => {
+      console.error('[Imago Engine] Worker Error:', event)
+      const error = new Error(`模型加载失败: ${event.message}`)
+      if (sharedWorker === worker) {
+        disposeBgRemoveWorker(error.message)
+      } else {
+        fail(error)
+      }
+    }
+
+    const handleAbort = () => {
+      if (sharedWorker === worker) {
+        disposeBgRemoveWorker('AbortError')
+      } else {
+        fail(new AbortError())
+      }
+    }
+
+    activeRequests.add(request)
+    worker.addEventListener('message', handleMessage)
+    worker.addEventListener('error', handleError, { once: true })
+    options.signal?.addEventListener('abort', handleAbort, { once: true })
+
+    if (options.signal?.aborted) {
+      handleAbort()
+      return
+    }
+
+    try {
+      worker.postMessage({ requestId, type: 'preload', model })
     } catch (error) {
       fail(error instanceof Error ? error : new Error(String(error)))
     }

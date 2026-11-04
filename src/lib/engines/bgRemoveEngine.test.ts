@@ -23,7 +23,7 @@ vi.mock('./bgRemove.worker?worker', () => ({
   default: workerMock.MockWorker
 }))
 
-import { bgRemoveEngine, disposeBgRemoveWorker } from './bgRemoveEngine'
+import { bgRemoveEngine, disposeBgRemoveWorker, preloadBgRemoveModel } from './bgRemoveEngine'
 
 const file = new File(['image'], 'image.png', { type: 'image/png' })
 
@@ -62,5 +62,29 @@ describe('bgRemoveEngine worker lifecycle', () => {
 
     disposeBgRemoveWorker('test cleanup')
     await expect(second).rejects.toThrow('test cleanup')
+  })
+
+  it('forwards preload progress and resolves on preload-done', async () => {
+    const progresses: number[] = []
+    const preload = preloadBgRemoveModel('pro', { onProgress: (value) => progresses.push(value) })
+    const worker = workerMock.instances[0]!
+    const { requestId } = worker.postMessage.mock.calls[0]![0]
+
+    worker.dispatchEvent(
+      new MessageEvent('message', { data: { requestId, type: 'preload-progress', value: 0.5 } })
+    )
+    worker.dispatchEvent(new MessageEvent('message', { data: { requestId, type: 'preload-done' } }))
+
+    await expect(preload).resolves.toBeUndefined()
+    expect(progresses).toEqual([0.5])
+  })
+
+  it('abort rejects a pending preload and terminates the worker', async () => {
+    const controller = new AbortController()
+    const preload = preloadBgRemoveModel('smart', { signal: controller.signal })
+    controller.abort()
+
+    await expect(preload).rejects.toThrow('AbortError')
+    expect(workerMock.instances[0]!.terminate).toHaveBeenCalledOnce()
   })
 })

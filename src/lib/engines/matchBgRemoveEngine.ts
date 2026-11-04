@@ -5,6 +5,8 @@ export interface MatchBgRemoveOptions {
   targetColor?: { r: number; g: number; b: number }
   tolerance?: number // 0 to 1
   feather?: number // 0 to 1
+  /** 只移除与图像边界连通的背景，避免前景里同色区域被误删 */
+  connectedOnly?: boolean
   format?: string
   quality?: number
 }
@@ -16,7 +18,7 @@ export interface MatchBgRemoveOptions {
 export const matchBgRemoveEngine: ImageProcessor<MatchBgRemoveOptions> = async (file, options) => {
   console.log('[Imago Engine] 🎨 Starting Perceptual Match Background Removal (Worker)')
 
-  const { tolerance = 0.15, feather = 0.1 } = options
+  const { tolerance = 0.15, feather = 0.1, connectedOnly = false } = options
 
   // 中止从解码阶段就生效。此前只在 worker 阶段（下方）挂钩，
   // 而解码 + getImageData 在大图上是耗时的：用户点「中止」后仍要
@@ -136,7 +138,10 @@ export const matchBgRemoveEngine: ImageProcessor<MatchBgRemoveOptions> = async (
         pixels: pixelBuffer,
         targetColor,
         tolerance,
-        feather
+        feather,
+        width,
+        height,
+        connectedOnly
       },
       [pixelBuffer]
     )

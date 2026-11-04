@@ -39,6 +39,8 @@ interface Props {
   /** 仅暴露浏览器 canvas.toBlob 支持的格式（jpeg/png/webp），
    *  用于 Crop/Combine/Filters/Exif 等直连 canvas 引擎的视图，避免 JXL/WebP2/AVIF 静默降级为 PNG */
   canvasOnly?: boolean
+  /** 隐藏不可用的导出格式；如透明背景视图不提供 JPEG（无 alpha 通道） */
+  excludeFormats?: string[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -52,7 +54,8 @@ const props = withDefaults(defineProps<Props>(), {
   allowManualQuality: false,
   showExifOption: false,
   title: '',
-  canvasOnly: false
+  canvasOnly: false,
+  excludeFormats: () => []
 })
 
 const displayTitle = computed(() => props.title || t('common.export.title'))
@@ -85,10 +88,12 @@ const formatOptions = computed(() => {
     { label: t('common.export.formatAvif'), value: 'image/avif' },
     { label: t('common.export.formatJxl'), value: 'image/jxl' }
   ]
-  if (!props.canvasOnly) return all
+  if (!props.canvasOnly) {
+    return all.filter((o) => !props.excludeFormats.includes(o.value))
+  }
   // canvas.toBlob 只保证 png/jpeg/webp；其余格式静默回退 PNG 且无提示，必须移除
   const supported = new Set(['original', 'image/webp', 'image/jpeg', 'image/png'])
-  return all.filter((o) => supported.has(o.value))
+  return all.filter((o) => supported.has(o.value) && !props.excludeFormats.includes(o.value))
 })
 
 const recommendedQualities: Record<string, number> = {

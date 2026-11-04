@@ -4,19 +4,11 @@
  */
 
 // --- 性能优化：预计算查表法 (LUT) ---
-// 1. 预计算 0-255 每个分量的 Gamma 校正值
+// 预计算 0-255 每个分量的 Gamma 校正值
 const GAMMA_LUT = new Float32Array(256)
 for (let i = 0; i < 256; i++) {
   const v = i / 255
   GAMMA_LUT[i] = v > 0.04045 ? Math.pow((v + 0.055) / 1.055, 2.4) : v / 12.92
-}
-
-// 2. 预计算 XYZ -> Lab 转换中的立方根查表 (近似范围)
-// 由于 XYZ 分量通常在 0-1 之间，我们对常用区间进行查表
-const LAB_F_LUT = new Float32Array(1024)
-for (let i = 0; i < 1024; i++) {
-  const t = i / 1023
-  LAB_F_LUT[i] = t > 0.008856 ? Math.pow(t, 1 / 3) : 7.787 * t + 16 / 116
 }
 
 /**
@@ -32,7 +24,7 @@ function rgbToLabOptimized(r: number, g: number, b: number) {
   const y = nr * 0.2126 + ng * 0.7152 + nb * 0.0722
   const z = nr * 0.0193 + ng * 0.1192 + nb * 0.9505
 
-  // XYZ -> Lab (快速查表近似)
+  // XYZ -> Lab
   const fx = x > 0.008856 ? Math.pow(x, 1 / 3) : 7.787 * x + 16 / 116
   const fy = y > 0.008856 ? Math.pow(y, 1 / 3) : 7.787 * y + 16 / 116
   const fz = z > 0.008856 ? Math.pow(z, 1 / 3) : 7.787 * z + 16 / 116
@@ -50,6 +42,56 @@ interface MatchTargetColor {
   b: number
 }
 
+/** 连通性约束：只有与图像边界连通的背景才会被移除 */
+interface ConnectivitySpec {
+  width: number
+  height: number
+}
+
+const labDistance = (
+  l: number,
+  a: number,
+  b: number,
+  target: { l: number; a: number; b: number }
+) => Math.sqrt(Math.pow(l - target.l, 2) + Math.pow(a - target.a, 2) + Math.pow(b - target.b, 2))
+
+/**
+ * 从图像四边向内 flood fill，标记与边界连通的背景候选像素。
+ * 前景里与背景同色的区域没有与边界连通的路径，会被保留。
+ */
+function floodFromBorder(candidates: Uint8Array, width: number, height: number): Uint8Array {
+  const reachable = new Uint8Array(candidates.length)
+  const queue = new Int32Array(candidates.length)
+  let head = 0
+  let tail = 0
+  const push = (index: number) => {
+    if (candidates[index] && !reachable[index]) {
+      reachable[index] = 1
+      queue[tail++] = index
+    }
+  }
+
+  for (let x = 0; x < width; x++) {
+    push(x)
+    push((height - 1) * width + x)
+  }
+  for (let y = 1; y < height - 1; y++) {
+    push(y * width)
+    push(y * width + width - 1)
+  }
+
+  while (head < tail) {
+    const index = queue[head++]!
+    const x = index % width
+    const y = (index / width) | 0
+    if (x > 0) push(index - 1)
+    if (x < width - 1) push(index + 1)
+    if (y > 0) push(index - width)
+    if (y < height - 1) push(index + width)
+  }
+  return reachable
+}
+
 /**
  * 纯色提取像素管线（原地改写 data）：
  * 1. 用 CIELAB 感知距离定 alpha —— 阈值内全透，羽化带内按源 alpha 做 smoothstep 收缩；
@@ -62,7 +104,8 @@ export function processMatchPixels(
   targetColor: MatchTargetColor,
   tolerance: number,
   feather: number,
-  onProgress?: (progress: number) => void
+  onProgress?: (progress: number) => void,
+  connectivity?: ConnectivitySpec
 ): void {
   const tr = targetColor.r
   const tg = targetColor.g
@@ -74,6 +117,27 @@ export function processMatchPixels(
 
   const totalPixels = data.length / 4
   const progressStep = Math.max(1, Math.floor(totalPixels / 20))
+  const backgroundCutoff = threshold + softness
+
+  // 连通性预扫：先标出「可能是背景」的像素，再从四边 flood fill。
+  // 只在开关打开时付出这份内存（每像素 4 字节的距离表）。
+  let distances: Float32Array | null = null
+  let reachable: Uint8Array | null = null
+  if (connectivity) {
+    distances = new Float32Array(totalPixels)
+    const candidates = new Uint8Array(totalPixels)
+    for (let i = 0; i < totalPixels; i++) {
+      const j = i * 4
+      const lab = rgbToLabOptimized(data[j]!, data[j + 1]!, data[j + 2]!)
+      const dist = labDistance(lab.l, lab.a, lab.b, targetLab)
+      distances[i] = dist
+      candidates[i] = dist < backgroundCutoff ? 1 : 0
+      if (onProgress && i % progressStep === 0) {
+        onProgress((i / totalPixels) * 0.4)
+      }
+    }
+    reachable = floodFromBorder(candidates, connectivity.width, connectivity.height)
+  }
 
   // key 色特征方向(去溢色用): 各通道超出其均值的部分。白幕三通道均衡, ksum≈0 自动 noop。
   const tavg = (tr + tg + tb) / 3
@@ -87,8 +151,12 @@ export function processMatchPixels(
   for (let i = 0; i < data.length; i += 4) {
     const pixelIndex = i / 4
     if (onProgress && pixelIndex % progressStep === 0) {
-      onProgress(pixelIndex / totalPixels)
+      const ratio = pixelIndex / totalPixels
+      onProgress(distances ? 0.4 + ratio * 0.6 : ratio)
     }
+
+    // 与边界不连通的同色区域属于前景内部（白衬衫配白墙），保留原样
+    if (reachable && !reachable[pixelIndex]) continue
 
     let r = data[i]!
     let g = data[i + 1]!
@@ -96,11 +164,9 @@ export function processMatchPixels(
 
     const currentLab = rgbToLabOptimized(r, g, b)
 
-    const dist = Math.sqrt(
-      Math.pow(currentLab.l - targetLab.l, 2) +
-        Math.pow(currentLab.a - targetLab.a, 2) +
-        Math.pow(currentLab.b - targetLab.b, 2)
-    )
+    const dist = distances
+      ? distances[pixelIndex]!
+      : labDistance(currentLab.l, currentLab.a, currentLab.b, targetLab)
 
     // 不透明度: 阈值内全透(背景), 羽化带内按源 alpha 做 smoothstep 收缩
     let alpha = data[i + 3]!
@@ -150,12 +216,19 @@ export function processMatchPixels(
 }
 
 self.onmessage = (e: MessageEvent) => {
-  const { pixels, targetColor, tolerance, feather } = e.data
+  const { pixels, targetColor, tolerance, feather, width, height, connectedOnly } = e.data
   const data = new Uint8ClampedArray(pixels)
 
-  processMatchPixels(data, targetColor, tolerance, feather, (progress) => {
-    self.postMessage({ type: 'progress', progress })
-  })
+  processMatchPixels(
+    data,
+    targetColor,
+    tolerance,
+    feather,
+    (progress) => {
+      self.postMessage({ type: 'progress', progress })
+    },
+    connectedOnly && width && height ? { width, height } : undefined
+  )
 
   // @ts-expect-error - 适配 DedicatedWorkerGlobalScope.postMessage 签名
   self.postMessage({ type: 'done', pixels: data.buffer }, [data.buffer])

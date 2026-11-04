@@ -31,15 +31,18 @@ import {
   Trash2,
   CheckCircle2
 } from 'lucide-vue-next'
-import { bgRemoveEngine, disposeBgRemoveWorker } from '../lib/engines/bgRemoveEngine'
+import {
+  bgRemoveEngine,
+  disposeBgRemoveWorker,
+  preloadBgRemoveModel
+} from '../lib/engines/bgRemoveEngine'
 import { matchBgRemoveEngine } from '../lib/engines/matchBgRemoveEngine'
-import { preload } from '@imgly/background-removal'
 import { useToolRun } from '../composables/useToolRun'
 import { useFileHelpers } from '../composables/useFileHelpers'
 import AppSlider from '../components/common/AppSlider.vue'
-import AppCheckbox from '../components/common/AppCheckbox.vue'
 import AppModal from '../components/common/AppModal.vue'
 import AppColorPicker from '../components/common/AppColorPicker.vue'
+import AppCheckbox from '../components/common/AppCheckbox.vue'
 import AppTip from '../components/common/AppTip.vue'
 import ImageCompare from '../components/common/ImageCompare.vue'
 
@@ -69,9 +72,16 @@ const DEFAULT_AI_SMOOTHNESS = 0
 const matchTolerance = ref(DEFAULT_MATCH_TOLERANCE)
 const matchFeather = ref(DEFAULT_MATCH_FEATHER)
 const matchColor = ref('#ffffff')
+const matchConnectedOnly = ref(false)
 
-// P2-14：模型体积常量（0MB 匹配 / 40MB 智能 / 176MB 专业），集中管理避免散落硬编码
-const MODEL_SIZE = { match: '0MB', smart: '40MB', pro: '176MB' } as const
+// P2-14：模型体积常量（0MB 匹配 / ORMBG 42-84MB / BiRefNet-lite 123-245MB）
+// WebGPU 下用 fp16，WASM 下用 int8 / fp32，下载体积不同
+const hasWebGPU = typeof navigator !== 'undefined' && 'gpu' in navigator
+const MODEL_SIZE = {
+  match: '0MB',
+  smart: hasWebGPU ? '84MB' : '42MB',
+  pro: hasWebGPU ? '123MB' : '245MB'
+} as const
 const modelSize = computed(() => MODEL_SIZE[engineMode.value])
 
 // AI 精修参数
@@ -79,7 +89,6 @@ const aiStrictness = ref(DEFAULT_AI_STRICTNESS)
 const aiOffset = ref(DEFAULT_AI_OFFSET)
 const aiSmoothness = ref(DEFAULT_AI_SMOOTHNESS)
 
-const useHighFidelity = ref(false)
 const outputFormat = ref<string>('image/png')
 const outputQuality = ref(1.0)
 
@@ -89,7 +98,8 @@ const isMatchDirty = computed(() => {
     Math.abs(matchTolerance.value - DEFAULT_MATCH_TOLERANCE) > 0.001 ||
     Math.abs(matchFeather.value - DEFAULT_MATCH_FEATHER) > 0.001 ||
     // P2-13：取色目标（matchColor）纳入脏检测
-    matchColor.value.toLowerCase() !== DEFAULT_MATCH_COLOR.toLowerCase()
+    matchColor.value.toLowerCase() !== DEFAULT_MATCH_COLOR.toLowerCase() ||
+    matchConnectedOnly.value
   )
 })
 
@@ -115,10 +125,10 @@ const hexToRgb = (hex: string) => {
 
 // 模型状态 (v2 版本锁定，确保在重构后强制重新触发下载检测)
 const smartStatus = ref<'not_ready' | 'loading' | 'ready' | 'error'>(
-  localStorage.getItem('imago-bg-v2-smart-ready') === 'true' ? 'ready' : 'not_ready'
+  localStorage.getItem('imago-bg-v3-smart-ready') === 'true' ? 'ready' : 'not_ready'
 )
 const proStatus = ref<'not_ready' | 'loading' | 'ready' | 'error'>(
-  localStorage.getItem('imago-bg-v2-pro-ready') === 'true' ? 'ready' : 'not_ready'
+  localStorage.getItem('imago-bg-v3-pro-ready') === 'true' ? 'ready' : 'not_ready'
 )
 
 const currentStatus = computed(() => {
@@ -145,7 +155,7 @@ const handleInteractiveClick = (id: string) => {
   interactiveError.value = false
 
   // 检查是否已经同意下载过 (使用 v2 版本号强制重新授权一次)
-  const isReady = localStorage.getItem('imago-sam2-v2-ready') === 'true'
+  const isReady = localStorage.getItem('imago-sam2-v3-ready') === 'true'
   if (isReady) {
     showEditorModal.value = true
   } else {
@@ -154,7 +164,7 @@ const handleInteractiveClick = (id: string) => {
 }
 
 const handleConfirmDownload = () => {
-  localStorage.setItem('imago-sam2-v2-ready', 'true')
+  localStorage.setItem('imago-sam2-v3-ready', 'true')
   showDownloadModal.value = false
   // 错开状态切换，确保过渡平滑且模态框能正确捕获 show 信号
   setTimeout(() => {
@@ -212,9 +222,11 @@ const handleInteractiveApply = async (maskBlob: Blob) => {
     maskCtx.drawImage(maskImg, 0, 0, canvas.width, canvas.height)
     const maskData = maskCtx.getImageData(0, 0, canvas.width, canvas.height)
 
-    // 3. 遮罩的 R 通道即为 Alpha（白色=255=完全保留，黑色=0=完全透明）
+    // 3. 遮罩的灰度 × Alpha 即为最终 Alpha：
+    //    SAM2 遮罩是「白色 RGB + 软 Alpha」，只读 R 会把软边压成硬边；
+    //    旧式不透明灰度遮罩的 Alpha 恒为 255，乘上去等价于原行为。
     for (let i = 0; i < imgData.data.length; i += 4) {
-      imgData.data[i + 3] = maskData.data[i]! // R 通道即是灰度值
+      imgData.data[i + 3] = Math.round((maskData.data[i]! * maskData.data[i + 3]!) / 255)
     }
     ctx.putImageData(imgData, 0, 0)
 
@@ -266,15 +278,14 @@ const toolRun = useToolRun({
         ...common,
         targetColor: hexToRgb(matchColor.value),
         tolerance: matchTolerance.value / 100,
-        feather: matchFeather.value / 100
+        feather: matchFeather.value / 100,
+        connectedOnly: matchConnectedOnly.value
       }
     }
     return {
       ...common,
-      // 字面量类型需显式收窄：BgRemoveOptions.model 是 'isnet' | 'isnet_fp16' |
-      // 'isnet_quint8' 的联合，引擎据此选权重文件
-      model: engineMode.value === 'pro' ? ('isnet' as const) : ('isnet_quint8' as const),
-      usePreScaling: !useHighFidelity.value,
+      // 字面量类型需显式收窄：BgRemoveOptions.model 是 'smart' | 'pro' 的联合
+      model: engineMode.value === 'pro' ? ('pro' as const) : ('smart' as const),
       // threshold / shrink 是 0-1 系数（worker 里当作 contrast/brightness 偏置），
       // blur 是直接给 ctx.filter 的像素半径，故只有前两者除 100——与迁移前一致
       maskThreshold: aiStrictness.value / 100,
@@ -310,21 +321,16 @@ const handleInitialize = async () => {
   initProgress.value = 0
   initError.value = ''
 
-  const targetModel = (engineMode.value === 'pro' ? 'isnet' : 'isnet_quint8') as
-    | 'isnet'
-    | 'isnet_quint8'
+  const targetModel = engineMode.value === 'pro' ? ('pro' as const) : ('smart' as const)
   const statusRef = engineMode.value === 'pro' ? proStatus : smartStatus
   const storageKey =
-    engineMode.value === 'pro' ? 'imago-bg-v2-pro-ready' : 'imago-bg-v2-smart-ready'
+    engineMode.value === 'pro' ? 'imago-bg-v3-pro-ready' : 'imago-bg-v3-smart-ready'
 
   statusRef.value = 'loading'
   try {
-    await preload({
-      model: targetModel,
-      progress: (key, current, total) => {
-        // P2-21：total 可能为 0，防除零
-        if (key.includes('fetch'))
-          initProgress.value = Math.round((current / Math.max(1, total)) * 100)
+    await preloadBgRemoveModel(targetModel, {
+      onProgress: (progress) => {
+        initProgress.value = Math.round(progress * 100)
       }
     })
     statusRef.value = 'ready'
@@ -395,8 +401,8 @@ const handleResetEngine = async () => {
   disposeBgRemoveWorker()
 
   // 1. 物理删除：清理浏览器 Cache Storage 中的大文件资产。
-  //    P2-12：不再依赖 'imgly' 前缀匹配（@imgly 版本升级可能换缓存名），
-  //    直接枚举并删除本域全部 Cache 键；本应用无 Service Worker，无其他缓存需要保留。
+  //    不依赖某个库的缓存前缀，直接枚举并删除本域全部 Cache 键；
+  //    本应用无 Service Worker，无其他缓存需要保留。
   //    IndexedDB：代码库无 indexedDB 使用（grep 确认），模型资产仅存 CacheStorage，无需处理。
   try {
     const cacheKeys = await caches.keys()
@@ -409,8 +415,8 @@ const handleResetEngine = async () => {
   }
 
   // 2. 标记删除：清理 LocalStorage 并更新 UI 状态
-  localStorage.removeItem('imago-bg-v2-pro-ready')
-  localStorage.removeItem('imago-bg-v2-smart-ready')
+  localStorage.removeItem('imago-bg-v3-pro-ready')
+  localStorage.removeItem('imago-bg-v3-smart-ready')
   smartStatus.value = 'not_ready'
   proStatus.value = 'not_ready'
 }
@@ -419,6 +425,7 @@ const handleResetParams = () => {
   if (engineMode.value === 'match') {
     matchTolerance.value = DEFAULT_MATCH_TOLERANCE
     matchFeather.value = DEFAULT_MATCH_FEATHER
+    matchConnectedOnly.value = false
   } else {
     aiStrictness.value = DEFAULT_AI_STRICTNESS
     aiOffset.value = DEFAULT_AI_OFFSET
@@ -755,6 +762,12 @@ const handleResetParams = () => {
               :default-value="DEFAULT_MATCH_FEATHER"
               :description="t('tools.bgRemove.featherDesc')"
             />
+            <AppCheckbox
+              v-model="matchConnectedOnly"
+              class="px-1"
+              :label="t('tools.bgRemove.connectedOnly')"
+              :description="t('tools.bgRemove.connectedOnlyDesc')"
+            />
           </div>
         </section>
 
@@ -806,25 +819,13 @@ const handleResetParams = () => {
         </section>
       </transition>
 
-      <!-- 第三分区：处理选项 -->
-      <section
-        v-if="engineMode !== 'match'"
-        class="space-y-4 pt-6 border-t border-[var(--hairline)]"
-      >
-        <AppSectionHeader :title="t('tools.bgRemove.processOptions')" :icon="Zap" />
-        <AppCheckbox
-          v-model="useHighFidelity"
-          :label="t('tools.bgRemove.disableScaling')"
-          :description="t('tools.bgRemove.disableScalingDesc')"
-        />
-      </section>
-
-      <!-- 第四分区：导出设置 -->
+      <!-- 第三分区：导出设置 -->
       <section class="pt-6 border-t border-[var(--hairline)]">
         <AppExportSettings
           v-model:format="outputFormat"
           v-model:quality="outputQuality"
           canvas-only
+          :exclude-formats="['image/jpeg']"
         />
       </section>
     </template>

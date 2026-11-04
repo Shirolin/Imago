@@ -1,4 +1,5 @@
 import { Sam2Model, AutoProcessor, RawImage, env, Tensor } from '@huggingface/transformers'
+import { refineMaskWithGuide } from './guidedMaskRefine'
 
 // 配置环境
 env.allowLocalModels = false
@@ -12,14 +13,31 @@ let imageEmbeddings: Record<string, Tensor> | null = null
 let lastProcessorInputs: any = null // eslint-disable-line @typescript-eslint/no-explicit-any
 // 上一次 decode 输出的低分辨率 logit 空间遮罩，用于增量修正 (mask feedback loop)
 let prevMaskLogits: Tensor | null = null
+// 本次 decode 的三个候选低分辨率 logits，供用户切换后继续点选
+let candidateLogits: Float32Array[] = []
+let candidateSize = { height: 0, width: 0 }
+// 引导图：原图缩到 ≤1024，供遮罩边缘精修使用
+let guideImage: { data: Uint8ClampedArray; width: number; height: number } | null = null
+let originalImageSize = { width: 0, height: 0 }
 
-const MODEL_ID = 'onnx-community/sam2-hiera-tiny-ONNX'
+const GUIDE_MAX_DIMENSION = 1024
+
+/** 原图等比缩到 ≤1024 后的尺寸；遮罩与引导图共用，保证两者逐像素对齐 */
+function targetMaskSize(width: number, height: number) {
+  const scale = Math.min(1, GUIDE_MAX_DIMENSION / Math.max(width, height))
+  return {
+    width: Math.max(1, Math.round(width * scale)),
+    height: Math.max(1, Math.round(height * scale))
+  }
+}
+
+const MODEL_ID = 'onnx-community/sam2.1-hiera-tiny-ONNX'
 
 async function loadModel() {
   if (model && processor) return
 
   // 检查 WebGPU 支持
-  let device = 'webgpu'
+  let device: 'webgpu' | 'wasm' = 'webgpu'
   // @ts-expect-error - navigator.gpu might not be in standard worker types
   if (!self.navigator.gpu) {
     device = 'wasm'
@@ -28,12 +46,42 @@ async function loadModel() {
   self.postMessage({ type: 'status', message: `正在加载 SAM2 模型 (${device})...` })
 
   processor = await AutoProcessor.from_pretrained(MODEL_ID)
-  model = (await Sam2Model.from_pretrained(MODEL_ID, {
-    device: device as any, // eslint-disable-line @typescript-eslint/no-explicit-any
-    dtype: device === 'webgpu' ? 'fp16' : 'fp32'
-  })) as Sam2Model
+
+  // WASM 下优先 int8（视觉编码器 50MB，fp32 为 128MB）；不可用时回退 fp32
+  const dtype = device === 'webgpu' ? 'fp16' : 'int8'
+  try {
+    model = (await Sam2Model.from_pretrained(MODEL_ID, {
+      device,
+      dtype
+    })) as Sam2Model
+  } catch (error) {
+    if (device === 'webgpu') throw error
+    self.postMessage({ type: 'status', message: 'int8 权重不可用，回退 fp32...' })
+    model = (await Sam2Model.from_pretrained(MODEL_ID, {
+      device,
+      dtype: 'fp32'
+    })) as Sam2Model
+  }
 
   self.postMessage({ type: 'ready' })
+}
+
+async function buildGuideImage(imageBlob: Blob) {
+  const bitmap = await createImageBitmap(imageBlob)
+  const { width, height } = targetMaskSize(bitmap.width, bitmap.height)
+  const canvas = new OffscreenCanvas(width, height)
+  const ctx = canvas.getContext('2d')
+  if (!ctx) {
+    bitmap.close()
+    guideImage = null
+    return
+  }
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  ctx.drawImage(bitmap, 0, 0, width, height)
+  const data = ctx.getImageData(0, 0, width, height).data
+  bitmap.close()
+  guideImage = { data, width, height }
 }
 
 async function encode(imageBlob: Blob) {
@@ -41,14 +89,17 @@ async function encode(imageBlob: Blob) {
   if (!model || !processor) throw new Error('模型未加载成功')
 
   const image = await RawImage.fromBlob(imageBlob)
+  originalImageSize = { width: image.width, height: image.height }
 
   self.postMessage({ type: 'status', message: '正在提取图像特征 (Encoder)...' })
 
   lastProcessorInputs = await processor(image)
   imageEmbeddings = await model.get_image_embeddings(lastProcessorInputs)
+  await buildGuideImage(imageBlob)
 
-  // 新图像编码时清除历史 logit 遮罩
+  // 新图像编码时清除历史 logit 遮罩与候选
   prevMaskLogits = null
+  candidateLogits = []
 
   self.postMessage({ type: 'encoded' })
 }
@@ -98,55 +149,90 @@ async function decode(points: number[][], labels: number[]) {
     }
   }
 
-  // 更新 Feedback 遮罩 (256x256)
+  // 更新 Feedback 遮罩并缓存三个候选（低分辨率 logit 空间）
+  candidateLogits = []
   if (outputs.pred_masks && outputs.pred_masks.dims.length === 4) {
     const dims = outputs.pred_masks.dims
     const h = dims[2]!
     const w = dims[3]!
     const stride = h * w
-    const start = bestIndex * stride
-    const logitSlice = (outputs.pred_masks.data as Float32Array).slice(start, start + stride)
-    prevMaskLogits = new Tensor('float32', logitSlice, [1, 1, h, w])
+    const data = outputs.pred_masks.data as Float32Array
+    const count = Math.max(1, Math.floor(data.length / stride))
+    candidateSize = { height: h, width: w }
+    for (let i = 0; i < count; i++) {
+      candidateLogits.push(data.slice(i * stride, (i + 1) * stride))
+    }
+    selectCandidate(bestIndex)
   }
 
-  // 2. 后处理与 Alpha 渲染 (遵循 Plan 3.2)
+  // 2. 后处理与 Alpha 渲染。
+  //    只还原到 ≤1024 的遮罩尺寸：原图尺寸的 3 份浮点遮罩在大图上会吃掉上百 MB，
+  //    而最终遮罩本来就会缩到 1024 做边缘精修、再由界面缩放合成。
+  //    binarize:false 保留 logits，后面的 Sigmoid 才有意义。
+  const target = targetMaskSize(originalImageSize.width, originalImageSize.height)
   const postProcessedMasks = await processor.post_process_masks(
     outputs.pred_masks,
-    lastProcessorInputs.original_sizes,
-    lastProcessorInputs.reshaped_input_sizes
+    [[target.height, target.width]],
+    lastProcessorInputs.reshaped_input_sizes,
+    { binarize: false }
   )
 
   const fullMaskBatch = postProcessedMasks[0]
   const dims = fullMaskBatch.dims
-  const maskW = dims[dims.length - 1]
-  const maskH = dims[dims.length - 2]
+  const maskW = dims[dims.length - 1]!
+  const maskH = dims[dims.length - 2]!
   const allLogits = fullMaskBatch.data as Float32Array
   const stride = maskH * maskW
-  const bestLogits = allLogits.slice(bestIndex * stride, (bestIndex + 1) * stride)
+  const count = Math.max(1, Math.min(3, Math.floor(allLogits.length / stride)))
+  const scoreData = outputs.iou_scores?.data as Float32Array | undefined
 
-  const canvas = new OffscreenCanvas(maskW, maskH)
+  // 三个候选全部渲染并回传，由界面切换；低分辨率 feedback 只跟随用户的选择
+  const masks: { url: string; score: number }[] = []
+  for (let i = 0; i < count; i++) {
+    const logits = allLogits.subarray(i * stride, (i + 1) * stride)
+    masks.push({
+      url: await renderMask(logits, maskW, maskH),
+      score: scoreData?.[i] ?? 1
+    })
+  }
+
+  self.postMessage({ type: 'mask', masks, selected: Math.min(bestIndex, count - 1) })
+}
+
+/** 用户切换候选时，后续点选基于该候选继续增量修正 */
+function selectCandidate(index: number) {
+  if (!candidateLogits.length) return
+  const i = Math.min(Math.max(0, index), candidateLogits.length - 1)
+  prevMaskLogits = new Tensor('float32', candidateLogits[i]!, [
+    1,
+    1,
+    candidateSize.height,
+    candidateSize.width
+  ])
+}
+
+/** 把候选 logits 渲染成白底 RGBA 遮罩，并在未知带上做图像引导精修 */
+async function renderMask(logits: Float32Array, width: number, height: number): Promise<string> {
+  const canvas = new OffscreenCanvas(width, height)
   const ctx = canvas.getContext('2d')!
-  const imageData = ctx.createImageData(maskW, maskH)
+  const imageData = ctx.createImageData(width, height)
 
   // A. 二值化用于填洞判定 (严格使用 0.0 作为前景阈值)
-  const binaryAlpha = new Uint8Array(maskW * maskH)
-  for (let i = 0; i < bestLogits.length; ++i) {
-    binaryAlpha[i] = bestLogits[i]! > 0.0 ? 255 : 0
+  const binaryAlpha = new Uint8Array(width * height)
+  for (let i = 0; i < logits.length; ++i) {
+    binaryAlpha[i] = logits[i]! > 0.0 ? 255 : 0
   }
 
   // B. 鲁棒填洞算法 (消除噪点)
-  const filledBinary = fillHoles(binaryAlpha, maskW, maskH)
+  const filledBinary = fillHoles(binaryAlpha, width, height)
 
   // C. Sigmoid 渲染
-  for (let i = 0; i < bestLogits.length; ++i) {
+  for (let i = 0; i < logits.length; ++i) {
     const j = i * 4
-    const logit = bestLogits[i]!
+    const logit = logits[i]!
 
-    // ⚠️ 核心修复：彻底解决背景蓝色遮罩问题
-    // 只有 logit > 0 (模型认定的前景) 或填洞补全区域才显示透明度
-    // 否则强制 Alpha 为 0。
+    // 只有 logit > 0 (模型认定的前景) 或填洞补全区域才显示透明度，否则强制 Alpha 为 0
     let finalAlpha = 0
-
     if (logit > 0.0) {
       // 前景：使用 Sigmoid 平滑 Alpha 实现抗锯齿
       const alpha = 1 / (1 + Math.exp(-logit))
@@ -163,10 +249,37 @@ async function decode(points: number[][], labels: number[]) {
   }
 
   ctx.putImageData(imageData, 0, 0)
-  const maskBlob = await canvas.convertToBlob()
-  const maskUrl = URL.createObjectURL(maskBlob)
+  const refined = await refineMaskCanvas(canvas)
+  const maskBlob = await refined.convertToBlob()
+  return URL.createObjectURL(maskBlob)
+}
 
-  self.postMessage({ type: 'mask', maskUrl })
+/**
+ * 在 ≤1024 的引导图尺度上精修遮罩边缘：
+ * SAM2 的软边来自低分辨率上采样，与真实纹理未必对齐；导向滤波只改未知带。
+ */
+async function refineMaskCanvas(canvas: OffscreenCanvas): Promise<OffscreenCanvas> {
+  if (!guideImage) return canvas
+  const scale = Math.min(1, GUIDE_MAX_DIMENSION / Math.max(canvas.width, canvas.height))
+  const width = Math.max(1, Math.round(canvas.width * scale))
+  const height = Math.max(1, Math.round(canvas.height * scale))
+  // 与引导图尺寸不一致说明引导图来自别的图像，直接放弃精修
+  if (width !== guideImage.width || height !== guideImage.height) return canvas
+
+  const small = new OffscreenCanvas(width, height)
+  const ctx = small.getContext('2d')
+  if (!ctx) return canvas
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  ctx.drawImage(canvas, 0, 0, width, height)
+
+  const imageData = ctx.getImageData(0, 0, width, height)
+  const alpha = new Uint8ClampedArray(width * height)
+  for (let i = 0; i < alpha.length; i++) alpha[i] = imageData.data[i * 4 + 3]!
+  const refined = refineMaskWithGuide(alpha, guideImage.data, width, height)
+  for (let i = 0; i < alpha.length; i++) imageData.data[i * 4 + 3] = refined[i]!
+  ctx.putImageData(imageData, 0, 0)
+  return small
 }
 
 /**
@@ -235,8 +348,12 @@ self.onmessage = async (event: MessageEvent) => {
       case 'decode':
         await decode(data.points, data.labels)
         break
+      case 'select-mask':
+        selectCandidate(data.index)
+        break
       case 'reset':
         prevMaskLogits = null
+        candidateLogits = []
         break
     }
   } catch (error) {
