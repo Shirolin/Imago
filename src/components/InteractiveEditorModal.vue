@@ -18,6 +18,7 @@ const { t } = useI18n()
 // 状态管理
 const isLoading = ref(true)
 const statusMessage = ref(t('common.modal.interactive.connecting'))
+const hasError = ref(false)
 const isEncoding = ref(false)
 const points = ref<{ x: number; y: number; label: number }[]>([])
 // 三个候选掩码：SAM2 的 multimask 输出，按 IoU 排序由界面选择
@@ -83,6 +84,12 @@ useEventListener(window, 'resize', () => updateDisplayRect())
 useEventListener(window, 'keydown', (e: KeyboardEvent) => {
   if (!props.show) return
 
+  if (e.key === 'Escape') {
+    e.preventDefault()
+    emit('close')
+    return
+  }
+
   // 拦截空格键用于平移模式
   if (e.code === 'Space') {
     if (!isSpacePressed.value) isSpacePressed.value = true
@@ -130,6 +137,7 @@ const initWorker = () => {
   const generation = workerGeneration
   isLoading.value = true
   isEncoding.value = false
+  hasError.value = false
   statusMessage.value = t('common.modal.interactive.connecting')
 
   // 滚动至中心
@@ -161,10 +169,12 @@ const initWorker = () => {
           break
         case 'ready':
           isLoading.value = false
+          hasError.value = false
           startEncoding()
           break
         case 'encoded':
           isEncoding.value = false
+          hasError.value = false
           statusMessage.value = t('common.modal.interactive.readyTip')
           break
         case 'mask':
@@ -174,6 +184,7 @@ const initWorker = () => {
           break
         case 'error':
           console.error('[SAM2 Editor] Error:', message)
+          hasError.value = true
           statusMessage.value = `${t('common.modal.interactive.error')}: ${message}`
           break
       }
@@ -276,6 +287,16 @@ const resetPoints = () => {
 // --- 缩放逻辑 (Zoom Logic) ---
 const zoom = ref(1) // 这里的 1 代表 100% 原生尺寸
 const initialZoom = ref(1) // 存储“最佳贴合”时的缩放倍率
+// 用户手动缩放后不再跟随容器尺寸自动贴合；点「自适应窗口」复位
+const userAdjustedZoom = ref(false)
+
+/** 把图片滚到视口中央：外层用 50vh padding 保证可自由平移，不居中会停在左上角 */
+const centerView = () => {
+  const container = document.getElementById('sam2-zoom-container')
+  if (!container) return
+  container.scrollLeft = (container.scrollWidth - container.clientWidth) / 2
+  container.scrollTop = (container.scrollHeight - container.clientHeight) / 2
+}
 
 const updateDisplayRect = () => {
   if (!imageRef.value || !viewportRef.value) return
@@ -287,15 +308,16 @@ const updateDisplayRect = () => {
   const nw = img.naturalWidth
   const nh = img.naturalHeight
 
-  if (!nw || !nh) return
+  if (!nw || !nh || vw <= 0 || vh <= 0) return
 
   // 计算“最佳贴合窗口”的缩放倍率
   const fitZoom = Math.min(vw / nw, vh / nh, 1) // 不自动放大过小的图，最大贴合倍率为 1
   initialZoom.value = fitZoom
 
-  // 如果是第一次加载或重置，应用最佳贴合
-  if (zoom.value === 1 && !historyPast.value.length) {
+  // 首次加载、窗口变化后都应用最佳贴合；用户手动缩放后保持其选择
+  if (!userAdjustedZoom.value && zoom.value !== fitZoom) {
     zoom.value = fitZoom
+    nextTick(centerView)
   }
 
   displayRect.value = {
@@ -326,6 +348,7 @@ const handleWheel = (e: WheelEvent) => {
     if (newZoom === zoom.value) return
 
     const scaleRatio = newZoom / zoom.value
+    userAdjustedZoom.value = true
     zoom.value = newZoom
 
     nextTick(() => {
@@ -336,21 +359,29 @@ const handleWheel = (e: WheelEvent) => {
 }
 
 const zoomIn = () => {
+  userAdjustedZoom.value = true
   zoom.value = Math.min(zoom.value * 1.2, 10)
+  nextTick(centerView)
 }
 
 const zoomOut = () => {
+  userAdjustedZoom.value = true
   zoom.value = Math.max(zoom.value * 0.8, 0.05)
+  nextTick(centerView)
 }
 
 // 对应名词：1:1
 const setOneToOne = () => {
+  userAdjustedZoom.value = true
   zoom.value = 1
+  nextTick(centerView)
 }
 
 // 对应名词：最佳贴合窗口
 const setFitToWindow = () => {
+  userAdjustedZoom.value = false
   zoom.value = initialZoom.value
+  nextTick(centerView)
 }
 
 // P2-16: 应用遮罩的防重复 guard——fetch 期间重复点击会并发导出同一遮罩，
@@ -386,6 +417,8 @@ watch(
       historyPast.value = []
       historyFuture.value = []
       points.value = []
+      zoom.value = 1
+      userAdjustedZoom.value = false
       clearMask()
       initWorker()
     } else {
@@ -409,12 +442,20 @@ watch(
     <div class="flex-1 flex flex-col bg-[var(--product)] select-none overflow-hidden min-h-0">
       <!-- 顶部工具栏 -->
       <div class="h-14 border-b border-white/5 flex items-center justify-between px-4 shrink-0">
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-4 min-w-0">
           <div
-            class="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20"
+            class="flex items-center gap-2 px-3 py-1 rounded-full border min-w-0 max-w-[min(60vw,520px)]"
+            :class="
+              errorMessage || hasError
+                ? 'bg-[var(--danger)]/10 border-[var(--danger)]/30 text-[var(--danger)]'
+                : 'bg-primary/10 border-primary/20 text-primary'
+            "
           >
-            <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-            <span class="text-[10px] font-medium text-primary">{{
+            <span
+              class="w-1.5 h-1.5 rounded-full animate-pulse"
+              :class="errorMessage || hasError ? 'bg-[var(--danger)]' : 'bg-primary'"
+            ></span>
+            <span class="text-[10px] font-medium truncate" :title="errorMessage || statusMessage">{{
               errorMessage || statusMessage
             }}</span>
           </div>
@@ -422,7 +463,7 @@ watch(
             v-if="points.length > 0"
             class="text-xs text-white/40 hover:text-white transition-colors"
             @click="resetPoints"
-            :title="t('common.modal.interactive.clear')"
+            :title="t('common.modal.interactive.clearAll')"
           >
             {{ t('common.modal.interactive.clearAll') }}
           </button>

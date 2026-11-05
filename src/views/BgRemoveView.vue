@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onUnmounted } from 'vue'
+import { computed, ref, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ImageItem } from '../stores/imageStore'
 import { useImageStore } from '../stores/imageStore'
@@ -29,7 +29,10 @@ import {
   Wand2,
   Database,
   Trash2,
-  CheckCircle2
+  MousePointer2,
+  Sparkles,
+  RefreshCw,
+  Plus
 } from 'lucide-vue-next'
 import {
   bgRemoveEngine,
@@ -48,7 +51,7 @@ import ImageCompare from '../components/common/ImageCompare.vue'
 
 const store = useImageStore()
 const layoutStore = useLayoutStore()
-const { formatSize } = useFileHelpers()
+const { formatSize, triggerFileInput } = useFileHelpers()
 const { t } = useI18n()
 
 // 引擎模式：Match (取色) vs Smart (智能-标准) vs Pro (专业-全量)
@@ -150,6 +153,9 @@ const showDownloadModal = ref(false)
 const showEditorModal = ref(false)
 const activeInteractiveImage = ref<ImageItem | null>(null)
 const interactiveError = ref(false)
+// 手动选区应用后的短暂确认，避免用户以为点了没反应
+const interactiveApplied = ref(false)
+let appliedTimer: ReturnType<typeof setTimeout> | null = null
 
 const handleInteractiveClick = (id: string) => {
   const item = store.images.find((img) => img.id === id)
@@ -181,7 +187,6 @@ const handleInteractiveApply = async (maskBlob: Blob) => {
   const id = activeInteractiveImage.value.id
   const originalUrl = activeInteractiveImage.value.preview
   interactiveError.value = false
-
   // === 遮罩合成：将 SAM2 遮罩叠加到原图，生成透明背景抠图 ===
   // 遮罩 objectURL 统一在 finally 释放，覆盖加载、Canvas 和编码失败路径。
   const maskUrl = URL.createObjectURL(maskBlob)
@@ -247,6 +252,11 @@ const handleInteractiveApply = async (maskBlob: Blob) => {
 
     showEditorModal.value = false
     activeInteractiveImage.value = null
+    interactiveApplied.value = true
+    if (appliedTimer) clearTimeout(appliedTimer)
+    appliedTimer = setTimeout(() => {
+      interactiveApplied.value = false
+    }, 4000)
   } catch (error) {
     interactiveError.value = true
     console.error('Interactive background removal failed:', error)
@@ -302,9 +312,34 @@ const toolRun = useToolRun({
 const { cta, result: resultOf, act: run, download, reset, exportAll } = toolRun
 const isProcessing = toolRun.isRunning
 
+// 侧栏「手动修边」入口：取第一张已有结果的选中图，没有选中就退回归属所有图
+const interactiveTarget = computed(() => {
+  const selected = store.images.filter((img) => store.selectedIds.has(img.id))
+  const pool = selected.length > 0 ? selected : store.images
+  return pool.find((img) => !!resultOf(img.id)) ?? null
+})
+
+// 残留清理只重算遮罩后处理，AI 推理结果仍在 Worker 缓存里，
+// 切换开关直接重跑即可秒级出结果，不必让用户再点一次 CTA。
+let autoApplyTimer: ReturnType<typeof setTimeout> | null = null
+const canAutoApply = () => {
+  if (isProcessing.value || currentStatus.value !== 'ready') return false
+  const selected = store.images.filter((img) => store.selectedIds.has(img.id))
+  return selected.length > 0 && selected.every((img) => !!resultOf(img.id))
+}
+watch(cleanResidue, () => {
+  if (!canAutoApply()) return
+  if (autoApplyTimer) clearTimeout(autoApplyTimer)
+  autoApplyTimer = setTimeout(() => {
+    if (canAutoApply()) void run()
+  }, 150)
+})
+
 // Worker 生命周期属于「引擎初始化」而非「结果」，仍由视图持有
 onUnmounted(() => {
   disposeBgRemoveWorker()
+  if (autoApplyTimer) clearTimeout(autoApplyTimer)
+  if (appliedTimer) clearTimeout(appliedTimer)
 })
 
 const displayImages = computed(() => [...store.images].reverse())
@@ -348,6 +383,10 @@ const handleInitialize = async () => {
 
 /** CTA 文案与图标。模型未就绪的三态（待激活/加载中/重试）优先级最高。 */
 const ctaCopy = computed(() => {
+  // 还没有图片时先说「导入」，不必让用户先为模型初始化挡路
+  if (store.images.length === 0) {
+    return { text: t('tools.bgRemove.cta.import'), icon: Plus }
+  }
   const status = currentStatus.value
   if (status === 'not_ready' || status === 'error') {
     return {
@@ -378,6 +417,11 @@ const ctaCopy = computed(() => {
         }),
         icon: Eraser
       }
+    case 'update':
+      return {
+        text: t('tools.bgRemove.cta.update', { count: store.selectedCount }),
+        icon: RefreshCw
+      }
     case 'export':
       return {
         text: t('tools.bgRemove.cta.export', { count: store.selectedCount }),
@@ -391,7 +435,17 @@ const ctaCopy = computed(() => {
   }
 })
 
+/** 空态恒可点（用于导入）；有图时仅「未选中」禁用，blocked 仍可点开初始化弹窗。 */
+const ctaDisabled = computed(
+  () => store.images.length > 0 && (cta.value.action === 'select' || cta.value.action === 'import')
+)
+
 const handleCtaClick = async () => {
+  // 空态直接唤起文件选择；此时不必先为模型初始化挡路
+  if (store.images.length === 0) {
+    triggerFileInput()
+    return
+  }
   // 模型未就绪时按 CTA 语义打开初始化弹窗（module 的 blocked 态不自动做这件事）
   if (currentStatus.value !== 'ready') {
     showInitModal.value = true
@@ -598,6 +652,9 @@ const handleResetParams = () => {
       <AppTip v-if="interactiveError" status class="text-destructive mb-4">
         {{ t('common.ui.operationFailed') }}
       </AppTip>
+      <AppTip v-else-if="interactiveApplied" status class="text-success mb-4">
+        {{ t('tools.bgRemove.manualApplied') }}
+      </AppTip>
 
       <!-- 第一分区：方案设定 -->
       <section class="space-y-4">
@@ -706,16 +763,30 @@ const handleResetParams = () => {
             <div class="flex items-center gap-1.5 min-w-0">
               <span
                 class="h-1.5 w-1.5 rounded-full shrink-0"
-                :class="currentStatus === 'ready' ? 'bg-success' : 'bg-warning animate-pulse'"
+                :class="
+                  currentStatus === 'ready'
+                    ? 'bg-success'
+                    : currentStatus === 'loading'
+                      ? 'bg-warning animate-pulse'
+                      : 'bg-muted-foreground/30'
+                "
               ></span>
               <span
                 class="text-[10px] font-medium truncate"
-                :class="currentStatus === 'ready' ? 'text-success' : 'text-warning'"
+                :class="
+                  currentStatus === 'ready'
+                    ? 'text-success'
+                    : currentStatus === 'loading'
+                      ? 'text-warning'
+                      : 'text-muted-foreground/60'
+                "
               >
                 {{
                   currentStatus === 'ready'
                     ? t('tools.bgRemove.statusReady')
-                    : t('tools.bgRemove.statusUpdate')
+                    : currentStatus === 'loading'
+                      ? t('tools.bgRemove.statusDownloading')
+                      : t('tools.bgRemove.statusIdle')
                 }}
               </span>
             </div>
@@ -777,20 +848,7 @@ const handleResetParams = () => {
         </section>
 
         <section v-else class="space-y-4 pt-6 border-t border-[var(--hairline)]">
-          <AppSectionHeader :title="t('tools.bgRemove.refinerTitle')" :icon="SlidersHorizontal">
-            <template #actions>
-              <div
-                class="flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 rounded-md border border-primary/20"
-              >
-                <CheckCircle2 :size="10" class="text-primary shrink-0" />
-                <span class="text-[11px] font-medium text-primary whitespace-nowrap">{{
-                  engineMode === 'pro'
-                    ? t('tools.bgRemove.corePremium')
-                    : t('tools.bgRemove.coreLite')
-                }}</span>
-              </div>
-            </template>
-          </AppSectionHeader>
+          <AppSectionHeader :title="t('tools.bgRemove.refinerTitle')" :icon="SlidersHorizontal" />
           <div class="space-y-4">
             <AppSlider
               v-model="aiStrictness"
@@ -810,25 +868,54 @@ const handleResetParams = () => {
               :default-value="DEFAULT_AI_OFFSET"
               :description="t('tools.bgRemove.offsetDesc')"
             />
-            <AppSlider
-              v-model="aiSmoothness"
-              :min="0"
-              :max="10"
-              :step="0.5"
-              :label="t('tools.bgRemove.smoothness')"
-              unit="px"
-              :default-value="DEFAULT_AI_SMOOTHNESS"
-              :description="t('tools.bgRemove.smoothnessDesc')"
-            />
-            <AppCheckbox
-              v-model="cleanResidue"
-              class="px-1"
-              :label="t('tools.bgRemove.cleanResidue')"
-              :description="t('tools.bgRemove.cleanResidueDesc')"
-            />
           </div>
         </section>
       </transition>
+
+      <!-- 边缘与残留：对已有遮罩做后处理，切换开关后自动重算 -->
+      <section
+        v-if="engineMode !== 'match'"
+        class="space-y-4 pt-6 border-t border-[var(--hairline)]"
+      >
+        <AppSectionHeader :title="t('tools.bgRemove.edgeTitle')" :icon="Sparkles" />
+        <div class="space-y-4">
+          <AppSlider
+            v-model="aiSmoothness"
+            :min="0"
+            :max="10"
+            :step="0.5"
+            :label="t('tools.bgRemove.smoothness')"
+            unit="px"
+            :default-value="DEFAULT_AI_SMOOTHNESS"
+            :description="t('tools.bgRemove.smoothnessDesc')"
+          />
+          <AppCheckbox
+            v-model="cleanResidue"
+            class="px-1"
+            :label="t('tools.bgRemove.cleanResidue')"
+            :description="t('tools.bgRemove.cleanResidueDesc')"
+          />
+        </div>
+      </section>
+
+      <!-- 手动修边：任意引擎的结果都可以用 SAM2 兜底重修 -->
+      <section class="space-y-3 pt-6 border-t border-[var(--hairline)]">
+        <AppSectionHeader :title="t('tools.bgRemove.manualTitle')" :icon="MousePointer2" />
+        <p class="text-[11px] text-muted-foreground/60 leading-relaxed">
+          {{ t('tools.bgRemove.manualDesc') }}
+        </p>
+        <AppButton
+          variant="secondary"
+          size="sm"
+          class="w-full"
+          :icon="MousePointer2"
+          icon-position="left"
+          :disabled="!interactiveTarget"
+          @click="interactiveTarget && handleInteractiveClick(interactiveTarget.id)"
+        >
+          {{ interactiveTarget ? t('tools.bgRemove.manualOpen') : t('tools.bgRemove.manualEmpty') }}
+        </AppButton>
+      </section>
 
       <!-- 第三分区：导出设置 -->
       <section class="pt-6 border-t border-[var(--hairline)]">
@@ -849,8 +936,8 @@ const handleResetParams = () => {
           :variant="cta.action === 'export' ? 'success' : 'cta'"
           class="w-full rounded-xl transition-colors"
           :loading="currentStatus === 'loading'"
-          :disabled="cta.disabled && currentStatus === 'loading'"
-          :hint="cta.action === 'abort' ? t('tools.split.cta.clickToAbort') : undefined"
+          :disabled="ctaDisabled"
+          :hint="cta.action === 'abort' ? t('tools.bgRemove.cta.abortHint') : undefined"
           @click="handleCtaClick"
         >
           <template #icon>

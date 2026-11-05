@@ -482,7 +482,7 @@ watch(displayUrl, () => {
 
       <div
         v-if="actionChrome === 'bar' && (image.status === 'done' || image.status === 'error')"
-        class="flex items-center gap-3 mt-1 pt-3 border-t border-[var(--hairline)]"
+        class="flex items-center gap-2 mt-1 pt-3 border-t border-[var(--hairline)]"
       >
         <button
           v-if="showCompare && image.status === 'done'"
@@ -495,21 +495,21 @@ watch(displayUrl, () => {
         </button>
         <button
           v-if="image.status === 'done' || image.status === 'error'"
-          class="shrink-0 flex h-10 items-center justify-center gap-1.5 px-2.5 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[var(--danger)]/10 text-[var(--muted)] hover:text-[var(--danger)] transition-colors text-[12px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger)]"
+          class="flex-1 min-w-0 flex h-10 items-center justify-center gap-1.5 px-2 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[var(--danger)]/10 text-[var(--muted)] hover:text-[var(--danger)] transition-colors text-[12px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger)]"
           @click.stop="handleReset"
           :aria-label="t('common.image.card.reset')"
         >
           <RotateCcw :size="14" class="shrink-0" />
-          <span class="whitespace-nowrap">{{ t('common.image.card.reset') }}</span>
+          <span class="truncate">{{ t('common.image.card.reset') }}</span>
         </button>
         <button
           v-if="showInteractive && image.status === 'done'"
-          class="shrink-0 flex h-10 items-center justify-center gap-1.5 px-2.5 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] text-[var(--muted)] hover:text-[var(--ink)] transition-colors text-[12px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          class="flex-1 min-w-0 flex h-10 items-center justify-center gap-1.5 px-2 rounded-[var(--radius-ctrl)] bg-[var(--well)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] text-[var(--muted)] hover:text-[var(--ink)] transition-colors text-[12px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           @click.stop="emit('interactive', image.id)"
           :aria-label="t('common.image.card.sam2')"
         >
           <MousePointer2 :size="14" class="shrink-0" />
-          <span class="whitespace-nowrap">{{ t('common.image.card.sam2') }}</span>
+          <span class="truncate">{{ t('common.image.card.refine') }}</span>
         </button>
         <button
           v-if="showDownload && image.status === 'done'"

@@ -77,7 +77,7 @@ export const GRID_HALF_FILL_BUDGET = { cjk: 6, latin: 10 } as const
 export const CARD_BAR_KEYS = [
   'common.image.card.compare',
   'common.image.card.reset',
-  'common.image.card.sam2'
+  'common.image.card.refine'
 ] as const
 
 export const CARD_BAR_BUDGET = { cjk: 4, latin: 12 } as const
@@ -88,17 +88,14 @@ export const MODEL_STATUS_LABEL_KEYS = [
   'tools.bgRemove.currentModel',
   'tools.bgRemove.connectionStatus',
   'tools.bgRemove.statusReady',
-  'tools.bgRemove.statusUpdate'
+  'tools.bgRemove.statusDownloading',
+  'tools.bgRemove.statusIdle'
 ] as const
 
 export const MODEL_STATUS_LABEL_BUDGET = { cjk: 6, latin: 12 } as const
 
-/** BgRemove refiner section header + core tier badge (single line in ~200px). */
-export const REFINER_HEADER_KEYS = [
-  'tools.bgRemove.refinerTitle',
-  'tools.bgRemove.corePremium',
-  'tools.bgRemove.coreLite'
-] as const
+/** BgRemove section headers sharing the inspector's tightest single line. */
+export const REFINER_HEADER_KEYS = ['tools.bgRemove.refinerTitle'] as const
 
 export const REFINER_HEADER_BUDGET = { cjk: 6, latin: 12 } as const
 
