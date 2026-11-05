@@ -1,5 +1,6 @@
 import { AutoModel, AutoProcessor, RawImage, env, pipeline } from '@huggingface/transformers'
 import { refineMaskAlpha } from './maskRefine'
+import { removeBackgroundResidue } from './backgroundResidue'
 import { computeLetterbox, cropMaskAlpha, type LetterboxRect } from './letterbox'
 
 // 所有推理都在本 Worker 内完成；禁止回读本地文件系统
@@ -48,6 +49,7 @@ interface WorkerOptions {
   maskThreshold?: number
   maskBlur?: number
   maskShrink?: number
+  cleanResidue?: boolean
   jobId?: string
   format?: string
   quality?: number
@@ -254,6 +256,23 @@ const predictMask = async (loaded: LoadedModel, file: File | Blob) => {
   return { alpha, width, height }
 }
 
+/** 把原图缩到遮罩尺寸，供残留清理做颜色参考；遮罩与原图比例一致，直接缩放即可 */
+const buildGuideImage = async (file: File | Blob, width: number, height: number) => {
+  const bitmap = await createImageBitmap(file)
+  const canvas = new OffscreenCanvas(width, height)
+  const ctx = canvas.getContext('2d')
+  if (!ctx) {
+    bitmap.close()
+    return null
+  }
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  ctx.drawImage(bitmap, 0, 0, width, height)
+  const data = ctx.getImageData(0, 0, width, height).data
+  bitmap.close()
+  return data
+}
+
 const runPreload = async (message: WorkerMessage) => {
   const { requestId, model = 'smart' } = message
   try {
@@ -277,6 +296,7 @@ const runInference = async (message: WorkerMessage) => {
     maskThreshold = 0,
     maskBlur = 0,
     maskShrink = 0,
+    cleanResidue = false,
     jobId,
     format,
     quality
@@ -330,14 +350,27 @@ const runInference = async (message: WorkerMessage) => {
 
     self.postMessage({ requestId, type: 'progress', value: 0.85 })
 
+    // 可选后处理：清掉与透明区连通的背景色残留（如贴着物体的墙面阴影）
+    let maskAlpha = mask.alpha
+    if (cleanResidue) {
+      const guide = await buildGuideImage(file, mask.width, mask.height)
+      if (guide) {
+        maskAlpha = removeBackgroundResidue(mask.alpha, {
+          data: guide,
+          width: mask.width,
+          height: mask.height
+        })
+      }
+    }
+
     // 在模型原生分辨率上精修 alpha，再放大到原图
     const maskImage = new ImageData(mask.width, mask.height)
-    for (let i = 0; i < mask.alpha.length; i++) {
+    for (let i = 0; i < maskAlpha.length; i++) {
       const j = i * 4
       maskImage.data[j] = 255
       maskImage.data[j + 1] = 255
       maskImage.data[j + 2] = 255
-      maskImage.data[j + 3] = refineMaskAlpha(mask.alpha[i]!, maskThreshold, maskShrink)
+      maskImage.data[j + 3] = refineMaskAlpha(maskAlpha[i]!, maskThreshold, maskShrink)
     }
 
     const maskCanvas = new OffscreenCanvas(mask.width, mask.height)

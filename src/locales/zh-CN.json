@@ -320,6 +320,8 @@
       "featherDesc": "让抠出的主体边缘更加柔和自然。",
       "connectedOnly": "仅移除连通背景",
       "connectedOnlyDesc": "只删除与图片边缘相连的背景色区域，避免前景中同色部分被误删。",
+      "cleanResidue": "清理背景色残留",
+      "cleanResidueDesc": "清掉与透明区连通、颜色接近背景的残留块，比如物体贴边的墙面阴影。",
       "forceInit": "强制重新初始化",
       "initDescPro1": "专业版模型约 ",
       "initDescPro2": "，采用 BiRefNet 架构，专为复杂边缘（如毛发）设计。仅需下载一次。",

@@ -320,6 +320,8 @@
       "featherDesc": "Softens subject boundaries for a natural blend.",
       "connectedOnly": "Connected background only",
       "connectedOnlyDesc": "Only remove background-colored areas connected to image edges, keeping same-colored parts of the subject.",
+      "cleanResidue": "Clean background residue",
+      "cleanResidueDesc": "Remove background-colored leftovers connected to transparency, such as shadows attached to the subject.",
       "forceInit": "Force Reinitialize",
       "initDescPro1": "Pro model is approx. ",
       "initDescPro2": ", using BiRefNet architecture designed for complex edges like hair. Download once.",

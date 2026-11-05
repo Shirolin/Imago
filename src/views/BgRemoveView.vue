@@ -88,6 +88,8 @@ const modelSize = computed(() => MODEL_SIZE[engineMode.value])
 const aiStrictness = ref(DEFAULT_AI_STRICTNESS)
 const aiOffset = ref(DEFAULT_AI_OFFSET)
 const aiSmoothness = ref(DEFAULT_AI_SMOOTHNESS)
+// 清掉与透明区连通、颜色接近背景的残留（典型：物体贴边的墙面阴影）
+const cleanResidue = ref(false)
 
 const outputFormat = ref<string>('image/png')
 const outputQuality = ref(1.0)
@@ -107,7 +109,8 @@ const isAiDirty = computed(() => {
   return (
     Math.abs(aiStrictness.value - DEFAULT_AI_STRICTNESS) > 0.001 ||
     Math.abs(aiOffset.value - DEFAULT_AI_OFFSET) > 0.001 ||
-    Math.abs(aiSmoothness.value - DEFAULT_AI_SMOOTHNESS) > 0.001
+    Math.abs(aiSmoothness.value - DEFAULT_AI_SMOOTHNESS) > 0.001 ||
+    cleanResidue.value
   )
 })
 
@@ -290,7 +293,8 @@ const toolRun = useToolRun({
       // blur 是直接给 ctx.filter 的像素半径，故只有前两者除 100——与迁移前一致
       maskThreshold: aiStrictness.value / 100,
       maskShrink: aiOffset.value / 100,
-      maskBlur: aiSmoothness.value
+      maskBlur: aiSmoothness.value,
+      cleanResidue: cleanResidue.value
     }
   }
 })
@@ -430,6 +434,7 @@ const handleResetParams = () => {
     aiStrictness.value = DEFAULT_AI_STRICTNESS
     aiOffset.value = DEFAULT_AI_OFFSET
     aiSmoothness.value = DEFAULT_AI_SMOOTHNESS
+    cleanResidue.value = false
   }
 }
 </script>
@@ -814,6 +819,12 @@ const handleResetParams = () => {
               unit="px"
               :default-value="DEFAULT_AI_SMOOTHNESS"
               :description="t('tools.bgRemove.smoothnessDesc')"
+            />
+            <AppCheckbox
+              v-model="cleanResidue"
+              class="px-1"
+              :label="t('tools.bgRemove.cleanResidue')"
+              :description="t('tools.bgRemove.cleanResidueDesc')"
             />
           </div>
         </section>

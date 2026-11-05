@@ -10,6 +10,7 @@ export interface BgRemoveOptions {
   maskThreshold?: number // 边缘严格度 (0-1)
   maskBlur?: number // 平滑度
   maskShrink?: number // 边缘偏移 (0-1)
+  cleanResidue?: boolean // 清理与透明区连通的背景色残留
   jobId?: string // 用于缓存 AI 遮罩以实现秒级精修
 }
 
@@ -141,6 +142,7 @@ export const bgRemoveEngine: ImageProcessor<BgRemoveOptions> = (file, options) =
           maskThreshold: options.maskThreshold,
           maskBlur: options.maskBlur,
           maskShrink: options.maskShrink,
+          cleanResidue: options.cleanResidue,
           jobId: options.jobId,
           format: options.format,
           quality: options.quality
