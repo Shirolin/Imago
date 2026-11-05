@@ -26,6 +26,7 @@ import { useImageStore } from './stores/imageStore'
 import { MAX_FILE_BYTES } from './lib/limits'
 import { useImageImport } from './composables/useImageImport'
 import { useLayoutStore } from './stores/layoutStore'
+import { buildInfo } from './lib/buildInfo'
 import SponsorModal from './components/SponsorModal.vue'
 import AppLogo from './components/common/AppLogo.vue'
 import LanguageSwitcher from './components/common/LanguageSwitcher.vue'
@@ -332,38 +333,48 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
       </nav>
 
       <div
-        class="flex border-t border-[var(--hairline)] shrink-0 px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]"
-        :class="[
-          layoutStore.isMenuCollapsed && !isMobileSidebarOpen
-            ? 'flex-col items-center gap-2'
-            : 'flex-row items-center justify-center gap-1 lg:justify-start'
-        ]"
+        class="border-t border-[var(--hairline)] shrink-0 px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]"
       >
-        <LanguageSwitcher />
-
-        <button
-          @click="showSponsorModal = true"
-          class="flex items-center justify-center w-9 h-9 rounded-[var(--radius)] text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] transition-colors shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-          :title="t('nav.sponsor')"
-          :aria-label="t('nav.sponsor')"
-        >
-          <Heart :size="16" />
-        </button>
-
         <div
-          v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-          class="hidden lg:block flex-1"
-        ></div>
-
-        <button
-          @click="layoutStore.toggleMenu"
-          class="hidden lg:flex items-center justify-center w-9 h-9 rounded-[var(--radius)] text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] transition-colors shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-          :title="layoutStore.isMenuCollapsed ? t('nav.expand') : t('nav.collapse')"
-          :aria-label="layoutStore.isMenuCollapsed ? t('nav.expand') : t('nav.collapse')"
+          class="flex"
+          :class="[
+            layoutStore.isMenuCollapsed && !isMobileSidebarOpen
+              ? 'flex-col items-center gap-2'
+              : 'flex-row items-center justify-center gap-1 lg:justify-start'
+          ]"
         >
-          <ChevronRight v-if="layoutStore.isMenuCollapsed" :size="16" />
-          <ChevronLeft v-else :size="16" />
-        </button>
+          <LanguageSwitcher />
+
+          <button
+            @click="showSponsorModal = true"
+            class="flex items-center justify-center w-9 h-9 rounded-[var(--radius)] text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] transition-colors shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            :title="t('nav.sponsor')"
+            :aria-label="t('nav.sponsor')"
+          >
+            <Heart :size="16" />
+          </button>
+
+          <div
+            v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
+            class="hidden lg:block flex-1"
+          ></div>
+
+          <button
+            @click="layoutStore.toggleMenu"
+            class="hidden lg:flex items-center justify-center w-9 h-9 rounded-[var(--radius)] text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] transition-colors shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            :title="layoutStore.isMenuCollapsed ? t('nav.expand') : t('nav.collapse')"
+            :aria-label="layoutStore.isMenuCollapsed ? t('nav.expand') : t('nav.collapse')"
+          >
+            <ChevronRight v-if="layoutStore.isMenuCollapsed" :size="16" />
+            <ChevronLeft v-else :size="16" />
+          </button>
+        </div>
+        <span
+          v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
+          class="mt-2 block truncate select-all font-mono text-[10px] leading-none text-[var(--muted)]/60"
+          :title="buildInfo.title"
+          >{{ buildInfo.label }}</span
+        >
       </div>
     </aside>
 
