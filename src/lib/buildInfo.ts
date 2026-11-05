@@ -11,8 +11,8 @@ declare const __BUILD_INFO__: {
 const info = __BUILD_INFO__
 
 export const buildInfo = {
-  /** 生产 v0.0.0+abc1234；本地 dev+abc1234 */
-  label: `${import.meta.env.DEV ? 'dev' : `v${info.version}`}+${info.commit}`,
+  /** 生产 v0.0.0 · abc1234；本地 dev · abc1234 */
+  label: `${import.meta.env.DEV ? 'dev' : `v${info.version}`} · ${info.commit}`,
   /** hover 展示完整构建时间 */
   title: `${info.commit} · ${info.date}`
 }

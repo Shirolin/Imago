@@ -371,7 +371,7 @@ const navItemClass = (active: boolean, collapsed: boolean) => {
         </div>
         <span
           v-if="!layoutStore.isMenuCollapsed || isMobileSidebarOpen"
-          class="mt-2 block truncate select-all font-mono text-[10px] leading-none text-[var(--muted)]/60"
+          class="mt-3.5 block truncate select-all text-center text-[10px] leading-none tracking-[0.06em] text-[var(--muted)] transition-colors hover:text-[var(--ink)] lg:pl-1 lg:text-start"
           :title="buildInfo.title"
           >{{ buildInfo.label }}</span
         >
