@@ -827,10 +827,12 @@
     "printAlt": "Vertical Snapshot",
     "steps": {
       "compress": "Compress",
+      "resize": "Resize",
       "crop": "Crop",
       "exif": "Remove EXIF",
       "split": "Split",
       "combine": "Combine",
+      "seamless": "Seamless tile",
       "bgRemove": "Remove BG",
       "filters": "Filters",
       "favicon": "Favicon",

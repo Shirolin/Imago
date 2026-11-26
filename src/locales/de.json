@@ -827,10 +827,12 @@
     "printAlt": "Vertikaler Schnappschuss",
     "steps": {
       "compress": "Komprimieren",
+      "resize": "Größe ändern",
       "crop": "Zuschneiden",
       "exif": "EXIF bereinigen",
       "split": "Teilen",
       "combine": "Zusammenfügen",
+      "seamless": "Nahtlos-Muster",
       "bgRemove": "Hintergrund entfernen",
       "filters": "Filter",
       "favicon": "Favicon",

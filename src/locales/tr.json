@@ -827,10 +827,12 @@
     "printAlt": "Dikey Görünüm",
     "steps": {
       "compress": "Sıkıştır",
+      "resize": "Boyutlandır",
       "crop": "Kırp",
       "exif": "EXIF Temizle",
       "split": "Böl",
       "combine": "Birleştir",
+      "seamless": "Kusursuz desen",
       "bgRemove": "Arka Planı Kaldır",
       "filters": "Filtreler",
       "favicon": "Favicon",

@@ -15,15 +15,17 @@ const fadeBottom = ref(true)
 const showSponsorModal = ref(false)
 
 const steps = computed(() => [
-  { n: '01', label: t('cover.steps.compress'), to: '/compress' },
-  { n: '02', label: t('cover.steps.crop'), to: '/crop' },
-  { n: '03', label: t('cover.steps.exif'), to: '/exif' },
-  { n: '04', label: t('cover.steps.split'), to: '/split' },
-  { n: '05', label: t('cover.steps.combine'), to: '/combine' },
-  { n: '06', label: t('cover.steps.bgRemove'), to: '/bg-remove' },
-  { n: '07', label: t('cover.steps.filters'), to: '/filters' },
-  { n: '08', label: t('cover.steps.favicon'), to: '/favicon' },
-  { n: '09', label: t('cover.steps.moldCut'), to: '/mold-cut' }
+  { label: t('cover.steps.compress'), to: '/compress' },
+  { label: t('cover.steps.resize'), to: '/resize' },
+  { label: t('cover.steps.crop'), to: '/crop' },
+  { label: t('cover.steps.exif'), to: '/exif' },
+  { label: t('cover.steps.split'), to: '/split' },
+  { label: t('cover.steps.combine'), to: '/combine' },
+  { label: t('cover.steps.seamless'), to: '/seamless' },
+  { label: t('cover.steps.bgRemove'), to: '/bg-remove' },
+  { label: t('cover.steps.filters'), to: '/filters' },
+  { label: t('cover.steps.favicon'), to: '/favicon' },
+  { label: t('cover.steps.moldCut'), to: '/mold-cut' }
 ])
 
 const goToStep = (to: string) => {
@@ -95,10 +97,10 @@ onMounted(() => {
             :class="{ 'is-fade-top': fadeTop, 'is-fade-bottom': fadeBottom }"
             @scroll.passive="syncTicketFade"
           >
-            <li v-for="step in steps" :key="step.n">
+            <li v-for="(step, i) in steps" :key="step.to">
               <button type="button" class="imago-ticket-row min-h-10" @click="goToStep(step.to)">
                 <span class="imago-ticket-no w-6 shrink-0 tabular-nums text-[13px]">{{
-                  step.n
+                  String(i + 1).padStart(2, '0')
                 }}</span>
                 <span class="imago-ticket-label text-[15px] leading-none">{{ step.label }}</span>
               </button>

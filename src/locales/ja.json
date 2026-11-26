@@ -827,10 +827,12 @@
     "printAlt": "縦位置スナップ",
     "steps": {
       "compress": "圧縮",
+      "resize": "リサイズ",
       "crop": "切り抜き",
       "exif": "EXIF 削除",
       "split": "分割",
       "combine": "結合",
+      "seamless": "シームレス柄",
       "bgRemove": "背景削除",
       "filters": "フィルター",
       "favicon": "ファビコン",

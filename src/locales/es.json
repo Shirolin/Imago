@@ -827,10 +827,12 @@
     "printAlt": "Instantánea vertical",
     "steps": {
       "compress": "Comprimir",
+      "resize": "Redimensionar",
       "crop": "Recortar",
       "exif": "Limpiar EXIF",
       "split": "Dividir",
       "combine": "Combinar",
+      "seamless": "Patrón sin costuras",
       "bgRemove": "Quitar fondo",
       "filters": "Filtros",
       "favicon": "Favicon",

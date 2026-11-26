@@ -827,10 +827,12 @@
     "printAlt": "竖版快照",
     "steps": {
       "compress": "压缩",
+      "resize": "尺寸",
       "crop": "裁切",
       "exif": "去拍摄信息",
       "split": "拆分",
       "combine": "拼接",
+      "seamless": "四方连续",
       "bgRemove": "去背景",
       "filters": "滤镜",
       "favicon": "做图标",

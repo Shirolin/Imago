@@ -823,10 +823,12 @@
     "printAlt": "세로 스냅샷",
     "steps": {
       "compress": "압축",
+      "resize": "크기 조정",
       "crop": "자르기",
       "exif": "촬영 정보 제거",
       "split": "분할",
       "combine": "이어붙이기",
+      "seamless": "사방 연속",
       "bgRemove": "배경 제거",
       "filters": "필터",
       "favicon": "아이콘 만들기",

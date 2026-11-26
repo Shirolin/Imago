@@ -827,10 +827,12 @@
     "printAlt": "Aperçu vertical",
     "steps": {
       "compress": "Compresser",
+      "resize": "Redimensionner",
       "crop": "Recadrer",
       "exif": "Nettoyer l'EXIF",
       "split": "Découper",
       "combine": "Assembler",
+      "seamless": "Motif sans couture",
       "bgRemove": "Supprimer le fond",
       "filters": "Filtres",
       "favicon": "Favicon",
