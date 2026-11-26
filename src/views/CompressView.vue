@@ -199,7 +199,6 @@ const cleanupResults = () => {
           v-model:show-magnifier="store.showMagnifier"
           v-model:preserve-exif="preserveExif"
           allow-manual-quality
-          :title="t('tools.compress.settingsTitle')"
         />
 
         <section class="pt-2 space-y-2">
@@ -230,7 +229,7 @@ const cleanupResults = () => {
               <component :is="ctaCopy.icon" v-else :size="18" class="mr-2" />
             </template>
             {{ ctaCopy.text
-            }}<span v-if="cta.badge" class="tabular-nums opacity-70">{{ cta.badge }}</span>
+            }}<span v-if="cta.badge" class="ml-1 tabular-nums opacity-70">{{ cta.badge }}</span>
           </AppButton>
         </InspectorFooter>
       </template>

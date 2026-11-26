@@ -246,6 +246,14 @@ const applyPreset = (preset: (typeof presets)[0]) => {
 
 const displayImages = computed(() => [...store.images].reverse())
 
+// 预设缩略图：有图时用当前图的缩略图套上该预设的滤镜，直观看出冷暖强弱差异
+const presetThumbStyle = (preset: (typeof presets)[number]) => ({
+  filter: `brightness(${preset.values.brightness}%) contrast(${preset.values.contrast}%) saturate(${preset.values.saturation}%) sepia(${preset.values.sepia}%)`,
+  backgroundImage: `url("${store.activeImage?.preview ?? ''}")`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center'
+})
+
 // 实时预览滤镜字符串
 const previewFilterStyle = computed(() => {
   return {
@@ -344,20 +352,20 @@ const handleCtaClick = async () => {
             <button
               v-if="canScrollLeft"
               @click="scrollPresets('left')"
-              class="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-[var(--chrome)] border border-[var(--hairline)] rounded-[var(--radius)] flex items-center justify-center text-muted-foreground hover:text-primary transition-colors [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/presets:opacity-100 -ml-2"
+              class="absolute -left-1 top-1/2 -translate-y-1/2 z-20 w-7 h-7 bg-[var(--chrome)] border border-[var(--hairline)] rounded-full flex items-center justify-center text-muted-foreground hover:text-primary shadow-sm transition-colors [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/presets:opacity-100"
               :aria-label="t('tools.filters.scrollLeft')"
             >
-              <ChevronLeft :size="16" />
+              <ChevronLeft :size="14" />
             </button>
 
             <!-- 右导航箭头 -->
             <button
               v-if="canScrollRight"
               @click="scrollPresets('right')"
-              class="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-[var(--chrome)] border border-[var(--hairline)] rounded-[var(--radius)] flex items-center justify-center text-muted-foreground hover:text-primary transition-colors [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/presets:opacity-100 -mr-2"
+              class="absolute -right-1 top-1/2 -translate-y-1/2 z-20 w-7 h-7 bg-[var(--chrome)] border border-[var(--hairline)] rounded-full flex items-center justify-center text-muted-foreground hover:text-primary shadow-sm transition-colors [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/presets:opacity-100"
               :aria-label="t('tools.filters.scrollRight')"
             >
-              <ChevronRight :size="16" />
+              <ChevronRight :size="14" />
             </button>
 
             <div
@@ -371,7 +379,7 @@ const handleCtaClick = async () => {
                 v-for="preset in presets"
                 :key="preset.id"
                 @click="applyPreset(preset)"
-                class="flex-shrink-0 w-20 py-2.5 rounded-xl border transition-all active:scale-95 flex flex-col items-center gap-1.5 group min-w-0"
+                class="flex-shrink-0 w-20 p-1.5 rounded-xl border transition-all active:scale-95 flex flex-col items-center gap-1.5 group min-w-0"
                 :class="[
                   activePresetId === preset.id
                     ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20'
@@ -382,17 +390,24 @@ const handleCtaClick = async () => {
                 :title="t(preset.key)"
               >
                 <div
-                  class="w-8 h-8 rounded-lg flex items-center justify-center"
-                  :class="[activePresetId === preset.id ? 'bg-primary/20' : 'bg-primary/10']"
+                  v-if="store.activeImage?.preview"
+                  class="w-full h-9 rounded-md overflow-hidden bg-[var(--well)]"
+                  :style="presetThumbStyle(preset)"
+                  aria-hidden="true"
+                ></div>
+                <div
+                  v-else
+                  class="w-full h-9 rounded-md flex items-center justify-center bg-[var(--well)]"
+                  aria-hidden="true"
                 >
                   <Palette
                     :size="14"
-                    class="text-primary"
+                    class="text-[var(--muted)]"
                     :fill="activePresetId === preset.id ? 'currentColor' : 'none'"
                   />
                 </div>
                 <span
-                  class="preset-label text-[11px] font-medium transition-colors"
+                  class="preset-label text-[11px] font-medium transition-colors truncate max-w-full"
                   :class="[
                     activePresetId === preset.id
                       ? 'text-primary'

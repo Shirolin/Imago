@@ -487,7 +487,7 @@ useResizeObserver(containerRef, resetView)
           <Transition name="fade-scale">
             <div
               v-if="(!hasEnoughImages && store.images.length > 0) || sortOrderNotice"
-              class="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 pointer-events-none max-w-[min(92%,20rem)]"
+              class="absolute bottom-[calc(var(--canvas-dock-clearance)+0.75rem)] left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 pointer-events-none max-w-[min(92%,20rem)]"
             >
               <div
                 v-if="!hasEnoughImages && store.images.length > 0"

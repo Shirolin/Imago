@@ -630,7 +630,7 @@
         "update": "更新当前滤镜 ({count})"
       },
       "desc": "内置专业级电影感滤镜与色彩微调工具",
-      "fineAdjustment": "色彩精準微调",
+      "fineAdjustment": "色彩精准微调",
       "name": "滤镜",
       "presets": {
         "aden": "浅梦",

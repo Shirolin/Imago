@@ -77,7 +77,7 @@ const toneClasses = computed(() => {
     return 'p-0 h-auto text-primary hover:bg-transparent hover:underline shadow-none border-none'
   }
   if (props.variant === 'cta' || props.variant === 'primary' || props.variant === 'success') {
-    return 'bg-[var(--accent)] text-[var(--on-product)] hover:bg-[var(--accent-press)] shadow-none border-none disabled:opacity-45'
+    return 'bg-[var(--accent)] text-[var(--on-product)] hover:bg-[var(--accent-press)] shadow-none border-none disabled:bg-[var(--well)] disabled:text-[var(--muted)] disabled:hover:bg-[var(--well)]'
   }
   if (props.variant === 'tool') {
     return 'text-muted-foreground hover:bg-secondary hover:text-foreground'
@@ -97,7 +97,7 @@ const toneClasses = computed(() => {
 const extraClasses = computed(() =>
   cn(
     className.value,
-    'transition-colors duration-150 flex items-center justify-center select-none rounded-[var(--radius-ctrl)] active:scale-[0.98] disabled:active:scale-100 motion-reduce:transform-none',
+    'transition-colors duration-150 flex items-center justify-center select-none rounded-[var(--radius-ctrl)] active:scale-[0.98] disabled:active:scale-100 disabled:opacity-100 motion-reduce:transform-none',
     (props.icon || props.loading) && hasLabel.value ? 'gap-2' : '',
     toneClasses.value,
     props.fill

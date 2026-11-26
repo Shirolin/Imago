@@ -53,7 +53,7 @@ onMounted(() => {
     <header
       class="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 pt-[calc(1.25rem+env(safe-area-inset-top,0px))] md:px-10 md:pt-7"
     >
-      <span class="imago-serif text-[28px] font-semibold leading-none tracking-tight">Imago</span>
+      <span class="imago-serif text-[28px] font-medium leading-none tracking-tight">Imago</span>
       <div class="flex items-center gap-1">
         <span
           class="mr-2 hidden text-[12px] font-medium tracking-[0.04em] text-[var(--muted)] sm:inline"

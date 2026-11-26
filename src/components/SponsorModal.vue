@@ -74,7 +74,7 @@ const { t } = useI18n()
             </div>
             <div class="min-w-0 flex-1 sm:flex-none">
               <div class="flex items-center justify-between sm:block relative">
-                <div class="font-medium text-sm text-primary truncate">
+                <div class="font-medium text-sm text-[var(--ink)] truncate">
                   {{ t('common.modal.sponsor.afdian') }}
                 </div>
                 <ExternalLink
@@ -105,7 +105,7 @@ const { t } = useI18n()
             </div>
             <div class="min-w-0 flex-1 sm:flex-none">
               <div class="flex items-center justify-between sm:block relative">
-                <div class="font-medium text-sm text-primary truncate">
+                <div class="font-medium text-sm text-[var(--ink)] truncate">
                   {{ t('common.modal.sponsor.kofi') }}
                 </div>
                 <ExternalLink

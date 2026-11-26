@@ -510,8 +510,11 @@ const handleCtaClick = async () => {
             t('tools.exif.analyzing')
           }}</span>
         </div>
-        <div v-else class="py-20 flex flex-col items-center gap-4 opacity-30">
-          <Fingerprint :size="32" /><span class="text-xs font-medium">{{
+        <div
+          v-else
+          class="rounded-[var(--radius-ctrl)] border border-dashed border-[var(--hairline)] py-12 flex flex-col items-center gap-3 text-[var(--muted)]"
+        >
+          <Fingerprint :size="28" class="opacity-50" /><span class="text-xs font-medium">{{
             t('tools.exif.selectToView')
           }}</span>
         </div>

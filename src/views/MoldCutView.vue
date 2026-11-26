@@ -357,8 +357,12 @@ watch(
             />
           </div>
         </div>
-        <div class="px-1 font-mono text-[11px] tabular-nums text-[var(--muted)]" aria-live="polite">
-          x {{ mold.x }} · y {{ mold.y }} · {{ mold.w }} × {{ mold.h }}
+        <div
+          class="px-1 flex items-center justify-between gap-2 font-mono text-[11px] tabular-nums text-[var(--muted)]"
+          aria-live="polite"
+        >
+          <span>X {{ mold.x }} · Y {{ mold.y }}</span>
+          <span>{{ mold.w }} × {{ mold.h }} px</span>
         </div>
         <AppTip v-if="basket.isFull.value" class="mx-1">{{ t('tools.moldCut.basketFull') }}</AppTip>
       </section>

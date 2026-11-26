@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, h, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useImageStore } from '../stores/imageStore'
 import WorkspaceLayout from '../components/layout/WorkspaceLayout.vue'
@@ -15,7 +15,6 @@ import {
   FlipVertical,
   Maximize2,
   Grid3X3,
-  Square,
   RotateCcw,
   Undo2,
   Redo2,
@@ -51,38 +50,6 @@ import InspectorFooter from '../components/layout/InspectorFooter.vue'
 
 const store = useImageStore()
 const { t } = useI18n()
-
-// 监听图片列表变化：结果集清理交给 useToolRun，这里只管工具侧的复位
-watch(
-  () => store.images,
-  (newImages) => {
-    if (newImages.length === 0) {
-      clearHistory()
-      resetView()
-    }
-  },
-  { deep: true }
-)
-
-const createRatioIcon = (width: number, height: number) => {
-  return () =>
-    h(
-      'svg',
-      {
-        viewBox: '0 0 24 24',
-        fill: 'none',
-        stroke: 'currentColor',
-        'stroke-width': '2',
-        'stroke-linecap': 'round',
-        'stroke-linejoin': 'round',
-        style: { width: '100%', height: '100%' }
-      },
-      [h('rect', { x: (24 - width) / 2, y: (24 - height) / 2, width, height, rx: '1.5' })]
-    )
-}
-const Icon43 = createRatioIcon(18, 14)
-const Icon169 = createRatioIcon(20, 11)
-const Icon23 = createRatioIcon(13, 19)
 
 // --- 状态 ---
 const rotation = ref(0)
@@ -342,6 +309,18 @@ const handleReset = () => {
   showResetConfirm.value = true
 }
 
+// 监听图片列表变化：结果集清理交给 useToolRun，这里只管工具侧的复位
+watch(
+  () => store.images,
+  (newImages) => {
+    if (newImages.length === 0) {
+      clearHistory()
+      resetView()
+    }
+  },
+  { deep: true }
+)
+
 const confirmReset = () => {
   resetAllState()
   showResetConfirm.value = false
@@ -370,17 +349,6 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyDown)
   if (trimWarningTimer) clearTimeout(trimWarningTimer)
 })
-
-// 【核心优化】：图片切换时强制重置所有参数，确保状态隔离。
-// 切换/进入视图属于隐式操作，直接复位不弹确认框（弹窗仅保留用户主动点击“重置”）。
-watch(
-  () => store.activeId,
-  (newId) => {
-    if (!newId) return
-    resetAllState()
-  },
-  { immediate: true }
-)
 
 /**
  * 处理 → 结果 → 导出交给 useToolRun。
@@ -421,6 +389,18 @@ const toolRun = useToolRun({
 const { cta, act: run, reset } = toolRun
 const isProcessing = toolRun.isRunning
 
+// 【核心优化】：图片切换时强制重置所有参数，确保状态隔离。
+// 切换/进入视图属于隐式操作，直接复位不弹确认框（弹窗仅保留用户主动点击“重置”）。
+// 必须放在 toolRun 之后：immediate 回调会用到上面解构出的 reset。
+watch(
+  () => store.activeId,
+  (newId) => {
+    if (!newId) return
+    resetAllState()
+  },
+  { immediate: true }
+)
+
 const cleanupResults = () => reset()
 
 const ctaCopy = computed(() => {
@@ -441,11 +421,11 @@ const handleCtaClick = async () => {
 }
 
 const ratios = computed(() => [
-  { label: t('tools.crop.freeRatio'), value: 0, icon: Scissors },
-  { label: '1:1', value: 1, icon: Square },
-  { label: '4:3', value: 4 / 3, icon: Icon43 },
-  { label: '16:9', value: 16 / 9, icon: Icon169 },
-  { label: '2:3', value: 2 / 3, icon: Icon23 }
+  { label: t('tools.crop.freeRatio'), value: 0 },
+  { label: '1:1', value: 1 },
+  { label: '4:3', value: 4 / 3 },
+  { label: '16:9', value: 16 / 9 },
+  { label: '2:3', value: 2 / 3 }
 ])
 </script>
 
@@ -596,7 +576,7 @@ const ratios = computed(() => [
               <span class="text-[11px] font-medium text-muted-foreground">{{
                 t('tools.crop.gridLines')
               }}</span>
-              <span class="text-[9px] text-muted-foreground/40 italic">{{
+              <span class="text-[10px] text-[var(--muted)]/70">{{
                 t('tools.crop.gridLinesTip')
               }}</span>
             </div>

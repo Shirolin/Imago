@@ -53,7 +53,7 @@ const triggerSelect = () => {
 
 <template>
   <div
-    class="relative w-full h-full min-h-[240px] flex items-center justify-center cursor-pointer outline-none rounded-[var(--radius-well)] text-center px-6 focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
+    class="group relative w-full h-full min-h-[240px] flex items-center justify-center cursor-pointer outline-none rounded-[var(--radius-well)] text-center px-6 focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
     role="button"
     tabindex="0"
     @click="triggerSelect"
@@ -69,7 +69,9 @@ const triggerSelect = () => {
     />
 
     <div class="flex flex-col items-center gap-2">
-      <p class="imago-serif text-[28px] md:text-[32px] leading-tight text-[var(--ink)]">
+      <p
+        class="imago-serif text-[28px] md:text-[32px] leading-tight text-[var(--ink)] transition-colors duration-150 group-hover:text-[var(--accent)]"
+      >
         {{ $t('common.image.upload.title') }}
       </p>
       <p class="text-[var(--muted)] text-sm leading-snug">

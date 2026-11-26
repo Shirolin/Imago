@@ -238,7 +238,7 @@ const handleGenerate = async () => {
                       {{ t('tools.favicon.appleTouchTitle') }}
                     </div>
                     <div
-                      class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-muted/50 text-[8px] font-bold text-muted-foreground/40 font-mono"
+                      class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-muted/50 text-[9px] font-bold text-muted-foreground/70 font-mono"
                     >
                       {{ t('tools.favicon.sizeLabel', { width: 180, height: 180 }) }}
                     </div>
@@ -387,7 +387,7 @@ const handleGenerate = async () => {
                               })
                         }}
                       </span>
-                      <p class="text-[9px] font-bold text-primary/70 leading-relaxed max-w-[280px]">
+                      <p class="text-[10px] font-medium text-primary leading-relaxed max-w-[280px]">
                         {{
                           autoPadding
                             ? t('tools.favicon.safeZoneTipOn')
@@ -396,7 +396,7 @@ const handleGenerate = async () => {
                       </p>
                     </div>
                     <div
-                      class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-muted/50 text-[8px] font-bold text-muted-foreground/40 font-mono uppercase"
+                      class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-muted/50 text-[9px] font-bold text-muted-foreground/70 font-mono uppercase"
                     >
                       {{ t('tools.favicon.outputSize', { width: 512, height: 512 }) }}
                     </div>
@@ -470,14 +470,14 @@ const handleGenerate = async () => {
                       />
                       <div
                         v-if="spec.id === 'ico'"
-                        class="absolute top-0 right-0 text-[6px] font-medium bg-primary text-primary-foreground px-1 py-0.5 rounded-bl-sm"
+                        class="absolute top-0 right-0 text-[8px] font-medium bg-primary text-primary-foreground px-1 py-0.5 rounded-bl-sm"
                       >
                         ICO
                       </div>
                     </div>
                     <div class="flex flex-col items-center gap-0.5">
                       <span
-                        class="text-[9px] font-mono font-medium text-muted-foreground/60 group-hover/item:text-primary transition-colors tabular-nums"
+                        class="text-[10px] font-mono font-medium text-muted-foreground/70 group-hover/item:text-primary transition-colors tabular-nums"
                         >{{ spec.size }}×{{ spec.size }}</span
                       >
                       <span class="text-[11px] font-medium text-muted-foreground/60 leading-none">{{
@@ -582,7 +582,7 @@ const handleGenerate = async () => {
                           }}</span
                         >
                         <span
-                          class="text-[8px] font-medium text-muted-foreground/50 leading-tight"
+                          class="text-[10px] font-medium text-muted-foreground/70 leading-tight"
                           >{{
                             spec.id === 'manifest' || spec.id === 'readme'
                               ? t(`tools.favicon.specs.${spec.id}`)

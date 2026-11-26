@@ -50,25 +50,30 @@ export function enterPage(el: Element, cover: boolean, reduced: boolean, done: (
     return
   }
   const target = el
-  target.style.opacity = '0'
-  target.style.transform = 'translateY(10px) scale(0.995)'
+  // 保底先挂上：动画（rAF 驱动）在后台标签页可能整段被暂停，
+  // 不能把「放行 + 清样式」只写在动画完成回调里，否则页面会停在动画首帧。
+  const finish = guardedDone(
+    () => {
+      target.style.opacity = ''
+      target.style.transform = ''
+      done()
+    },
+    ENTER_DELAY + ENTER_DURATION + 500
+  )
   setTimeout(() => {
     if (!target.isConnected) {
-      done()
+      finish()
       return
     }
-    const finish = guardedDone(done, ENTER_DURATION + 500)
+    target.style.opacity = '0'
+    target.style.transform = 'translateY(10px) scale(0.995)'
     animate(target, {
       opacity: [0, 1],
       y: [10, 0],
       scale: [0.995, 1],
       duration: cover ? 480 : ENTER_DURATION,
       ease: PAGE_EASE_ENTER,
-      onComplete: () => {
-        target.style.opacity = ''
-        target.style.transform = ''
-        finish()
-      }
+      onComplete: finish
     })
     staggerKids(target)
   }, ENTER_DELAY)
@@ -84,12 +89,13 @@ export function leavePage(el: Element, reduced: boolean, done: () => void): void
   target.style.inset = '0'
   target.style.zIndex = '1'
   target.style.pointerEvents = 'none'
+  // 保底不依赖 rAF：后台标签页 rAF 不跑时 Vue 仍需拿到 done 才能卸载旧页
+  const finish = guardedDone(done, 700)
   requestAnimationFrame(() => {
     if (!target.isConnected) {
-      done()
+      finish()
       return
     }
-    const finish = guardedDone(done, 700)
     animate(target, {
       opacity: [1, 0],
       duration: 200,
