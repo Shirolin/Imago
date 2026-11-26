@@ -775,6 +775,7 @@
       "gap": "Spacing / margin",
       "feather": "Seam feather",
       "featherOff": "0 keeps the offset wrap only and leaves the center seam hard.",
+      "bandHint": "Feather is washing out detail in the seam band — lower it.",
       "tiling": "Tiling grid",
       "cols": "Columns",
       "rows": "Rows",
@@ -809,7 +810,7 @@
       "dpiHint": "DPI is written into the PNG/JPEG header so layout apps read the physical size.",
       "seamScore": "Seam",
     "seamScoreLabel": "Seam score",
-    "seamScoreHint": "Scored from the pixel difference across tile edges; 100 means no visible seam.",
+    "seamScoreHint": "Combines the cut discontinuity with how much detail the seam band keeps; 100 means no visible seam.",
       "seamGrades": {
         "perfect": "Seamless",
         "good": "Good",

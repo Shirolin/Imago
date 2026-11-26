@@ -25,7 +25,8 @@ import {
   createSeamlessUnit,
   drawSeamlessSheet,
   seamlessEngine,
-  type SeamReport
+  type SeamReport,
+  type SeamlessOptions
 } from '../lib/engines/seamlessEngine'
 import { DPI_OPTIONS, formatCm } from '../lib/imageDpi'
 import type { ProcessResult } from '../lib/engines/types'
@@ -143,6 +144,7 @@ const seamLabel = computed(() =>
   seamReport.value ? t(`tools.seamless.seamGrades.${seamReport.value.grade}`) : ''
 )
 const seamWeak = computed(() => seamReport.value?.grade === 'poor')
+const bandWeak = computed(() => !!seamReport.value && seamReport.value.bandDetail < 0.8)
 const seamTone = computed(() => {
   const grade = seamReport.value?.grade
   if (grade === 'poor') return 'text-[var(--danger)]'
@@ -365,7 +367,7 @@ watch([gap, feather, rotate, source], () => requestDraw())
 watch(selectedImage, () => requestDraw())
 
 // --- 导出 ---
-const engineOptions = () => ({
+const engineOptions = (): SeamlessOptions => ({
   width: effectiveUnitW.value,
   height: effectiveUnitH.value,
   gap: gap.value,
@@ -613,8 +615,11 @@ const exportBatch = async () => {
           <AppTip>{{ t('tools.seamless.rotateHint') }}</AppTip>
         </div>
 
-        <AppTip v-if="seamWeak" status class="text-[var(--danger)]">{{
+        <AppTip v-if="seamWeak && !bandWeak" status class="text-[var(--danger)]">{{
           t('tools.seamless.seamHint')
+        }}</AppTip>
+        <AppTip v-if="bandWeak" status class="text-[var(--danger)]">{{
+          t('tools.seamless.bandHint')
         }}</AppTip>
 
         <div v-if="seamReport" class="flex items-center justify-between px-1 text-[11px]">

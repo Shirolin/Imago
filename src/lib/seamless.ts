@@ -68,7 +68,7 @@ export interface UnitGeometry {
   drawH: number
   /** 绕绘制矩形中心旋转的角度（度）。0 表示不旋转 */
   rotate: number
-  /** 偏移折返后，原始接缝所在的位置（单元中心） */
+  /** 偏移折返后，原始接缝所在的位置（默认单元中心） */
   seamX: number
   seamY: number
   /** 羽化半径 */
@@ -223,11 +223,35 @@ export function computeUnitGeometry(
 
   const seamX = Math.floor(w / 2)
   const seamY = Math.floor(h / 2)
-  // 羽化带不得越过接缝到另一侧，否则镜像采样会互相覆盖
-  const maxBand = Math.max(0, Math.min(seamX - 1, w - seamX - 1, seamY - 1, h - seamY - 1))
-  const band = clampInt(options.feather ?? 0, 0, maxBand)
+  const band = clampBand(options.feather ?? 0, w, h, seamX, seamY)
 
-  return { drawX, drawY, drawW, drawH, rotate, seamX, seamY, bandX: band, bandY: band }
+  return {
+    drawX,
+    drawY,
+    drawW,
+    drawH,
+    rotate,
+    seamX,
+    seamY,
+    bandX: band,
+    bandY: band
+  }
+}
+
+/** 羽化带不得越过接缝到另一侧，否则镜像采样会互相覆盖 */
+function clampBand(
+  feather: number,
+  width: number,
+  height: number,
+  seamX: number,
+  seamY: number
+): number {
+  const w = Math.max(2, Math.round(width))
+  const h = Math.max(2, Math.round(height))
+  const sx = Math.max(1, Math.min(w - 1, Math.round(seamX)))
+  const sy = Math.max(1, Math.min(h - 1, Math.round(seamY)))
+  const maxBand = Math.max(0, Math.min(sx - 1, w - sx - 1, sy - 1, h - sy - 1))
+  return clampInt(feather, 0, maxBand)
 }
 
 /** 角度归一到 [0, 360)；非有限值视为 0 */
@@ -328,6 +352,88 @@ export function edgeDiff(data: Uint8ClampedArray, width: number, height: number)
 export type SeamGrade = 'perfect' | 'good' | 'fair' | 'poor'
 
 /**
+ * 折返后的中心接缝（切位）两侧的可见差。
+ *
+ * 平铺边界的相邻列本来就是同一段内容，边界差恒为 0，测不出问题；
+ * 折返把原图接缝搬到切位，这里量的才是肉眼看到的断开。
+ */
+export function cutDiff(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+  seamX: number,
+  seamY: number
+): number {
+  const w = clampInt(width, 1, MAX_SEAMLESS_SIDE)
+  const h = clampInt(height, 1, MAX_SEAMLESS_SIDE)
+  if (w < 2 || h < 2) return 0
+  const sx = clampInt(seamX, 1, w - 1)
+  const sy = clampInt(seamY, 1, h - 1)
+  let sum = 0
+  let n = 0
+  for (let y = 0; y < h; y++) {
+    const a = (y * w + sx - 1) * 4
+    const b = (y * w + sx) * 4
+    for (let c = 0; c < 4; c++) sum += Math.abs(data[a + c]! - data[b + c]!)
+    n += 4
+  }
+  for (let x = 0; x < w; x++) {
+    const a = ((sy - 1) * w + x) * 4
+    const b = (sy * w + x) * 4
+    for (let c = 0; c < 4; c++) sum += Math.abs(data[a + c]! - data[b + c]!)
+    n += 4
+  }
+  return sum / n
+}
+
+/**
+ * 带内细节保留率：接缝带内的平均梯度 / 带外平均梯度。
+ * 镜像羽化会混合两份内容，数值明显低于 1 说明细节被糊掉了。
+ */
+export function bandDetailRatio(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+  seamX: number,
+  seamY: number,
+  band: number
+): number {
+  const w = clampInt(width, 1, MAX_SEAMLESS_SIDE)
+  const h = clampInt(height, 1, MAX_SEAMLESS_SIDE)
+  if (w < 4 || h < 4) return 1
+  const sx = clampInt(seamX, 1, w - 1)
+  const sy = clampInt(seamY, 1, h - 1)
+  const b = clampInt(band, 0, Math.max(0, Math.min(sx - 1, w - sx - 1, sy - 1, h - sy - 1)))
+  if (b <= 0) return 1
+  let inSum = 0
+  let inN = 0
+  let outSum = 0
+  let outN = 0
+  // 步进 2 采样：梯度统计不需要逐像素
+  for (let y = 1; y < h - 1; y += 2) {
+    for (let x = 1; x < w - 1; x += 2) {
+      const o = (y * w + x) * 4
+      const g =
+        Math.abs(data[o]! - data[o + 4]!) +
+        Math.abs(data[o + 1]! - data[o + 5]!) +
+        Math.abs(data[o + 2]! - data[o + 6]!)
+      if (Math.abs(x - sx) <= b || Math.abs(y - sy) <= b) {
+        inSum += g
+        inN++
+      } else {
+        outSum += g
+        outN++
+      }
+    }
+  }
+  if (inN === 0 || outN === 0) return 1
+  const inside = inSum / inN
+  const outside = outSum / outN
+  if (outside <= 1e-6) return inside <= 1e-6 ? 1 : 2
+  return inside / outside
+}
+
+/**
  * 边界差达到这个值就视为明显接缝：未折返的硬接缝通常在 20–40，
  * 处理好之后只剩几个通道级噪声。
  */
@@ -345,6 +451,18 @@ export function gradeSeam(score: number): SeamGrade {
   if (score >= 80) return 'good'
   if (score >= 60) return 'fair'
   return 'poor'
+}
+
+/**
+ * 接缝总分 = 切位断口分 × 带内细节保留率。
+ *
+ * 只看断口不够：羽化把断口抹平后断口恒接近满分，而镜子式混合会把穿缝的
+ * 结构（地平线、字形、花心）糊成重影。细节保留率低于 1 说明带内被抹掉
+ * 了内容，分数要跟着降。
+ */
+export function seamQuality(edge: number, bandDetail: number): number {
+  const detail = Number.isFinite(bandDetail) ? Math.max(0, Math.min(1, bandDetail)) : 0
+  return Math.round(seamScore(edge) * detail)
 }
 
 function blendPremultiplied(

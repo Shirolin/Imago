@@ -775,6 +775,7 @@
       "gap": "Espaçamento / margem",
       "feather": "Suavizar emendas",
       "featherOff": "0 = apenas deslocamento; a emenda central não é suavizada.",
+      "bandHint": "O esfumado apaga detalhes na faixa da emenda — reduza-o.",
       "tiling": "Grade de repetição",
       "cols": "Colunas",
       "rows": "Linhas",
@@ -809,7 +810,7 @@
       "dpiHint": "O DPI é gravado no cabeçalho PNG/JPEG; programas de layout leem o tamanho real.",
       "seamScore": "Emenda",
     "seamScoreLabel": "Nota da emenda",
-    "seamScoreHint": "Calculada pela diferença de pixels nas bordas do ladrilho; 100 = emenda invisível.",
+    "seamScoreHint": "Combina a descontinuidade do corte com o detalhe preservado na faixa da emenda; 100 significa sem emenda visível.",
       "seamGrades": {
         "perfect": "Invisível",
         "good": "Boa",

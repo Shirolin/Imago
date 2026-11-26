@@ -3,9 +3,11 @@ import { throwIfAborted } from './abort'
 import { withDpi } from '../imageDpi'
 import {
   MAX_SEAMLESS_SIDE,
+  bandDetailRatio,
   clampInt,
   computeSheetLayout,
   computeUnitGeometry,
+  cutDiff,
   edgeDiff,
   gradeSeam,
   hasTransparency,
@@ -13,7 +15,7 @@ import {
   normalizeSource,
   normalizeTileMode,
   opaqueBounds,
-  seamScore,
+  seamQuality,
   sheetExceedsCanvasLimit,
   snapToPowerOfTwo,
   type SeamGrade,
@@ -52,8 +54,10 @@ export interface SeamlessOptions {
 export interface SeamReport {
   score: number
   grade: SeamGrade
-  /** 平铺边界相邻像素平均差（0–255 通道尺度） */
+  /** 平铺边界/切位的相邻像素平均差（0–255 通道尺度） */
   edgeDiff: number
+  /** 接缝带内细节保留率；<0.8 说明羽化把细节糊掉了 */
+  bandDetail: number
 }
 
 export interface SeamlessUnit {
@@ -116,19 +120,31 @@ function paintBackground(ctx: CanvasRenderingContext2D, w: number, h: number, op
 }
 
 /**
- * 平铺边界的实际断开程度。折返/镜像两种模式下它都应该接近内部噪声；
- * 数值偏大说明接缝仍然可见（单元图形通常是源图边缘本身对不上）。
+ * 接缝质量的实测值。
+ *
+ * 满版图折返后，平铺边界本来就是连续的，只有切位处是真断口，所以量切位；
+ * 单元图形不做折返，边界就是要拼接的地方，仍然量边界。
  */
-function measureSeam(unit: HTMLCanvasElement): SeamReport {
+function measureSeam(
+  unit: HTMLCanvasElement,
+  geometry: UnitGeometry,
+  kind: SeamlessSource
+): SeamReport {
   const w = unit.width
   const h = unit.height
   if (w < 2 || h < 2) {
-    return { score: 100, grade: 'perfect', edgeDiff: 0 }
+    return { score: 100, grade: 'perfect', edgeDiff: 0, bandDetail: 1 }
   }
   const ctx = context2d(unit)
-  const edge = edgeDiff(ctx.getImageData(0, 0, w, h).data, w, h)
-  const score = seamScore(edge)
-  return { score, grade: gradeSeam(score), edgeDiff: edge }
+  const data = ctx.getImageData(0, 0, w, h).data
+  const edge =
+    kind === 'motif' ? edgeDiff(data, w, h) : cutDiff(data, w, h, geometry.seamX, geometry.seamY)
+  const bandDetail =
+    kind === 'motif'
+      ? 1
+      : bandDetailRatio(data, w, h, geometry.seamX, geometry.seamY, geometry.bandX)
+  const score = seamQuality(edge, bandDetail)
+  return { score, grade: gradeSeam(score), edgeDiff: edge, bandDetail }
 }
 
 /**
@@ -159,7 +175,7 @@ export function createSeamlessUnit(
   drawSource(ctx, source, geometry)
 
   if (kind === 'motif') {
-    return { canvas: unit, seam: measureSeam(unit) }
+    return { canvas: unit, seam: measureSeam(unit, geometry, kind) }
   }
 
   // 偏移折返：用快照自身铺四次，接缝落在 (seamX, seamY)
@@ -189,7 +205,7 @@ export function createSeamlessUnit(
     ctx.putImageData(imageData, 0, 0)
   }
 
-  return { canvas: unit, seam: measureSeam(unit) }
+  return { canvas: unit, seam: measureSeam(unit, geometry, kind) }
 }
 
 /** 按布局把无缝单元铺成平铺大图。翻转只用于镜像平铺 */

@@ -775,6 +775,7 @@
       "gap": "Abstand / Rand",
       "feather": "Naht weichzeichnen",
       "featherOff": "0 bedeutet nur Versatz; die mittlere Naht wird nicht weichgezeichnet.",
+      "bandHint": "Die Federung verwischt Details im Nahtband – Federung verringern.",
       "tiling": "Kachelraster",
       "cols": "Spalten",
       "rows": "Zeilen",
@@ -809,7 +810,7 @@
       "dpiHint": "DPI wird in den PNG/JPEG-Header geschrieben, Layoutprogramme lesen die physische Größe.",
       "seamScore": "Naht",
     "seamScoreLabel": "Nahtwert",
-    "seamScoreHint": "Bewertet anhand der Pixelunterschiede an den Kachelrändern; 100 = keine sichtbare Naht.",
+    "seamScoreHint": "Kombiniert die Diskontinuität am Schnitt mit dem Detailerhalt im Nahtband; 100 heißt keine sichtbare Naht.",
       "seamGrades": {
         "perfect": "Nahtlos",
         "good": "Gut",

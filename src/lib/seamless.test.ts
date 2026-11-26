@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import {
+  bandDetailRatio,
   computeSheetLayout,
   computeUnitGeometry,
+  cutDiff,
   edgeDiff,
   gradeSeam,
   mirrorBlendSeams,
   normalizeAngle,
   normalizeSource,
   normalizeTileMode,
+  seamQuality,
   seamScore,
   snapToPowerOfTwo
 } from './seamless'
@@ -263,5 +266,61 @@ describe('normalizeSource', () => {
     expect(normalizeSource('motif')).toBe('motif')
     expect(normalizeSource('nope')).toBe('fullBleed')
     expect(normalizeSource(undefined)).toBe('fullBleed')
+  })
+})
+
+const makeData = (w: number, h: number, pick: (x: number, y: number) => number[]) => {
+  const data = new Uint8ClampedArray(w * h * 4)
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const [r, g, b, a] = pick(x, y)
+      const o = (y * w + x) * 4
+      data[o] = r!
+      data[o + 1] = g!
+      data[o + 2] = b!
+      data[o + 3] = a!
+    }
+  }
+  return data
+}
+
+describe('cutDiff', () => {
+  it('量到切位两侧的硬断口', () => {
+    const data = makeData(16, 16, (x) => (x < 8 ? [0, 0, 0, 255] : [255, 255, 255, 255]))
+    expect(cutDiff(data, 16, 16, 8, 8)).toBeGreaterThan(80)
+  })
+
+  it('平坦处为 0', () => {
+    const data = makeData(16, 16, () => [120, 120, 120, 255])
+    expect(cutDiff(data, 16, 16, 8, 8)).toBe(0)
+  })
+})
+
+describe('bandDetailRatio', () => {
+  const noisy = makeData(64, 64, (x, y) => [
+    (x * 37 + y * 11) % 256,
+    (x * 17) % 256,
+    (y * 29) % 256,
+    255
+  ])
+
+  it('镜像羽化后接缝带细节下降', () => {
+    const blended = new Uint8ClampedArray(noisy)
+    mirrorBlendSeams(blended, 64, 64, 32, 32, 8)
+    expect(bandDetailRatio(blended, 64, 64, 32, 32, 8)).toBeLessThan(
+      bandDetailRatio(noisy, 64, 64, 32, 32, 8)
+    )
+  })
+
+  it('没有羽化带时视为 1', () => {
+    expect(bandDetailRatio(noisy, 64, 64, 32, 32, 0)).toBe(1)
+  })
+})
+
+describe('seamQuality', () => {
+  it('带内细节被抹掉时扣分，细节充足时不超过 100', () => {
+    expect(seamQuality(0, 1)).toBe(100)
+    expect(seamQuality(0, 0.27)).toBe(27)
+    expect(seamQuality(0, 1.9)).toBe(100)
   })
 })

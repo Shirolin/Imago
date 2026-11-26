@@ -775,6 +775,7 @@
       "gap": "Aralık / boşluk",
       "feather": "Dikiş yumuşatma",
       "featherOff": "0 = yalnızca ofset; ortadaki dikiş yumuşatılmaz.",
+      "bandHint": "Yumuşatma dikiş bandındaki ayrıntıları siliyor — azaltın.",
       "tiling": "Döşeme ızgarası",
       "cols": "Sütun",
       "rows": "Satır",
@@ -809,7 +810,7 @@
       "dpiHint": "DPI PNG/JPEG başlığına yazılır; mizanpaj uygulamaları gerçek boyutu okur.",
       "seamScore": "Dikiş",
     "seamScoreLabel": "Dikiş puanı",
-    "seamScoreHint": "Karo kenarlarındaki piksel farkına göre hesaplanır; 100 = görünür dikiş yok.",
+    "seamScoreHint": "Kesimdeki süreksizliği dikiş bandında korunan ayrıntıyla birleştirir; 100 dikiş görünmüyor demektir.",
       "seamGrades": {
         "perfect": "Kusursuz",
         "good": "İyi",

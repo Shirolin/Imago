@@ -775,6 +775,7 @@
       "gap": "Separación / margen",
       "feather": "Difuminar uniones",
       "featherOff": "0 = solo desplazamiento; la unión central no se suaviza.",
+      "bandHint": "El difuminado borra detalles en la banda de la costura: redúcelo.",
       "tiling": "Cuadrícula de repetición",
       "cols": "Columnas",
       "rows": "Filas",
@@ -809,7 +810,7 @@
       "dpiHint": "El DPI se escribe en la cabecera PNG/JPEG y los programas de maquetación leen el tamaño real.",
       "seamScore": "Costura",
     "seamScoreLabel": "Puntuación de costura",
-    "seamScoreHint": "Calculada por la diferencia de píxeles en los bordes de la baldosa; 100 = sin costura visible.",
+    "seamScoreHint": "Combina la discontinuidad del corte con el detalle que conserva la banda de la costura; 100 significa sin costura visible.",
       "seamGrades": {
         "perfect": "Invisible",
         "good": "Buena",

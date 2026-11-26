@@ -775,6 +775,7 @@
       "gap": "Espacement / marge",
       "feather": "Fondu des coutures",
       "featherOff": "0 = décalage seul, la couture centrale n'est pas adoucie.",
+      "bandHint": "Le fondu efface les détails dans la bande de couture — réduisez-le.",
       "tiling": "Grille de répétition",
       "cols": "Colonnes",
       "rows": "Lignes",
@@ -809,7 +810,7 @@
       "dpiHint": "Le DPI est écrit dans l'en-tête PNG/JPEG : les logiciels de mise en page lisent la taille réelle.",
       "seamScore": "Couture",
     "seamScoreLabel": "Score de joint",
-    "seamScoreHint": "Calculé d’après l’écart de pixels aux bords de la tuile ; 100 = joint invisible.",
+    "seamScoreHint": "Combine l'écart au niveau de la coupe et la conservation des détails dans la bande de couture ; 100 = aucune couture visible.",
       "seamGrades": {
         "perfect": "Invisible",
         "good": "Bonne",
