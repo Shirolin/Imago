@@ -37,7 +37,9 @@
         "resized": "_boyutlandirilmis",
         "split": "_bolunmus",
         "combined": "_birlestirilmis",
-        "moldCut": "_kalip"
+        "moldCut": "_kalip",
+        "seamlessUnit": "_kusursuz",
+        "seamlessSheet": "_doseme"
       },
       "targetSize": "Hedef Dosya Boyutu",
       "colorsUnit": "Renk",
@@ -744,6 +746,75 @@
       "verticalLine": "Dikey",
       "verticalRows": "Dikey Satır Sayısı",
       "viewSettings": "Görünüm Tercihleri"
+    },
+    "seamless": {
+      "name": "Kusursuz desen",
+      "desc": "Deseni dört yönde tekrarlanabilen bir birime dönüştür",
+      "mode": "Tekrar",
+      "modes": {
+        "straight": "Düz",
+        "halfDrop": "1/2 Kaydırma",
+        "brick": "Tuğla",
+        "horizontal": "Yatay",
+        "vertical": "Dikey",
+        "mirror": "Ayna"
+      },
+      "modeHints": {
+        "straight": "Satır ve sütunlar hizalıdır. Küçük motifler ve düzgün dokular için uygundur.",
+        "halfDrop": "Her iki sütundan biri yarım hücre aşağı kayar.",
+        "brick": "Her iki satırdan biri yarım hücre sağa kayar; tuğla örgüsü gibi.",
+        "horizontal": "Yalnızca yatay yönde tekrarlar; kenar ve çizgiler için.",
+        "vertical": "Yalnızca dikey yönde tekrarlar.",
+        "mirror": "Komşu döşemeler aynalanır; birleşim yeri yapı gereği görünmez."
+      },
+      "unit": "Birim boyutu",
+      "width": "Genişlik",
+      "height": "Yükseklik",
+      "lockRatio": "Oranı kilitle",
+      "unlockRatio": "Oran kilidini aç",
+      "gap": "Aralık / boşluk",
+      "feather": "Dikiş yumuşatma",
+      "featherOff": "0 = yalnızca ofset; ortadaki dikiş yumuşatılmaz.",
+      "tiling": "Döşeme önizlemesi",
+      "cols": "Sütun",
+      "rows": "Satır",
+      "outputSize": "Çıktı boyutu",
+      "unitSize": "Birim",
+      "sheetSize": "Döşeme",
+      "oversized": "Döşeme çıktısı tarayıcı tuval sınırını aşıyor. Satır/sütun veya birim boyutunu azaltın.",
+      "failed": "Oluşturma başarısız. Tekrar deneyin.",
+      "canvasAria": "Kusursuz desen önizlemesi",
+      "cta": {
+        "exportUnit": "Birimi dışa aktar",
+        "exportSheet": "Döşemeyi dışa aktar",
+        "exportBatch": "Seçimi dışa aktar ({n})"
+      },
+      "source": "Desen türü",
+      "sources": {
+        "fullBleed": "Tam desen",
+        "motif": "Tek motif"
+      },
+      "sourceHints": {
+        "fullBleed": "Sürekli desen: dört kenar birleştirilir, dikiş birim ortasına taşınır.",
+        "motif": "Şeffaf zeminli tek motif: yerleşimini korur ve birim olarak tekrarlanır."
+      },
+      "seamGap": "Dikiş aralığı",
+      "padding": "Kenar boşluğu",
+      "rotate": "Döndürme",
+      "rotateHint": "Döndürme yalnızca birim içindeki yönü değiştirir, dikişi etkilemez.",
+      "pow2": "Kenar 2'nin kuvveti",
+      "pow2Hint": "Birim boyutunu en yakın 2 kuvvetine yuvarlar (oyun/doku hatları).",
+      "print": "Baskı",
+      "printSize": "Baskı boyutu",
+      "dpiHint": "DPI PNG/JPEG başlığına yazılır; mizanpaj uygulamaları gerçek boyutu okur.",
+      "seamScore": "Dikiş",
+      "seamGrades": {
+        "perfect": "Kusursuz",
+        "good": "İyi",
+        "fair": "Orta",
+        "poor": "Zayıf"
+      },
+      "seamHint": "Dikiş zayıf: ayna döşemeyi deneyin veya yumuşatmayı artırın."
     }
   },
   "cover": {

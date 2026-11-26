@@ -37,7 +37,9 @@
         "resized": "_resized",
         "split": "_split",
         "combined": "_combined",
-        "moldCut": "_mold"
+        "moldCut": "_mold",
+        "seamlessUnit": "_seamless",
+        "seamlessSheet": "_sheet"
       },
       "targetSize": "Target File Size",
       "colorsUnit": "Colors",
@@ -744,6 +746,75 @@
       "verticalLine": "Vertical",
       "verticalRows": "Vertical Rows",
       "viewSettings": "Canvas View Settings"
+    },
+    "seamless": {
+      "name": "Seamless tile",
+      "desc": "Turn a pattern into a unit that repeats in all four directions",
+      "mode": "Repeat",
+      "modes": {
+        "straight": "Straight",
+        "halfDrop": "Half-drop",
+        "brick": "Brick",
+        "horizontal": "Horizontal",
+        "vertical": "Vertical",
+        "mirror": "Mirror"
+      },
+      "modeHints": {
+        "straight": "Rows and columns line up. Best for small motifs and even textures.",
+        "halfDrop": "Every other column drops half a cell for a softer grid.",
+        "brick": "Every other row shifts half a cell, like brickwork.",
+        "horizontal": "Repeats horizontally only, for borders and stripes.",
+        "vertical": "Repeats vertically only.",
+        "mirror": "Adjacent tiles flip, so the join is seamless by construction."
+      },
+      "unit": "Unit size",
+      "width": "Width",
+      "height": "Height",
+      "lockRatio": "Lock ratio",
+      "unlockRatio": "Unlock ratio",
+      "gap": "Spacing / margin",
+      "feather": "Seam feather",
+      "featherOff": "0 keeps the offset wrap only and leaves the center seam hard.",
+      "tiling": "Tiling preview",
+      "cols": "Columns",
+      "rows": "Rows",
+      "outputSize": "Output size",
+      "unitSize": "Unit",
+      "sheetSize": "Sheet",
+      "oversized": "The tiled output exceeds the browser canvas limit. Reduce rows/columns or the unit size.",
+      "failed": "Generation failed. Please try again.",
+      "canvasAria": "Seamless tiling preview",
+      "cta": {
+        "exportUnit": "Export unit",
+        "exportSheet": "Export sheet",
+        "exportBatch": "Export selected ({n})"
+      },
+      "source": "Pattern type",
+      "sources": {
+        "fullBleed": "Full-bleed",
+        "motif": "Motif unit"
+      },
+      "sourceHints": {
+        "fullBleed": "A full pattern: the four edges are joined and the seam moves to the unit centre.",
+        "motif": "One motif on transparency: keeps its layout and repeats the unit as is."
+      },
+      "seamGap": "Seam gutter",
+      "padding": "Margin",
+      "rotate": "Rotation",
+      "rotateHint": "Rotation only turns the content inside the unit; tiling stays seamless.",
+      "pow2": "Power-of-two size",
+      "pow2Hint": "Snap the unit size to the nearest power of two for game and texture pipelines.",
+      "print": "Print",
+      "printSize": "Print size",
+      "dpiHint": "DPI is written into the PNG/JPEG header so layout apps read the physical size.",
+      "seamScore": "Seam",
+      "seamGrades": {
+        "perfect": "Seamless",
+        "good": "Good",
+        "fair": "Fair",
+        "poor": "Weak"
+      },
+      "seamHint": "Weak seam: try mirror tiling, or raise the seam feather."
     }
   },
   "cover": {

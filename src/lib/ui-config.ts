@@ -22,6 +22,7 @@ const FLAGS: Record<string, ViewFeatureFlags> = {
   crop: { showLayoutToggle: false },
   split: { showLayoutToggle: false },
   combine: { showLayoutToggle: false },
+  seamless: { showLayoutToggle: false },
   moldCut: { showLayoutToggle: false },
   // 特殊形态：走自己的矩阵布局
   favicon: { showLayoutToggle: false }

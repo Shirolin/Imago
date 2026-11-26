@@ -51,6 +51,12 @@ const router = createRouter({
       meta: { title: 'tools.combine.name' }
     },
     {
+      path: '/seamless',
+      name: 'seamless',
+      component: () => import('./views/SeamlessView.vue'),
+      meta: { title: 'tools.seamless.name' }
+    },
+    {
       path: '/exif',
       name: 'exif',
       component: () => import('./views/ExifView.vue'),

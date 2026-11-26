@@ -37,7 +37,9 @@
         "resized": "_redimensionado",
         "split": "_dividido",
         "combined": "_combinado",
-        "moldCut": "_molde"
+        "moldCut": "_molde",
+        "seamlessUnit": "_sin-costuras",
+        "seamlessSheet": "_mosaico"
       },
       "targetSize": "Tamaño de archivo objetivo",
       "colorsUnit": "Colores",
@@ -744,6 +746,75 @@
       "verticalLine": "Vertical",
       "verticalRows": "Filas verticales",
       "viewSettings": "Preferencias de visualización"
+    },
+    "seamless": {
+      "name": "Patrón sin costuras",
+      "desc": "Convertir un patrón en una unidad repetible en las cuatro direcciones",
+      "mode": "Repetición",
+      "modes": {
+        "straight": "Recta",
+        "halfDrop": "Desfase 1/2",
+        "brick": "Ladrillo",
+        "horizontal": "Horizontal",
+        "vertical": "Vertical",
+        "mirror": "Espejo"
+      },
+      "modeHints": {
+        "straight": "Filas y columnas quedan alineadas. Ideal para motivos pequeños y texturas uniformes.",
+        "halfDrop": "Una de cada dos columnas baja media celda.",
+        "brick": "Una de cada dos filas se desplaza media celda, como un muro de ladrillos.",
+        "horizontal": "Solo se repite en horizontal, para bordes y rayas.",
+        "vertical": "Solo se repite en vertical.",
+        "mirror": "Las losetas contiguas se reflejan: la unión es invisible por construcción."
+      },
+      "unit": "Tamaño de unidad",
+      "width": "Ancho",
+      "height": "Alto",
+      "lockRatio": "Bloquear proporción",
+      "unlockRatio": "Desbloquear proporción",
+      "gap": "Separación / margen",
+      "feather": "Difuminar uniones",
+      "featherOff": "0 = solo desplazamiento; la unión central no se suaviza.",
+      "tiling": "Vista previa del mosaico",
+      "cols": "Columnas",
+      "rows": "Filas",
+      "outputSize": "Tamaño de salida",
+      "unitSize": "Unidad",
+      "sheetSize": "Mosaico",
+      "oversized": "La salida del mosaico supera el límite del lienzo del navegador. Reduce filas/columnas o el tamaño de la unidad.",
+      "failed": "Error al generar. Inténtalo de nuevo.",
+      "canvasAria": "Vista previa del patrón sin costuras",
+      "cta": {
+        "exportUnit": "Exportar unidad",
+        "exportSheet": "Exportar mosaico",
+        "exportBatch": "Exportar selección ({n})"
+      },
+      "source": "Tipo de patrón",
+      "sources": {
+        "fullBleed": "Patrón completo",
+        "motif": "Motivo aislado"
+      },
+      "sourceHints": {
+        "fullBleed": "Patrón continuo: se unen los cuatro bordes y la costura pasa al centro.",
+        "motif": "Motivo aislado con fondo transparente: conserva su composición y se repite tal cual."
+      },
+      "seamGap": "Separación de costura",
+      "padding": "Margen",
+      "rotate": "Rotación",
+      "rotateHint": "La rotación solo cambia la orientación dentro de la unidad, no la costura.",
+      "pow2": "Lado en potencia de 2",
+      "pow2Hint": "Ajusta el tamaño de unidad a la potencia de 2 más cercana (juegos/texturas).",
+      "print": "Impresión",
+      "printSize": "Tamaño de impresión",
+      "dpiHint": "El DPI se escribe en la cabecera PNG/JPEG y los programas de maquetación leen el tamaño real.",
+      "seamScore": "Costura",
+      "seamGrades": {
+        "perfect": "Invisible",
+        "good": "Buena",
+        "fair": "Media",
+        "poor": "Débil"
+      },
+      "seamHint": "Costura débil: prueba el mosaico espejo o sube el difuminado."
     }
   },
   "cover": {

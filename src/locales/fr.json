@@ -37,7 +37,9 @@
         "resized": "_redimensionne",
         "split": "_decoupe",
         "combined": "_combine",
-        "moldCut": "_moule"
+        "moldCut": "_moule",
+        "seamlessUnit": "_sans-couture",
+        "seamlessSheet": "_pavage"
       },
       "targetSize": "Taille de fichier cible",
       "colorsUnit": "Couleurs",
@@ -744,6 +746,75 @@
       "verticalLine": "Vertical",
       "verticalRows": "Lignes verticales",
       "viewSettings": "Préférences d'affichage"
+    },
+    "seamless": {
+      "name": "Motif sans couture",
+      "desc": "Transformer un motif en unité répétable dans les quatre directions",
+      "mode": "Répétition",
+      "modes": {
+        "straight": "Droite",
+        "halfDrop": "Décalage 1/2",
+        "brick": "Brique",
+        "horizontal": "Horizontal",
+        "vertical": "Vertical",
+        "mirror": "Miroir"
+      },
+      "modeHints": {
+        "straight": "Lignes et colonnes sont alignées. Idéal pour les petits motifs et les textures régulières.",
+        "halfDrop": "Une colonne sur deux descend d'une demi-cellule.",
+        "brick": "Une ligne sur deux se décale d'une demi-cellule, comme des briques.",
+        "horizontal": "Répétition horizontale uniquement, pour les bordures et rayures.",
+        "vertical": "Répétition verticale uniquement.",
+        "mirror": "Les tuiles voisines sont retournées : la jointure est invisible par construction."
+      },
+      "unit": "Taille de l'unité",
+      "width": "Largeur",
+      "height": "Hauteur",
+      "lockRatio": "Verrouiller le ratio",
+      "unlockRatio": "Déverrouiller le ratio",
+      "gap": "Espacement / marge",
+      "feather": "Fondu des coutures",
+      "featherOff": "0 = décalage seul, la couture centrale n'est pas adoucie.",
+      "tiling": "Aperçu du pavage",
+      "cols": "Colonnes",
+      "rows": "Lignes",
+      "outputSize": "Taille de sortie",
+      "unitSize": "Unité",
+      "sheetSize": "Pavage",
+      "oversized": "Le pavage dépasse la limite du canvas du navigateur. Réduisez les lignes/colonnes ou la taille de l'unité.",
+      "failed": "Échec de la génération. Réessayez.",
+      "canvasAria": "Aperçu du motif sans couture",
+      "cta": {
+        "exportUnit": "Exporter l'unité",
+        "exportSheet": "Exporter le pavage",
+        "exportBatch": "Exporter la sélection ({n})"
+      },
+      "source": "Type de motif",
+      "sources": {
+        "fullBleed": "Plein motif",
+        "motif": "Motif isolé"
+      },
+      "sourceHints": {
+        "fullBleed": "Motif continu : les quatre bords sont raccordés, la couture passe au centre de l'unité.",
+        "motif": "Motif isolé sur fond transparent : conserve sa mise en page et se répète tel quel."
+      },
+      "seamGap": "Espace de couture",
+      "padding": "Marge",
+      "rotate": "Rotation",
+      "rotateHint": "La rotation ne change que l'orientation dans l'unité, pas la couture.",
+      "pow2": "Côté en puissance de 2",
+      "pow2Hint": "Arrondit la taille de l'unité à la puissance de 2 la plus proche (jeu/texture).",
+      "print": "Impression",
+      "printSize": "Taille d'impression",
+      "dpiHint": "Le DPI est écrit dans l'en-tête PNG/JPEG : les logiciels de mise en page lisent la taille réelle.",
+      "seamScore": "Couture",
+      "seamGrades": {
+        "perfect": "Invisible",
+        "good": "Bonne",
+        "fair": "Moyenne",
+        "poor": "Faible"
+      },
+      "seamHint": "Couture faible : essayez le pavage miroir ou augmentez le fondu."
     }
   },
   "cover": {

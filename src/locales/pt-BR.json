@@ -37,7 +37,9 @@
         "resized": "_redimensionado",
         "split": "_dividido",
         "combined": "_combinado",
-        "moldCut": "_molde"
+        "moldCut": "_molde",
+        "seamlessUnit": "_sem-emendas",
+        "seamlessSheet": "_mosaico"
       },
       "targetSize": "Tamanho de arquivo alvo",
       "colorsUnit": "Cores",
@@ -744,6 +746,75 @@
       "verticalLine": "Vertical",
       "verticalRows": "Linhas verticais",
       "viewSettings": "Preferências de visualização"
+    },
+    "seamless": {
+      "name": "Padrão sem emendas",
+      "desc": "Transformar um padrão em uma unidade repetível nas quatro direções",
+      "mode": "Repetição",
+      "modes": {
+        "straight": "Reta",
+        "halfDrop": "Deslocamento 1/2",
+        "brick": "Tijolo",
+        "horizontal": "Horizontal",
+        "vertical": "Vertical",
+        "mirror": "Espelho"
+      },
+      "modeHints": {
+        "straight": "Linhas e colunas alinhadas. Ideal para motivos pequenos e texturas uniformes.",
+        "halfDrop": "Uma coluna sim, uma não desce meia célula.",
+        "brick": "Uma linha sim, uma não desloca meia célula, como tijolos.",
+        "horizontal": "Repete apenas na horizontal, para bordas e listras.",
+        "vertical": "Repete apenas na vertical.",
+        "mirror": "As peças vizinhas são espelhadas: a emenda é invisível por construção."
+      },
+      "unit": "Tamanho da unidade",
+      "width": "Largura",
+      "height": "Altura",
+      "lockRatio": "Bloquear proporção",
+      "unlockRatio": "Desbloquear proporção",
+      "gap": "Espaçamento / margem",
+      "feather": "Suavizar emendas",
+      "featherOff": "0 = apenas deslocamento; a emenda central não é suavizada.",
+      "tiling": "Prévia do mosaico",
+      "cols": "Colunas",
+      "rows": "Linhas",
+      "outputSize": "Tamanho de saída",
+      "unitSize": "Unidade",
+      "sheetSize": "Mosaico",
+      "oversized": "A saída do mosaico excede o limite do canvas do navegador. Reduza linhas/colunas ou o tamanho da unidade.",
+      "failed": "Falha ao gerar. Tente novamente.",
+      "canvasAria": "Prévia do padrão sem emendas",
+      "cta": {
+        "exportUnit": "Exportar unidade",
+        "exportSheet": "Exportar mosaico",
+        "exportBatch": "Exportar seleção ({n})"
+      },
+      "source": "Tipo de padrão",
+      "sources": {
+        "fullBleed": "Padrão completo",
+        "motif": "Motivo isolado"
+      },
+      "sourceHints": {
+        "fullBleed": "Padrão contínuo: as quatro bordas são unidas e a emenda vai para o centro.",
+        "motif": "Motivo isolado com fundo transparente: mantém o layout e se repete como está."
+      },
+      "seamGap": "Espaço da emenda",
+      "padding": "Margem",
+      "rotate": "Rotação",
+      "rotateHint": "A rotação muda só a orientação dentro da unidade, não a emenda.",
+      "pow2": "Lado em potência de 2",
+      "pow2Hint": "Arredonda o tamanho da unidade para a potência de 2 mais próxima (jogos/texturas).",
+      "print": "Impressão",
+      "printSize": "Tamanho de impressão",
+      "dpiHint": "O DPI é gravado no cabeçalho PNG/JPEG; programas de layout leem o tamanho real.",
+      "seamScore": "Emenda",
+      "seamGrades": {
+        "perfect": "Invisível",
+        "good": "Boa",
+        "fair": "Média",
+        "poor": "Fraca"
+      },
+      "seamHint": "Emenda fraca: tente mosaico espelhado ou aumente o suavizado."
     }
   },
   "cover": {

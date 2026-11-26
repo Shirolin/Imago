@@ -17,7 +17,8 @@ import {
   Box,
   Heart,
   Eraser,
-  Stamp
+  Stamp,
+  Grid2X2
 } from 'lucide-vue-next'
 import { usePreferredReducedMotion } from '@vueuse/core'
 import { enterPage, leavePage } from './components/motion/pageAnime'
@@ -179,7 +180,8 @@ const menuGroups = computed(() => [
     label: t('nav.groups.edit'),
     items: [
       { name: t('tools.split.name'), path: '/split', icon: Split },
-      { name: t('tools.combine.name'), path: '/combine', icon: Layers }
+      { name: t('tools.combine.name'), path: '/combine', icon: Layers },
+      { name: t('tools.seamless.name'), path: '/seamless', icon: Grid2X2 }
     ]
   },
   {
@@ -204,6 +206,7 @@ const currentRouteName = computed(() => {
     'exif',
     'favicon',
     'combine',
+    'seamless',
     'bgRemove',
     'filters',
     'moldCut'

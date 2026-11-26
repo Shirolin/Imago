@@ -37,7 +37,9 @@
         "resized": "_リサイズ",
         "split": "_分割",
         "combined": "_結合",
-        "moldCut": "_型抜き"
+        "moldCut": "_型抜き",
+        "seamlessUnit": "_シームレス",
+        "seamlessSheet": "_タイル"
       },
       "targetSize": "目標ファイルサイズ",
       "colorsUnit": "色",
@@ -744,6 +746,75 @@
       "verticalLine": "垂直",
       "verticalRows": "垂直分割行数",
       "viewSettings": "ビュー表示設定"
+    },
+    "seamless": {
+      "name": "シームレス柄",
+      "desc": "上下左右に繰り返せる継ぎ目のないユニットを作る",
+      "mode": "繰り返し方",
+      "modes": {
+        "straight": "ストレート",
+        "halfDrop": "ハーフドロップ",
+        "brick": "レンガ",
+        "horizontal": "横方向",
+        "vertical": "縦方向",
+        "mirror": "ミラー"
+      },
+      "modeHints": {
+        "straight": "格子状に揃えて並べます。小柄や均一なテクスチャ向き。",
+        "halfDrop": "1列ごとに半マス下げ、格子感を弱めます。大柄向き。",
+        "brick": "1行ごとに半マス右へずらし、レンガ状に並べます。",
+        "horizontal": "横方向にだけ繰り返します。縁柄やストライプ向き。",
+        "vertical": "縦方向にだけ繰り返します。",
+        "mirror": "隣り合うユニットを反転し、継ぎ目を出さずに並べます。"
+      },
+      "unit": "ユニットサイズ",
+      "width": "幅",
+      "height": "高さ",
+      "lockRatio": "比率を固定",
+      "unlockRatio": "比率を解除",
+      "gap": "間隔 / 余白",
+      "feather": "継ぎ目のぼかし",
+      "featherOff": "0 のときはオフセット折り返しのみで、中央の継ぎ目はぼかしません。",
+      "tiling": "タイルプレビュー",
+      "cols": "列数",
+      "rows": "行数",
+      "outputSize": "出力サイズ",
+      "unitSize": "ユニット",
+      "sheetSize": "タイル",
+      "oversized": "タイル出力がブラウザのキャンバス上限を超えています。行数・列数かユニットサイズを減らしてください。",
+      "failed": "生成に失敗しました。もう一度お試しください。",
+      "canvasAria": "シームレス柄のプレビュー",
+      "cta": {
+        "exportUnit": "ユニットを書き出す",
+        "exportSheet": "タイルを書き出す",
+        "exportBatch": "選択を書き出す（{n}）"
+      },
+      "source": "柄の種類",
+      "sources": {
+        "fullBleed": "全面柄",
+        "motif": "単体モチーフ"
+      },
+      "sourceHints": {
+        "fullBleed": "全面に続く柄。四辺をつなぎ、継ぎ目をユニット中央へ移動します。",
+        "motif": "透明背景の単体モチーフ。配置を保ったままユニットとして繰り返します。"
+      },
+      "seamGap": "継ぎ目の間隔",
+      "padding": "余白",
+      "rotate": "回転",
+      "rotateHint": "回転はユニット内の向きだけを変え、継ぎ目には影響しません。",
+      "pow2": "辺を 2 の累乗に",
+      "pow2Hint": "ユニットサイズを最も近い 2 の累乗に丸めます。ゲーム/テクスチャ向け。",
+      "print": "印刷",
+      "printSize": "印刷サイズ",
+      "dpiHint": "DPI は PNG/JPEG のヘッダーに書き込まれ、レイアウトソフトが実寸を読み取れます。",
+      "seamScore": "継ぎ目",
+      "seamGrades": {
+        "perfect": "シームレス",
+        "good": "良好",
+        "fair": "普通",
+        "poor": "弱い"
+      },
+      "seamHint": "継ぎ目が目立ちます。ミラー配置にするか、ぼかしを強めてください。"
     }
   },
   "cover": {

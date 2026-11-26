@@ -36,7 +36,9 @@
         "resized": "_크기조정됨",
         "split": "_분할됨",
         "combined": "_결합됨",
-        "moldCut": "_틀"
+        "moldCut": "_틀",
+        "seamlessUnit": "_사방연속",
+        "seamlessSheet": "_타일"
       },
       "targetSize": "목표 용량",
       "colorsUnit": "색상 수",
@@ -740,6 +742,75 @@
       "verticalLine": "세로선",
       "verticalRows": "수직 행 수",
       "viewSettings": "보기 설정"
+    },
+    "seamless": {
+      "name": "사방 연속",
+      "desc": "상하좌우로 이어지는 이음새 없는 유닛 만들기",
+      "mode": "반복 방식",
+      "modes": {
+        "straight": "스트레이트",
+        "halfDrop": "1/2 드롭",
+        "brick": "벽돌",
+        "horizontal": "가로",
+        "vertical": "세로",
+        "mirror": "미러"
+      },
+      "modeHints": {
+        "straight": "행과 열을 가지런히 맞춥니다. 작은 모티프와 균일한 텍스처에 적합합니다.",
+        "halfDrop": "한 칸 걸러 반 칸씩 내려 격자 느낌을 줄입니다. 큰 모티프에 적합합니다.",
+        "brick": "한 줄 걸러 반 칸씩 오른쪽으로 밀어 벽돌처럼 쌓습니다.",
+        "horizontal": "가로 방향으로만 반복합니다. 가장자리 무늬와 스트라이프에 적합합니다.",
+        "vertical": "세로 방향으로만 반복합니다.",
+        "mirror": "이웃 유닛을 반전해 이음새가 생기지 않게 배치합니다."
+      },
+      "unit": "유닛 크기",
+      "width": "너비",
+      "height": "높이",
+      "lockRatio": "비율 고정",
+      "unlockRatio": "비율 해제",
+      "gap": "간격 / 여백",
+      "feather": "이음새 페더",
+      "featherOff": "0이면 오프셋 접기만 하고 중앙 이음새를 부드럽게 하지 않습니다.",
+      "tiling": "타일 미리보기",
+      "cols": "열",
+      "rows": "행",
+      "outputSize": "출력 크기",
+      "unitSize": "유닛",
+      "sheetSize": "타일",
+      "oversized": "타일 출력이 브라우저 캔버스 한도를 넘습니다. 행/열 수나 유닛 크기를 줄이세요.",
+      "failed": "생성에 실패했습니다. 다시 시도하세요.",
+      "canvasAria": "사방 연속 미리보기",
+      "cta": {
+        "exportUnit": "유닛 내보내기",
+        "exportSheet": "타일 내보내기",
+        "exportBatch": "선택 항목 내보내기 ({n})"
+      },
+      "source": "패턴 유형",
+      "sources": {
+        "fullBleed": "전체 패턴",
+        "motif": "단일 모티프"
+      },
+      "sourceHints": {
+        "fullBleed": "네 변을 이어 이음새를 유닛 중앙으로 옮깁니다.",
+        "motif": "투명 배경 단일 모티프입니다. 배치를 유지한 채 유닛으로 반복합니다."
+      },
+      "seamGap": "이음새 간격",
+      "padding": "여백",
+      "rotate": "회전",
+      "rotateHint": "회전은 유닛 안의 방향만 바꾸며 이음새에는 영향이 없습니다.",
+      "pow2": "변 길이를 2의 거듭제곱으로",
+      "pow2Hint": "유닛 크기를 가장 가까운 2의 거듭제곱으로 맞춥니다. 게임/텍스처 파이프라인용.",
+      "print": "인쇄",
+      "printSize": "인쇄 크기",
+      "dpiHint": "DPI는 PNG/JPEG 헤더에 기록되어 레이아웃 앱이 실제 크기를 읽습니다.",
+      "seamScore": "이음새",
+      "seamGrades": {
+        "perfect": "무결",
+        "good": "좋음",
+        "fair": "보통",
+        "poor": "약함"
+      },
+      "seamHint": "이음새가 약합니다. 미러 타일링을 쓰거나 페더를 늘리세요."
     }
   },
   "cover": {

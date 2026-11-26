@@ -37,7 +37,9 @@
         "resized": "_缩放",
         "split": "_分割",
         "combined": "_合并",
-        "moldCut": "_模具切"
+        "moldCut": "_模具切",
+        "seamlessUnit": "_无缝单元",
+        "seamlessSheet": "_平铺图"
       },
       "targetSize": "目标文件体积",
       "colorsUnit": "色数",
@@ -744,6 +746,75 @@
       "verticalLine": "竖线",
       "verticalRows": "垂直切分行数",
       "viewSettings": "编辑器视图偏好"
+    },
+    "seamless": {
+      "name": "四方连续",
+      "desc": "把图案接成上下左右都能循环的无缝单元",
+      "mode": "接版方式",
+      "modes": {
+        "straight": "平接",
+        "halfDrop": "1/2 跳接",
+        "brick": "砖块式",
+        "horizontal": "横向二方",
+        "vertical": "纵向二方",
+        "mirror": "镜像平铺"
+      },
+      "modeHints": {
+        "straight": "行列对齐，适合小碎花与均匀纹理。",
+        "halfDrop": "每隔一列下移半格，网格感更弱，适合大花型。",
+        "brick": "每隔一行右移半格，接近砌砖排列。",
+        "horizontal": "只沿水平方向循环，适合边花与条纹。",
+        "vertical": "只沿垂直方向循环。",
+        "mirror": "相邻单元镜像翻转，接缝天然连续。"
+      },
+      "unit": "单元尺寸",
+      "width": "宽",
+      "height": "高",
+      "lockRatio": "锁定比例",
+      "unlockRatio": "解锁比例",
+      "gap": "间距 / 留白",
+      "feather": "接缝羽化",
+      "featherOff": "0 表示只做偏移折返，不柔化中心接缝。",
+      "tiling": "平铺预览",
+      "cols": "列数",
+      "rows": "行数",
+      "outputSize": "导出尺寸",
+      "unitSize": "单元",
+      "sheetSize": "平铺",
+      "oversized": "平铺尺寸超出浏览器画布上限，请减少行列数或单元尺寸。",
+      "failed": "生成失败，请重试。",
+      "canvasAria": "无缝平铺预览",
+      "cta": {
+        "exportUnit": "导出单元",
+        "exportSheet": "导出平铺图",
+        "exportBatch": "导出选中（{n}）"
+      },
+      "source": "图案类型",
+      "sources": {
+        "fullBleed": "满版连续图",
+        "motif": "单元图形"
+      },
+      "sourceHints": {
+        "fullBleed": "满版花纹：把原图四边接起来，接缝折返到单元中心。",
+        "motif": "单个花型（透明底）：保留原版式，平铺时按单元重复。"
+      },
+      "seamGap": "接缝间距",
+      "padding": "四周留白",
+      "rotate": "旋转",
+      "rotateHint": "旋转只改变单元内的摆放角度，不影响无缝。",
+      "pow2": "边长取 2 的幂",
+      "pow2Hint": "单元宽高按最近的 2 的幂输出，方便游戏与纹理管线。",
+      "print": "打印",
+      "printSize": "打印尺寸",
+      "dpiHint": "DPI 写入 PNG/JPEG 文件头，排版软件可直接读物理尺寸。",
+      "seamScore": "接缝",
+      "seamGrades": {
+        "perfect": "无缝",
+        "good": "良好",
+        "fair": "一般",
+        "poor": "偏弱"
+      },
+      "seamHint": "接缝偏弱：试试镜像平铺，或加大接缝羽化。"
     }
   },
   "cover": {

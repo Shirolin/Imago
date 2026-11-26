@@ -37,7 +37,9 @@
         "resized": "_skaliert",
         "split": "_geteilt",
         "combined": "_kombiniert",
-        "moldCut": "_form"
+        "moldCut": "_form",
+        "seamlessUnit": "_nahtlos",
+        "seamlessSheet": "_kachel"
       },
       "targetSize": "Ziel-Dateigröße",
       "colorsUnit": "Farben",
@@ -744,6 +746,75 @@
       "verticalLine": "Vertikal",
       "verticalRows": "Vertikale Zeilen",
       "viewSettings": "Ansichtseinstellungen"
+    },
+    "seamless": {
+      "name": "Nahtlos-Muster",
+      "desc": "Ein Muster zu einer in alle Richtungen wiederholbaren Einheit machen",
+      "mode": "Wiederholung",
+      "modes": {
+        "straight": "Gerade",
+        "halfDrop": "Halbversatz",
+        "brick": "Ziegel",
+        "horizontal": "Horizontal",
+        "vertical": "Vertikal",
+        "mirror": "Spiegel"
+      },
+      "modeHints": {
+        "straight": "Zeilen und Spalten liegen exakt aufeinander. Gut für kleine Motive und gleichmäßige Texturen.",
+        "halfDrop": "Jede zweite Spalte rutscht eine halbe Zelle nach unten.",
+        "brick": "Jede zweite Zeile rutscht eine halbe Zelle nach rechts, wie Mauerwerk.",
+        "horizontal": "Wiederholt sich nur horizontal, für Borten und Streifen.",
+        "vertical": "Wiederholt sich nur vertikal.",
+        "mirror": "Benachbarte Kacheln werden gespiegelt, die Naht ist konstruktiv unsichtbar."
+      },
+      "unit": "Einheitsgröße",
+      "width": "Breite",
+      "height": "Höhe",
+      "lockRatio": "Seitenverhältnis sperren",
+      "unlockRatio": "Seitenverhältnis lösen",
+      "gap": "Abstand / Rand",
+      "feather": "Naht weichzeichnen",
+      "featherOff": "0 bedeutet nur Versatz; die mittlere Naht wird nicht weichgezeichnet.",
+      "tiling": "Kachelvorschau",
+      "cols": "Spalten",
+      "rows": "Zeilen",
+      "outputSize": "Ausgabegröße",
+      "unitSize": "Einheit",
+      "sheetSize": "Kachel",
+      "oversized": "Die Kachelausgabe überschreitet das Canvas-Limit des Browsers. Verringere Spalten/Zeilen oder die Einheitsgröße.",
+      "failed": "Erstellen fehlgeschlagen. Bitte erneut versuchen.",
+      "canvasAria": "Vorschau des nahtlosen Musters",
+      "cta": {
+        "exportUnit": "Einheit exportieren",
+        "exportSheet": "Kachel exportieren",
+        "exportBatch": "Auswahl exportieren ({n})"
+      },
+      "source": "Mustertyp",
+      "sources": {
+        "fullBleed": "Vollflächig",
+        "motif": "Einzelmotiv"
+      },
+      "sourceHints": {
+        "fullBleed": "Durchgehendes Muster: die vier Kanten werden verbunden, die Naht wandert in die Mitte.",
+        "motif": "Einzelmotiv auf Transparenz: behält sein Layout und wird als Einheit wiederholt."
+      },
+      "seamGap": "Nahtabstand",
+      "padding": "Rand",
+      "rotate": "Drehung",
+      "rotateHint": "Die Drehung ändert nur die Ausrichtung in der Einheit, nicht die Naht.",
+      "pow2": "Kantenlänge als Zweierpotenz",
+      "pow2Hint": "Rundet die Einheitsgröße auf die nächste Zweierpotenz (Spiele/Texturen).",
+      "print": "Druck",
+      "printSize": "Druckgröße",
+      "dpiHint": "DPI wird in den PNG/JPEG-Header geschrieben, Layoutprogramme lesen die physische Größe.",
+      "seamScore": "Naht",
+      "seamGrades": {
+        "perfect": "Nahtlos",
+        "good": "Gut",
+        "fair": "Mittel",
+        "poor": "Schwach"
+      },
+      "seamHint": "Schwache Naht: Spiegelkachelung versuchen oder die Nahtweichzeichnung erhöhen."
     }
   },
   "cover": {
