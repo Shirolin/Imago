@@ -2,15 +2,7 @@
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import JSZip from 'jszip'
-import {
-  Download,
-  Grid2X2,
-  Link as LinkIcon,
-  Unlink,
-  Loader2,
-  Layers,
-  Printer
-} from 'lucide-vue-next'
+import { Download, Frame, Grid2X2, LayoutGrid, Loader2, Layers, Printer } from 'lucide-vue-next'
 import { useImageStore, type ImageItem } from '../stores/imageStore'
 import { useFileHelpers } from '../composables/useFileHelpers'
 import {
@@ -151,6 +143,12 @@ const seamLabel = computed(() =>
   seamReport.value ? t(`tools.seamless.seamGrades.${seamReport.value.grade}`) : ''
 )
 const seamWeak = computed(() => seamReport.value?.grade === 'poor')
+const seamTone = computed(() => {
+  const grade = seamReport.value?.grade
+  if (grade === 'poor') return 'text-[var(--danger)]'
+  if (grade === 'fair') return 'text-[var(--muted)]'
+  return 'text-[var(--ink)]'
+})
 const gapLabel = computed(() =>
   t(isMotif.value ? 'tools.seamless.padding' : 'tools.seamless.seamGap')
 )
@@ -189,8 +187,8 @@ const handleH = (v: number | string | undefined) => {
   }
 }
 
-const toggleLock = () => {
-  lockRatio.value = !lockRatio.value
+const setLock = (on: boolean | undefined) => {
+  lockRatio.value = !!on
   if (lockRatio.value && unitH.value > 0) ratio.value = unitW.value / unitH.value
 }
 
@@ -512,6 +510,7 @@ const exportBatch = async () => {
                 v-if="seamReport"
                 class="pl-2 border-l border-[var(--hairline)]"
                 :class="seamWeak ? 'text-[var(--danger)]' : 'text-[var(--ink)]'"
+                :title="t('tools.seamless.seamScoreHint')"
               >
                 {{ t('tools.seamless.seamScore') }} {{ seamReport.score }} · {{ seamLabel }}
               </span>
@@ -543,41 +542,38 @@ const exportBatch = async () => {
         <AppTip status>{{ modeHint }}</AppTip>
       </section>
 
-      <section class="space-y-4 pt-6 border-t border-[var(--hairline)]">
-        <AppSectionHeader :title="t('tools.seamless.unit')" :icon="Grid2X2" />
-        <div class="flex items-end gap-2 px-1">
-          <div class="flex-1 space-y-1">
+      <section class="space-y-3 pt-6 border-t border-[var(--hairline)]">
+        <AppSectionHeader :title="t('tools.seamless.unit')" :icon="Frame" />
+        <div class="grid grid-cols-2 gap-2 px-1">
+          <div class="space-y-1">
             <label class="text-[11px] text-[var(--muted)]">{{ t('tools.seamless.width') }}</label>
             <AppInput
               type="number"
               :model-value="unitW"
               :min="1"
               :max="MAX_SEAMLESS_SIDE"
+              :aria-label="t('tools.seamless.width')"
               @update:model-value="handleW"
             />
           </div>
-          <button
-            class="w-9 h-9 mb-[1px] flex items-center justify-center rounded-[var(--radius-ctrl)] border border-[var(--hairline)] text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[var(--well)] transition-colors"
-            :title="lockRatio ? t('tools.seamless.unlockRatio') : t('tools.seamless.lockRatio')"
-            :aria-label="
-              lockRatio ? t('tools.seamless.unlockRatio') : t('tools.seamless.lockRatio')
-            "
-            :aria-pressed="lockRatio"
-            @click="toggleLock"
-          >
-            <component :is="lockRatio ? LinkIcon : Unlink" :size="15" />
-          </button>
-          <div class="flex-1 space-y-1">
+          <div class="space-y-1">
             <label class="text-[11px] text-[var(--muted)]">{{ t('tools.seamless.height') }}</label>
             <AppInput
               type="number"
               :model-value="unitH"
               :min="1"
               :max="MAX_SEAMLESS_SIDE"
+              :aria-label="t('tools.seamless.height')"
               @update:model-value="handleH"
             />
           </div>
         </div>
+
+        <AppCheckbox
+          :model-value="lockRatio"
+          :label="t('tools.seamless.lockRatio')"
+          @update:model-value="setLock"
+        />
 
         <AppCheckbox
           :model-value="pow2"
@@ -620,10 +616,22 @@ const exportBatch = async () => {
         <AppTip v-if="seamWeak" status class="text-[var(--danger)]">{{
           t('tools.seamless.seamHint')
         }}</AppTip>
+
+        <div v-if="seamReport" class="flex items-center justify-between px-1 text-[11px]">
+          <span class="text-[var(--muted)]">{{ t('tools.seamless.seamScoreLabel') }}</span>
+          <span
+            class="inline-flex items-center gap-1.5 font-medium tabular-nums"
+            :class="seamTone"
+            :title="t('tools.seamless.seamScoreHint')"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-current opacity-70"></span>
+            {{ seamReport.score }} · {{ seamLabel }}
+          </span>
+        </div>
       </section>
 
       <section class="space-y-4 pt-6 border-t border-[var(--hairline)]">
-        <AppSectionHeader :title="t('tools.seamless.tiling')" :icon="Grid2X2" />
+        <AppSectionHeader :title="t('tools.seamless.tiling')" :icon="LayoutGrid" />
         <div class="flex items-end gap-2 px-1">
           <div v-if="mode !== 'vertical'" class="flex-1 space-y-1">
             <label class="text-[11px] text-[var(--muted)]">{{ t('tools.seamless.cols') }}</label>
@@ -632,6 +640,7 @@ const exportBatch = async () => {
               :model-value="effectiveCols"
               :min="1"
               :max="8"
+              :aria-label="t('tools.seamless.cols')"
               @update:model-value="handleCols"
             />
           </div>
@@ -642,6 +651,7 @@ const exportBatch = async () => {
               :model-value="effectiveRows"
               :min="1"
               :max="8"
+              :aria-label="t('tools.seamless.rows')"
               @update:model-value="handleRows"
             />
           </div>
@@ -686,11 +696,14 @@ const exportBatch = async () => {
           :disabled="!canExport"
           @click="exportBatch"
         >
-          {{
-            isExporting && exportTarget === 'batch'
-              ? `${batchDone}/${batchImages.length}`
-              : t('tools.seamless.cta.exportBatch', { n: batchImages.length })
-          }}
+          <span class="inline-flex items-center gap-2">
+            <Download v-if="!(isExporting && exportTarget === 'batch')" :size="15" />
+            {{
+              isExporting && exportTarget === 'batch'
+                ? `${batchDone}/${batchImages.length}`
+                : t('tools.seamless.cta.exportBatch', { n: batchImages.length })
+            }}
+          </span>
         </AppButton>
       </div>
     </template>

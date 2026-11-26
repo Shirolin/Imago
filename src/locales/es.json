@@ -775,7 +775,7 @@
       "gap": "Separación / margen",
       "feather": "Difuminar uniones",
       "featherOff": "0 = solo desplazamiento; la unión central no se suaviza.",
-      "tiling": "Vista previa del mosaico",
+      "tiling": "Cuadrícula de repetición",
       "cols": "Columnas",
       "rows": "Filas",
       "outputSize": "Tamaño de salida",
@@ -808,6 +808,8 @@
       "printSize": "Tamaño de impresión",
       "dpiHint": "El DPI se escribe en la cabecera PNG/JPEG y los programas de maquetación leen el tamaño real.",
       "seamScore": "Costura",
+    "seamScoreLabel": "Puntuación de costura",
+    "seamScoreHint": "Calculada por la diferencia de píxeles en los bordes de la baldosa; 100 = sin costura visible.",
       "seamGrades": {
         "perfect": "Invisible",
         "good": "Buena",

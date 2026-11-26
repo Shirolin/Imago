@@ -775,7 +775,7 @@
       "gap": "Abstand / Rand",
       "feather": "Naht weichzeichnen",
       "featherOff": "0 bedeutet nur Versatz; die mittlere Naht wird nicht weichgezeichnet.",
-      "tiling": "Kachelvorschau",
+      "tiling": "Kachelraster",
       "cols": "Spalten",
       "rows": "Zeilen",
       "outputSize": "Ausgabegröße",
@@ -808,6 +808,8 @@
       "printSize": "Druckgröße",
       "dpiHint": "DPI wird in den PNG/JPEG-Header geschrieben, Layoutprogramme lesen die physische Größe.",
       "seamScore": "Naht",
+    "seamScoreLabel": "Nahtwert",
+    "seamScoreHint": "Bewertet anhand der Pixelunterschiede an den Kachelrändern; 100 = keine sichtbare Naht.",
       "seamGrades": {
         "perfect": "Nahtlos",
         "good": "Gut",

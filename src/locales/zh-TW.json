@@ -775,7 +775,7 @@
       "gap": "間距 / 留白",
       "feather": "接縫羽化",
       "featherOff": "0 表示只做偏移折返，不柔化中心接縫。",
-      "tiling": "平鋪預覽",
+      "tiling": "平鋪行列",
       "cols": "列數",
       "rows": "行數",
       "outputSize": "匯出尺寸",
@@ -808,6 +808,8 @@
       "printSize": "列印尺寸",
       "dpiHint": "DPI 寫入 PNG/JPEG 檔頭，排版軟體可直接讀實際尺寸。",
       "seamScore": "接縫",
+    "seamScoreLabel": "接縫評分",
+    "seamScoreHint": "依平鋪邊界的相鄰像素差評分，100 表示看不出接縫。",
       "seamGrades": {
         "perfect": "無縫",
         "good": "良好",

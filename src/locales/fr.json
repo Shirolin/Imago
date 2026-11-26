@@ -775,7 +775,7 @@
       "gap": "Espacement / marge",
       "feather": "Fondu des coutures",
       "featherOff": "0 = décalage seul, la couture centrale n'est pas adoucie.",
-      "tiling": "Aperçu du pavage",
+      "tiling": "Grille de répétition",
       "cols": "Colonnes",
       "rows": "Lignes",
       "outputSize": "Taille de sortie",
@@ -808,6 +808,8 @@
       "printSize": "Taille d'impression",
       "dpiHint": "Le DPI est écrit dans l'en-tête PNG/JPEG : les logiciels de mise en page lisent la taille réelle.",
       "seamScore": "Couture",
+    "seamScoreLabel": "Score de joint",
+    "seamScoreHint": "Calculé d’après l’écart de pixels aux bords de la tuile ; 100 = joint invisible.",
       "seamGrades": {
         "perfect": "Invisible",
         "good": "Bonne",

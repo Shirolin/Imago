@@ -775,7 +775,7 @@
       "gap": "間隔 / 余白",
       "feather": "継ぎ目のぼかし",
       "featherOff": "0 のときはオフセット折り返しのみで、中央の継ぎ目はぼかしません。",
-      "tiling": "タイルプレビュー",
+      "tiling": "タイル配列",
       "cols": "列数",
       "rows": "行数",
       "outputSize": "出力サイズ",
@@ -808,6 +808,8 @@
       "printSize": "印刷サイズ",
       "dpiHint": "DPI は PNG/JPEG のヘッダーに書き込まれ、レイアウトソフトが実寸を読み取れます。",
       "seamScore": "継ぎ目",
+    "seamScoreLabel": "継ぎ目スコア",
+    "seamScoreHint": "タイル境界の隣接ピクセル差で採点。100 は継ぎ目が見えない状態。",
       "seamGrades": {
         "perfect": "シームレス",
         "good": "良好",
